@@ -11,6 +11,7 @@
 #include "stdio.h"
 
 #include "pins.h"
+#include "lcd.h"
 
 void system_power (uint32_t ui32_state)
 {
@@ -24,24 +25,12 @@ void system_power (uint32_t ui32_state)
   }
 }
 
-void lcd_backlight (uint32_t ui32_state)
-{
-  if (ui32_state)
-  {
-    GPIO_SetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-  else
-  {
-    GPIO_ResetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-}
-
 int main(void)
 {
   pins_init ();
 
   system_power (1);
-  lcd_backlight (1);
+  lcd_init ();
 
   while (1)
   {

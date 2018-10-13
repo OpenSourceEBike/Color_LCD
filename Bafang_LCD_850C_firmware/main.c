@@ -10,24 +10,42 @@
 #include "stm32f10x_gpio.h"
 #include "stdio.h"
 
-#define TEST__PIN               GPIO_Pin_3
-#define TEST__PORT              GPIOB
+#include "pins.h"
+
+void system_power (uint32_t ui32_state)
+{
+  if (ui32_state)
+  {
+    GPIO_SetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+  }
+  else
+  {
+    GPIO_ResetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+  }
+}
+
+void lcd_backlight (uint32_t ui32_state)
+{
+  if (ui32_state)
+  {
+    GPIO_SetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
+  }
+  else
+  {
+    GPIO_ResetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
+  }
+}
 
 int main(void)
 {
-  /* Enable clocks */
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+  pins_init ();
 
-  GPIO_InitTypeDef GPIO_InitStructure;
-  GPIO_InitStructure.GPIO_Pin = TEST__PIN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(TEST__PORT, &GPIO_InitStructure);
+  system_power (1);
+  lcd_backlight (1);
 
   while (1)
   {
-    GPIO_ResetBits(TEST__PORT, TEST__PIN);
-    GPIO_SetBits(TEST__PORT, TEST__PIN);
+
   }
 }
 

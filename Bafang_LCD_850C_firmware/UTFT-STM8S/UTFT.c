@@ -164,12 +164,23 @@ void UTFT_SER(byte model)
 	}
 }
 
-uint16_t UTFT_read_reg_0 (uint8_t ui8_reg)
+uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
 {
   uint8_t ui8_i;
-  static uint16_t ui16_reg_0_value;
+  uint32_t ui32_reg_0_value = 0;
+  uint32_t ui32_reg_0_value_array [2];
   
+//  cbi(UTFT_P_CS, UTFT_B_CS);
+//  UTFT_LCD_Write_COM(0xB0);     //Command Access Protect
+//  sbi(UTFT_P_CS, UTFT_B_CS);
+//
+//  cbi(UTFT_P_CS, UTFT_B_CS);
+//  UTFT_LCD_Write_DATA_VL(0x00); //looks wrong
+//  sbi(UTFT_P_CS, UTFT_B_CS);
+
+  cbi(UTFT_P_CS, UTFT_B_CS);
   UTFT_LCD_Write_COM (ui8_reg);
+  sbi(UTFT_P_CS, UTFT_B_CS);
   
   // set data lines as input
   GPIO_InitTypeDef GPIO_InitStructure;
@@ -180,23 +191,25 @@ uint16_t UTFT_read_reg_0 (uint8_t ui8_reg)
   
   delay (10);
   
-  for (ui8_i = 0; ui8_i < 2; ui8_i++)
+  cbi(UTFT_P_CS, UTFT_B_CS);
+  for (ui8_i = 0; ui8_i < 4; ui8_i++)
   {
     GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
 //    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
     sbi(UTFT_P_RS, UTFT_B_RS); // data on BUS is data
     sbi(UTFT_P_WR, UTFT_B_WR);
 
-    delay (10);
+//    delay (10);
     GPIO_ResetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
 //    GPIO_ResetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
-    delay (10);
+//    delay (10);
     
-    ui16_reg_0_value = GPIO_ReadInputData (GPIOB);
+    ui32_reg_0_value_array [ui8_i] = (uint32_t) (GPIO_ReadInputData (GPIOB));
 
     GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
 //    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
   }
+  sbi(UTFT_P_CS, UTFT_B_CS);
   
   // set data lines as output again
   GPIO_InitStructure.GPIO_Pin = 0xffff;
@@ -204,7 +217,8 @@ uint16_t UTFT_read_reg_0 (uint8_t ui8_reg)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-  return ui16_reg_0_value;
+  ui32_reg_0_value = ui32_reg_0_value_array [0] + (ui32_reg_0_value_array [1] << 16);
+  return ui32_reg_0_value;
 }
 
 void UTFT_LCD_Write_COM(char VL)  

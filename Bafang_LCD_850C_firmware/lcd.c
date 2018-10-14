@@ -63,16 +63,16 @@ void lcd_init (void)
   // enable backlight
   lcd_backlight (1);
 
-//  while (1)
-//  {
-    for (ui8_i = 0; ui8_i < 25; ui8_i++)
-    {
-      ui16_reg_value = UTFT_read_reg_0 (ui8_i);
-    }
-//  }
-
   UTFT ();
   UTFT_InitLCD ();
+
+  //  while (1)
+  //  {
+      for (ui8_i = 0; ui8_i < 255; ui8_i++)
+      {
+        ui16_reg_value = UTFT_read_reg_0 (ui8_i);
+      }
+  //  }
 }
 
 void lcd_backlight (uint32_t ui32_state)

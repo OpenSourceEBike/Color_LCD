@@ -172,7 +172,7 @@ struct _current_font
 	uint8_t numchars;
 };
 
-uint16_t UTFT_read_reg_0 (uint8_t ui8_reg);
+uint32_t UTFT_read_reg_0 (uint8_t ui8_reg);
 
 		void	UTFT (void);
 		void  UTFT_SER(byte model);

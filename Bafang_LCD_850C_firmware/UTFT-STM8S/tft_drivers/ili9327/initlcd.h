@@ -1,0 +1,63 @@
+case ILI9327:
+	UTFT_LCD_Write_COM(0xE9);
+	UTFT_LCD_Write_DATA(0x00,0x20);
+	UTFT_LCD_Write_COM(0x11); //Exit Sleep
+	delay(100);
+	UTFT_LCD_Write_COM(0xD1);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x71);
+	UTFT_LCD_Write_DATA(0x00,0x19);
+	UTFT_LCD_Write_COM(0xD0);
+	UTFT_LCD_Write_DATA(0x00,0x07);
+	UTFT_LCD_Write_DATA(0x00,0x01);
+	UTFT_LCD_Write_DATA(0x00,0x08);
+	UTFT_LCD_Write_COM(0x36);
+	UTFT_LCD_Write_DATA(0x00,0x48);
+	UTFT_LCD_Write_COM(0x3A);
+	UTFT_LCD_Write_DATA(0x00,0x05);
+	UTFT_LCD_Write_COM(0xC1);
+	UTFT_LCD_Write_DATA(0x00,0x10);
+	UTFT_LCD_Write_DATA(0x00,0x10);
+	UTFT_LCD_Write_DATA(0x00,0x02);
+	UTFT_LCD_Write_DATA(0x00,0x02);
+	UTFT_LCD_Write_COM(0xC0); //Set Default Gamma
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x35);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x01);
+	UTFT_LCD_Write_DATA(0x00,0x02);
+	UTFT_LCD_Write_COM(0xC5); //Set frame rate
+	UTFT_LCD_Write_DATA(0x00,0x04);
+	UTFT_LCD_Write_COM(0xD2); //power setting
+	UTFT_LCD_Write_DATA(0x00,0x01);
+	UTFT_LCD_Write_DATA(0x00,0x44);
+	UTFT_LCD_Write_COM(0xC8); //Set Gamma
+	UTFT_LCD_Write_DATA(0x00,0x04);
+	UTFT_LCD_Write_DATA(0x00,0x67);
+	UTFT_LCD_Write_DATA(0x00,0x35);
+	UTFT_LCD_Write_DATA(0x00,0x04);
+	UTFT_LCD_Write_DATA(0x00,0x08);
+	UTFT_LCD_Write_DATA(0x00,0x06);
+	UTFT_LCD_Write_DATA(0x00,0x24);
+	UTFT_LCD_Write_DATA(0x00,0x01);
+	UTFT_LCD_Write_DATA(0x00,0x37);
+	UTFT_LCD_Write_DATA(0x00,0x40);
+	UTFT_LCD_Write_DATA(0x00,0x03);
+	UTFT_LCD_Write_DATA(0x00,0x10);
+	UTFT_LCD_Write_DATA(0x00,0x08);
+	UTFT_LCD_Write_DATA(0x00,0x80);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_COM(0x2A); 
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0xeF);
+	UTFT_LCD_Write_COM(0x2B); 
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x00);
+	UTFT_LCD_Write_DATA(0x00,0x01);
+	UTFT_LCD_Write_DATA(0x00,0x8F);
+	UTFT_LCD_Write_COM(0x29); //display on      
+	UTFT_LCD_Write_COM(0x2C); //display on
+	break;

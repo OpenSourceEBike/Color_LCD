@@ -1,0 +1,10 @@
+case SSD1289:
+case SSD1289_8:
+case SSD1289LATCHED:
+	UTFT_LCD_Write_COM_DATA(0x44,(x2<<8)+x1);
+	UTFT_LCD_Write_COM_DATA(0x45,y1);
+	UTFT_LCD_Write_COM_DATA(0x46,y2);
+	UTFT_LCD_Write_COM_DATA(0x4e,x1);
+	UTFT_LCD_Write_COM_DATA(0x4f,y1);
+	UTFT_LCD_Write_COM(0x22); 
+	break;

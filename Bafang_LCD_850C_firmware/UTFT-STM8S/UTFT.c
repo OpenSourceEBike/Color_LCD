@@ -164,6 +164,49 @@ void UTFT_SER(byte model)
 	}
 }
 
+uint16_t UTFT_read_reg_0 (uint8_t ui8_reg)
+{
+  uint8_t ui8_i;
+  static uint16_t ui16_reg_0_value;
+  
+  UTFT_LCD_Write_COM (ui8_reg);
+  
+  // set data lines as input
+  GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitStructure.GPIO_Pin = 0xffff;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  
+  delay (10);
+  
+  for (ui8_i = 0; ui8_i < 2; ui8_i++)
+  {
+    GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
+//    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+    sbi(UTFT_P_RS, UTFT_B_RS); // data on BUS is data
+    sbi(UTFT_P_WR, UTFT_B_WR);
+
+    delay (10);
+    GPIO_ResetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
+//    GPIO_ResetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+    delay (10);
+    
+    ui16_reg_0_value = GPIO_ReadInputData (GPIOB);
+
+    GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
+//    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+  }
+  
+  // set data lines as output again
+  GPIO_InitStructure.GPIO_Pin = 0xffff;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  return ui16_reg_0_value;
+}
+
 void UTFT_LCD_Write_COM(char VL)  
 {   
 	if (UTFT_display_transfer_mode!=1)

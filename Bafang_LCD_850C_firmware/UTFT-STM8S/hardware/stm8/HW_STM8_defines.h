@@ -4,8 +4,8 @@
 #define cbi(reg, bitmask) (GPIO_ResetBits(reg, bitmask));
 #define sbi(reg, bitmask) (GPIO_SetBits(reg, bitmask));
 
-#define pulse_high(reg, bitmask) sbi(reg, bitmask); cbi(reg, bitmask);
-#define pulse_low(reg, bitmask) cbi(reg, bitmask); sbi(reg, bitmask);
+#define pulse_high(reg, bitmask) sbi(reg, bitmask); delay(10); cbi(reg, bitmask);
+#define pulse_low(reg, bitmask) cbi(reg, bitmask); delay(10); sbi(reg, bitmask);
 
 #define cport(port, data) port &= data
 #define sport(port, data) port |= data

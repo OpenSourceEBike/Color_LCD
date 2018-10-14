@@ -17,6 +17,9 @@ void lcd_backlight (uint32_t ui32_state);
 
 void lcd_init (void)
 {
+  static uint16_t ui16_reg_value;
+  uint8_t ui8_i;
+
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_InitStructure.GPIO_Pin = LCD_BACKLIGHT__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -59,6 +62,14 @@ void lcd_init (void)
 
   // enable backlight
   lcd_backlight (1);
+
+//  while (1)
+//  {
+    for (ui8_i = 0; ui8_i < 25; ui8_i++)
+    {
+      ui16_reg_value = UTFT_read_reg_0 (ui8_i);
+    }
+//  }
 
   UTFT ();
   UTFT_InitLCD ();

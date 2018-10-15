@@ -69,7 +69,8 @@ word			UTFT_offset_x, UTFT_offset_y;
 
 void UTFT (void)
 {
-  UTFT_SER(ILI9341_16); // background get dark after init
+  UTFT_SER(ILI9325D_16ALT); // background get dark after init
+//  UTFT_SER(SSD1289);
 //  UTFT_SER(SSD1963_800ALT); // some lines apears fast and then disapear at boot
 //  UTFT_SER(ILI9481); // background get dark after init
 //  UTFT_SER(ILI9325D_16ALT); // some flash at boot
@@ -166,10 +167,12 @@ void UTFT_SER(byte model)
 
 uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
 {
-  uint8_t ui8_i;
+  static uint16_t ui16_i;
   uint32_t ui32_reg_0_value = 0;
   uint32_t ui32_reg_0_value_array [2];
   
+  ui16_i = 0;
+
 //  cbi(UTFT_P_CS, UTFT_B_CS);
 //  UTFT_LCD_Write_COM(0xB0);     //Command Access Protect
 //  sbi(UTFT_P_CS, UTFT_B_CS);
@@ -179,20 +182,24 @@ uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
 //  sbi(UTFT_P_CS, UTFT_B_CS);
 
   cbi(UTFT_P_CS, UTFT_B_CS);
-  UTFT_LCD_Write_COM (ui8_reg);
+//  UTFT_LCD_Write_COM (ui8_reg);
+//  UTFT_LCD_Write_Bus(146, 34, 16); // 146: driver ID ILI9320 --> 0X9232
+//  UTFT_LCD_Write_Bus(147, 37, 16); // 9325 --> OUTPUT: 0X9335
+  cbi(UTFT_P_RS, UTFT_B_RS);
+//  UTFT_LCD_Write_Bus(147, 53, 16); // 9335 --> OUTPUT: 0X9335
   sbi(UTFT_P_CS, UTFT_B_CS);
   
   // set data lines as input
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_InitStructure.GPIO_Pin = 0xffff;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   
   delay (10);
   
   cbi(UTFT_P_CS, UTFT_B_CS);
-  for (ui8_i = 0; ui8_i < 4; ui8_i++)
+  for (ui16_i = 0; ui16_i < 1; ui16_i++)
   {
     GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
 //    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
@@ -204,10 +211,16 @@ uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
 //    GPIO_ResetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
 //    delay (10);
     
-    ui32_reg_0_value_array [ui8_i] = (uint32_t) (GPIO_ReadInputData (GPIOB));
+//    ui32_reg_0_value_array [ui16_i] = (uint32_t) (GPIO_ReadInputData (GPIOB));
+    ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
 
     GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
 //    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+
+    if ((ui32_reg_0_value != 0) && (ui32_reg_0_value != 0xffff))
+      {
+        ui32_reg_0_value_array [ui16_i] = 1;
+      }
   }
   sbi(UTFT_P_CS, UTFT_B_CS);
   

@@ -26,15 +26,15 @@ void lcd_init (void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(LCD_BACKLIGHT__PORT, &GPIO_InitStructure);
 
-  GPIO_InitStructure.GPIO_Pin = LCD_PIN_1__PIN;
+  GPIO_InitStructure.GPIO_Pin = LCD_READ__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(LCD_PIN_1__PORT, &GPIO_InitStructure);
+  GPIO_Init(LCD_READ__PORT, &GPIO_InitStructure);
 
-  GPIO_InitStructure.GPIO_Pin = LCD_PIN_2__PIN;
+  GPIO_InitStructure.GPIO_Pin = LCD_RESET__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(LCD_PIN_2__PORT, &GPIO_InitStructure);
+  GPIO_Init(LCD_RESET__PORT, &GPIO_InitStructure);
 
   GPIO_InitStructure.GPIO_Pin = LCD_COMMAND_DATA__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -57,8 +57,8 @@ void lcd_init (void)
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
   // these pins must be at 1 logic level (don't really know why)
-  GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
-  GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
+  GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
 
   // enable backlight
   lcd_backlight (1);

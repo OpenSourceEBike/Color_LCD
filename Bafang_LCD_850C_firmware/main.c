@@ -7,6 +7,7 @@
  */
 
 #include "stm32f10x.h"
+#include "stm32f10x_rcc.h"
 #include "stm32f10x_gpio.h"
 #include "stdio.h"
 
@@ -31,6 +32,8 @@ void system_power (uint32_t ui32_state)
 int main(void)
 {
   extern uint8_t SmallFont[];
+
+  RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
   pins_init ();
   delay_init ();

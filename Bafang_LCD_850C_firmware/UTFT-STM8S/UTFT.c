@@ -69,27 +69,23 @@ word			UTFT_offset_x, UTFT_offset_y;
 
 void UTFT (void)
 {
-  UTFT_SER(ILI9325D_16ALT); // background get dark after init
-//  UTFT_SER(SSD1289);
-//  UTFT_SER(SSD1963_800ALT); // some lines apears fast and then disapear at boot
-//  UTFT_SER(ILI9481); // background get dark after init
-//  UTFT_SER(ILI9325D_16ALT); // some flash at boot
+  UTFT_SER(ILI9335);
 }
 
 void UTFT_SER(byte model)
 { 
-	word	UTFT_dsx[] = {239, 239, 239, 239, 239, 239, 175, 175, 239, 127,						// 00-09
+	word	UTFT_dsx[33] = {239, 239, 239, 239, 239, 239, 175, 175, 239, 127,						// 00-09
 					 127, 239, 271, 479, 239, 239, 239, 239, 239, 239,						// 10-19
 					 479, 319, 239, 175,   0, 239, 239, 319, 319, 799,						// 20-29
-					 127, 127};																	// 30-31
-	word	UTFT_dsy[] = {319, 399, 319, 319, 319, 319, 219, 219, 399, 159,						// 00-09
+					 127, 127, 239};																	// 30-32
+	word	UTFT_dsy[33] = {319, 399, 319, 319, 319, 319, 219, 219, 399, 159,						// 00-09
 					 127, 319, 479, 799, 319, 319, 319, 319, 319, 319,						// 10-19
 					 799, 479, 319, 219,   0, 319, 319, 479, 479, 479,						// 20-29
-					 159, 159};																	// 30-31
-	byte	UTFT_dtm[] = {16, 16, 16, 8, 8, 16, 8, SERIAL_4PIN, 16, SERIAL_5PIN,					// 00-09
+					 159, 159, 319};																	// 30-32
+	byte	UTFT_dtm[33] = {16, 16, 16, 8, 8, 16, 8, SERIAL_4PIN, 16, SERIAL_5PIN,					// 00-09
 					 SERIAL_5PIN, 16, 16, 16, 8, 16, LATCHED_16, 16, 8, 8,					// 10-19
 					 16, 16, 16, 8, 0, SERIAL_5PIN, SERIAL_4PIN, 16, 16, 16,				// 20-29
-					 SERIAL_5PIN, 8};															// 30-31
+					 SERIAL_5PIN, 8, 16};															// 30-32
 
 	UTFT_disp_x_size =			UTFT_dsx[model];
 	UTFT_disp_y_size =			UTFT_dsy[model];
@@ -173,20 +169,15 @@ uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
   
   ui16_i = 0;
 
-//  cbi(UTFT_P_CS, UTFT_B_CS);
-//  UTFT_LCD_Write_COM(0xB0);     //Command Access Protect
-//  sbi(UTFT_P_CS, UTFT_B_CS);
-//
-//  cbi(UTFT_P_CS, UTFT_B_CS);
-//  UTFT_LCD_Write_DATA_VL(0x00); //looks wrong
-//  sbi(UTFT_P_CS, UTFT_B_CS);
-
   cbi(UTFT_P_CS, UTFT_B_CS);
 //  UTFT_LCD_Write_COM (ui8_reg);
 //  UTFT_LCD_Write_Bus(146, 34, 16); // 146: driver ID ILI9320 --> 0X9232
 //  UTFT_LCD_Write_Bus(147, 37, 16); // 9325 --> OUTPUT: 0X9335
   cbi(UTFT_P_RS, UTFT_B_RS);
 //  UTFT_LCD_Write_Bus(147, 53, 16); // 9335 --> OUTPUT: 0X9335
+
+  UTFT_LCD_Write_Bus(93, 26, 16); // 9335 --> OUTPUT:
+
   sbi(UTFT_P_CS, UTFT_B_CS);
   
   // set data lines as input
@@ -201,21 +192,15 @@ uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
   cbi(UTFT_P_CS, UTFT_B_CS);
   for (ui16_i = 0; ui16_i < 1; ui16_i++)
   {
-    GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
-//    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+    GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
     sbi(UTFT_P_RS, UTFT_B_RS); // data on BUS is data
     sbi(UTFT_P_WR, UTFT_B_WR);
 
-//    delay (10);
-    GPIO_ResetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
-//    GPIO_ResetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
-//    delay (10);
+    GPIO_ResetBits(LCD_READ__PORT, LCD_READ__PIN);
     
-//    ui32_reg_0_value_array [ui16_i] = (uint32_t) (GPIO_ReadInputData (GPIOB));
     ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
 
-    GPIO_SetBits(LCD_PIN_1__PORT, LCD_PIN_1__PIN);
-//    GPIO_SetBits(LCD_PIN_2__PORT, LCD_PIN_2__PIN);
+    GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
 
     if ((ui32_reg_0_value != 0) && (ui32_reg_0_value != 0xffff))
       {
@@ -243,6 +228,12 @@ void UTFT_LCD_Write_COM(char VL)
 	}
 	else
 		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
+}
+
+void UTFT_LCD_Write_COM_16b(uint16_t ui16_command)
+{
+    cbi(UTFT_P_RS, UTFT_B_RS);
+    UTFT_LCD_Write_Bus((char) ((ui16_command >> 8) & 0xff), (char) (ui16_command & 0xff), UTFT_display_transfer_mode);
 }
 
 void UTFT_LCD_Write_DATA(char VH,char VL)
@@ -393,6 +384,9 @@ void UTFT_InitLCD_orientation(byte orientation)
 #endif
 #ifndef DISABLE_ST7735_8
 	#include "tft_drivers/st7735/8/initlcd.h"
+#endif
+#ifndef DISABLE_ILI9335
+  #include "tft_drivers/ili9335/initlcd.h"
 #endif
 	}
 

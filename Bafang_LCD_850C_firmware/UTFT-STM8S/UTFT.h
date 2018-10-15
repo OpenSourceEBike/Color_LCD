@@ -81,6 +81,7 @@
 #define CPLD			29
 #define HX8353C			30
 #define ST7735_8			31
+#define ILI9335    32
 
 #define ITDB32			0	// HX8347-A (16bit)
 #define ITDB32WC		1	// ILI9327  (16bit)
@@ -239,6 +240,7 @@ extern boolean			UTFT__transparent;
 extern word			UTFT_offset_x, UTFT_offset_y;
 
 		void UTFT_LCD_Write_Bus(char VH,char VL, byte mode);
+		void UTFT_LCD_Write_Bus_16b(uint16_t ui16_data, uint8_t ui8_mode);
 		void UTFT_LCD_Write_COM(char VL);
 		void UTFT_LCD_Write_DATA(char VH,char VL);
 		void UTFT_LCD_Write_DATA_VL(char VL);

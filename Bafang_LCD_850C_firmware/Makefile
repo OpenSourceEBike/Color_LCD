@@ -59,6 +59,8 @@ all: main.bin size
 clean: 
 	rm -f main.lst main.elf main.bin
 	find *.o | xargs rm
+	find spl/src/*.o | xargs rm
+	find spl/CMSIS/*.o | xargs rm
 	find UTFT-STM8S/*.o | xargs rm
 
 flash: main.bin 

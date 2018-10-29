@@ -47,68 +47,68 @@ void UTFT__fast_fill_16(int ch, int cl, long pix)
   for (int i=0; i<blocks; i++)
   {
     GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
+//    delay(2);
     GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
 
     GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
+//    delay(2);
     GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
 
     GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
+//    delay(2);
     GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
 
     GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
+//    delay(2);
     GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
 
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
-    delay(2);
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//
+//    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+//    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
   }
   if ((pix % 16) != 0)
     for (int i=0; i<(pix % 16)+1; i++)

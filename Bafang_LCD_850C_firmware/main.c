@@ -44,15 +44,25 @@ int main(void)
 
   while (1)
   {
-    UTFT_setColor_rgb(255, 0, 0);
-    UTFT_drawCircle (0, 0, 5);
-    UTFT_drawCircle (10, 10, 10);
-    UTFT_setColor_rgb(255, 255, 0);
-    UTFT_drawCircle (50, 50, 15);
-    delay(1000);
-
+//    UTFT_setColor_rgb(255, 0, 0);
+//    UTFT_drawCircle (0, 0, 5);
+//    UTFT_drawCircle (10, 10, 10);
+//    UTFT_setColor_rgb(255, 255, 0);
+//    UTFT_drawCircle (50, 50, 15);
+//    delay(100);
+//
     UTFT_clrScr();
     UTFT_fillScr(VGA_PURPLE);
+    delay(2000);
+
+    UTFT_clrScr();
+    UTFT_fillScr(VGA_RED);
+    delay(2000);
+
+    UTFT_clrScr();
+    UTFT_fillScr(VGA_OLIVE);
+    delay(2000);
+
 //    delay(1000);
 //    UTFT_setColor (VGA_RED);
 //    UTFT_drawCircle (50, 50, 15);

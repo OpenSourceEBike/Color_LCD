@@ -70,7 +70,6 @@ case ILI9481:
   UTFT_LCD_Write_DATA_VL(0x00);
   UTFT_LCD_Write_DATA_VL(0x01);
   UTFT_LCD_Write_DATA_VL(0xDF);
-
   break;
 
 

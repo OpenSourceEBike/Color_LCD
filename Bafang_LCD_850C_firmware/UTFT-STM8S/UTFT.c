@@ -229,7 +229,7 @@ void UTFT_LCD_Write_COM(char VL)
 	if (UTFT_display_transfer_mode!=1)
 	{
 	  // command mode
-    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    GPIO_ResetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
 
 		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 	}
@@ -262,7 +262,7 @@ void UTFT_LCD_Write_DATA_VL(char VL)
 	if (UTFT_display_transfer_mode!=1)
 	{
     // data mode
-    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
 
 		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 	}

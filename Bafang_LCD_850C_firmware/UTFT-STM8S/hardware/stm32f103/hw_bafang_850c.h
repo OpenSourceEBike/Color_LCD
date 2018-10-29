@@ -1,24 +1,12 @@
 #include "delay.h"
 
+#include "pins.h"
+
 //#define INVERT
 
 // *** Hardwarespecific functions ***
 void UTFT__hw_special_init()
 {
-}
-
-void UTFT_LCD_Write_Bus_16b(uint16_t ui16_data, uint8_t ui8_mode)
-{
-  delay(2);
-
-  switch (ui8_mode)
-	{
-	  case 16:
-	    GPIO_Write(GPIOB, ui16_data);
-	    delay(2);
-	    pulse_low(UTFT_P_WR, UTFT_B_WR);
-		break;
-	}
 }
 
 void UTFT_LCD_Write_Bus(char VH,char VL, byte mode)
@@ -30,7 +18,11 @@ void UTFT_LCD_Write_Bus(char VH,char VL, byte mode)
     case 16:
       GPIO_Write(GPIOB, ((((uint16_t) VH) << 8) + VL));
       delay(2);
-      pulse_low(UTFT_P_WR, UTFT_B_WR);
+
+      // pulse low WR pin
+      GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+      delay(2);
+      GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
     break;
   }
 }
@@ -54,27 +46,76 @@ void UTFT__fast_fill_16(int ch, int cl, long pix)
   blocks = pix/16;
   for (int i=0; i<blocks; i++)
   {
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
-    pulse_low(UTFT_P_WR, UTFT_B_WR);
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
   }
   if ((pix % 16) != 0)
     for (int i=0; i<(pix % 16)+1; i++)
     {
-      pulse_low(UTFT_P_WR, UTFT_B_WR);
+      GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+      delay(2);
+      GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
     }
 }
 

@@ -56,7 +56,7 @@ void lcd_init (void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-  // these pins must be at 1 logic level (don't really know why)
+  // these pins must be at 1 logic level (original firmware does that)
   GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
   GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
 
@@ -68,10 +68,10 @@ void lcd_init (void)
 
   //  while (1)
   //  {
-      for (ui8_i = 0; ui8_i < 255; ui8_i++)
-      {
-        ui16_reg_value = UTFT_read_reg_0 (ui8_i);
-      }
+//      for (ui8_i = 0; ui8_i < 255; ui8_i++)
+//      {
+//        ui16_reg_value = UTFT_read_reg_0 (ui8_i);
+//      }
   //  }
 }
 

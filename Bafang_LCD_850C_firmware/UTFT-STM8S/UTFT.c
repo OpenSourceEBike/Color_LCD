@@ -69,28 +69,33 @@ word			UTFT_offset_x, UTFT_offset_y;
 
 void UTFT (void)
 {
-  UTFT_SER(ILI9335);
+  UTFT_SER(ILI9481);
 }
 
 void UTFT_SER(byte model)
 { 
-	word	UTFT_dsx[33] = {239, 239, 239, 239, 239, 239, 175, 175, 239, 127,						// 00-09
-					 127, 239, 271, 479, 239, 239, 239, 239, 239, 239,						// 10-19
-					 479, 319, 239, 175,   0, 239, 239, 319, 319, 799,						// 20-29
-					 127, 127, 239};																	// 30-32
-	word	UTFT_dsy[33] = {319, 399, 319, 319, 319, 319, 219, 219, 399, 159,						// 00-09
-					 127, 319, 479, 799, 319, 319, 319, 319, 319, 319,						// 10-19
-					 799, 479, 319, 219,   0, 319, 319, 479, 479, 479,						// 20-29
-					 159, 159, 319};																	// 30-32
-	byte	UTFT_dtm[33] = {16, 16, 16, 8, 8, 16, 8, SERIAL_4PIN, 16, SERIAL_5PIN,					// 00-09
-					 SERIAL_5PIN, 16, 16, 16, 8, 16, LATCHED_16, 16, 8, 8,					// 10-19
-					 16, 16, 16, 8, 0, SERIAL_5PIN, SERIAL_4PIN, 16, 16, 16,				// 20-29
-					 SERIAL_5PIN, 8, 16};															// 30-32
+//	word	UTFT_dsx[33] = {239, 239, 239, 239, 239, 239, 175, 175, 239, 127,						// 00-09
+//					 127, 239, 271, 479, 239, 239, 239, 239, 239, 239,						// 10-19
+//					 479, 319, 239, 175,   0, 239, 239, 319, 319, 799,						// 20-29
+//					 127, 127, 239};																	// 30-32
+//	word	UTFT_dsy[33] = {319, 399, 319, 319, 319, 319, 219, 219, 399, 159,						// 00-09
+//					 127, 319, 479, 799, 319, 319, 319, 319, 319, 319,						// 10-19
+//					 799, 479, 319, 219,   0, 319, 319, 479, 479, 479,						// 20-29
+//					 159, 159, 319};																	// 30-32
+//	byte	UTFT_dtm[33] = {16, 16, 16, 8, 8, 16, 8, SERIAL_4PIN, 16, SERIAL_5PIN,					// 00-09
+//					 SERIAL_5PIN, 16, 16, 16, 8, 16, LATCHED_16, 16, 8, 8,					// 10-19
+//					 16, 16, 16, 8, 0, SERIAL_5PIN, SERIAL_4PIN, 16, 16, 16,				// 20-29
+//					 SERIAL_5PIN, 8, 16};															// 30-32
 
-	UTFT_disp_x_size =			UTFT_dsx[model];
-	UTFT_disp_y_size =			UTFT_dsy[model];
-	UTFT_display_transfer_mode =	UTFT_dtm[model];
-	UTFT_display_model =			model;
+//	UTFT_disp_x_size =			UTFT_dsx[model];
+//	UTFT_disp_y_size =			UTFT_dsy[model];
+//	UTFT_display_transfer_mode =	UTFT_dtm[model];
+//	UTFT_display_model =			model;
+
+  UTFT_disp_x_size =      319;
+  UTFT_disp_y_size =      479;
+  UTFT_display_transfer_mode =  16;
+  UTFT_display_model =      ILI9481;
 
 //	UTFT___p1 = RS;
 //	UTFT___p2 = WR;
@@ -223,7 +228,9 @@ void UTFT_LCD_Write_COM(char VL)
 {   
 	if (UTFT_display_transfer_mode!=1)
 	{
-		cbi(UTFT_P_RS, UTFT_B_RS);
+	  // command mode
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
 		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 	}
 	else
@@ -254,7 +261,9 @@ void UTFT_LCD_Write_DATA_VL(char VL)
 {
 	if (UTFT_display_transfer_mode!=1)
 	{
-		sbi(UTFT_P_RS, UTFT_B_RS);
+    // data mode
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+
 		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 	}
 	else
@@ -300,7 +309,8 @@ void UTFT_InitLCD_orientation(byte orientation)
 	//sbi(UTFT_P_RST, UTFT_B_RST);
 //	delay(15);
 
-	cbi(UTFT_P_CS, UTFT_B_CS);
+  // chip select active
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
 	switch(UTFT_display_model)
 	{
@@ -390,7 +400,8 @@ void UTFT_InitLCD_orientation(byte orientation)
 #endif
 	}
 
-	sbi (UTFT_P_CS, UTFT_B_CS); 
+  // chip select no active
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
 	UTFT_setColor_rgb(255, 255, 255);
 	UTFT_setBackColor_rgb(0, 0, 0);
@@ -636,7 +647,9 @@ void UTFT_drawCircle(int x, int y, int radius)
 	int x1 = 0;
 	int y1 = radius;
 
-	cbi(UTFT_P_CS, UTFT_B_CS);
+  // chip select active
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
 	UTFT_setXY(x, y + radius, x, y + radius);
 	UTFT_LCD_Write_DATA(UTFT_fch,UTFT_fcl);
 	UTFT_setXY(x, y - radius, x, y - radius);
@@ -674,7 +687,10 @@ void UTFT_drawCircle(int x, int y, int radius)
 		UTFT_setXY(x - y1, y - x1, x - y1, y - x1);
 		UTFT_LCD_Write_DATA(UTFT_fch,UTFT_fcl);
 	}
-	sbi(UTFT_P_CS, UTFT_B_CS);
+
+	// chip select no active
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
 	UTFT_clrXY();
 }
 
@@ -694,10 +710,16 @@ void UTFT_clrScr()
 {
 	long i;
 	
-	cbi(UTFT_P_CS, UTFT_B_CS);
+  // chip select active
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
 	UTFT_clrXY();
 	if (UTFT_display_transfer_mode!=1)
-		sbi(UTFT_P_RS, UTFT_B_RS);
+  {
+    // data mode
+    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  }
+
 	if (UTFT_display_transfer_mode==16)
 		UTFT__fast_fill_16(0,0,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
 	else if (UTFT_display_transfer_mode==8)
@@ -715,7 +737,9 @@ void UTFT_clrScr()
 			}
 		}
 	}
-	sbi(UTFT_P_CS, UTFT_B_CS);
+
+  // chip select no active
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 }
 
 void UTFT_fillScr_rgb(byte r, byte g, byte b)
@@ -732,10 +756,16 @@ void UTFT_fillScr(word color)
 	ch=(byte) color>>8;
 	cl=(byte) color & 0xFF;
 
-	cbi(UTFT_P_CS, UTFT_B_CS);
+  // chip select active
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
 	UTFT_clrXY();
 	if (UTFT_display_transfer_mode!=1)
-		sbi(UTFT_P_RS, UTFT_B_RS);
+  {
+    // data mode
+    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  }
+
 	if (UTFT_display_transfer_mode==16)
 		UTFT__fast_fill_16(ch,cl,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
 	else if ((UTFT_display_transfer_mode==8) && (ch==cl))
@@ -753,7 +783,9 @@ void UTFT_fillScr(word color)
 			}
 		}
 	}
-	sbi(UTFT_P_CS, UTFT_B_CS);
+
+  // chip select no active
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 }
 
 void UTFT_setColor_rgb(byte r, byte g, byte b)

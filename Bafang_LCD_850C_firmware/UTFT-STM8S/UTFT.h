@@ -240,7 +240,6 @@ extern boolean			UTFT__transparent;
 extern word			UTFT_offset_x, UTFT_offset_y;
 
 		void UTFT_LCD_Write_Bus(char VH,char VL, byte mode);
-		void UTFT_LCD_Write_Bus_16b(uint16_t ui16_data, uint8_t ui8_mode);
 		void UTFT_LCD_Write_COM(char VL);
 		void UTFT_LCD_Write_DATA(char VH,char VL);
 		void UTFT_LCD_Write_DATA_VL(char VL);

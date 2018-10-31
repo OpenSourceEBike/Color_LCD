@@ -31,7 +31,7 @@ void system_power (uint32_t ui32_state)
 
 int main(void)
 {
-  extern uint8_t SmallFont[];
+  extern uint8_t BigFont[];
 
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
@@ -40,45 +40,17 @@ int main(void)
   system_power (1);
   lcd_init ();
 
-//  UTFT_setFont(SmallFont);
+  UTFT_setFont(BigFont);
+
+  UTFT_clrScr();
+  UTFT_setColor_rgb(255, 0, 0);
+
+  UTFT_print("TSDZ2", 10, 120);
+  UTFT_print("Flexible OpenSource firmware", 10, 160);
 
   while (1)
   {
-//    UTFT_setColor_rgb(255, 0, 0);
-//    UTFT_drawCircle (0, 0, 5);
-//    UTFT_drawCircle (10, 10, 10);
-//    UTFT_setColor_rgb(255, 255, 0);
-//    UTFT_drawCircle (50, 50, 15);
-//    delay(100);
-//
-    UTFT_clrScr();
-    UTFT_fillScr(VGA_PURPLE);
-    delay(2000);
 
-    UTFT_clrScr();
-    UTFT_fillScr(VGA_RED);
-    delay(2000);
-
-    UTFT_clrScr();
-    UTFT_fillScr(VGA_OLIVE);
-    delay(2000);
-
-//    delay(1000);
-//    UTFT_setColor (VGA_RED);
-//    UTFT_drawCircle (50, 50, 15);
-//    UTFT_fillCircle (50, 50, 15);
-//    UTFT_setColor_rgb(255, 0, 0);
-//    UTFT_fillRect(0, 0, 100, 50);
-//    UTFT_setColor_rgb(255, 255, 0);
-//    UTFT_drawPixel(0,0);
-//    UTFT_drawPixel(0,10);
-//    UTFT_drawPixel(10,0);
-//    UTFT_drawPixel(10,10);
-////    UTFT_print("Hello world!",10 ,60 );
-//    UTFT_setColor(VGA_FUCHSIA);
-//    UTFT_drawLine(5,80,154,80);
-//    UTFT_drawLine(5,81,154,81);
-//    delay(1000);
   }
 }
 

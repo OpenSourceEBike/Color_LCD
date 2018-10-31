@@ -20,6 +20,10 @@ void lcd_init (void)
   static uint16_t ui16_reg_value;
   uint8_t ui8_i;
 
+  // next step is needed to have PB3 and PB4 working as GPIO
+  /* Disable the Serial Wire Jtag Debug Port SWJ-DP */
+  GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_InitStructure.GPIO_Pin = LCD_BACKLIGHT__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -57,22 +61,14 @@ void lcd_init (void)
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
   // these pins must be at 1 logic level (original firmware does that)
-  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
   GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
+  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
 
   // enable backlight
   lcd_backlight (1);
 
   UTFT ();
   UTFT_InitLCD ();
-
-  //  while (1)
-  //  {
-//      for (ui8_i = 0; ui8_i < 255; ui8_i++)
-//      {
-//        ui16_reg_value = UTFT_read_reg_0 (ui8_i);
-//      }
-  //  }
 }
 
 void lcd_backlight (uint32_t ui32_state)

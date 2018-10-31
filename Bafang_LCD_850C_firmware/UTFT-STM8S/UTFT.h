@@ -218,6 +218,8 @@ uint32_t UTFT_read_reg_0 (uint8_t ui8_reg);
 		void	UTFT_setDisplayPage(byte page);
 		void	UTFT_setWritePage(byte page);
 
+		void UTFT_fillTest(void);
+
 /*
 	The functions and variables below should not normally be used.
 	They have been left publicly available for use in add-on libraries

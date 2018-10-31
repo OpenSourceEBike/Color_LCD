@@ -37,7 +37,6 @@
   examples and tools supplied with the library.
 */
 
-#include <string.h>
 #include "UTFT.h"
 #include "hardware/stm32f103/hw_stm32f103_defines.h"
 #include "hardware/stm32f103/hw_bafang_850c.h"
@@ -66,6 +65,13 @@ struct _current_font	UTFT_cfont;
 boolean			UTFT__transparent;
 
 word			UTFT_offset_x, UTFT_offset_y;
+
+uint16_t strlen(const uint8_t* str)
+{
+  uint i = 0;
+  while(str[i] != 0){i++;}
+  return i;
+}
 
 void UTFT (void)
 {
@@ -169,72 +175,79 @@ void UTFT_SER(byte model)
 uint32_t UTFT_read_reg_0 (uint8_t ui8_reg)
 {
   static uint16_t ui16_i;
-  uint32_t ui32_reg_0_value = 0;
-  uint32_t ui32_reg_0_value_array [2];
+  static uint32_t ui32_reg_0_value = 0;
   
   ui16_i = 0;
 
-  cbi(UTFT_P_CS, UTFT_B_CS);
-//  UTFT_LCD_Write_COM (ui8_reg);
-//  UTFT_LCD_Write_Bus(146, 34, 16); // 146: driver ID ILI9320 --> 0X9232
-//  UTFT_LCD_Write_Bus(147, 37, 16); // 9325 --> OUTPUT: 0X9335
-  cbi(UTFT_P_RS, UTFT_B_RS);
-//  UTFT_LCD_Write_Bus(147, 53, 16); // 9335 --> OUTPUT: 0X9335
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-  UTFT_LCD_Write_Bus(93, 26, 16); // 9335 --> OUTPUT:
+  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
+  GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+  GPIO_ResetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
 
-  sbi(UTFT_P_CS, UTFT_B_CS);
+  UTFT_LCD_Write_Bus(0, ui8_reg, 16); // read ID
+
+  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
+  GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
   
   // set data lines as input
   GPIO_InitTypeDef GPIO_InitStructure;
   GPIO_InitStructure.GPIO_Pin = 0xffff;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   
   delay (10);
-  
-  cbi(UTFT_P_CS, UTFT_B_CS);
-  for (ui16_i = 0; ui16_i < 1; ui16_i++)
-  {
-    GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
-    sbi(UTFT_P_RS, UTFT_B_RS); // data on BUS is data
-    sbi(UTFT_P_WR, UTFT_B_WR);
 
-    GPIO_ResetBits(LCD_READ__PORT, LCD_READ__PIN);
+  for (ui16_i = 0; ui16_i < 5; ui16_i++)
+  {
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+//GPIO_ResetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
     
+    GPIO_ResetBits(LCD_READ__PORT, LCD_READ__PIN);
+
+    ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
     ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
 
+    if (ui32_reg_0_value != 0)
+      {
+        while (1) ;
+      }
+
+    delay (10);
+
     GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
 
-    if ((ui32_reg_0_value != 0) && (ui32_reg_0_value != 0xffff))
+    ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
+    ui32_reg_0_value = (uint32_t) (GPIO_ReadInputData (GPIOB));
+
+    if (ui32_reg_0_value != 0)
       {
-        ui32_reg_0_value_array [ui16_i] = 1;
+        while (1) ;
       }
+
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
   }
-  sbi(UTFT_P_CS, UTFT_B_CS);
   
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
   // set data lines as output again
   GPIO_InitStructure.GPIO_Pin = 0xffff;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-  ui32_reg_0_value = ui32_reg_0_value_array [0] + (ui32_reg_0_value_array [1] << 16);
   return ui32_reg_0_value;
 }
 
 void UTFT_LCD_Write_COM(char VL)  
 {   
-	if (UTFT_display_transfer_mode!=1)
-	{
-	  // command mode
-    GPIO_ResetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  GPIO_ResetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
 
-		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
-	}
-	else
-		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
+  UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 }
 
 void UTFT_LCD_Write_COM_16b(uint16_t ui16_command)
@@ -245,29 +258,16 @@ void UTFT_LCD_Write_COM_16b(uint16_t ui16_command)
 
 void UTFT_LCD_Write_DATA(char VH,char VL)
 {
-	if (UTFT_display_transfer_mode!=1)
-	{
-		sbi(UTFT_P_RS, UTFT_B_RS);
-		UTFT_LCD_Write_Bus(VH,VL,UTFT_display_transfer_mode);
-	}
-	else
-	{
-		UTFT_LCD_Write_Bus(0x01,VH,UTFT_display_transfer_mode);
-		UTFT_LCD_Write_Bus(0x01,VL,UTFT_display_transfer_mode);
-	}
+  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+
+  UTFT_LCD_Write_Bus(VH, VL, UTFT_display_transfer_mode);
 }
 
 void UTFT_LCD_Write_DATA_VL(char VL)
 {
-	if (UTFT_display_transfer_mode!=1)
-	{
-    // data mode
-    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
 
-		UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
-	}
-	else
-		UTFT_LCD_Write_Bus(0x01,VL,UTFT_display_transfer_mode);
+  UTFT_LCD_Write_Bus(0x00,VL,UTFT_display_transfer_mode);
 }
 
 void UTFT_LCD_Write_COM_DATA(char com1,int dat1)
@@ -309,96 +309,185 @@ void UTFT_InitLCD_orientation(byte orientation)
 	//sbi(UTFT_P_RST, UTFT_B_RST);
 //	delay(15);
 
+
   // chip select active
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-	switch(UTFT_display_model)
-	{
-#ifndef DISABLE_HX8347A
-	#include "tft_drivers/hx8347a/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9327
-	#include "tft_drivers/ili9327/initlcd.h"
-#endif
-#ifndef DISABLE_SSD1289
-	#include "tft_drivers/ssd1289/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9325C
-	#include "tft_drivers/ili9325c/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9325D
-	#include "tft_drivers/ili9325d/default/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9325D_ALT
-	#include "tft_drivers/ili9325d/alt/initlcd.h"
-#endif
-#ifndef DISABLE_HX8340B_8
-	#include "tft_drivers/hx8340b/8/initlcd.h"
-#endif
-#ifndef DISABLE_HX8340B_S
-	#include "tft_drivers/hx8340b/s/initlcd.h"
-#endif
-#ifndef DISABLE_ST7735
-	#include "tft_drivers/st7735/std/initlcd.h"
-#endif
-#ifndef DISABLE_PCF8833
-	#include "tft_drivers/pcf8833/initlcd.h"
-#endif
-#ifndef DISABLE_S1D19122
-	#include "tft_drivers/s1d19122/initlcd.h"
-#endif
-#ifndef DISABLE_HX8352A
-	#include "tft_drivers/hx8352a/initlcd.h"
-#endif
-#ifndef DISABLE_SSD1963_480
-	#include "tft_drivers/ssd1963/480/initlcd.h"
-#endif
-#ifndef DISABLE_SSD1963_800
-	#include "tft_drivers/ssd1963/800/initlcd.h"
-#endif
-#ifndef DISABLE_SSD1963_800_ALT
-	#include "tft_drivers/ssd1963/800alt/initlcd.h"
-#endif
-#ifndef DISABLE_S6D1121
-	#include "tft_drivers/s6d1121/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9481
-	#include "tft_drivers/ili9481/initlcd.h"
-#endif
-#ifndef DISABLE_S6D0164
-	#include "tft_drivers/s6d0164/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9341_S4P
-	#include "tft_drivers/ili9341/s4p/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9341_S5P
-	#include "tft_drivers/ili9341/s5p/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9341_8
-	#include "tft_drivers/ili9341/8/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9341_16
-	#include "tft_drivers/ili9341/16/initlcd.h"
-#endif
-#ifndef DISABLE_R61581
-	#include "tft_drivers/r61581/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9486
-	#include "tft_drivers/ili9486/initlcd.h"
-#endif
-#ifndef DISABLE_CPLD
-	#include "tft_drivers/cpld/initlcd.h"
-#endif
-#ifndef DISABLE_HX8353C
-	#include "tft_drivers/hx8353c/initlcd.h"
-#endif
-#ifndef DISABLE_ST7735_8
-	#include "tft_drivers/st7735/8/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9335
-  #include "tft_drivers/ili9335/initlcd.h"
-#endif
-	}
+  //************* Reset LCD Driver ****************//
+//  GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
+//  delay(10);
+//  GPIO_ResetBits(LCD_RESET__PORT, LCD_RESET__PIN);
+//  delay(25);
+//  GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
+//  delay(250);
+
+  UTFT_LCD_Write_COM(0xD0); // Power Setting
+  UTFT_LCD_Write_DATA_VL(0x07);
+  UTFT_LCD_Write_DATA_VL(0x41);
+  UTFT_LCD_Write_DATA_VL(0x1D);
+
+  UTFT_LCD_Write_COM(0xD2); // Power_Setting for Normal Mode
+  UTFT_LCD_Write_DATA_VL(0x01);
+  UTFT_LCD_Write_DATA_VL(0x11);
+
+  UTFT_LCD_Write_COM(0xC0); // Panel Driving Setting
+  UTFT_LCD_Write_DATA_VL(0x10);
+  UTFT_LCD_Write_DATA_VL(0x3B);
+  UTFT_LCD_Write_DATA_VL(0x00);
+  UTFT_LCD_Write_DATA_VL(0x02);
+  UTFT_LCD_Write_DATA_VL(0x11);
+
+  UTFT_LCD_Write_COM(0xC5); // Frame rate and Inversion Control
+  UTFT_LCD_Write_DATA_VL(0x00);
+
+  UTFT_LCD_Write_COM(0xE4); // ????
+  UTFT_LCD_Write_DATA_VL(0xA0);
+
+  UTFT_LCD_Write_COM(0xF0); // ??
+  UTFT_LCD_Write_DATA_VL(0x01);
+
+  UTFT_LCD_Write_COM(0xF3); // ??
+  UTFT_LCD_Write_DATA_VL(0x40);
+  UTFT_LCD_Write_DATA_VL(0x1A);
+
+  UTFT_LCD_Write_COM(0xC8); // Gamma Setting
+  UTFT_LCD_Write_DATA_VL(0x00);
+  UTFT_LCD_Write_DATA_VL(0x14);
+  UTFT_LCD_Write_DATA_VL(0x33);
+  UTFT_LCD_Write_DATA_VL(0x10);
+  UTFT_LCD_Write_DATA_VL(0x00);
+  UTFT_LCD_Write_DATA_VL(0x16);
+  UTFT_LCD_Write_DATA_VL(0x44);
+  UTFT_LCD_Write_DATA_VL(0x36);
+  UTFT_LCD_Write_DATA_VL(0x77);
+  UTFT_LCD_Write_DATA_VL(0x00);
+  UTFT_LCD_Write_DATA_VL(0x0F);
+  UTFT_LCD_Write_DATA_VL(0x00);
+
+  UTFT_LCD_Write_COM(0x3A); // set_pixel_format
+  UTFT_LCD_Write_DATA_VL(0x55); // 16bit/pixel (65,536 colors)
+
+  UTFT_LCD_Write_COM(0x11); // exit_sleep_mode
+
+  delay(120); // 120ms delay after leaving sleep
+
+  UTFT_LCD_Write_COM(0x29); // set_display_on
+
+  UTFT_LCD_Write_COM(0x36); // set_address_mode
+  // Vertical Flip: Normal display
+  // Horizontal Flip: Flipped display
+  // RGB/BGR Order: Pixels sent in BGR order
+  // Column Address Order: Right to Left
+  // Page Address Order: Top to Bottom
+  UTFT_LCD_Write_DATA_VL(0x0A);
+
+//  UTFT_LCD_Write_COM(0x2A); // set_column_address
+//  // 0x1df = 319
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x01);
+//  UTFT_LCD_Write_DATA_VL(0x3F);
+//
+//  UTFT_LCD_Write_COM(0x2B); // set_page_address
+//  // 0x1df = 479
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x01);
+//  UTFT_LCD_Write_DATA_VL(0xDF);
+//
+//  UTFT_LCD_Write_COM(0x2C);
+
+
+
+
+
+//	switch(UTFT_display_model)
+//	{
+//#ifndef DISABLE_HX8347A
+//	#include "tft_drivers/hx8347a/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9327
+//	#include "tft_drivers/ili9327/initlcd.h"
+//#endif
+//#ifndef DISABLE_SSD1289
+//	#include "tft_drivers/ssd1289/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9325C
+//	#include "tft_drivers/ili9325c/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9325D
+//	#include "tft_drivers/ili9325d/default/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9325D_ALT
+//	#include "tft_drivers/ili9325d/alt/initlcd.h"
+//#endif
+//#ifndef DISABLE_HX8340B_8
+//	#include "tft_drivers/hx8340b/8/initlcd.h"
+//#endif
+//#ifndef DISABLE_HX8340B_S
+//	#include "tft_drivers/hx8340b/s/initlcd.h"
+//#endif
+//#ifndef DISABLE_ST7735
+//	#include "tft_drivers/st7735/std/initlcd.h"
+//#endif
+//#ifndef DISABLE_PCF8833
+//	#include "tft_drivers/pcf8833/initlcd.h"
+//#endif
+//#ifndef DISABLE_S1D19122
+//	#include "tft_drivers/s1d19122/initlcd.h"
+//#endif
+//#ifndef DISABLE_HX8352A
+//	#include "tft_drivers/hx8352a/initlcd.h"
+//#endif
+//#ifndef DISABLE_SSD1963_480
+//	#include "tft_drivers/ssd1963/480/initlcd.h"
+//#endif
+//#ifndef DISABLE_SSD1963_800
+//	#include "tft_drivers/ssd1963/800/initlcd.h"
+//#endif
+//#ifndef DISABLE_SSD1963_800_ALT
+//	#include "tft_drivers/ssd1963/800alt/initlcd.h"
+//#endif
+//#ifndef DISABLE_S6D1121
+//	#include "tft_drivers/s6d1121/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9481
+//	#include "tft_drivers/ili9481/initlcd.h"
+//#endif
+//#ifndef DISABLE_S6D0164
+//	#include "tft_drivers/s6d0164/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9341_S4P
+//	#include "tft_drivers/ili9341/s4p/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9341_S5P
+//	#include "tft_drivers/ili9341/s5p/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9341_8
+//	#include "tft_drivers/ili9341/8/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9341_16
+//	#include "tft_drivers/ili9341/16/initlcd.h"
+//#endif
+//#ifndef DISABLE_R61581
+//	#include "tft_drivers/r61581/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9486
+//	#include "tft_drivers/ili9486/initlcd.h"
+//#endif
+//#ifndef DISABLE_CPLD
+//	#include "tft_drivers/cpld/initlcd.h"
+//#endif
+//#ifndef DISABLE_HX8353C
+//	#include "tft_drivers/hx8353c/initlcd.h"
+//#endif
+//#ifndef DISABLE_ST7735_8
+//	#include "tft_drivers/st7735/8/initlcd.h"
+//#endif
+//#ifndef DISABLE_ILI9335
+//  #include "tft_drivers/ili9335/initlcd.h"
+//#endif
+//	}
 
   // chip select no active
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
@@ -714,29 +803,29 @@ void UTFT_clrScr()
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
 	UTFT_clrXY();
-	if (UTFT_display_transfer_mode!=1)
-  {
+//	if (UTFT_display_transfer_mode!=1)
+//  {
     // data mode
     GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
-  }
+//  }
 
-	if (UTFT_display_transfer_mode==16)
+//	if (UTFT_display_transfer_mode==16)
 		UTFT__fast_fill_16(0,0,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
-	else if (UTFT_display_transfer_mode==8)
-		UTFT__fast_fill_8(0,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
-	else
-	{
-		for (i=0; i<((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)); i++)
-		{
-			if (UTFT_display_transfer_mode!=1)
-				UTFT_LCD_Write_Bus(0,0,UTFT_display_transfer_mode);
-			else
-			{
-				UTFT_LCD_Write_Bus(1,0,UTFT_display_transfer_mode);
-				UTFT_LCD_Write_Bus(1,0,UTFT_display_transfer_mode);
-			}
-		}
-	}
+//	else if (UTFT_display_transfer_mode==8)
+//		UTFT__fast_fill_8(0,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
+//	else
+//	{
+//		for (i=0; i<((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)); i++)
+//		{
+//			if (UTFT_display_transfer_mode!=1)
+//				UTFT_LCD_Write_Bus(0,0,UTFT_display_transfer_mode);
+//			else
+//			{
+//				UTFT_LCD_Write_Bus(1,0,UTFT_display_transfer_mode);
+//				UTFT_LCD_Write_Bus(1,0,UTFT_display_transfer_mode);
+//			}
+//		}
+//	}
 
   // chip select no active
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
@@ -748,41 +837,63 @@ void UTFT_fillScr_rgb(byte r, byte g, byte b)
 	UTFT_fillScr(color);
 }
 
-void UTFT_fillScr(word color)
+void UTFT_fillTest(void)
 {
-	long i;
-	char ch, cl;
+  // chip select active
+  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+
+////  UTFT_clrXY();
+//  UTFT_LCD_Write_COM(0x2B); // set_column_address
+//  // 0x1df = 319
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x01);
+//  UTFT_LCD_Write_DATA_VL(0x3F);
+//
+//  UTFT_LCD_Write_COM(0x2A); // set_page_address
+//  // 0x1df = 479
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x00);
+//  UTFT_LCD_Write_DATA_VL(0x01);
+//  UTFT_LCD_Write_DATA_VL(0xDF);
+//
+//  UTFT_LCD_Write_COM(0x2C);
+
+  // data mode
+  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  // read disable
+  GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
+
+  GPIO_Write(GPIOB, 0x0f0f);
+  for (int i = 0; i < 0xf; i++)
+  {
+      while (1) {
+    GPIO_ResetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+//    delay(2);
+    GPIO_SetBits(LCD_WRITE__PORT, LCD_WRITE__PIN);
+      }
+  }
+
+  // chip select no active
+  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+}
+
+
+void UTFT_fillScr(uint16_t ui16_color)
+{
+	uint8_t ui8_ch, ui8_cl;
 	
-	ch=(byte) color>>8;
-	cl=(byte) color & 0xFF;
+	ui8_ch = (uint8_t) (ui16_color >> 8);
+	ui8_cl = (uint8_t) (ui16_color & 0xFF);
 
   // chip select active
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
 	UTFT_clrXY();
-	if (UTFT_display_transfer_mode!=1)
-  {
-    // data mode
-    GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
-  }
 
-	if (UTFT_display_transfer_mode==16)
-		UTFT__fast_fill_16(ch,cl,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
-	else if ((UTFT_display_transfer_mode==8) && (ch==cl))
-		UTFT__fast_fill_8(ch,((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
-	else
-	{
-		for (i=0; i<((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)); i++)
-		{
-			if (UTFT_display_transfer_mode!=1)
-				UTFT_LCD_Write_Bus(ch,cl,UTFT_display_transfer_mode);
-			else
-			{
-				UTFT_LCD_Write_Bus(1,ch,UTFT_display_transfer_mode);
-				UTFT_LCD_Write_Bus(1,cl,UTFT_display_transfer_mode);
-			}
-		}
-	}
+  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+
+  UTFT__fast_fill_16(ui8_ch, ui8_cl, ((UTFT_disp_x_size+1)*(UTFT_disp_y_size+1)));
 
   // chip select no active
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);

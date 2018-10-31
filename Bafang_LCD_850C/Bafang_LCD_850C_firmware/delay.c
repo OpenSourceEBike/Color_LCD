@@ -10,7 +10,7 @@
 
 static unsigned int _ms;
 
-void delay (unsigned int ms)
+void delay_ms (unsigned int ms)
 {
   _ms = 1;
   while (ms >= _ms) ;

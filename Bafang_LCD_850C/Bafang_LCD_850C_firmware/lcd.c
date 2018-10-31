@@ -13,7 +13,7 @@
 #include "pins.h"
 #include "UTFT-STM8S/UTFT.h"
 
-void lcd_backlight (uint32_t ui32_state);
+//void lcd_backlight (uint32_t ui32_state);
 
 void lcd_init (void)
 {
@@ -58,7 +58,7 @@ void lcd_init (void)
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
   // enable backlight
-  lcd_backlight (ENABLE);
+//  lcd_backlight (ENABLE);
 
   // keep RESET and READ pins always at 1
   GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
@@ -68,14 +68,14 @@ void lcd_init (void)
   UTFT_InitLCD ();
 }
 
-void lcd_backlight (uint32_t ui32_state)
-{
-  if (ui32_state)
-  {
-    GPIO_SetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-  else
-  {
-    GPIO_ResetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-}
+//void lcd_backlight (uint32_t ui32_state)
+//{
+//  if (ui32_state)
+//  {
+//    GPIO_SetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
+//  }
+//  else
+//  {
+//    GPIO_ResetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
+//  }
+//}

@@ -10,6 +10,6 @@
 #define DELAY_H_
 
 void delay_init (void);
-void delay (unsigned int ms);
+void delay_ms (unsigned int ms);
 
 #endif /* DELAY_H_ */

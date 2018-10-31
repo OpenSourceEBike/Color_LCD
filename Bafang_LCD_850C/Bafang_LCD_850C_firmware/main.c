@@ -35,18 +35,20 @@ int main(void)
 
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
-  pins_init ();
-  delay_init ();
-  system_power (1);
-  lcd_init ();
-
-  UTFT_setFont(BigFont);
+  pins_init();
+  delay_init();
+  system_power(ENABLE);
+  lcd_init();
 
   UTFT_clrScr();
-  UTFT_setColor_rgb(255, 0, 0);
+  UTFT_fillScr(VGA_AQUA);
 
-  UTFT_print("TSDZ2", 10, 120);
-  UTFT_print("Flexible OpenSource firmware", 10, 160);
+  UTFT_setColor(VGA_RED);
+  UTFT_setBackColor(VGA_AQUA);
+  UTFT_setFont(BigFont);
+  UTFT_print("TSDZ2", 10, 140);
+  UTFT_print("Flexible OpenSource firmware", 10, 180);
+  UTFT_print("firmware", 10, 200);
 
   while (1)
   {

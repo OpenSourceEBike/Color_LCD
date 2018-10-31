@@ -27,9 +27,4 @@ void pins_init (void)
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(SYSTEM_POWER_ON_OFF__PORT, &GPIO_InitStructure);
-
-  GPIO_InitStructure.GPIO_Pin = LCD_BACKLIGHT__PIN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(LCD_BACKLIGHT__PORT, &GPIO_InitStructure);
 }

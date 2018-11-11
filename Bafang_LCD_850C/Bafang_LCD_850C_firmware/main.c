@@ -14,7 +14,6 @@
 #include "pins.h"
 #include "lcd.h"
 #include "delay.h"
-#include "UTFT-STM8S/UTFT.h"
 
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
@@ -51,52 +50,10 @@ int main(void)
   color[1] = C_GREEN;
   color[2] = C_BLUE;
 
-//  lcd_init ();
-
   /* Place your initialization/startup code here (e.g. MyInst_Start()) */
   Display_Init();
 
-  while (1) {
-  /* Clear screen. */
-//  UTFT_clrScr();
-//  UG_DrawFrame(100, 100, 10, 10, C_PINK);     // Draw a Frame
-
-//  UG_DrawCircle( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_COLOR c );
   UG_FillCircle(100, 100, 50, C_MAGENTA);
-
-  while (1) ;
-
-
-
-//  UG_FillScreen(VGA_YELLOW);
-
-//      UG_FontSelect(&FONT_8X14);
-//      UG_PutString(10, 10, "Hello World!");
-
-
-//        UG_DrawLine(10, 10, 10, 100, C_PINK);     // Draw a Frame
-
-
-//  delay_ms(2000);
-//
-//  UTFT_clrScr();
-//  UTFT_fillScr(VGA_YELLOW);
-//
-//  delay_ms(2000);
-
-  }
-
-//  lcd_init();
-//
-//  UTFT_clrScr();
-//  UTFT_fillScr(VGA_AQUA);
-//
-//  UTFT_setColor(VGA_RED);
-//  UTFT_setBackColor(VGA_AQUA);
-//  UTFT_setFont(BigFont);
-//  UTFT_print("TSDZ2", 10, 140);
-//  UTFT_print("Flexible OpenSource firmware", 10, 180);
-//  UTFT_print("firmware", 10, 200);
 
   while (1)
   {

@@ -27,7 +27,6 @@
 
 #include "../ugui/ugui.h"
 #include "../ugui_driver/ugui_bafang_500c.h"
-#include "../UTFT-STM8S/UTFT.h"
 #include "../pins.h"
 #include "../delay.h"
 
@@ -36,10 +35,13 @@
 
 UG_GUI ugui_lcd;
 
+void lcd_write_command (uint8_t ui8_command);
+void lcd_write_data_8bits (uint8_t ui8_data);
+void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2);
+
 inline void Display_Reset()
 {
-//    Display_WriteCommand(0x01);         //Software reset
-//    CyDelay(10);
+
 }
 
 void lcd_backlight (uint32_t ui32_state)
@@ -106,65 +108,65 @@ void Display_Init()
   // chip select active
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-  UTFT_LCD_Write_COM(0xD0); // Power Setting
-  UTFT_LCD_Write_DATA_VL(0x07);
-  UTFT_LCD_Write_DATA_VL(0x41);
-  UTFT_LCD_Write_DATA_VL(0x1D);
+  lcd_write_command(0xD0); // Power Setting
+  lcd_write_data_8bits(0x07);
+  lcd_write_data_8bits(0x41);
+  lcd_write_data_8bits(0x1D);
 
-  UTFT_LCD_Write_COM(0xD2); // Power_Setting for Normal Mode
-  UTFT_LCD_Write_DATA_VL(0x01);
-  UTFT_LCD_Write_DATA_VL(0x11);
+  lcd_write_command(0xD2); // Power_Setting for Normal Mode
+  lcd_write_data_8bits(0x01);
+  lcd_write_data_8bits(0x11);
 
-  UTFT_LCD_Write_COM(0xC0); // Panel Driving Setting
-  UTFT_LCD_Write_DATA_VL(0x10);
-  UTFT_LCD_Write_DATA_VL(0x3B);
-  UTFT_LCD_Write_DATA_VL(0x00);
-  UTFT_LCD_Write_DATA_VL(0x02);
-  UTFT_LCD_Write_DATA_VL(0x11);
+  lcd_write_command(0xC0); // Panel Driving Setting
+  lcd_write_data_8bits(0x10);
+  lcd_write_data_8bits(0x3B);
+  lcd_write_data_8bits(0x00);
+  lcd_write_data_8bits(0x02);
+  lcd_write_data_8bits(0x11);
 
-  UTFT_LCD_Write_COM(0xC5); // Frame rate and Inversion Control
-  UTFT_LCD_Write_DATA_VL(0x00);
+  lcd_write_command(0xC5); // Frame rate and Inversion Control
+  lcd_write_data_8bits(0x00);
 
-  UTFT_LCD_Write_COM(0xE4); // ????
-  UTFT_LCD_Write_DATA_VL(0xA0);
+  lcd_write_command(0xE4); // ????
+  lcd_write_data_8bits(0xA0);
 
-  UTFT_LCD_Write_COM(0xF0); // ??
-  UTFT_LCD_Write_DATA_VL(0x01);
+  lcd_write_command(0xF0); // ??
+  lcd_write_data_8bits(0x01);
 
-  UTFT_LCD_Write_COM(0xF3); // ??
-  UTFT_LCD_Write_DATA_VL(0x40);
-  UTFT_LCD_Write_DATA_VL(0x1A);
+  lcd_write_command(0xF3); // ??
+  lcd_write_data_8bits(0x40);
+  lcd_write_data_8bits(0x1A);
 
-  UTFT_LCD_Write_COM(0xC8); // Gamma Setting
-  UTFT_LCD_Write_DATA_VL(0x00);
-  UTFT_LCD_Write_DATA_VL(0x14);
-  UTFT_LCD_Write_DATA_VL(0x33);
-  UTFT_LCD_Write_DATA_VL(0x10);
-  UTFT_LCD_Write_DATA_VL(0x00);
-  UTFT_LCD_Write_DATA_VL(0x16);
-  UTFT_LCD_Write_DATA_VL(0x44);
-  UTFT_LCD_Write_DATA_VL(0x36);
-  UTFT_LCD_Write_DATA_VL(0x77);
-  UTFT_LCD_Write_DATA_VL(0x00);
-  UTFT_LCD_Write_DATA_VL(0x0F);
-  UTFT_LCD_Write_DATA_VL(0x00);
+  lcd_write_command(0xC8); // Gamma Setting
+  lcd_write_data_8bits(0x00);
+  lcd_write_data_8bits(0x14);
+  lcd_write_data_8bits(0x33);
+  lcd_write_data_8bits(0x10);
+  lcd_write_data_8bits(0x00);
+  lcd_write_data_8bits(0x16);
+  lcd_write_data_8bits(0x44);
+  lcd_write_data_8bits(0x36);
+  lcd_write_data_8bits(0x77);
+  lcd_write_data_8bits(0x00);
+  lcd_write_data_8bits(0x0F);
+  lcd_write_data_8bits(0x00);
 
-  UTFT_LCD_Write_COM(0x3A); // set_pixel_format
-  UTFT_LCD_Write_DATA_VL(0x55); // 16bit/pixel (65,536 colors)
+  lcd_write_command(0x3A); // set_pixel_format
+  lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
 
-  UTFT_LCD_Write_COM(0x11); // exit_sleep_mode
+  lcd_write_command(0x11); // exit_sleep_mode
 
   delay_ms(120); // 120ms delay after leaving sleep
 
-  UTFT_LCD_Write_COM(0x29); // set_display_on
+  lcd_write_command(0x29); // set_display_on
 
-  UTFT_LCD_Write_COM(0x36); // set_address_mode
+  lcd_write_command(0x36); // set_address_mode
   // Vertical Flip: Normal display
   // Horizontal Flip: Flipped display
   // RGB/BGR Order: Pixels sent in BGR order
   // Column Address Order: Right to Left
   // Page Address Order: Top to Bottom
-  UTFT_LCD_Write_DATA_VL(0x0A);
+  lcd_write_data_8bits(0x0A);
 
   // chip select no active
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
@@ -191,17 +193,17 @@ void Display_WindowSet(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsign
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
   // set XY
-  UTFT_LCD_Write_COM(0x2a);
-  UTFT_LCD_Write_DATA_VL(x1>>8);
-  UTFT_LCD_Write_DATA_VL(x1);
-  UTFT_LCD_Write_DATA_VL(x2>>8);
-  UTFT_LCD_Write_DATA_VL(x2);
-  UTFT_LCD_Write_COM(0x2b);
-  UTFT_LCD_Write_DATA_VL(y1>>8);
-  UTFT_LCD_Write_DATA_VL(y1);
-  UTFT_LCD_Write_DATA_VL(y2>>8);
-  UTFT_LCD_Write_DATA_VL(y2);
-  UTFT_LCD_Write_COM(0x2c);
+  lcd_write_command(0x2a);
+  lcd_write_data_8bits(x1>>8);
+  lcd_write_data_8bits(x1);
+  lcd_write_data_8bits(x2>>8);
+  lcd_write_data_8bits(x2);
+  lcd_write_command(0x2b);
+  lcd_write_data_8bits(y1>>8);
+  lcd_write_data_8bits(y1);
+  lcd_write_data_8bits(y2>>8);
+  lcd_write_data_8bits(y2);
+  lcd_write_command(0x2c);
 
   // chip select no active
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
@@ -214,7 +216,7 @@ void Display_PixelSet(UG_S16 x, UG_S16 y, UG_COLOR c)
   // chip select active
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-  UTFT_setXY(x, y, x, y);
+  lcd_set_xy(x, y, x, y);
 
   // data
   GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
@@ -243,17 +245,17 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c)
     GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
     // set XY
-    UTFT_LCD_Write_COM(0x2a);
-    UTFT_LCD_Write_DATA_VL(x1>>8);
-    UTFT_LCD_Write_DATA_VL(x1);
-    UTFT_LCD_Write_DATA_VL(x2>>8);
-    UTFT_LCD_Write_DATA_VL(x2);
-    UTFT_LCD_Write_COM(0x2b);
-    UTFT_LCD_Write_DATA_VL(y1>>8);
-    UTFT_LCD_Write_DATA_VL(y1);
-    UTFT_LCD_Write_DATA_VL(y2>>8);
-    UTFT_LCD_Write_DATA_VL(y2);
-    UTFT_LCD_Write_COM(0x2c);
+    lcd_write_command(0x2a);
+    lcd_write_data_8bits(x1>>8);
+    lcd_write_data_8bits(x1);
+    lcd_write_data_8bits(x2>>8);
+    lcd_write_data_8bits(x2);
+    lcd_write_command(0x2b);
+    lcd_write_data_8bits(y1>>8);
+    lcd_write_data_8bits(y1);
+    lcd_write_data_8bits(y2>>8);
+    lcd_write_data_8bits(y2);
+    lcd_write_command(0x2c);
 
     for (loopx = x1; loopx < x2 + 1; loopx++)
     {
@@ -301,4 +303,43 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *imag
 //    return UG_RESULT_OK;
 }
 
-/* [] END OF FILE */
+void lcd_write_command (uint8_t ui8_command)
+{
+  // command
+  GPIOC->BRR = LCD_COMMAND_DATA__PIN;
+
+  // write data to BUS
+  GPIOB->ODR = (uint16_t) ui8_command;
+
+  // pulse low WR pin
+  GPIOC->BRR = LCD_WRITE__PIN;
+  GPIOC->BSRR = LCD_WRITE__PIN;
+}
+
+void lcd_write_data_8bits (uint8_t ui8_data)
+{
+  // data
+  GPIOC->BSRR = LCD_COMMAND_DATA__PIN;
+
+  // write data to BUS
+  GPIOB->ODR = (uint16_t) ui8_data;
+
+  // pulse low WR pin
+  GPIOC->BRR = LCD_WRITE__PIN;
+  GPIOC->BSRR = LCD_WRITE__PIN;
+}
+
+void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2)
+{
+  lcd_write_command(0x2a);
+  lcd_write_data_8bits(ui16_x1>>8);
+  lcd_write_data_8bits(ui16_x1);
+  lcd_write_data_8bits(ui16_x2>>8);
+  lcd_write_data_8bits(ui16_x2);
+  lcd_write_command(0x2b);
+  lcd_write_data_8bits(ui16_y1>>8);
+  lcd_write_data_8bits(ui16_y1);
+  lcd_write_data_8bits(ui16_y2>>8);
+  lcd_write_data_8bits(ui16_y2);
+  lcd_write_command(0x2c);
+}

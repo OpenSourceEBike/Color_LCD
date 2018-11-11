@@ -55,6 +55,11 @@ int main(void)
 
   UG_FillCircle(100, 100, 50, C_MAGENTA);
 
+  UG_FontSelect(&FONT_10X16);
+  UG_PutString(250, 100, "testing");
+
+
+
   while (1)
   {
 

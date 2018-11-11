@@ -51,7 +51,7 @@ int main(void)
   color[2] = C_BLUE;
 
   /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-  Display_Init();
+  lcd_init();
 
   UG_FillCircle(100, 100, 50, C_MAGENTA);
 

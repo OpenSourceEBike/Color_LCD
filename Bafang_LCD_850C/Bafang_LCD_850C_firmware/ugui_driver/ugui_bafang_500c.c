@@ -56,7 +56,7 @@ void lcd_backlight (uint32_t ui32_state)
   }
 }
 
-void Display_Init()
+void lcd_init()
 {
   // next step is needed to have PB3 and PB4 working as GPIO
   /* Disable the Serial Wire Jtag Debug Port SWJ-DP */
@@ -172,7 +172,7 @@ void Display_Init()
   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
   // Initialize global structure and set PSET to this.PSET.
-  UG_Init(&ugui_lcd, Display_PixelSet, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  UG_Init(&ugui_lcd, lcd_pixel_set, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
   // Register acceleratos.
   UG_DriverRegister(DRIVER_FILL_FRAME, (void*)HW_FillFrame);
@@ -190,7 +190,7 @@ void Display_WindowSet(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsign
   y2 = e_y;
 
   // chip select active
-  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN;
 
   // set XY
   lcd_write_command(0x2a);
@@ -206,27 +206,27 @@ void Display_WindowSet(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsign
   lcd_write_command(0x2c);
 
   // chip select no active
-  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN;
 }
 
-void Display_PixelSet(UG_S16 x, UG_S16 y, UG_COLOR c)
+void lcd_pixel_set(UG_S16 x, UG_S16 y, UG_COLOR c)
 {
   if((x < 0) ||(x >= DISPLAY_WIDTH) || (y < 0) || (y >= DISPLAY_HEIGHT)) return;
 
   // chip select active
-  GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN;
 
   lcd_set_xy(x, y, x, y);
 
   // data
-  GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
 
-  GPIO_Write(GPIOB, c);
+  LCD_BUS__PORT->ODR = c;
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
   // chip select no active
-  GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN;
 }
 
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c)
@@ -242,7 +242,7 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c)
     if((x2 < 0) ||(x2 >= DISPLAY_WIDTH) || (y2 < 0) || (y2 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
 
     // chip select active
-    GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+    LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN;
 
     // set XY
     lcd_write_command(0x2a);
@@ -261,14 +261,14 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c)
     {
         for (loopy = y1; loopy < y2 + 1; loopy++)
         {
-          GPIO_Write(GPIOB, c);
+          LCD_BUS__PORT->ODR = c;
           LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
           LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
         }
     }
     
     // chip select no active
-    GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+    LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN;
 
     return UG_RESULT_OK;
 }
@@ -309,7 +309,7 @@ void lcd_write_command (uint8_t ui8_command)
   GPIOC->BRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  GPIOB->ODR = (uint16_t) ui8_command;
+  LCD_BUS__PORT->ODR = (uint16_t) ui8_command;
 
   // pulse low WR pin
   GPIOC->BRR = LCD_WRITE__PIN;
@@ -322,7 +322,7 @@ void lcd_write_data_8bits (uint8_t ui8_data)
   GPIOC->BSRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  GPIOB->ODR = (uint16_t) ui8_data;
+  LCD_BUS__PORT->ODR = (uint16_t) ui8_data;
 
   // pulse low WR pin
   GPIOC->BRR = LCD_WRITE__PIN;

@@ -24,8 +24,8 @@
 extern UG_GUI ugui_lcd;
 
 /* *** Function prototypes. *** */
-void Display_Init();
-void Display_PixelSet(UG_S16 x, UG_S16 y, UG_COLOR c);
+void lcd_init();
+void lcd_pixel_set(UG_S16 x, UG_S16 y, UG_COLOR c);
 void Display_WindowSet(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsigned int e_y);
 
     // Accelerators.

@@ -32,6 +32,8 @@
 #define LCD_READ__PORT                              GPIOC
 #define LCD_READ__PIN                               GPIO_Pin_6
 
+#define LCD_BUS__PORT                               GPIOB
+
 void pins_init (void);
 
 #endif /* PINS_H_ */

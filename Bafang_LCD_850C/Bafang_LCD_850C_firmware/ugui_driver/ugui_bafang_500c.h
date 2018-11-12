@@ -24,7 +24,7 @@
 extern UG_GUI ugui_lcd;
 
 /* *** Function prototypes. *** */
-void lcd_init();
+void bafang_500C_lcd_init();
 void lcd_pixel_set(UG_S16 x, UG_S16 y, UG_COLOR c);
 void lcd_window_set(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsigned int e_y);
 void lcd_write_command (uint32_t ui32_command);

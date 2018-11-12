@@ -13,8 +13,8 @@
 
 #include "pins.h"
 #include "lcd.h"
-#include "delay.h"
 #include "buttons.h"
+#include "timers.h"
 
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
@@ -33,73 +33,35 @@ void system_power (uint32_t ui32_state)
   }
 }
 
-#define INT_DIGITS 19   /* enough for 64 bit integer */
-
-char *itoa(i)
-{
-  /* Room for INT_DIGITS digits, - and '\0' */
-  static char buf[INT_DIGITS + 2];
-  char *p = buf + INT_DIGITS + 1; /* points to terminating '\0' */
-  if (i >= 0) {
-    do {
-      *--p = '0' + (i % 10);
-      i /= 10;
-    } while (i != 0);
-    return p;
-  }
-  else {      /* i < 0 */
-    do {
-      *--p = '0' - (i % 10);
-      i /= 10;
-    } while (i != 0);
-    *--p = '-';
-  }
-  return p;
-}
-
 int main(void)
 {
-  extern uint8_t BigFont[];
-
   SetSysClockTo128Mhz();
 
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
   pins_init();
-  delay_init();
+  systick_init();
   system_power(ENABLE);
 
-  UG_COLOR color[3];
-
-  color[0] = C_RED;
-  color[1] = C_GREEN;
-  color[2] = C_BLUE;
-
-  /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-  lcd_init();
-  UG_FillScreen(0);
-  UG_FontSelect(&FONT_10X16);
-
-  static buttons_events_type_t events = 0;
-  static buttons_events_type_t last_events = 0;
+  uint32_t ui32_timer_base_counter_1ms;
+  uint32_t ui32_10ms_loop_counter;
   while (1)
   {
-    delay_ms(10);
-    buttons_clock();
-
-//    UG_FillScreen(0);
-    UG_PutString(10, 10, itoa(buttons_get_onoff_state ()));
-    UG_PutString(10, 50, itoa(buttons_get_up_state ()));
-    UG_PutString(10, 90, itoa(buttons_get_down_state ()));
-
-    events = buttons_get_events ();
-    if (events != 0)
+    // because of continue; at the end of each if code block that will stop the while (1) loop there,
+    // the first if block code will have the higher priority over any others
+    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
+    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 10) // every 10ms
     {
-      last_events = events;
-      buttons_clear_all_events();
+      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
+
+      buttons_clock ();
+//      lcd_clock ();
+//      uart_data_clock ();
+
+      lcd_draw_main_menu();
+
+      continue;
     }
-    UG_PutString(10, 125, "   ");
-    UG_PutString(10, 125, itoa((uint32_t) last_events));
   }
 }
 

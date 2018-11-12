@@ -28,7 +28,7 @@
 #include "../ugui/ugui.h"
 #include "../ugui_driver/ugui_bafang_500c.h"
 #include "../pins.h"
-#include "../delay.h"
+#include "../timers.h"
 
 #define HDP (DISPLAY_WIDTH - 1)
 #define VDP (DISPLAY_HEIGHT - 1)
@@ -54,7 +54,7 @@ void lcd_backlight (uint32_t ui32_state)
   }
 }
 
-void lcd_init()
+void bafang_500C_lcd_init()
 {
   // next step is needed to have PB3 and PB4 working as GPIO
   /* Disable the Serial Wire Jtag Debug Port SWJ-DP */

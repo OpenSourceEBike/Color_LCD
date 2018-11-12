@@ -48,12 +48,14 @@ int main(void)
 
   uint32_t ui32_timer_base_counter_1ms;
   uint32_t ui32_10ms_loop_counter;
+  static buttons_events_type_t events = 0;
+  static buttons_events_type_t last_events = 0;
   while (1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
 //    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
-//    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 2) // every 10ms
+//    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 5) // every 10ms
 //    {
 //      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
@@ -63,7 +65,6 @@ int main(void)
 
       lcd_draw_main_menu();
 
-      delay_ms(10);
 //      continue;
 //    }
   }

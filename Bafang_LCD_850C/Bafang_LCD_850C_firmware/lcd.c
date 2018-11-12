@@ -72,7 +72,8 @@ void lcd_execute_main_screen (void)
 //  brake ();
 }
 
-buttons_events_type_t events;
+static buttons_events_type_t events = 0;
+static buttons_events_type_t last_events = 0;
 
 void assist_level_state (void)
 {
@@ -81,6 +82,10 @@ void assist_level_state (void)
     buttons_clear_up_click_event ();
 
     configuration_variables.ui8_assist_level++;
+
+// TODO
+configuration_variables.ui8_number_of_assist_levels = 5;
+
     if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
       { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
   }
@@ -94,16 +99,7 @@ void assist_level_state (void)
   }
 
   UG_FontSelect(&FONT_16X26);
-  UG_PutString(10, 10, "Assist level");
-
+  UG_PutString(10, 10, "Assist");
   UG_FontSelect(&FONT_32X53);
   UG_PutString(10, 50, itoa((uint32_t) configuration_variables.ui8_assist_level));
-
-  events = buttons_get_events();
-  if (events != 0)
-  {
-    UG_PutString(10, 200, "   ");
-    UG_PutString(10, 200, itoa((uint32_t) events));
-    buttons_clear_all_events();
-  }
 }

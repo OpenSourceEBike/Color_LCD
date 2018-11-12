@@ -35,8 +35,6 @@
 
 UG_GUI ugui_lcd;
 
-void lcd_write_command (uint8_t ui8_command);
-void lcd_write_data_8bits (uint8_t ui8_data);
 void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2);
 
 inline void Display_Reset()
@@ -180,7 +178,7 @@ void lcd_init()
 //  UG_DriverRegister(DRIVER_DRAW_IMAGE, (void*)HW_DrawImage);
 }
 
-void Display_WindowSet(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsigned int e_y)
+void lcd_window_set(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsigned int e_y)
 {
   uint16_t x1, x2, y1, y2;
 
@@ -303,30 +301,30 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *imag
 //    return UG_RESULT_OK;
 }
 
-void lcd_write_command (uint8_t ui8_command)
+void lcd_write_command (uint32_t ui32_command)
 {
   // command
   GPIOC->BRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  LCD_BUS__PORT->ODR = (uint16_t) ui8_command;
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_command;
 
   // pulse low WR pin
   GPIOC->BRR = LCD_WRITE__PIN;
   GPIOC->BSRR = LCD_WRITE__PIN;
 }
 
-void lcd_write_data_8bits (uint8_t ui8_data)
+void lcd_write_data_8bits (uint32_t ui32_data)
 {
   // data
-  GPIOC->BSRR = LCD_COMMAND_DATA__PIN;
+  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  LCD_BUS__PORT->ODR = (uint16_t) ui8_data;
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_data;
 
   // pulse low WR pin
-  GPIOC->BRR = LCD_WRITE__PIN;
-  GPIOC->BSRR = LCD_WRITE__PIN;
+  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
+  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 }
 
 void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2)

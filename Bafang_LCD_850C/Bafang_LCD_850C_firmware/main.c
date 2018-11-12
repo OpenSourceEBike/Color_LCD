@@ -14,6 +14,7 @@
 #include "pins.h"
 #include "lcd.h"
 #include "delay.h"
+#include "buttons.h"
 
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
@@ -30,6 +31,30 @@ void system_power (uint32_t ui32_state)
   {
     GPIO_ResetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
   }
+}
+
+#define INT_DIGITS 19   /* enough for 64 bit integer */
+
+char *itoa(i)
+{
+  /* Room for INT_DIGITS digits, - and '\0' */
+  static char buf[INT_DIGITS + 2];
+  char *p = buf + INT_DIGITS + 1; /* points to terminating '\0' */
+  if (i >= 0) {
+    do {
+      *--p = '0' + (i % 10);
+      i /= 10;
+    } while (i != 0);
+    return p;
+  }
+  else {      /* i < 0 */
+    do {
+      *--p = '0' - (i % 10);
+      i /= 10;
+    } while (i != 0);
+    *--p = '-';
+  }
+  return p;
 }
 
 int main(void)
@@ -52,17 +77,29 @@ int main(void)
 
   /* Place your initialization/startup code here (e.g. MyInst_Start()) */
   lcd_init();
-
-  UG_FillCircle(100, 100, 50, C_MAGENTA);
-
+  UG_FillScreen(0);
   UG_FontSelect(&FONT_10X16);
-  UG_PutString(250, 100, "testing");
 
-
-
+  static buttons_events_type_t events = 0;
+  static buttons_events_type_t last_events = 0;
   while (1)
   {
+    delay_ms(10);
+    buttons_clock();
 
+//    UG_FillScreen(0);
+    UG_PutString(10, 10, itoa(buttons_get_onoff_state ()));
+    UG_PutString(10, 50, itoa(buttons_get_up_state ()));
+    UG_PutString(10, 90, itoa(buttons_get_down_state ()));
+
+    events = buttons_get_events ();
+    if (events != 0)
+    {
+      last_events = events;
+      buttons_clear_all_events();
+    }
+    UG_PutString(10, 125, "   ");
+    UG_PutString(10, 125, itoa((uint32_t) last_events));
   }
 }
 

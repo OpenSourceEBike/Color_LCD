@@ -30,7 +30,8 @@
 /* -------------------------------------------------------------------------------- */
 #include "ugui.h"
 #include "../pins.h"
-#include "../UTFT-STM8S/UTFT.h"
+#include "../ugui_driver/ugui_bafang_500c.h"
+
 
 /* Static functions */
  UG_RESULT _UG_WindowDrawTitle( UG_WINDOW* wnd );
@@ -4324,69 +4325,41 @@ void UG_FillScreen( UG_COLOR c )
 
 void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
 {
-//   UG_S16 n,m;
-//
-//   if ( x2 < x1 )
-//   {
-//      n = x2;
-//      x2 = x1;
-//      x1 = n;
-//   }
-//   if ( y2 < y1 )
-//   {
-//      n = y2;
-//      y2 = y1;
-//      y1 = n;
-//   }
-//
-///*    Is hardware acceleration available?
-//   if ( gui->driver[DRIVER_FILL_FRAME].state & DRIVER_ENABLED )
-//   {
-//      if( ((UG_RESULT(*)(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c))gui->driver[DRIVER_FILL_FRAME].driver)(x1,y1,x2,y2,c) == UG_RESULT_OK ) return;
-//   }*/
-//
-//   for( m=y1; m<=y2; m++ )
-//   {
-//      for( n=x1; n<=x2; n++ )
-//      {
-//         gui->pset(n,m,c);
-//      }
-//   }
-
   uint32_t ui32_pix;
 
-   // chip select active
-   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  // chip select active
+  LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN;
 
-   // clear XY
-   UTFT_LCD_Write_COM(0x2a);
-   UTFT_LCD_Write_DATA_VL(x1>>8);
-   UTFT_LCD_Write_DATA_VL(x1);
-   UTFT_LCD_Write_DATA_VL(x2>>8);
-   UTFT_LCD_Write_DATA_VL(x2);
-   UTFT_LCD_Write_COM(0x2b);
-   UTFT_LCD_Write_DATA_VL(y1>>8);
-   UTFT_LCD_Write_DATA_VL(y1);
-   UTFT_LCD_Write_DATA_VL(y2>>8);
-   UTFT_LCD_Write_DATA_VL(y2);
-   UTFT_LCD_Write_COM(0x2c);
+  // set XY
+  lcd_write_command(0x2a);
+  lcd_write_data_8bits(x1>>8);
+  lcd_write_data_8bits(x1);
+  lcd_write_data_8bits(x2>>8);
+  lcd_write_data_8bits(x2);
+  lcd_write_command(0x2b);
+  lcd_write_data_8bits(y1>>8);
+  lcd_write_data_8bits(y1);
+  lcd_write_data_8bits(y2>>8);
+  lcd_write_data_8bits(y2);
+  lcd_write_command(0x2c);
 
-   GPIO_SetBits(LCD_COMMAND_DATA__PORT, LCD_COMMAND_DATA__PIN);
+  // data
+  GPIOC->BSRR = LCD_COMMAND_DATA__PIN;
 
-   // write color to bus
-   GPIO_Write(GPIOB, c);
+  // write color to bus
+  LCD_BUS__PORT->ODR = c;
 
-   ui32_pix = (x2-x1) * (y2-y1);
-   while (ui32_pix > 0)
-   {
-     ui32_pix--;
+  ui32_pix = (x2-x1) * (y2-y1);
+  while (ui32_pix > 0)
+  {
+   ui32_pix--;
 
-     LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
-     LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-   }
+   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
+   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  }
 
-   // chip select no active
-   GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+  // chip select no active
+  LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN;
 }
 
 void UG_FillRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG_COLOR c )

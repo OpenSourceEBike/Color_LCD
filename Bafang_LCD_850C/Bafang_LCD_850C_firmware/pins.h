@@ -34,6 +34,13 @@
 
 #define LCD_BUS__PORT                               GPIOB
 
+#define BUTTON_UP__PORT                             GPIOC
+#define BUTTON_UP__PIN                              GPIO_Pin_11
+#define BUTTON_ONOFF__PORT                          GPIOC
+#define BUTTON_ONOFF__PIN                           GPIO_Pin_12
+#define BUTTON_DOWN__PORT                           GPIOA
+#define BUTTON_DOWN__PIN                            GPIO_Pin_15
+
 void pins_init (void);
 
 #endif /* PINS_H_ */

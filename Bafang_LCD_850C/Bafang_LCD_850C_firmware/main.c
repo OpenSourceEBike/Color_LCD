@@ -36,12 +36,15 @@ void system_power (uint32_t ui32_state)
 int main(void)
 {
   SetSysClockTo128Mhz();
+//#define SYSCLK_FREQ_72MHz
+//  SystemInit();
 
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
   pins_init();
-  systick_init();
   system_power(ENABLE);
+  systick_init();
+  lcd_init();
 
   uint32_t ui32_timer_base_counter_1ms;
   uint32_t ui32_10ms_loop_counter;
@@ -49,10 +52,10 @@ int main(void)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
-    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
-    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 10) // every 10ms
-    {
-      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
+//    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
+//    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 2) // every 10ms
+//    {
+//      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
       buttons_clock ();
 //      lcd_clock ();
@@ -60,8 +63,9 @@ int main(void)
 
       lcd_draw_main_menu();
 
-      continue;
-    }
+      delay_ms(10);
+//      continue;
+//    }
   }
 }
 

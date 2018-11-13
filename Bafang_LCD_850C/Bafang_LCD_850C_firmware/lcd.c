@@ -98,8 +98,7 @@ configuration_variables.ui8_number_of_assist_levels = 5;
       configuration_variables.ui8_assist_level--;
   }
 
-  UG_FontSelect(&FONT_16X26);
-  UG_PutString(10, 10, "Assist");
+  UG_DrawLine(10, 140, 200, 140, 0xffff);
   UG_FontSelect(&FONT_32X53);
-  UG_PutString(10, 50, itoa((uint32_t) configuration_variables.ui8_assist_level));
+  UG_PutString(10, 150, itoa((uint32_t) configuration_variables.ui8_assist_level));
 }

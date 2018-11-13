@@ -36,8 +36,6 @@ void system_power (uint32_t ui32_state)
 int main(void)
 {
   SetSysClockTo128Mhz();
-//#define SYSCLK_FREQ_72MHz
-//  SystemInit();
 
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
@@ -50,14 +48,18 @@ int main(void)
   uint32_t ui32_10ms_loop_counter;
   static buttons_events_type_t events = 0;
   static buttons_events_type_t last_events = 0;
+
+  UG_FontSelect(&FONT_16X26);
+  UG_PutString(10, 10, "Assist");
+
   while (1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
-//    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
-//    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 5) // every 10ms
-//    {
-//      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
+    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
+    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 5) // every 10ms
+    {
+      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
       buttons_clock ();
 //      lcd_clock ();
@@ -65,8 +67,8 @@ int main(void)
 
       lcd_draw_main_menu();
 
-//      continue;
-//    }
+      continue;
+    }
   }
 }
 
@@ -101,7 +103,7 @@ void SetSysClockTo128Mhz(void)
     /* PCLK1 = HCLK/2 */
     RCC_PCLK1Config(RCC_HCLK_Div2);
 
-    /* PLLCLK = 8MHz * 9 = 72 MHz */
+    /* PLLCLK = 8MHz * 16 = 128 MHz */
     RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_16);
 
     /* Enable PLL */

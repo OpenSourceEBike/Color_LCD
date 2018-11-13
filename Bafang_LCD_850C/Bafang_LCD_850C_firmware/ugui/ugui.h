@@ -520,7 +520,7 @@ typedef struct
 
 /* Supported drivers */
 #define NUMBER_OF_DRIVERS                             2
-#define DRIVER_DRAW_LINE                              0
+#define DRIVER_DRAW_LINE                              1
 #define DRIVER_FILL_FRAME                             1
 
 /* -------------------------------------------------------------------------------- */

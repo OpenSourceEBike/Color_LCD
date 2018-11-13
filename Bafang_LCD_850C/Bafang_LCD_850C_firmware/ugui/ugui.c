@@ -4327,9 +4327,6 @@ void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
 {
   uint32_t ui32_pix;
 
-  // chip select active
-  LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN;
-
   // set XY
   lcd_write_command(0x2a);
   lcd_write_data_8bits(x1>>8);
@@ -4357,9 +4354,6 @@ void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
    LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
    LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
   }
-
-  // chip select no active
-  LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN;
 }
 
 void UG_FillRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG_COLOR c )
@@ -4617,10 +4611,10 @@ void UG_DrawLine( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
    }
 
    /* Is hardware acceleration available? */
-//   if ( gui->driver[DRIVER_DRAW_LINE].state & DRIVER_ENABLED )
-//   {
-//      if( ((UG_RESULT(*)(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c))gui->driver[DRIVER_DRAW_LINE].driver)(x1,y1,x2,y2,c) == UG_RESULT_OK ) return;
-//   }
+   if ( gui->driver[DRIVER_DRAW_LINE].state & DRIVER_ENABLED )
+   {
+      if( ((UG_RESULT(*)(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c))gui->driver[DRIVER_DRAW_LINE].driver)(x1,y1,x2,y2,c) == UG_RESULT_OK ) return;
+   }
 
    dx = x2 - x1;
    dy = y2 - y1;

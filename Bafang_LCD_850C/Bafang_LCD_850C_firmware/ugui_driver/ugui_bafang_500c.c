@@ -339,6 +339,8 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
+  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
+
   // set the color only once since is equal to all pixels
   LCD_BUS__PORT->ODR = ui32_color;
 

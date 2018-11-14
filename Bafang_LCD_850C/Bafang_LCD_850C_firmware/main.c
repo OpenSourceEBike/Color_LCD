@@ -49,8 +49,26 @@ int main(void)
   static buttons_events_type_t events = 0;
   static buttons_events_type_t last_events = 0;
 
-  UG_FontSelect(&FONT_16X26);
-  UG_PutString(10, 10, "Assist");
+//  UG_FontSelect(&FONT_16X26);
+//  UG_PutString(10, 10, "Assist");
+
+  //lcd_draw_main_menu_mask();
+
+  UG_FontSelect(&FONT_32X53);
+  UG_SetBackcolor(0);
+
+  UG_SetForecolor(C_TURQUOISE);
+  UG_PutString(10, 0, itoa(10));
+
+  UG_SetForecolor(C_TEAL);
+  UG_PutString(10, 150, itoa(10));
+
+  UG_SetForecolor(C_GRAY);
+  UG_PutString(10, 300, itoa(10));
+
+  while (1) ;
+
+
 
   while (1)
   {

@@ -58,6 +58,19 @@ void lcd_draw_main_menu(void)
   lcd_execute_main_screen ();
 }
 
+void lcd_draw_main_menu_mask(void)
+{
+  UG_DrawLine(10, 60, 310, 60, C_LIGHT_GRAY);
+
+  UG_DrawLine(10, 180, 310, 180, C_LIGHT_GRAY);
+
+  UG_DrawLine(10, 240, 310, 240, C_LIGHT_GRAY);
+
+
+//  UG_FontSelect(&FONT_32X53);
+//  UG_PutString(10, 150, itoa((uint32_t) configuration_variables.ui8_assist_level));
+}
+
 void lcd_execute_main_screen (void)
 {
 //  temperature ();

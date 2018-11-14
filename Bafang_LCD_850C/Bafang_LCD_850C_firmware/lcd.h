@@ -85,5 +85,6 @@ typedef struct _configuration_variables
 
 void lcd_init(void);
 void lcd_draw_main_menu(void);
+void lcd_draw_main_menu_mask(void);
 
 #endif /* LCD_H_ */

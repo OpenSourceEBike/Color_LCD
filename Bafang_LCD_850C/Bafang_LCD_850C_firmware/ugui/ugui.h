@@ -40,7 +40,7 @@
 /* -------------------------------------------------------------------------------- */
 
 /* Enable needed fonts here */
-//#define  USE_FONT_4X6
+#define  USE_FONT_4X6
 //#define  USE_FONT_5X8
 //#define  USE_FONT_5X12
 //#define  USE_FONT_6X8
@@ -142,6 +142,7 @@ typedef struct
 #ifdef USE_FONT_32X53
    extern const UG_FONT FONT_32X53;
 #endif
+   extern const UG_FONT FONT_8X8;
 
 /* -------------------------------------------------------------------------------- */
 /* -- TYPEDEFS                                                                   -- */

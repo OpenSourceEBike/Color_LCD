@@ -65,10 +65,6 @@ void lcd_draw_main_menu_mask(void)
   UG_DrawLine(10, 180, 310, 180, C_LIGHT_GRAY);
 
   UG_DrawLine(10, 240, 310, 240, C_LIGHT_GRAY);
-
-
-//  UG_FontSelect(&FONT_32X53);
-//  UG_PutString(10, 150, itoa((uint32_t) configuration_variables.ui8_assist_level));
 }
 
 void lcd_execute_main_screen (void)
@@ -93,6 +89,7 @@ void assist_level_state (void)
   if (buttons_get_up_click_event ())
   {
     buttons_clear_up_click_event ();
+    buttons_clear_down_click_event ();
 
     configuration_variables.ui8_assist_level++;
 
@@ -105,13 +102,13 @@ configuration_variables.ui8_number_of_assist_levels = 5;
 
   if (buttons_get_down_click_event ())
   {
+    buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
 
     if (configuration_variables.ui8_assist_level > 0)
       configuration_variables.ui8_assist_level--;
   }
 
-  UG_DrawLine(10, 140, 200, 140, 0xffff);
   UG_FontSelect(&FONT_32X53);
-  UG_PutString(10, 150, itoa((uint32_t) configuration_variables.ui8_assist_level));
+  UG_PutString(10, 190, itoa((uint32_t) configuration_variables.ui8_assist_level));
 }

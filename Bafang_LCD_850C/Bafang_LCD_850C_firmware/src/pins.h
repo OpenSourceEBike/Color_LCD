@@ -41,6 +41,10 @@
 #define BUTTON_DOWN__PORT                           GPIOA
 #define BUTTON_DOWN__PIN                            GPIO_Pin_15
 
+#define USART1__PORT                                GPIOA
+#define USART1_TX__PIN                              GPIO_Pin_15
+#define USART1_RX__PIN                              GPIO_Pin_15
+
 void pins_init (void);
 
 #endif /* PINS_H_ */

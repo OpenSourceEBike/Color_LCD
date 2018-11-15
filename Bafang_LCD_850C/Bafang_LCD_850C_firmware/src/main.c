@@ -15,6 +15,7 @@
 #include "lcd.h"
 #include "buttons.h"
 #include "timers.h"
+#include "usart1.h"
 
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
@@ -42,6 +43,7 @@ int main(void)
   pins_init();
   system_power(ENABLE);
   systick_init();
+  usart1_init();
   lcd_init();
 
   uint32_t ui32_timer_base_counter_1ms;
@@ -61,8 +63,7 @@ int main(void)
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
       buttons_clock ();
-//      lcd_clock ();
-//      uart_data_clock ();
+      usart1_data_clock ();
 
       lcd_draw_main_menu();
 

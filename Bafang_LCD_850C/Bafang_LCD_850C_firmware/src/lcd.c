@@ -9,6 +9,7 @@
 #include "stm32f10x.h"
 #include "stm32f10x_gpio.h"
 #include "stdio.h"
+#include <math.h>
 
 #include "pins.h"
 #include "lcd.h"
@@ -22,6 +23,66 @@ static struct_configuration_variables configuration_variables;
 void lcd_execute_main_screen (void);
 void assist_level_state (void);
 
+// reverses a string 'str' of length 'len'
+void reverse(char *str, int len)
+{
+    int i=0, j=len-1, temp;
+    while (i<j)
+    {
+        temp = str[i];
+        str[i] = str[j];
+        str[j] = temp;
+        i++; j--;
+    }
+}
+
+ // Converts a given integer x to string str[].  d is the number
+ // of digits required in output. If d is more than the number
+ // of digits in x, then 0s are added at the beginning.
+int intToStr(int x, char str[], int d)
+{
+    int i = 0;
+    while (x)
+    {
+        str[i++] = (x%10) + '0';
+        x = x/10;
+    }
+
+    // If number of digits required is more, then
+    // add 0s at the beginning
+    while (i < d)
+        str[i++] = '0';
+
+    reverse(str, i);
+    str[i] = '\0';
+    return i;
+}
+
+// Converts a floating point number to string.
+void ftoa(float n, char *res, int afterpoint)
+{
+    // Extract integer part
+    int ipart = (int)n;
+
+    // Extract floating part
+    float fpart = n - (float)ipart;
+
+    // convert integer part to string
+    int i = intToStr(ipart, res, 0);
+
+    // check for display option after point
+    if (afterpoint != 0)
+    {
+        res[i] = '.';  // add dot
+
+        // Get the value of fraction part upto given no.
+        // of points after dot. The third parameter is needed
+        // to handle cases like 233.007
+        fpart = fpart * pow(10, afterpoint);
+
+        intToStr((int)fpart, res + i + 1, afterpoint);
+    }
+}
 
 #define INT_DIGITS 19   /* enough for 64 bit integer */
 uint8_t *itoa(uint8_t ui8_i)
@@ -60,11 +121,11 @@ void lcd_draw_main_menu(void)
 
 void lcd_draw_main_menu_mask(void)
 {
-  UG_DrawLine(10, 60, 310, 60, C_LIGHT_GRAY);
+  UG_DrawLine(10, 60, 310, 60, C_DIM_GRAY);
 
-  UG_DrawLine(10, 180, 310, 180, C_LIGHT_GRAY);
+  UG_DrawLine(10, 180, 310, 180, C_DIM_GRAY);
 
-  UG_DrawLine(10, 240, 310, 240, C_LIGHT_GRAY);
+  UG_DrawLine(10, 265, 310, 265, C_DIM_GRAY);
 }
 
 void lcd_execute_main_screen (void)
@@ -89,7 +150,11 @@ void assist_level_state (void)
   if (buttons_get_up_click_event ())
   {
     buttons_clear_up_click_event ();
+    buttons_clear_up_click_long_click_event ();
+    buttons_clear_up_long_click_event ();
     buttons_clear_down_click_event ();
+    buttons_clear_down_click_long_click_event ();
+    buttons_clear_down_long_click_event ();
 
     configuration_variables.ui8_assist_level++;
 
@@ -103,13 +168,22 @@ configuration_variables.ui8_number_of_assist_levels = 5;
   if (buttons_get_down_click_event ())
   {
     buttons_clear_up_click_event ();
+    buttons_clear_up_click_long_click_event ();
+    buttons_clear_up_long_click_event ();
     buttons_clear_down_click_event ();
+    buttons_clear_down_click_long_click_event ();
+    buttons_clear_down_long_click_event ();
 
     if (configuration_variables.ui8_assist_level > 0)
       configuration_variables.ui8_assist_level--;
   }
 
-//  UG_FontSelect(&FONT_75X113);
-  UG_FontSelect(&FONT_18X27);
-  UG_PutString(10, 190, itoa((uint32_t) configuration_variables.ui8_assist_level));
+  UG_SetBackcolor(C_BLACK);
+  UG_SetForecolor(C_DIM_GRAY);
+  UG_FontSelect(&FONT_10X16);
+  UG_PutString(10, 190, "Assist");
+
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&FONT_32X53);
+  UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
 }

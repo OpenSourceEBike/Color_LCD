@@ -45,6 +45,10 @@
 #define USART1_TX__PIN                              GPIO_Pin_15
 #define USART1_RX__PIN                              GPIO_Pin_15
 
+#define EEPROM_SPI__PORT                            GPIOC
+#define EEPROM_SPI_SDA_PIN                          GPIO_Pin_8
+#define EEPROM_SPI_SCL_PIN                          GPIO_Pin_9
+
 void pins_init (void);
 
 #endif /* PINS_H_ */

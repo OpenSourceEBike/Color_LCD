@@ -9,6 +9,8 @@
 #ifndef LCD_H_
 #define LCD_H_
 
+#include <stdint.h>
+
 typedef struct _motor_controller_data
 {
   uint16_t ui16_adc_battery_voltage;
@@ -84,7 +86,9 @@ typedef struct _configuration_variables
 } struct_configuration_variables;
 
 void lcd_init(void);
-void lcd_draw_main_menu(void);
+void lcd_clock(void);
 void lcd_draw_main_menu_mask(void);
+struct_motor_controller_data* lcd_get_motor_controller_data (void);
+struct_configuration_variables* get_configuration_variables (void);
 
 #endif /* LCD_H_ */

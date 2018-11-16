@@ -15,10 +15,10 @@
 #include "pins.h"
 #include "lcd.h"
 #include "buttons.h"
+#include "eeprom_emulated.h"
 #include "timers.h"
 #include "usart1.h"
 #include "eeprom.h"
-
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 
@@ -46,6 +46,7 @@ int main(void)
   system_power(ENABLE);
   systick_init();
   usart1_init();
+  eeprom_init();
   lcd_init();
 
   uint32_t ui32_timer_base_counter_1ms;
@@ -64,26 +65,10 @@ int main(void)
     {
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
-//      buttons_clock ();
+      buttons_clock ();
 //      usart1_data_clock ();
-//
-//      lcd_draw_main_menu();
 
-      static uint32_t ui32_counter = 0;
-      static uint32_t ui32_data = 0;
-      while (1)
-        {
-//          ui32_counter++;
-//
-//          eeprom_write(0, ui32_counter);
-//          eeprom_read(0, &ui32_data);
-//
-//          eeprom_write(1, ui32_counter + 10);
-//          eeprom_read(1, &ui32_counter);
-
-                    eeprom_write(1, 4);
-                    eeprom_read(1, &ui32_data);
-        }
+      lcd_clock();
 
       continue;
     }

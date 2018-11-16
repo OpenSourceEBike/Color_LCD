@@ -112,11 +112,20 @@ void lcd_init(void)
 {
   bafang_500C_lcd_init();
   UG_FillScreen(0);
+
+  // init variables with the stored value on EEPROM
+  eeprom_init_variables ();
 }
 
-void lcd_draw_main_menu(void)
+void lcd_clock(void)
 {
   lcd_execute_main_screen ();
+
+  configuration_variables.ui32_odometer_x10++;
+
+  eeprom_write_variables();
+
+  delay_ms(1000);
 }
 
 void lcd_draw_main_menu_mask(void)
@@ -186,4 +195,14 @@ configuration_variables.ui8_number_of_assist_levels = 5;
   UG_SetForecolor(C_WHITE);
   UG_FontSelect(&FONT_32X53);
   UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
+}
+
+struct_configuration_variables* get_configuration_variables (void)
+{
+  return &configuration_variables;
+}
+
+struct_motor_controller_data* lcd_get_motor_controller_data (void)
+{
+  return &motor_controller_data;
 }

@@ -43,3 +43,15 @@ void pins_init (void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
   GPIO_Init(BUTTON_DOWN__PORT, &GPIO_InitStructure);
 }
+
+void system_power (uint32_t ui32_state)
+{
+  if (ui32_state)
+  {
+    GPIO_SetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+  }
+  else
+  {
+    GPIO_ResetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+  }
+}

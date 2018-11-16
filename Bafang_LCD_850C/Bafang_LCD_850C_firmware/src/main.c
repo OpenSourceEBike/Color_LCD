@@ -24,18 +24,6 @@
 
 void SetSysClockTo128Mhz(void);
 
-void system_power (uint32_t ui32_state)
-{
-  if (ui32_state)
-  {
-    GPIO_SetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
-  }
-  else
-  {
-    GPIO_ResetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
-  }
-}
-
 int main(void)
 {
   SetSysClockTo128Mhz();
@@ -43,7 +31,7 @@ int main(void)
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
   pins_init();
-  system_power(ENABLE);
+  system_power(1);
   systick_init();
   usart1_init();
   eeprom_init();

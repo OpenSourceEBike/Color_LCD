@@ -14,6 +14,7 @@
 #include "pins.h"
 #include "lcd.h"
 #include "buttons.h"
+#include "eeprom.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
@@ -22,6 +23,8 @@ static struct_configuration_variables configuration_variables;
 
 void lcd_execute_main_screen (void);
 void assist_level_state (void);
+void power_off_management (void);
+void lcd_power_off (uint8_t updateDistanceOdo);
 
 // reverses a string 'str' of length 'len'
 void reverse(char *str, int len)
@@ -121,11 +124,9 @@ void lcd_clock(void)
 {
   lcd_execute_main_screen ();
 
-  configuration_variables.ui32_odometer_x10++;
 
-  eeprom_write_variables();
-
-  delay_ms(1000);
+  // power off system: ONOFF long click event
+  power_off_management ();
 }
 
 void lcd_draw_main_menu_mask(void)
@@ -205,4 +206,27 @@ struct_configuration_variables* get_configuration_variables (void)
 struct_motor_controller_data* lcd_get_motor_controller_data (void)
 {
   return &motor_controller_data;
+}
+
+void power_off_management (void)
+{
+  // turn off
+  if (buttons_get_onoff_long_click_event ()) { lcd_power_off (1); }
+}
+
+void lcd_power_off (uint8_t updateDistanceOdo)
+{
+//  if (updateDistanceOdo)
+//  {
+//    configuration_variables.ui32_wh_x10_offset = ui32_wh_x10;
+//    configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
+//  }
+
+  eeprom_write_variables ();
+
+  // now disable the power to all the system
+  system_power(0);
+
+  // block here
+  while (1) ;
 }

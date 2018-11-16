@@ -49,6 +49,7 @@
 #define EEPROM_SPI_SDA_PIN                          GPIO_Pin_8
 #define EEPROM_SPI_SCL_PIN                          GPIO_Pin_9
 
-void pins_init (void);
+void pins_init(void);
+void system_power(uint32_t ui32_state);
 
 #endif /* PINS_H_ */

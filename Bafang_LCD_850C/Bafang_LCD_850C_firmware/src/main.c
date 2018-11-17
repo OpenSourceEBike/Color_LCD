@@ -15,7 +15,7 @@
 #include "pins.h"
 #include "lcd.h"
 #include "buttons.h"
-#include "eeprom_emulated.h"
+#include "eeprom.h"
 #include "timers.h"
 #include "usart1.h"
 #include "eeprom.h"

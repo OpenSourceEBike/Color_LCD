@@ -124,7 +124,6 @@ void lcd_clock(void)
 {
   lcd_execute_main_screen ();
 
-
   // power off system: ONOFF long click event
   power_off_management ();
 }

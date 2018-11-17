@@ -31,5 +31,5 @@
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 </listAttribute>
-<stringAttribute key="saved_expressions&lt;seperator&gt;Unknown" value="0x0807F800"/>
+<stringAttribute key="saved_expressions&lt;seperator&gt;Unknown" value="0x0807F800,0x0807F000"/>
 </launchConfiguration>

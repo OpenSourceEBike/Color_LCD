@@ -97,7 +97,7 @@ void bafang_500C_lcd_init()
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
   // enable backlight
-  lcd_backlight (ENABLE);
+  lcd_backlight(1);
 
   // keep RESET and READ pins always at 1
   GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);

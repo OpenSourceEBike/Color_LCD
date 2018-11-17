@@ -42,8 +42,8 @@
 #define BUTTON_DOWN__PIN                            GPIO_Pin_15
 
 #define USART1__PORT                                GPIOA
-#define USART1_TX__PIN                              GPIO_Pin_15
-#define USART1_RX__PIN                              GPIO_Pin_15
+#define USART1_TX__PIN                              GPIO_Pin_9
+#define USART1_RX__PIN                              GPIO_Pin_10
 
 #define EEPROM_SPI__PORT                            GPIOC
 #define EEPROM_SPI_SDA_PIN                          GPIO_Pin_8

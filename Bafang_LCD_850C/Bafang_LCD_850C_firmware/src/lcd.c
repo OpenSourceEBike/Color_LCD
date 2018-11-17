@@ -223,6 +223,10 @@ void lcd_power_off (uint8_t updateDistanceOdo)
 
   eeprom_write_variables ();
 
+  // put screen all black and disable backlight
+  UG_FillScreen(0);
+  lcd_backlight(0);
+
   // now disable the power to all the system
   system_power(0);
 

@@ -275,14 +275,14 @@ void eeprom_write_variables(void)
   if(ui32_eeprom_page == 0)
   {
     eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
-    ui32_eeprom_write_id = eeprom_read(EEPROM_PAGE_WRITE_ID_ADDRESS);
+    ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 1);
     ui32_eeprom_write_id++;
     eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
   }
   else
   {
     eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
-    ui32_eeprom_write_id = eeprom_read(EEPROM_PAGE_WRITE_ID_ADDRESS);
+    ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 0);
     ui32_eeprom_write_id++;
     eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
   }

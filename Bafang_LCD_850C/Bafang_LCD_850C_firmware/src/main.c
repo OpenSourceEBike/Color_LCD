@@ -47,8 +47,6 @@ int main(void)
   static buttons_events_type_t events = 0;
   static buttons_events_type_t last_events = 0;
 
-  lcd_draw_main_menu_mask();
-
   while (1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,

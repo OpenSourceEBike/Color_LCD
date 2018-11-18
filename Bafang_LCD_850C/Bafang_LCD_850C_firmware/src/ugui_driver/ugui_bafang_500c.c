@@ -276,16 +276,11 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
 {
   uint32_t ui32_pixels;
   int32_t i32_dx, i32_dy;
-  uint32_t ui32_dx_abs, ui32_dy_abs;
 
   // calc total of pixels
-  i32_dx = (uint32_t) (x2 - x1);
-  i32_dy = (uint32_t) (y2 - y1);
-  ui32_dx_abs = (i32_dx > 0) ? ((uint32_t) i32_dx): ((uint32_t) (-i32_dx));
-  ui32_dy_abs = (i32_dy > 0) ? ((uint32_t) i32_dy): ((uint32_t) (-i32_dy));
-  if (ui32_dx_abs == 0) { ui32_dx_abs = 1;}
-  if (ui32_dy_abs == 0) { ui32_dy_abs = 1;}
-  ui32_pixels = ui32_dx_abs * ui32_dy_abs;
+  i32_dx = (uint32_t) (x2 - x1 + 1);
+  i32_dy = (uint32_t) (y2 - y1 + 1);
+  ui32_pixels = i32_dx * i32_dy;
 
   /**************************************************/
   // Set XY

@@ -11,10 +11,18 @@
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7
-#define LI_ION_CELL_VOLTS_83    3.96
-#define LI_ION_CELL_VOLTS_50    3.70
-#define LI_ION_CELL_VOLTS_17    3.44
-#define LI_ION_CELL_VOLTS_0     3.30
+// 0.08V for each 10%
+
+#define LI_ION_CELL_VOLTS_90    4.015
+#define LI_ION_CELL_VOLTS_80    3.936
+#define LI_ION_CELL_VOLTS_70    3.857
+#define LI_ION_CELL_VOLTS_60    3.778
+#define LI_ION_CELL_VOLTS_50    3.699
+#define LI_ION_CELL_VOLTS_40    3.621
+#define LI_ION_CELL_VOLTS_30    3.542
+#define LI_ION_CELL_VOLTS_20    3.463
+#define LI_ION_CELL_VOLTS_10    3.384
+#define LI_ION_CELL_VOLTS_0    3.305
 
 // Battery voltage (readed on motor controller):
 #define ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000 866

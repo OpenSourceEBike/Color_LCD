@@ -4325,35 +4325,7 @@ void UG_FillScreen( UG_COLOR c )
 
 void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
 {
-  uint32_t ui32_pix;
-
-  // set XY
-  lcd_write_command(0x2a);
-  lcd_write_data_8bits(x1>>8);
-  lcd_write_data_8bits(x1);
-  lcd_write_data_8bits(x2>>8);
-  lcd_write_data_8bits(x2);
-  lcd_write_command(0x2b);
-  lcd_write_data_8bits(y1>>8);
-  lcd_write_data_8bits(y1);
-  lcd_write_data_8bits(y2>>8);
-  lcd_write_data_8bits(y2);
-  lcd_write_command(0x2c);
-
-  // data
-  GPIOC->BSRR = LCD_COMMAND_DATA__PIN;
-
-  // write color to bus
-  LCD_BUS__PORT->ODR = c;
-
-  ui32_pix = (x2-x1) * (y2-y1);
-  while (ui32_pix > 0)
-  {
-   ui32_pix--;
-
-   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
-   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-  }
+  HW_FillFrame(x1, y1, x2, y2, c);
 }
 
 void UG_FillRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG_COLOR c )

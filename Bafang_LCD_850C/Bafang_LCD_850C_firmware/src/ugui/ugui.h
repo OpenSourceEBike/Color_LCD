@@ -54,7 +54,7 @@
 //#define  USE_FONT_12X20
 #define  USE_FONT_16X26
 //#define  USE_FONT_22X36
-//#define  USE_FONT_24X40
+#define  USE_FONT_24X40
 #define  USE_FONT_32X53
 
 /* Specify platform-dependent integer types here */

@@ -606,7 +606,7 @@ void battery_soc_bar_clear(uint32_t ui32_bar_number)
       ui32_x1 = ui32_x2 + 1;
       ui32_y1 = 11 + 6;
       ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 10;
+      ui32_y2 = ui32_y1 + 8;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
   }
@@ -644,7 +644,7 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
       ui32_x1 = ui32_x2 + 1;
       ui32_y1 = 11 + 6;
       ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 10;
+      ui32_y2 = ui32_y1 + 8;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_DIM_GRAY);
     }
   }

@@ -4320,7 +4320,8 @@ void UG_FontSelect( const UG_FONT* font )
 void UG_FillScreen( UG_COLOR c )
 {
 //   UG_FillFrame(0, 0, gui->x_dim - 1, gui->y_dim - 1, c);
-   UG_FillFrame(0, 0, gui->x_dim + 1, gui->y_dim - 1, c); // for some reason, just like this the full LCD get´s filled
+//   UG_FillFrame(0, 0, gui->x_dim + 1, gui->y_dim - 1, c); // for some reason, just like this the full LCD get´s filled
+   UG_FillFrame(0, 0, 320, 480, c); // for some reason, just like this the full LCD get´s filled
 }
 
 void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
@@ -4732,7 +4733,6 @@ void UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc )
    LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
    LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-
 
    bt = (UG_U8)chr;
    switch ( bt )

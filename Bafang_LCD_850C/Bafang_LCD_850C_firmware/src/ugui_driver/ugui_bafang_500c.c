@@ -272,14 +272,24 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color)
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 }
 
-UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32_color)
+UG_RESULT HW_FillFrame(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2, uint32_t ui32_color)
 {
   uint32_t ui32_pixels;
   int32_t i32_dx, i32_dy;
+  uint32_t ui32_temp;
+  uint32_t ui32_x1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y1;
+  uint32_t ui32_y2;
+
+  ui32_x1 = (uint32_t) ui16_x1;
+  ui32_x2 = (uint32_t) ui16_x2;
+  ui32_y1 = (uint32_t) ui16_y1;
+  ui32_y2 = (uint32_t) ui16_y2;
 
   // calc total of pixels
-  i32_dx = (uint32_t) (x2 - x1 + 1);
-  i32_dy = (uint32_t) (y2 - y1 + 1);
+  i32_dx = ui32_x2 - ui32_x1;
+  i32_dy = ui32_y2 - ui32_y1;
   ui32_pixels = i32_dx * i32_dy;
 
   /**************************************************/
@@ -291,19 +301,19 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
   LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) (x1 >> 8);   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) (ui32_x1 >> 8);   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) x1;   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_x1;   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) (x2 >> 8);   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) (ui32_x2 >> 8);   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) x2;   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_x2;   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
@@ -313,19 +323,19 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
   LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) (y1 >> 8);   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) (ui32_y1 >> 8);   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) y1;   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_y1;   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) (y2 >> 8);   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) (ui32_y2 >> 8);   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
-  LCD_BUS__PORT->ODR = (uint16_t) y2;   // write data to BUS
+  LCD_BUS__PORT->ODR = (uint16_t) ui32_y2;   // write data to BUS
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 
@@ -350,18 +360,15 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
 
 UG_RESULT HW_DrawLine( UG_S16 x1 , UG_S16 y1 , UG_S16 x2 , UG_S16 y2 , UG_COLOR c )
 {
-    if((x1 < 0) ||(x1 >= DISPLAY_WIDTH) || (y1 < 0) || (y1 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
-    if((x2 < 0) ||(x2 >= DISPLAY_WIDTH) || (y2 < 0) || (y2 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
-    
-    // If it is a vertical or a horizontal line, draw it.
-    // If not, then use original drawline routine.
-    if ((x1 == x2) || (y1 == y2)) 
-    {
-        HW_FillFrame(x1, y1, x2, y2, c);
-        return UG_RESULT_OK;
-    }
-    
-    return UG_RESULT_FAIL;
+  // If it is a vertical or a horizontal line, draw it.
+  // If not, then use original drawline routine.
+  if ((x1 == x2) || (y1 == y2))
+  {
+    HW_FillFrame(x1, y1, x2, y2, c);
+    return UG_RESULT_OK;
+  }
+
+  return UG_RESULT_FAIL;
 }
 
 UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *image, uint16_t pSize)

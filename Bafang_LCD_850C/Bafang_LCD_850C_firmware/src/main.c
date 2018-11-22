@@ -21,6 +21,7 @@
 #include "eeprom.h"
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
+#include "utils.h"
 
 void SetSysClockTo128Mhz(void);
 

@@ -11,6 +11,7 @@
 #include "stdio.h"
 #include <math.h>
 
+#include "main.h"
 #include "config.h"
 #include "utils.h"
 #include "pins.h"
@@ -20,30 +21,28 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
+typedef enum
+{
+  LCD_SCREEN_MAIN = 1,
+  LCD_SCREEN_CONFIGURATIONS = 2
+} lcd_screen_states_t;
+
+lcd_screen_states_t lcd_screen_state = LCD_SCREEN_MAIN;
+
 static struct_motor_controller_data motor_controller_data;
 static struct_configuration_variables configuration_variables;
 
-static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
 static uint16_t ui16_battery_voltage_filtered_x10;
-
-static uint16_t ui16_battery_current_accumulated_x5 = 0;
 static uint16_t ui16_battery_current_filtered_x5;
 
-static uint16_t ui16_battery_power_accumulated = 0;
 static uint16_t ui16_battery_power_filtered_x50;
 static uint16_t ui16_battery_power_filtered;
 
-static uint32_t ui32_wh_sum_x5 = 0;
-static uint32_t ui32_wh_sum_counter = 0;
 static uint32_t ui32_wh_x10 = 0;
-static uint8_t ui8_config_wh_x10_offset;
 
-static uint32_t ui32_pedal_torque_accumulated = 0;
 static uint16_t ui16_pedal_torque_filtered;
-static uint32_t ui32_pedal_power_accumulated = 0;
 static uint16_t ui16_pedal_power_filtered;
 
-static uint16_t ui16_pedal_cadence_accumulated = 0;
 static uint8_t ui8_pedal_cadence_filtered;
 
 static uint8_t ui8_lights_state = 0;
@@ -56,10 +55,7 @@ static uint16_t ui16_lcd_power_off_time_counter = 0;
 
 static uint16_t ui16_battery_voltage_soc_x10;
 
-static uint8_t ui8_lcd_menu_counter_100ms = 0;
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
-
-static uint8_t ui8_lcd_menu_counter_500ms = 0;
 static uint8_t ui8_lcd_menu_counter_500ms_state = 0;
 
 static uint8_t ui8_lcd_menu_config_submenu_state = 0;
@@ -70,9 +66,10 @@ static uint8_t ui8_lcd_menu_flash_state_temperature;
 static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
-static uint32_t ui32_draw_static_info = 1;
+static uint32_t ui32_main_screen_draw_static_info = 1;
+static uint32_t ui32_configurations_screen_draw_static_info = 1;
 
-void lcd_execute_main_screen (void);
+void lcd_main_screen (void);
 void assist_level_state (void);
 void power_off_management (void);
 void lcd_power_off (uint8_t updateDistanceOdo);
@@ -95,12 +92,14 @@ void lights_state(void);
 void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
+void lcd_configurations_screen (void);
+void lcd_draw_configurations_screen_mask(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
 {
   bafang_500C_lcd_init();
-  UG_FillScreen(0);
+  UG_FillScreen(C_BLACK);
 
   // init variables with the stored value on EEPROM
   eeprom_init_variables ();
@@ -108,48 +107,66 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
-  calc_battery_soc_watts_hour ();
+  calc_battery_soc_watts_hour();
 
-  low_pass_filter_battery_voltage_current_power ();
-  // filter using only each 500ms values
+  low_pass_filter_battery_voltage_current_power();
   if (ui8_lcd_menu_counter_500ms_state)
   {
-    low_pass_filter_pedal_cadence ();
+    low_pass_filter_pedal_cadence();
   }
 
-  // filter using only each 100ms values
   if (ui8_lcd_menu_counter_100ms_state)
   {
-    low_pass_filter_pedal_torque_and_power ();
+    low_pass_filter_pedal_torque_and_power();
   }
 
-  calc_battery_voltage_soc ();
-  calc_odometer ();
-  automatic_power_off_management ();
+  calc_battery_voltage_soc();
+  calc_odometer();
+  automatic_power_off_management();
 
-  lcd_execute_main_screen ();
+  power_off_management();
 
-  // power off system: ONOFF long click event
-  power_off_management ();
+  // enter menu configurations: UP + DOWN click event
+  if (buttons_get_up_down_click_event () &&
+      lcd_screen_state != LCD_SCREEN_CONFIGURATIONS)
+  {
+    buttons_clear_up_down_click_event ();
+
+    ui32_configurations_screen_draw_static_info = 1;
+    lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
+  }
+
+  switch (lcd_screen_state)
+  {
+    case LCD_SCREEN_MAIN:
+      lcd_main_screen();
+    break;
+
+    case LCD_SCREEN_CONFIGURATIONS:
+      lcd_configurations_screen();
+    break;
+  }
 }
 
 void lcd_draw_main_menu_mask(void)
 {
   UG_DrawLine(10, 60, 310, 60, C_DIM_GRAY);
-
   UG_DrawLine(10, 180, 310, 180, C_DIM_GRAY);
-
   UG_DrawLine(10, 265, 310, 265, C_DIM_GRAY);
 }
 
-void lcd_execute_main_screen (void)
+void lcd_main_screen (void)
 {
 motor_controller_data.ui16_wheel_speed_x10 = 348;
 ui16_battery_power_filtered = 950;
 configuration_variables.ui8_number_of_assist_levels = 5;
 
   // run once only, to draw static info
-  if (ui32_draw_static_info) { lcd_draw_main_menu_mask(); }
+  if (ui32_main_screen_draw_static_info)
+  {
+    UG_FillScreen(C_BLACK);
+    lcd_draw_main_menu_mask();
+  }
 
 //  temperature ();
   assist_level_state();
@@ -163,17 +180,57 @@ configuration_variables.ui8_number_of_assist_levels = 5;
 //  brake ();
 
   // clear this variable after 1 full cycle running
-  ui32_draw_static_info = 0;
+  ui32_main_screen_draw_static_info = 0;
 }
 
-static buttons_events_type_t events = 0;
-static buttons_events_type_t last_events = 0;
+void lcd_configurations_screen (void)
+{
+  // leave config menu with a button_onoff_long_click
+  if (buttons_get_onoff_long_click_event ())
+  {
+    buttons_clear_onoff_long_click_event ();
+
+    ui32_main_screen_draw_static_info = 1;
+    lcd_screen_state = LCD_SCREEN_MAIN;
+    return;
+  }
+
+  // run once only, to draw static info
+  if (ui32_configurations_screen_draw_static_info)
+  {
+    UG_FillScreen(C_BLACK);
+    lcd_draw_configurations_screen_mask();
+  }
+
+  // clear this variable after 1 full cycle running
+  ui32_configurations_screen_draw_static_info = 0;
+}
+
+void lcd_draw_configurations_screen_mask(void)
+{
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+  uint32_t ui32_counter;
+
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&TITLE_TEXT_FONT);
+  ui32_x_position = 42;
+  ui32_y_position = 10;
+  UG_PutString(ui32_x_position, ui32_y_position, "CONFIGURATIONS");
+
+  for (ui32_counter = 0; ui32_counter < 9; ui32_counter++)
+  {
+    ui32_x_position = 10;
+    ui32_y_position += 50;
+    UG_DrawLine(ui32_x_position, ui32_y_position, 310, ui32_y_position, C_DIM_GRAY);
+  }
+}
 
 void assist_level_state (void)
 {
   static uint8_t ui8_assist_level_last = 0xff;
 
-  if (ui32_draw_static_info)
+  if (ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
@@ -209,7 +266,8 @@ void assist_level_state (void)
       configuration_variables.ui8_assist_level--;
   }
 
-  if (configuration_variables.ui8_assist_level != ui8_assist_level_last)
+  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
+      ui32_main_screen_draw_static_info)
   {
     ui8_assist_level_last = configuration_variables.ui8_assist_level;
 
@@ -231,8 +289,11 @@ struct_motor_controller_data* lcd_get_motor_controller_data (void)
 
 void power_off_management (void)
 {
-  // turn off
-  if (buttons_get_onoff_long_click_event ()) { lcd_power_off (1); }
+  if (buttons_get_onoff_long_click_event() &&
+      lcd_screen_state == LCD_SCREEN_MAIN)
+  {
+    lcd_power_off (1);
+  }
 }
 
 void lcd_power_off (uint8_t updateDistanceOdo)
@@ -259,6 +320,9 @@ void lcd_power_off (uint8_t updateDistanceOdo)
 
 void low_pass_filter_battery_voltage_current_power (void)
 {
+  static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
+  static uint16_t ui16_battery_current_accumulated_x5 = 0;
+
   // low pass filter battery voltage
   ui32_battery_voltage_accumulated_x10000 -= ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT;
   ui32_battery_voltage_accumulated_x10000 += (uint32_t) motor_controller_data.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
@@ -295,6 +359,9 @@ void low_pass_filter_battery_voltage_current_power (void)
 
 void low_pass_filter_pedal_torque_and_power (void)
 {
+  static uint32_t ui32_pedal_torque_accumulated = 0;
+  static uint32_t ui32_pedal_power_accumulated = 0;
+
   // low pass filter
   ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
   ui32_pedal_torque_accumulated += (uint32_t) motor_controller_data.ui16_pedal_torque_x10 / 10;
@@ -343,6 +410,8 @@ void low_pass_filter_pedal_torque_and_power (void)
 
 static void low_pass_filter_pedal_cadence (void)
 {
+  static uint16_t ui16_pedal_cadence_accumulated = 0;
+
   // low pass filter
   ui16_pedal_cadence_accumulated -= (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
   ui16_pedal_cadence_accumulated += (uint16_t) motor_controller_data.ui8_pedal_cadence;
@@ -360,7 +429,9 @@ static void low_pass_filter_pedal_cadence (void)
 
 void calc_wh (void)
 {
-  static uint8_t ui8_1s_timmer_counter;
+  static uint8_t ui8_1s_timmer_counter = 0;
+  static uint32_t ui32_wh_sum_x5 = 0;
+  static uint32_t ui32_wh_sum_counter = 0;
   uint32_t ui32_temp = 0;
 
   if (ui16_battery_power_filtered_x50 > 0)
@@ -444,6 +515,9 @@ static void automatic_power_off_management (void)
 
 void update_menu_flashing_state (void)
 {
+  static uint8_t ui8_lcd_menu_counter_100ms = 0;
+  static uint8_t ui8_lcd_menu_counter_500ms = 0;
+
   // ***************************************************************************************************
   // For flashing on menus, 0.5 seconds flash
   if (ui8_lcd_menu_flash_counter++ > 50)
@@ -672,7 +746,7 @@ void battery_soc (void)
   uint32_t ui32_temp;
   uint32_t ui32_i;
 
-  if (ui32_draw_static_info)
+  if (ui32_main_screen_draw_static_info)
   {
     // first, clear the full symbol area
     ui32_x1 = 10;
@@ -762,6 +836,12 @@ void battery_soc (void)
     else if (ui32_battery_bar_number == 3) { ui16_color = C_YELLOW; }
     else if (ui32_battery_bar_number == 2) { ui16_color = C_ORANGE; }
     else if (ui32_battery_bar_number == 1) { ui16_color = C_RED; }
+
+    // force draw of the bars if needed
+    if (ui32_main_screen_draw_static_info)
+    {
+      ui32_battery_bar_number_previous = 0;
+    }
 
     // number of vars are equal as before, nothing new to draw so return
     if (ui32_battery_bar_number == ui32_battery_bar_number_previous)
@@ -861,7 +941,7 @@ void power (void)
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
 
-  if (ui32_draw_static_info)
+  if (ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
@@ -869,7 +949,8 @@ void power (void)
     UG_PutString(238, 188, "Power");
   }
 
-  if (ui16_battery_power_filtered != ui16_battery_power_filtered_last)
+  if ((ui16_battery_power_filtered != ui16_battery_power_filtered_last) ||
+      ui32_main_screen_draw_static_info)
   {
     ui16_battery_power_filtered_last = ui16_battery_power_filtered;
 
@@ -908,7 +989,7 @@ void wheel_speed(void)
   uint32_t ui32_y_position;
   static uint16_t ui16_wheel_speed_x10_last = 0xffff;
 
-  if (ui32_draw_static_info)
+  if (ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
@@ -919,12 +1000,13 @@ void wheel_speed(void)
     UG_FillCircle(160, 145, 2, C_WHITE);
   }
 
-  if (motor_controller_data.ui16_wheel_speed_x10 != ui16_wheel_speed_x10_last)
+  if ((motor_controller_data.ui16_wheel_speed_x10 != ui16_wheel_speed_x10_last) ||
+      ui32_main_screen_draw_static_info)
   {
     ui16_wheel_speed_x10_last = motor_controller_data.ui16_wheel_speed_x10;
 
     UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&FONT_32X53);
+    UG_FontSelect(&BIG_NUMBERS_TEXT_FONT);
 
     ui32_wheel_speed = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 / 10);
     ui32_x_position = 124;
@@ -945,7 +1027,7 @@ void wheel_speed(void)
     ui32_x_position += 10;
 
     // decimal digit
-    UG_FontSelect(&FONT_24X40);
+    UG_FontSelect(&MEDIUM_NUMBERS_TEXT_FONT);
     ui32_x_position += (24 + 10);
     UG_PutString(ui32_x_position, ui32_y_position + 10, itoa((uint32_t) motor_controller_data.ui16_wheel_speed_x10 % 10));
   }

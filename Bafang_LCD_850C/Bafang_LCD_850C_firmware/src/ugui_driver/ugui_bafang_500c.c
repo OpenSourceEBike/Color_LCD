@@ -270,6 +270,24 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color)
   LCD_BUS__PORT->ODR = (uint16_t) ui32_color;
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
   LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+
+  // NOP
+  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
+  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
+  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
+  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+
+  // NOP
+  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
+  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
+  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
+  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+
+  // NOP
+  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
+  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
+  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
+  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
 }
 
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32_color)

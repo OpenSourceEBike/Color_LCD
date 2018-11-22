@@ -9,6 +9,12 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#define  SMALL_TEXT_FONT              FONT_10X16
+#define  REGULAR_TEXT_FONT            FONT_12X20
+#define  TITLE_TEXT_FONT              FONT_16X26
+#define  MEDIUM_NUMBERS_TEXT_FONT     FONT_24X40
+#define  BIG_NUMBERS_TEXT_FONT        FONT_32X53
+
 // *************************************************************************** //
 // EEPROM memory variables default values
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3

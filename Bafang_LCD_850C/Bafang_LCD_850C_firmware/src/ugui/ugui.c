@@ -4319,8 +4319,7 @@ void UG_FontSelect( const UG_FONT* font )
 
 void UG_FillScreen( UG_COLOR c )
 {
-//   UG_FillFrame(0, 0, gui->x_dim - 1, gui->y_dim - 1, c);
-   UG_FillFrame(0, 0, gui->x_dim + 1, gui->y_dim - 1, c); // for some reason, just like this the full LCD get´s filled
+  UG_FillFrame(0, 0, gui->x_dim - 1, gui->y_dim - 1, c);
 }
 
 void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )

@@ -66,8 +66,13 @@ static uint8_t ui8_lcd_menu_flash_state_temperature;
 static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
+// configuration screem
 static uint32_t ui32_main_screen_draw_static_info = 1;
 static uint32_t ui32_configurations_screen_draw_static_info = 1;
+
+static uint8_t ui8_configurations_screen_array_items_index = 0;
+static uint8_t ui8_configurations_screen_array_items_offset = 0;
+static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 
 void lcd_main_screen (void);
 void assist_level_state (void);
@@ -94,6 +99,29 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
 void lcd_configurations_screen (void);
 void lcd_draw_configurations_screen_mask(void);
+void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2);
+void configurations_screen_wheel_speed_title(void);
+void configurations_screen_wheel_max_speed(void);
+void configurations_screen_wheel_perimeter(void);
+void configurations_screen_wheel_speed_units(void);
+void configurations_screen_battery_title(void);
+void configurations_screen_battery_max_current(void);
+void configurations_screen_battery_low_cut_off_voltage(void);
+void configurations_screen_battery_number_cells(void);
+void configurations_screen_battery_resistance(void);
+
+// call each function on the array
+void (*p_configurations_screen_array[])(void) = {
+  configurations_screen_wheel_speed_title,
+  configurations_screen_wheel_max_speed,
+  configurations_screen_wheel_perimeter,
+  configurations_screen_wheel_speed_units,
+  configurations_screen_battery_title,
+  configurations_screen_battery_max_current,
+  configurations_screen_battery_low_cut_off_voltage,
+  configurations_screen_battery_number_cells,
+  configurations_screen_battery_resistance
+};
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -185,6 +213,8 @@ configuration_variables.ui8_number_of_assist_levels = 5;
 
 void lcd_configurations_screen (void)
 {
+  uint8_t ui8_i;
+
   // leave config menu with a button_onoff_long_click
   if (buttons_get_onoff_long_click_event ())
   {
@@ -202,6 +232,15 @@ void lcd_configurations_screen (void)
     lcd_draw_configurations_screen_mask();
   }
 
+  // draw 9 items
+//  for (ui8_i = 0; ui8_i < 9; ui8_i++)
+for (ui8_i = 0; ui8_i < 8; ui8_i++)
+  {
+    ui8_configurations_screen_array_items_index = ui8_configurations_screen_array_items_offset + ui8_i;
+    // call each function on the array
+    (*p_configurations_screen_array[ui8_configurations_screen_array_items_index])();
+  }
+
   // clear this variable after 1 full cycle running
   ui32_configurations_screen_draw_static_info = 0;
 }
@@ -212,18 +251,120 @@ void lcd_draw_configurations_screen_mask(void)
   uint32_t ui32_y_position;
   uint32_t ui32_counter;
 
+  ui32_x_position = 0;
+  ui32_y_position = 0;
+  UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH, ui32_y_position + 59, C_DARK_BLUE);
+
+  UG_SetBackcolor(C_DARK_BLUE);
   UG_SetForecolor(C_WHITE);
   UG_FontSelect(&TITLE_TEXT_FONT);
   ui32_x_position = 42;
-  ui32_y_position = 10;
+  ui32_y_position = 16;
   UG_PutString(ui32_x_position, ui32_y_position, "CONFIGURATIONS");
 
+  ui32_x_position = 0;
+  ui32_y_position = 60;
   for (ui32_counter = 0; ui32_counter < 9; ui32_counter++)
   {
-    ui32_x_position = 10;
+    UG_DrawLine(ui32_x_position, ui32_y_position, DISPLAY_WIDTH, ui32_y_position, C_DIM_GRAY);
     ui32_y_position += 50;
-    UG_DrawLine(ui32_x_position, ui32_y_position, 310, ui32_y_position, C_DIM_GRAY);
   }
+}
+
+void configurations_screen_wheel_speed_title(void)
+{
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+
+  ui32_x_position = 0;
+  ui32_y_position = ui16_conf_screen_first_item_y_offset +
+      (ui8_configurations_screen_array_items_index * 50);
+  UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH, ui32_y_position + 49, C_DIM_GRAY);
+
+  UG_SetBackcolor(C_DIM_GRAY);
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&TITLE_TEXT_FONT);
+  ui32_x_position = 6;
+  ui32_y_position = ui16_conf_screen_first_item_y_offset +
+      12 + // padding from top line
+      (ui8_configurations_screen_array_items_index * 50);
+
+  UG_PutString(ui32_x_position, ui32_y_position, "Wheel speed");
+}
+
+void configurations_screen_wheel_max_speed(void)
+{
+  configurations_screen_item_set_strings("Max wheel speed", "(km/h)");
+}
+
+void configurations_screen_wheel_perimeter(void)
+{
+  configurations_screen_item_set_strings("Wheel perimeter", "(millimeters)");
+}
+
+void configurations_screen_wheel_speed_units(void)
+{
+  configurations_screen_item_set_strings("Speed units", "");
+}
+
+void configurations_screen_battery_title(void)
+{
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+
+  ui32_x_position = 0;
+  ui32_y_position = ui16_conf_screen_first_item_y_offset +
+      (ui8_configurations_screen_array_items_index * 50);
+  UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH, ui32_y_position + 49, C_DIM_GRAY);
+
+  UG_SetBackcolor(C_DIM_GRAY);
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&TITLE_TEXT_FONT);
+  ui32_x_position = 6;
+  ui32_y_position = ui16_conf_screen_first_item_y_offset +
+      12 + // padding from top line
+      (ui8_configurations_screen_array_items_index * 50);
+
+  UG_PutString(ui32_x_position, ui32_y_position, "Battery");
+}
+
+void configurations_screen_battery_max_current(void)
+{
+  configurations_screen_item_set_strings("Max current", "(amps)");
+}
+
+void configurations_screen_battery_low_cut_off_voltage(void)
+{
+  configurations_screen_item_set_strings("Low cut-off voltage", "(volts)");
+}
+
+void configurations_screen_battery_number_cells(void)
+{
+  configurations_screen_item_set_strings("Number of cells", "(ex: 13 for 48V battery)");
+}
+
+void configurations_screen_battery_resistance(void)
+{
+  configurations_screen_item_set_strings("Resistance", "(milli ohms)");
+}
+
+void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2)
+{
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+
+  UG_SetBackcolor(C_BLACK);
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&REGULAR_TEXT_FONT);
+  ui32_x_position = 6;
+  ui32_y_position = ui16_conf_screen_first_item_y_offset +
+      4 + // padding from top line
+      (ui8_configurations_screen_array_items_index * 50);
+  UG_PutString(ui32_x_position, ui32_y_position, ui8_p_string1);
+
+  UG_FontSelect(&SMALL_TEXT_FONT);
+  ui32_y_position += 23;
+  UG_PutString(ui32_x_position, ui32_y_position, ui8_p_string2);
 }
 
 void assist_level_state (void)
@@ -830,6 +971,8 @@ void battery_soc (void)
     else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
     else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
+
+ui32_battery_bar_number = 3;
 
     // find the color to draw the bars
     if (ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }

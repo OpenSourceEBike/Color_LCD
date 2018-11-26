@@ -149,7 +149,7 @@ void usart1_data_clock (void)
 
     if (((((uint16_t) ui8_rx_buffer [25]) << 8) + ((uint16_t) ui8_rx_buffer [24])) == ui16_crc_rx)
     {
-      p_motor_controller_data = lcd_get_motor_controller_data ();
+      p_motor_controller_data = get_motor_controller_data ();
       p_configuration_variables = get_configuration_variables ();
 
       // send a variable for each package sent but first verify if the last one was received otherwise, keep repeating

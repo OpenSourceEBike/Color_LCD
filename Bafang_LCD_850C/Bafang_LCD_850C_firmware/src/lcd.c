@@ -29,7 +29,7 @@ struct_lcd_vars lcd_vars =
 {
   .ui32_main_screen_draw_static_info = 1,
   .lcd_screen_state = LCD_SCREEN_MAIN,
-  .ui8_lcd_menu_counter_500ms_state = 0
+  .ui8_lcd_menu_counter_1000ms_state = 0
 };
 
 static struct_lcd_configurations_vars *p_lcd_configurations_vars;
@@ -108,10 +108,12 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
+  update_menu_flashing_state();
+
   calc_battery_soc_watts_hour();
 
   low_pass_filter_battery_voltage_current_power();
-  if (lcd_vars.ui8_lcd_menu_counter_500ms_state)
+  if (lcd_vars.ui8_lcd_menu_counter_1000ms_state)
   {
     low_pass_filter_pedal_cadence();
   }
@@ -240,7 +242,7 @@ struct_configuration_variables* get_configuration_variables (void)
   return &configuration_variables;
 }
 
-struct_motor_controller_data* lcd_get_motor_controller_data (void)
+struct_motor_controller_data* get_motor_controller_data (void)
 {
   return &motor_controller_data;
 }
@@ -474,7 +476,7 @@ static void automatic_power_off_management (void)
 void update_menu_flashing_state (void)
 {
   static uint8_t ui8_lcd_menu_counter_100ms = 0;
-  static uint8_t ui8_lcd_menu_counter_500ms = 0;
+  static uint8_t ui8_lcd_menu_counter_1000ms = 0;
 
   // ***************************************************************************************************
   // For flashing on menus, 0.5 seconds flash
@@ -497,11 +499,26 @@ void update_menu_flashing_state (void)
     ui8_lcd_menu_counter_100ms_state = 1;
   }
 
-  lcd_vars.ui8_lcd_menu_counter_500ms_state = 0;
-  if (ui8_lcd_menu_counter_500ms++ > 50)
+  // disable trigger signal
+  if (lcd_vars.ui8_lcd_menu_counter_1000ms_trigger) { lcd_vars.ui8_lcd_menu_counter_1000ms_trigger = 0; }
+
+  if(lcd_vars.ui8_lcd_menu_counter_1000ms_state)
   {
-    ui8_lcd_menu_counter_500ms = 0;
-    lcd_vars.ui8_lcd_menu_counter_500ms_state = 1;
+    if(ui8_lcd_menu_counter_1000ms++ > 80)
+    {
+      ui8_lcd_menu_counter_1000ms = 0;
+      lcd_vars.ui8_lcd_menu_counter_1000ms_state = 0;
+      lcd_vars.ui8_lcd_menu_counter_1000ms_trigger = 1;
+    }
+  }
+  else
+  {
+    if(ui8_lcd_menu_counter_1000ms++ > 20)
+    {
+      ui8_lcd_menu_counter_1000ms = 0;
+      lcd_vars.ui8_lcd_menu_counter_1000ms_state = 1;
+      lcd_vars.ui8_lcd_menu_counter_1000ms_trigger = 2;
+    }
   }
   // ***************************************************************************************************
 

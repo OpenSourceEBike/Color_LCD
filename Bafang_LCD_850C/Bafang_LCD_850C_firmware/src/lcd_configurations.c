@@ -26,12 +26,28 @@
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
-static struct_motor_controller_data motor_controller_data;
-static struct_configuration_variables configuration_variables;
+typedef struct _menu_data
+{
+  uint8_t ui8_edit_state;
+  uint8_t ui8_visible_item;
+  uint8_t ui8_screen_set_values;
+  buttons_events_type_t menu_buttons_events;
+} struct_menu_data;
+
+static struct_motor_controller_data *p_motor_controller_data;
+static struct_configuration_variables *p_configuration_variables;
 
 static struct_lcd_configurations_vars lcd_configurations_vars =
 {
   .ui32_configurations_screen_draw_static_info = 0
+};
+
+static struct_menu_data menu_data =
+{
+  .ui8_edit_state = 0,
+  .ui8_visible_item = 0,
+  .menu_buttons_events = 0,
+  .ui8_screen_set_values = 0
 };
 
 struct_lcd_vars *p_lcd_vars;
@@ -44,27 +60,27 @@ static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 
 void draw_configurations_screen_mask(void);
 void clear_configurations_screen_items(void);
-void write_edit_mark(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t ui8_visible_item);
-void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, uint8_t ui8_visible_item);
-void wheel_speed_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void wheel_max_speed(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void wheel_perimeter(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void wheel_speed_units(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_max_current(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_low_cut_off_voltage(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_number_cells(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_resistance(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_soc_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_soc_enable(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_soc_increment_decrement(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_soc_voltage_to_reset(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
-void battery_soc_total_watt_hour(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
+void draw_title_symbol(struct_menu_data *p_menu_data);
+void draw_item_index_symbol(struct_menu_data *p_menu_data);
+void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data);
+void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
+void wheel_speed_title(struct_menu_data *p_menu_data);
+void wheel_max_speed(struct_menu_data *p_menu_data);
+void wheel_perimeter(struct_menu_data *p_menu_data);
+void wheel_speed_units(struct_menu_data *p_menu_data);
+void battery_title(struct_menu_data *p_menu_data);
+void battery_max_current(struct_menu_data *p_menu_data);
+void battery_low_cut_off_voltage(struct_menu_data *p_menu_data);
+void battery_number_cells(struct_menu_data *p_menu_data);
+void battery_resistance(struct_menu_data *p_menu_data);
+void battery_soc_title(struct_menu_data *p_menu_data);
+void battery_soc_enable(struct_menu_data *p_menu_data);
+void battery_soc_increment_decrement(struct_menu_data *p_menu_data);
+void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data);
+void battery_soc_total_watt_hour(struct_menu_data *p_menu_data);
 
 // call each function on the array
-void (*p_items_array[])(uint8_t ui8_edit_state, uint8_t ui8_visible_item) = {
+void (*p_items_array[])(struct_menu_data *p_menu_data) = {
   wheel_speed_title,
   wheel_max_speed,
   wheel_perimeter,
@@ -84,13 +100,14 @@ void (*p_items_array[])(uint8_t ui8_edit_state, uint8_t ui8_visible_item) = {
 void lcd_configurations_screen_init(void)
 {
   p_lcd_vars = get_lcd_vars();
+  p_motor_controller_data = get_motor_controller_data();
+  p_configuration_variables = get_configuration_variables();
 }
 
 void lcd_configurations_screen(void)
 {
   static uint8_t ui8_first_time = 1;
   uint8_t ui8_i;
-  uint8_t ui8_edit_state;
 
   // leave config menu with a button_onoff_long_click
   if (buttons_get_onoff_long_click_event ())
@@ -103,32 +120,50 @@ void lcd_configurations_screen(void)
     return;
   }
 
+  // enter/leave screen set values
+  if (buttons_get_onoff_click_event ())
+  {
+    buttons_clear_onoff_click_event ();
+    buttons_clear_onoff_long_click_event ();
+    buttons_clear_up_click_event ();
+    buttons_clear_down_click_event ();
+    menu_data.menu_buttons_events = 0;
+
+    if(menu_data.ui8_screen_set_values) { menu_data.ui8_screen_set_values = 0; }
+    else { menu_data.ui8_screen_set_values = 1; }
+  }
+
   // now get buttons events
   //
   if(buttons_get_down_click_event ())
   {
     buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
+    menu_data.menu_buttons_events = DOWN_CLICK;
 
-    // increment to next item
-    if(ui8_item_number < MAX_ITEMS)
+    // execute net code only if weare not setting the values of variables
+    if(!menu_data.ui8_screen_set_values)
     {
-      ui8_item_number++;
-      lcd_configurations_vars.ui32_configurations_screen_draw_static_info = 1;
-    }
-
-    // increment to next visible item
-    if(ui8_item_visible_index < MAX_ITEMS_PER_SCREEN)
-    {
-      ui8_item_visible_index++;
-    }
-    // visible item limit, so increment the start index of visible item
-    else
-    {
-      // do not increment more over the last item
-      if(ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
+      // increment to next item
+      if(ui8_item_number < MAX_ITEMS)
       {
-        ui8_item_visible_start_index++;
+        ui8_item_number++;
+        lcd_configurations_vars.ui32_configurations_screen_draw_static_info = 1;
+      }
+
+      // increment to next visible item
+      if(ui8_item_visible_index < MAX_ITEMS_PER_SCREEN)
+      {
+        ui8_item_visible_index++;
+      }
+      // visible item limit, so increment the start index of visible item
+      else
+      {
+        // do not increment more over the last item
+        if(ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
+        {
+          ui8_item_visible_start_index++;
+        }
       }
     }
   }
@@ -137,26 +172,30 @@ void lcd_configurations_screen(void)
   {
     buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
+    menu_data.menu_buttons_events = UP_CLICK;
 
-    // decrement to next item
-    if(ui8_item_number > 0)
+    if(!menu_data.ui8_screen_set_values)
     {
-      ui8_item_number--;
-      lcd_configurations_vars.ui32_configurations_screen_draw_static_info = 1;
-    }
-
-    // decrement to next visible item
-    if(ui8_item_visible_index > 1)
-    {
-      ui8_item_visible_index--;
-    }
-    // visible item limit, so decrement the start index of visible item
-    else
-    {
-      // do not decrement more over the last item
-      if(ui8_item_visible_start_index > 0)
+      // decrement to next item
+      if(ui8_item_number > 0)
       {
-        ui8_item_visible_start_index--;
+        ui8_item_number--;
+        lcd_configurations_vars.ui32_configurations_screen_draw_static_info = 1;
+      }
+
+      // decrement to next visible item
+      if(ui8_item_visible_index > 1)
+      {
+        ui8_item_visible_index--;
+      }
+      // visible item limit, so decrement the start index of visible item
+      else
+      {
+        // do not decrement more over the last item
+        if(ui8_item_visible_start_index > 0)
+        {
+          ui8_item_visible_start_index--;
+        }
       }
     }
   }
@@ -181,15 +220,18 @@ void lcd_configurations_screen(void)
     // find which item we are pointing to/editing
     if((ui8_item_visible_index - 1) == ui8_i)
     {
-      ui8_edit_state = 1;
+      menu_data.ui8_edit_state = 1;
     }
     else
     {
-      ui8_edit_state = 0;
+      menu_data.ui8_edit_state = 0;
     }
 
+    menu_data.ui8_visible_item = ui8_i;
     // call each function on the array
-    (*p_items_array[ui8_item_visible_start_index + ui8_i])(ui8_edit_state, ui8_i);
+    (*p_items_array[ui8_item_visible_start_index + ui8_i])(&menu_data);
+
+    draw_item_index_symbol(&menu_data);
   }
 
   // track state for item number change
@@ -242,91 +284,158 @@ void clear_configurations_screen_items(void)
   }
 }
 
-void wheel_speed_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void wheel_speed_title(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_title_set_strings("Wheel speed", ui8_visible_item);
-  write_title_symbol(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_title_set_strings("Wheel speed", p_menu_data);
+  draw_title_symbol(p_menu_data);
 }
 
-void wheel_max_speed(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void wheel_max_speed(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Max wheel speed", "(km/h)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+  static uint8_t ui8_wheel_max_speed_previous = 0xff;
+
+  configurations_screen_item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
+
+  // if we are in edit mode...
+  if(p_menu_data->ui8_screen_set_values &&
+      p_menu_data->ui8_edit_state)
+  {
+    if(p_menu_data->menu_buttons_events == UP_CLICK)
+    {
+      p_configuration_variables->ui8_wheel_max_speed++;
+      if (p_configuration_variables->ui8_wheel_max_speed >= 99) { p_configuration_variables->ui8_wheel_max_speed = 99; }
+    }
+
+    if(p_menu_data->menu_buttons_events == DOWN_CLICK)
+    {
+        p_configuration_variables->ui8_wheel_max_speed--;
+      if (p_configuration_variables->ui8_wheel_max_speed < 1)  { p_configuration_variables->ui8_wheel_max_speed = 1; }
+    }
+
+    p_menu_data->menu_buttons_events = 0;
+  }
+
+  // clear at every 500ms
+  if((p_menu_data->ui8_screen_set_values) &&
+      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
+      (p_menu_data->ui8_edit_state))
+  {
+    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
+  }
+  // draw value at every 500ms or when it changes
+  else if((p_menu_data->ui8_screen_set_values) &&
+      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+      (p_menu_data->ui8_edit_state))
+  {
+    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
+
+    // draw variable value
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_WHITE);
+    UG_FontSelect(&REGULAR_TEXT_FONT);
+    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_PutString(ui32_x_position, ui32_y_position, itoa(p_configuration_variables->ui8_wheel_max_speed));
+  }
+  else if(!(p_menu_data->ui8_screen_set_values) &&
+      (p_menu_data->ui8_edit_state) &&
+      (p_configuration_variables->ui8_wheel_max_speed != ui8_wheel_max_speed_previous))
+  {
+    ui8_wheel_max_speed_previous = p_configuration_variables->ui8_wheel_max_speed;
+
+    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
+
+    // draw variable value
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_WHITE);
+    UG_FontSelect(&REGULAR_TEXT_FONT);
+    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_PutString(ui32_x_position, ui32_y_position, itoa(p_configuration_variables->ui8_wheel_max_speed));
+  }
 }
 
-void wheel_perimeter(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void wheel_perimeter(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Wheel perimeter", "(millimeters)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
 }
 
-void wheel_speed_units(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void wheel_speed_units(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Speed units", "", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Speed units", "", p_menu_data);
 }
 
-void battery_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_title(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_title_set_strings("Battery", ui8_visible_item);
-  write_title_symbol(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_title_set_strings("Battery", p_menu_data);
+  draw_title_symbol(p_menu_data);
 }
 
-void battery_max_current(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_max_current(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Max current", "(amps)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Max current", "(amps)", p_menu_data);
 }
 
-void battery_low_cut_off_voltage(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Low cut-off voltage", "(volts)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Low cut-off voltage", "(volts)", p_menu_data);
 }
 
-void battery_number_cells(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_number_cells(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Number of cells", "", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Number of cells", "", p_menu_data);
 }
 
-void battery_resistance(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_resistance(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Resistance", "(milli ohms)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Resistance", "(milli ohms)", p_menu_data);
 }
 
-void battery_soc_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_soc_title(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_title_set_strings("Battery SOC", ui8_visible_item);
-  write_title_symbol(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_title_set_strings("Battery SOC", p_menu_data);
+  draw_title_symbol(p_menu_data);
 }
 
-void battery_soc_enable(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_soc_enable(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Feature", "(enable/disable)", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Feature", "(enable/disable)", p_menu_data);
 }
 
-void battery_soc_increment_decrement(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Decrement", "or increment", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Decrement", "or increment", p_menu_data);
 }
 
-void battery_soc_voltage_to_reset(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Voltage to reset", "", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Voltage to reset", "", p_menu_data);
 }
 
-void battery_soc_total_watt_hour(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Total watts/hour", "", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  configurations_screen_item_set_strings("Total watts/hour", "", p_menu_data);
 }
 
-void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t ui8_visible_item)
+void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
@@ -336,7 +445,7 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t
   {
     ui32_x_position = 0;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        (ui8_visible_item * 50);
+        (p_menu_data->ui8_visible_item * 50);
     UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH - 1, ui32_y_position + 48, C_DIM_GRAY);
 
     UG_SetBackcolor(C_DIM_GRAY);
@@ -345,13 +454,13 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t
     ui32_x_position = 6;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (ui8_visible_item * 50);
+        (p_menu_data->ui8_visible_item * 50);
 
     UG_PutString(ui32_x_position, ui32_y_position, ui8_p_string);
   }
 }
 
-void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, uint8_t ui8_visible_item)
+void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
@@ -365,7 +474,7 @@ void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8
     ui32_x_position = 6;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         4 + // padding from top line
-        (ui8_visible_item * 50);
+        (p_menu_data->ui8_visible_item * 50);
     UG_PutString(ui32_x_position, ui32_y_position, ui8_p_string1);
 
     UG_FontSelect(&SMALL_TEXT_FONT);
@@ -374,24 +483,7 @@ void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8
   }
 }
 
-void write_edit_mark(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
-{
-  uint32_t ui32_x_position;
-  uint32_t ui32_y_position;
-
-  // update only when item number changes
-  if((ui8_item_number != ui8_previous_item_number) &&
-      (ui8_edit_state))
-  {
-    ui32_x_position = 320 - 14 - 10;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        24 + // middle space
-        (ui8_visible_item * 50);
-    UG_FillCircle(ui32_x_position, ui32_y_position, 5, C_RED);
-  }
-}
-
-void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+void draw_title_symbol(struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position ;
   uint32_t ui32_y_position;
@@ -402,12 +494,10 @@ void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
   // update only when item number changes
   if(ui8_item_number != ui8_previous_item_number)
   {
-    UG_SetBackcolor(C_BLACK);
-
-    ui32_x_position = 320 - 14 - 10;
+    ui32_x_position = DISPLAY_WIDTH - 14 - 10;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (ui8_visible_item * 50);
+        (p_menu_data->ui8_visible_item * 50);
     ui32_line_lenght = 1;
 
     for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
@@ -425,6 +515,73 @@ void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
       ui32_x_position++;
       if (ui32_line_lenght == 1) { ui32_line_lenght++; }
       else { ui32_line_lenght -= 2; }
+      ui32_y_position++;
+    }
+  }
+}
+
+void draw_item_index_symbol(struct_menu_data *p_menu_data)
+{
+  uint32_t ui32_x_position ;
+  uint32_t ui32_y_position;
+  uint8_t ui8_counter;
+  uint32_t ui32_line_lenght;
+  uint16_t ui16_color;
+
+  // clear at every 500ms
+  if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
+      (p_menu_data->ui8_edit_state) &&
+      (!p_menu_data->ui8_screen_set_values))
+  {
+    ui16_color = C_WHITE;
+
+    ui32_x_position = DISPLAY_WIDTH - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    ui32_line_lenght = 0;
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position--;
+      ui32_line_lenght++;
+      ui32_y_position++;
+    }
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position++;
+      ui32_line_lenght--;
+      ui32_y_position++;
+    }
+  }
+  // draw value at every 500ms or when it changes
+  else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+      (menu_data.ui8_edit_state))
+  {
+    ui16_color = C_RED;
+
+    ui32_x_position = DISPLAY_WIDTH - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    ui32_line_lenght = 0;
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position--;
+      ui32_line_lenght++;
+      ui32_y_position++;
+    }
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position++;
+      ui32_line_lenght--;
       ui32_y_position++;
     }
   }

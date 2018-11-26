@@ -85,10 +85,22 @@ typedef struct _configuration_variables
   uint32_t ui32_odometer_x10;
 } struct_configuration_variables;
 
+typedef enum
+{
+  LCD_SCREEN_MAIN = 1,
+  LCD_SCREEN_CONFIGURATIONS = 2
+} lcd_screen_states_t;
+
+typedef struct _lcd_vars
+{
+  uint32_t ui32_main_screen_draw_static_info;
+  lcd_screen_states_t lcd_screen_state;
+} struct_lcd_vars;
+
 void lcd_init(void);
 void lcd_clock(void);
-void lcd_draw_main_menu_mask(void);
 struct_motor_controller_data* lcd_get_motor_controller_data (void);
 struct_configuration_variables* get_configuration_variables (void);
+struct_lcd_vars* get_lcd_vars(void);
 
 #endif /* LCD_H_ */

@@ -42,8 +42,10 @@ static uint8_t ui8_item_visible_start_index = 0;
 static uint8_t ui8_item_visible_index = 1;
 static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 
-void lcd_draw_configurations_screen_mask(void);
+void draw_configurations_screen_mask(void);
+void clear_configurations_screen_items(void);
 void write_edit_mark(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
+void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t ui8_visible_item);
 void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, uint8_t ui8_visible_item);
 void wheel_speed_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item);
@@ -86,6 +88,7 @@ void lcd_configurations_screen_init(void)
 
 void lcd_configurations_screen(void)
 {
+  static uint8_t ui8_first_time = 1;
   uint8_t ui8_i;
   uint8_t ui8_edit_state;
 
@@ -96,6 +99,7 @@ void lcd_configurations_screen(void)
 
     p_lcd_vars->ui32_main_screen_draw_static_info = 1;
     p_lcd_vars->lcd_screen_state = LCD_SCREEN_MAIN;
+    ui8_first_time = 1;
     return;
   }
 
@@ -103,6 +107,7 @@ void lcd_configurations_screen(void)
   //
   if(buttons_get_down_click_event ())
   {
+    buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
 
     // increment to next item
@@ -131,6 +136,7 @@ void lcd_configurations_screen(void)
   if(buttons_get_up_click_event ())
   {
     buttons_clear_up_click_event ();
+    buttons_clear_down_click_event ();
 
     // decrement to next item
     if(ui8_item_number > 0)
@@ -158,8 +164,16 @@ void lcd_configurations_screen(void)
   // to draw static info
   if(lcd_configurations_vars.ui32_configurations_screen_draw_static_info)
   {
-    UG_FillScreen(C_BLACK);
-    lcd_draw_configurations_screen_mask();
+    if (ui8_first_time)
+    {
+      UG_FillScreen(C_BLACK);
+      draw_configurations_screen_mask();
+      ui8_first_time = 0;
+    }
+    else
+    {
+      clear_configurations_screen_items();
+    }
   }
 
   for(ui8_i = 0; ui8_i < MAX_ITEMS_PER_SCREEN; ui8_i++)
@@ -188,7 +202,7 @@ void lcd_configurations_screen(void)
   lcd_configurations_vars.ui32_configurations_screen_draw_static_info = 0;
 }
 
-void lcd_draw_configurations_screen_mask(void)
+void draw_configurations_screen_mask(void)
 {
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
@@ -196,7 +210,7 @@ void lcd_draw_configurations_screen_mask(void)
 
   ui32_x_position = 0;
   ui32_y_position = 0;
-  UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH, ui32_y_position + 59, C_DARK_BLUE);
+  UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH - 1, ui32_y_position + 59, C_DARK_BLUE);
 
   UG_SetBackcolor(C_DARK_BLUE);
   UG_SetForecolor(C_WHITE);
@@ -209,15 +223,29 @@ void lcd_draw_configurations_screen_mask(void)
   ui32_y_position = 60;
   for (ui32_counter = 0; ui32_counter < 9; ui32_counter++)
   {
-    UG_DrawLine(ui32_x_position, ui32_y_position, DISPLAY_WIDTH, ui32_y_position, C_DIM_GRAY);
+    UG_DrawLine(ui32_x_position, ui32_y_position, DISPLAY_WIDTH - 1, ui32_y_position, C_DIM_GRAY);
     ui32_y_position += 50;
+  }
+}
+
+void clear_configurations_screen_items(void)
+{
+  uint32_t ui32_x_position = 0;
+  uint32_t ui32_y_position;
+  uint8_t ui8_counter;
+
+  for(ui8_counter = 0; ui8_counter < MAX_ITEMS_PER_SCREEN; ui8_counter++)
+  {
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        (ui8_counter * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position + 1, ui32_x_position + DISPLAY_WIDTH - 1, ui32_y_position + 48, C_BLACK);
   }
 }
 
 void wheel_speed_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 {
   configurations_screen_item_title_set_strings("Wheel speed", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  write_title_symbol(ui8_edit_state, ui8_visible_item);
 }
 
 void wheel_max_speed(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
@@ -241,7 +269,7 @@ void wheel_speed_units(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 void battery_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 {
   configurations_screen_item_title_set_strings("Battery", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  write_title_symbol(ui8_edit_state, ui8_visible_item);
 }
 
 void battery_max_current(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
@@ -258,7 +286,7 @@ void battery_low_cut_off_voltage(uint8_t ui8_edit_state, uint8_t ui8_visible_ite
 
 void battery_number_cells(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 {
-  configurations_screen_item_set_strings("Number of cells", "(ex: 13 for 48V battery)", ui8_visible_item);
+  configurations_screen_item_set_strings("Number of cells", "", ui8_visible_item);
   write_edit_mark(ui8_edit_state, ui8_visible_item);
 }
 
@@ -271,7 +299,7 @@ void battery_resistance(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 void battery_soc_title(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
 {
   configurations_screen_item_title_set_strings("Battery SOC", ui8_visible_item);
-  write_edit_mark(ui8_edit_state, ui8_visible_item);
+  write_title_symbol(ui8_edit_state, ui8_visible_item);
 }
 
 void battery_soc_enable(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
@@ -309,7 +337,7 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, uint8_t
     ui32_x_position = 0;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         (ui8_visible_item * 50);
-    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH, ui32_y_position + 49, C_DIM_GRAY);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + DISPLAY_WIDTH - 1, ui32_y_position + 48, C_DIM_GRAY);
 
     UG_SetBackcolor(C_DIM_GRAY);
     UG_SetForecolor(C_WHITE);
@@ -355,11 +383,50 @@ void write_edit_mark(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
   if((ui8_item_number != ui8_previous_item_number) &&
       (ui8_edit_state))
   {
-    ui32_x_position = 310;
+    ui32_x_position = 320 - 14 - 10;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         24 + // middle space
         (ui8_visible_item * 50);
-    UG_FillCircle(ui32_x_position, ui32_y_position, 4, C_RED);
+    UG_FillCircle(ui32_x_position, ui32_y_position, 5, C_RED);
+  }
+}
+
+void write_title_symbol(uint8_t ui8_edit_state, uint8_t ui8_visible_item)
+{
+  uint32_t ui32_x_position ;
+  uint32_t ui32_y_position;
+  uint8_t ui8_counter;
+  uint32_t ui32_line_center;
+  uint32_t ui32_line_lenght;
+
+  // update only when item number changes
+  if(ui8_item_number != ui8_previous_item_number)
+  {
+    UG_SetBackcolor(C_BLACK);
+
+    ui32_x_position = 320 - 14 - 10;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (ui8_visible_item * 50);
+    ui32_line_lenght = 1;
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_WHITE);
+      ui32_x_position--;
+      if (ui32_line_lenght == 1) { ui32_line_lenght++; }
+      else { ui32_line_lenght += 2; }
+      ui32_y_position++;
+    }
+
+    for(ui8_counter = 0; ui8_counter < 11; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_WHITE);
+      ui32_x_position++;
+      if (ui32_line_lenght == 1) { ui32_line_lenght++; }
+      else { ui32_line_lenght -= 2; }
+      ui32_y_position++;
+    }
   }
 }
 
@@ -367,4 +434,3 @@ struct_lcd_configurations_vars* get_lcd_configurations_vars(void)
 {
   return &lcd_configurations_vars;
 }
-

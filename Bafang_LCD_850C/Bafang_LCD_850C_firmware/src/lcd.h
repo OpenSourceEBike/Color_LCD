@@ -95,6 +95,7 @@ typedef struct _lcd_vars
 {
   uint32_t ui32_main_screen_draw_static_info;
   lcd_screen_states_t lcd_screen_state;
+  uint8_t ui8_lcd_menu_counter_500ms_state;
 } struct_lcd_vars;
 
 void lcd_init(void);

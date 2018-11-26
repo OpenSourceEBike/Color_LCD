@@ -28,7 +28,8 @@ static struct_configuration_variables configuration_variables;
 struct_lcd_vars lcd_vars =
 {
   .ui32_main_screen_draw_static_info = 1,
-  .lcd_screen_state = LCD_SCREEN_MAIN
+  .lcd_screen_state = LCD_SCREEN_MAIN,
+  .ui8_lcd_menu_counter_500ms_state = 0
 };
 
 static struct_lcd_configurations_vars *p_lcd_configurations_vars;
@@ -57,7 +58,6 @@ static uint16_t ui16_lcd_power_off_time_counter = 0;
 static uint16_t ui16_battery_voltage_soc_x10;
 
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
-static uint8_t ui8_lcd_menu_counter_500ms_state = 0;
 
 static uint8_t ui8_lcd_menu_config_submenu_state = 0;
 static uint8_t ui8_lcd_menu_flash_counter = 0;
@@ -91,7 +91,7 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
 void lcd_configurations_screen(void);
-void lcd_draw_configurations_screen_mask(void);
+void draw_configurations_screen_mask(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -111,7 +111,7 @@ void lcd_clock(void)
   calc_battery_soc_watts_hour();
 
   low_pass_filter_battery_voltage_current_power();
-  if (ui8_lcd_menu_counter_500ms_state)
+  if (lcd_vars.ui8_lcd_menu_counter_500ms_state)
   {
     low_pass_filter_pedal_cadence();
   }
@@ -497,11 +497,11 @@ void update_menu_flashing_state (void)
     ui8_lcd_menu_counter_100ms_state = 1;
   }
 
-  ui8_lcd_menu_counter_500ms_state = 0;
+  lcd_vars.ui8_lcd_menu_counter_500ms_state = 0;
   if (ui8_lcd_menu_counter_500ms++ > 50)
   {
     ui8_lcd_menu_counter_500ms = 0;
-    ui8_lcd_menu_counter_500ms_state = 1;
+    lcd_vars.ui8_lcd_menu_counter_500ms_state = 1;
   }
   // ***************************************************************************************************
 

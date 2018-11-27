@@ -34,6 +34,15 @@ typedef struct _menu_data
   buttons_events_type_t menu_buttons_events;
 } struct_menu_data;
 
+typedef struct _var_number
+{
+  void *p_var_number;
+  uint8_t ui8_size;
+  uint8_t ui8_number_digits;
+  uint32_t ui32_max_value;
+  uint32_t ui32_min_value;
+} struct_var_number;
+
 static struct_motor_controller_data *p_motor_controller_data;
 static struct_configuration_variables *p_configuration_variables;
 
@@ -60,10 +69,10 @@ static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 
 void draw_configurations_screen_mask(void);
 void clear_configurations_screen_items(void);
-void draw_title_symbol(struct_menu_data *p_menu_data);
 void draw_item_index_symbol(struct_menu_data *p_menu_data);
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data);
-void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
+void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
+void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data);
 void wheel_speed_title(struct_menu_data *p_menu_data);
 void wheel_max_speed(struct_menu_data *p_menu_data);
 void wheel_perimeter(struct_menu_data *p_menu_data);
@@ -287,152 +296,91 @@ void clear_configurations_screen_items(void)
 void wheel_speed_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Wheel speed", p_menu_data);
-  draw_title_symbol(p_menu_data);
 }
 
 void wheel_max_speed(struct_menu_data *p_menu_data)
 {
-  uint32_t ui32_x_position;
-  uint32_t ui32_y_position;
-  static uint8_t ui8_wheel_max_speed_previous = 0xff;
-
-  configurations_screen_item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
-
-  // if we are in edit mode...
-  if(p_menu_data->ui8_screen_set_values &&
-      p_menu_data->ui8_edit_state)
+  struct_var_number lcd_var_number =
   {
-    if(p_menu_data->menu_buttons_events == UP_CLICK)
-    {
-      p_configuration_variables->ui8_wheel_max_speed++;
-      if (p_configuration_variables->ui8_wheel_max_speed >= 99) { p_configuration_variables->ui8_wheel_max_speed = 99; }
-    }
+    .p_var_number = &p_configuration_variables->ui8_wheel_max_speed,
+    .ui8_size = 8,
+    .ui8_number_digits = 2,
+    .ui32_max_value = 99,
+    .ui32_min_value = 1
+  };
 
-    if(p_menu_data->menu_buttons_events == DOWN_CLICK)
-    {
-        p_configuration_variables->ui8_wheel_max_speed--;
-      if (p_configuration_variables->ui8_wheel_max_speed < 1)  { p_configuration_variables->ui8_wheel_max_speed = 1; }
-    }
-
-    p_menu_data->menu_buttons_events = 0;
-  }
-
-  // clear at every 500ms
-  if((p_menu_data->ui8_screen_set_values) &&
-      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
-      (p_menu_data->ui8_edit_state))
-  {
-    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        14 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
-    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
-  }
-  // draw value at every 500ms or when it changes
-  else if((p_menu_data->ui8_screen_set_values) &&
-      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
-      (p_menu_data->ui8_edit_state))
-  {
-    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        14 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
-    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
-
-    // draw variable value
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
-    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        14 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
-    UG_PutString(ui32_x_position, ui32_y_position, itoa(p_configuration_variables->ui8_wheel_max_speed));
-  }
-  else if(!(p_menu_data->ui8_screen_set_values) &&
-      (p_menu_data->ui8_edit_state) &&
-      (p_configuration_variables->ui8_wheel_max_speed != ui8_wheel_max_speed_previous))
-  {
-    ui8_wheel_max_speed_previous = p_configuration_variables->ui8_wheel_max_speed;
-
-    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        14 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
-    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + 24, ui32_y_position + 20, C_BLACK);
-
-    // draw variable value
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
-    ui32_x_position = DISPLAY_WIDTH - 40 - 1;
-    ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        14 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
-    UG_PutString(ui32_x_position, ui32_y_position, itoa(p_configuration_variables->ui8_wheel_max_speed));
-  }
+  item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void wheel_perimeter(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui16_wheel_perimeter,
+    .ui8_size = 16,
+    .ui8_number_digits = 4,
+    .ui32_max_value = 3000,
+    .ui32_min_value = 750
+  };
+
+  item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void wheel_speed_units(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Speed units", "", p_menu_data);
+  item_set_strings("Speed units", "", p_menu_data);
 }
 
 void battery_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery", p_menu_data);
-  draw_title_symbol(p_menu_data);
 }
 
 void battery_max_current(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Max current", "(amps)", p_menu_data);
+  item_set_strings("Max current", "(amps)", p_menu_data);
 }
 
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Low cut-off voltage", "(volts)", p_menu_data);
+  item_set_strings("Low cut-off voltage", "(volts)", p_menu_data);
 }
 
 void battery_number_cells(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Number of cells", "", p_menu_data);
+  item_set_strings("Number of cells", "", p_menu_data);
 }
 
 void battery_resistance(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Resistance", "(milli ohms)", p_menu_data);
+  item_set_strings("Resistance", "(milli ohms)", p_menu_data);
 }
 
 void battery_soc_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery SOC", p_menu_data);
-  draw_title_symbol(p_menu_data);
 }
 
 void battery_soc_enable(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Feature", "(enable/disable)", p_menu_data);
+  item_set_strings("Feature", "(enable/disable)", p_menu_data);
 }
 
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Decrement", "or increment", p_menu_data);
+  item_set_strings("Decrement", "or increment", p_menu_data);
 }
 
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Voltage to reset", "", p_menu_data);
+  item_set_strings("Voltage to reset", "", p_menu_data);
 }
 
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 {
-  configurations_screen_item_set_strings("Total watts/hour", "", p_menu_data);
+  item_set_strings("Total watts/hour", "", p_menu_data);
 }
 
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
@@ -460,7 +408,7 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_
   }
 }
 
-void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data)
+void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
@@ -483,40 +431,151 @@ void configurations_screen_item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8
   }
 }
 
-void draw_title_symbol(struct_menu_data *p_menu_data)
+void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data)
 {
-  uint32_t ui32_x_position ;
+  uint32_t ui32_x_position;
   uint32_t ui32_y_position;
-  uint8_t ui8_counter;
-  uint32_t ui32_line_center;
-  uint32_t ui32_line_lenght;
+  uint8_t ui8_draw_var_value = 0;
+  uint8_t ui8_draw_var_value_state = 0;
 
-  // update only when item number changes
+  uint8_t *ui8_p_var;
+  uint16_t *ui16_p_var;
+  uint32_t *ui32_p_var;
+
+  if(p_lcd_var_number->ui8_size == 8)
+  {
+    ui8_p_var = ((uint8_t *) p_lcd_var_number->p_var_number);
+  }
+  else if(p_lcd_var_number->ui8_size == 16)
+  {
+    ui16_p_var = ((uint16_t *) p_lcd_var_number->p_var_number);
+  }
+  else if(p_lcd_var_number->ui8_size == 32)
+  {
+    ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
+  }
+
+  // if we are in edit mode...
+  if(p_menu_data->ui8_screen_set_values &&
+      p_menu_data->ui8_edit_state)
+  {
+    if(p_menu_data->menu_buttons_events == UP_CLICK)
+    {
+      if(p_lcd_var_number->ui8_size == 8)
+      {
+        (*ui8_p_var)++;
+        if ((*ui8_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui8_p_var) = p_lcd_var_number->ui32_max_value; }
+      }
+      else if(p_lcd_var_number->ui8_size == 16)
+      {
+        (*ui16_p_var)++;
+        if ((*ui16_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui16_p_var) = p_lcd_var_number->ui32_max_value; }
+      }
+      else if(p_lcd_var_number->ui8_size == 32)
+      {
+        (*ui32_p_var)++;
+        if ((*ui32_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui32_p_var) = p_lcd_var_number->ui32_max_value; }
+      }
+
+      ui8_draw_var_value = 1;
+    }
+
+    if(p_menu_data->menu_buttons_events == DOWN_CLICK)
+    {
+      if(p_lcd_var_number->ui8_size == 8)
+      {
+        if((*ui8_p_var) > p_lcd_var_number->ui32_min_value) { (*ui8_p_var)--; }
+      }
+      else if(p_lcd_var_number->ui8_size == 16)
+      {
+        if((*ui16_p_var) > p_lcd_var_number->ui32_min_value) { (*ui16_p_var)--; }
+      }
+      else if(p_lcd_var_number->ui8_size == 32)
+      {
+        if((*ui32_p_var) > p_lcd_var_number->ui32_min_value) { (*ui32_p_var)--; }
+      }
+
+      ui8_draw_var_value = 1;
+    }
+
+    p_menu_data->menu_buttons_events = 0;
+  }
+
+  // clear at every 1000ms
+  if((p_menu_data->ui8_screen_set_values) &&
+      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
+      (p_menu_data->ui8_edit_state))
+  {
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (p_lcd_var_number->ui8_number_digits * 12);
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, DISPLAY_WIDTH - 16 - 1, ui32_y_position + 20, C_BLACK);
+
+    ui8_draw_var_value_state = 0;
+  }
+  // draw value at every 1000ms
+  else if((p_menu_data->ui8_screen_set_values) &&
+      (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+      (p_menu_data->ui8_edit_state))
+  {
+    ui8_draw_var_value = 1;
+  }
+  // force draw value at every 1000ms
+  else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+      !(ui8_draw_var_value_state))
+  {
+    ui8_draw_var_value = 1;
+  }
+
+  if(p_lcd_var_number->ui8_size == 8)
+  {
+    ui8_p_var = ((uint8_t *) p_lcd_var_number->p_var_number);
+  }
+  else if(p_lcd_var_number->ui8_size == 16)
+  {
+    ui16_p_var = ((uint16_t *) p_lcd_var_number->p_var_number);
+  }
+  else if(p_lcd_var_number->ui8_size == 32)
+  {
+    *ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
+  }
+
   if(ui8_item_number != ui8_previous_item_number)
   {
-    ui32_x_position = DISPLAY_WIDTH - 14 - 10;
+    ui8_draw_var_value = 1;
+  }
+
+  if(ui8_draw_var_value)
+  {
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (p_lcd_var_number->ui8_number_digits * 12) - (p_lcd_var_number->ui8_number_digits * 1);
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
-        12 + // padding from top line
+        14 + // padding from top line
         (p_menu_data->ui8_visible_item * 50);
-    ui32_line_lenght = 1;
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + (p_lcd_var_number->ui8_number_digits * 12), ui32_y_position + 20, C_BLACK);
 
-    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    // draw variable value
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_WHITE);
+    UG_FontSelect(&REGULAR_TEXT_FONT);
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (p_lcd_var_number->ui8_number_digits * 12) - (p_lcd_var_number->ui8_number_digits * 1);
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    if(p_lcd_var_number->ui8_size == 8)
     {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_WHITE);
-      ui32_x_position--;
-      if (ui32_line_lenght == 1) { ui32_line_lenght++; }
-      else { ui32_line_lenght += 2; }
-      ui32_y_position++;
+      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui8_p_var)));
+    }
+    else if(p_lcd_var_number->ui8_size == 16)
+    {
+      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui16_p_var)));
+    }
+    else if(p_lcd_var_number->ui8_size == 32)
+    {
+      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui32_p_var)));
     }
 
-    for(ui8_counter = 0; ui8_counter < 11; ui8_counter++)
-    {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_WHITE);
-      ui32_x_position++;
-      if (ui32_line_lenght == 1) { ui32_line_lenght++; }
-      else { ui32_line_lenght -= 2; }
-      ui32_y_position++;
-    }
+    ui8_draw_var_value_state = 1;
   }
 }
 

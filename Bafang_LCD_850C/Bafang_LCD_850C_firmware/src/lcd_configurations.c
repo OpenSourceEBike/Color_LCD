@@ -39,8 +39,10 @@ typedef struct _var_number
   void *p_var_number;
   uint8_t ui8_size;
   uint8_t ui8_number_digits;
+  uint8_t ui8_decimal_digit;
   uint32_t ui32_max_value;
   uint32_t ui32_min_value;
+  uint32_t ui32_increment_step;
 } struct_var_number;
 
 static struct_motor_controller_data *p_motor_controller_data;
@@ -305,8 +307,10 @@ void wheel_max_speed(struct_menu_data *p_menu_data)
     .p_var_number = &p_configuration_variables->ui8_wheel_max_speed,
     .ui8_size = 8,
     .ui8_number_digits = 2,
+    .ui8_decimal_digit = 0,
     .ui32_max_value = 99,
-    .ui32_min_value = 1
+    .ui32_min_value = 1,
+    .ui32_increment_step = 1
   };
 
   item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
@@ -320,8 +324,10 @@ void wheel_perimeter(struct_menu_data *p_menu_data)
     .p_var_number = &p_configuration_variables->ui16_wheel_perimeter,
     .ui8_size = 16,
     .ui8_number_digits = 4,
+    .ui8_decimal_digit = 0,
     .ui32_max_value = 3000,
-    .ui32_min_value = 750
+    .ui32_min_value = 750,
+    .ui32_increment_step = 10
   };
 
   item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
@@ -340,22 +346,70 @@ void battery_title(struct_menu_data *p_menu_data)
 
 void battery_max_current(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_battery_max_current,
+    .ui8_size = 8,
+    .ui8_number_digits = 2,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 30,
+    .ui32_min_value = 1,
+    .ui32_increment_step = 1
+  };
+
   item_set_strings("Max current", "(amps)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 {
-  item_set_strings("Low cut-off voltage", "(volts)", p_menu_data);
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui16_battery_low_voltage_cut_off_x10,
+    .ui8_size = 16,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 630,
+    .ui32_min_value = 160,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Low cut-off", "voltage (volts)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void battery_number_cells(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_battery_cells_number,
+    .ui8_size = 8,
+    .ui8_number_digits = 2,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 14,
+    .ui32_min_value = 7,
+    .ui32_increment_step = 1
+  };
+
   item_set_strings("Number of cells", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void battery_resistance(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui16_battery_pack_resistance_x1000,
+    .ui8_size = 16,
+    .ui8_number_digits = 4,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1000,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
   item_set_strings("Resistance", "(milli ohms)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void battery_soc_title(struct_menu_data *p_menu_data)
@@ -375,12 +429,36 @@ void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 {
-  item_set_strings("Voltage to reset", "", p_menu_data);
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui16_battery_voltage_reset_wh_counter_x10,
+    .ui8_size = 16,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 630,
+    .ui32_min_value = 160,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Voltage to reset", "(volts)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui32_wh_x10_100_percent,
+    .ui8_size = 32,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 99900,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 100
+  };
+
   item_set_strings("Total watts/hour", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
@@ -437,7 +515,12 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
   uint32_t ui32_y_position;
   uint8_t ui8_draw_var_value = 0;
   uint8_t ui8_draw_var_value_state = 0;
-
+  uint32_t ui32_value;
+  uint32_t ui32_value_temp;
+  uint32_t ui32_value_integer;
+  uint32_t ui32_value_decimal;
+  uint32_t ui32_value_integer_number_digits;
+  uint8_t ui8_counter;
   uint8_t *ui8_p_var;
   uint16_t *ui16_p_var;
   uint32_t *ui32_p_var;
@@ -463,18 +546,15 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
     {
       if(p_lcd_var_number->ui8_size == 8)
       {
-        (*ui8_p_var)++;
-        if ((*ui8_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui8_p_var) = p_lcd_var_number->ui32_max_value; }
+        if((*ui8_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) += p_lcd_var_number->ui32_increment_step; }
       }
       else if(p_lcd_var_number->ui8_size == 16)
       {
-        (*ui16_p_var)++;
-        if ((*ui16_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui16_p_var) = p_lcd_var_number->ui32_max_value; }
+        if((*ui16_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui16_p_var) += p_lcd_var_number->ui32_increment_step; }
       }
       else if(p_lcd_var_number->ui8_size == 32)
       {
-        (*ui32_p_var)++;
-        if ((*ui32_p_var) >= p_lcd_var_number->ui32_max_value) { (*ui32_p_var) = p_lcd_var_number->ui32_max_value; }
+        if((*ui32_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui32_p_var) += p_lcd_var_number->ui32_increment_step; }
       }
 
       ui8_draw_var_value = 1;
@@ -484,15 +564,15 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
     {
       if(p_lcd_var_number->ui8_size == 8)
       {
-        if((*ui8_p_var) > p_lcd_var_number->ui32_min_value) { (*ui8_p_var)--; }
+        if((*ui8_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) -= p_lcd_var_number->ui32_increment_step; }
       }
       else if(p_lcd_var_number->ui8_size == 16)
       {
-        if((*ui16_p_var) > p_lcd_var_number->ui32_min_value) { (*ui16_p_var)--; }
+        if((*ui16_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui16_p_var) -= p_lcd_var_number->ui32_increment_step; }
       }
       else if(p_lcd_var_number->ui8_size == 32)
       {
-        if((*ui32_p_var) > p_lcd_var_number->ui32_min_value) { (*ui32_p_var)--; }
+        if((*ui32_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui32_p_var) -= p_lcd_var_number->ui32_increment_step; }
       }
 
       ui8_draw_var_value = 1;
@@ -538,7 +618,7 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
   }
   else if(p_lcd_var_number->ui8_size == 32)
   {
-    *ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
+    ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
   }
 
   if(ui8_item_number != ui8_previous_item_number)
@@ -548,31 +628,77 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
 
   if(ui8_draw_var_value)
   {
-    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (p_lcd_var_number->ui8_number_digits * 12) - (p_lcd_var_number->ui8_number_digits * 1);
+    if(p_lcd_var_number->ui8_size == 8)
+    {
+      ui32_value = (uint32_t) (*ui8_p_var);
+    }
+    else if(p_lcd_var_number->ui8_size == 16)
+    {
+      ui32_value = (uint32_t) (*ui16_p_var);
+    }
+    else if(p_lcd_var_number->ui8_size == 32)
+    {
+      ui32_value = (*ui32_p_var);
+    }
+
+    if(p_lcd_var_number->ui8_decimal_digit)
+    {
+      ui32_value_integer = ui32_value / 10;
+      ui32_value_decimal = ui32_value % 10;
+    }
+    else
+    {
+      ui32_value_integer = ui32_value;
+    }
+
+    // find how many digits is the ui32_value_integer
+    ui32_value_temp = ui32_value_integer;
+    ui32_value_integer_number_digits = 0;
+    for(ui8_counter = 0; ui8_counter < p_lcd_var_number->ui8_number_digits; ui8_counter++)
+    {
+      ui32_value_temp /= 10;
+      ui32_value_integer_number_digits++;
+
+      // finish for loop
+      if (ui32_value_temp == 0)
+      {
+        if(p_lcd_var_number->ui8_decimal_digit) { ui32_value_integer_number_digits++; }
+
+        break;
+      }
+    }
+
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui32_value_integer_number_digits * 12) - (ui32_value_integer_number_digits * 1) - 10;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         14 + // padding from top line
         (p_menu_data->ui8_visible_item * 50);
-    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + (p_lcd_var_number->ui8_number_digits * 12), ui32_y_position + 20, C_BLACK);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + (ui32_value_integer_number_digits * 12) + (ui32_value_integer_number_digits * 1), ui32_y_position + 20, C_BLACK);
 
     // draw variable value
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
     UG_FontSelect(&REGULAR_TEXT_FONT);
-    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (p_lcd_var_number->ui8_number_digits * 12) - (p_lcd_var_number->ui8_number_digits * 1);
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui32_value_integer_number_digits * 12) - (ui32_value_integer_number_digits * 1);
+    if(p_lcd_var_number->ui8_decimal_digit) { ui32_x_position -= 6; } // offset value for the decimal point
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         14 + // padding from top line
         (p_menu_data->ui8_visible_item * 50);
-    if(p_lcd_var_number->ui8_size == 8)
+
+    UG_PutString(ui32_x_position, ui32_y_position, itoa(ui32_value_integer));
+
+    if(p_lcd_var_number->ui8_decimal_digit)
     {
-      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui8_p_var)));
-    }
-    else if(p_lcd_var_number->ui8_size == 16)
-    {
-      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui16_p_var)));
-    }
-    else if(p_lcd_var_number->ui8_size == 32)
-    {
-      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) (*ui32_p_var)));
+      // draw small point
+      ui32_x_position += 5 + ((ui32_value_integer_number_digits - 1) * 12) - ((ui32_value_integer_number_digits - 1) * 1);
+      ui32_y_position += 14;
+      UG_FillCircle(ui32_x_position, ui32_y_position, 1, C_WHITE);
+
+      // draw decimal digit
+      ui32_x_position += 4;
+      ui32_y_position = ui16_conf_screen_first_item_y_offset +
+          14 + // padding from top line
+          (p_menu_data->ui8_visible_item * 50);
+      UG_PutString(ui32_x_position, ui32_y_position, itoa(ui32_value_decimal));
     }
 
     ui8_draw_var_value_state = 1;

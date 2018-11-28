@@ -14,7 +14,12 @@
 
 typedef struct _lcd_configurations
 {
-  uint32_t ui32_configurations_screen_draw_static_info;
+  uint8_t ui8_configurations_screen_draw_static_info;
+  uint8_t ui8_configurations_screen_draw_static_info_first_time;
+  uint8_t ui8_item_number;
+  uint8_t ui8_previous_item_number;
+  uint8_t ui8_item_visible_start_index;
+  uint8_t ui8_item_visible_index;
 } struct_lcd_configurations_vars;
 
 void lcd_configurations_screen_init(void);

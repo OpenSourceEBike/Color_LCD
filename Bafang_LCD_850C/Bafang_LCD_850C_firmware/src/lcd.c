@@ -135,7 +135,10 @@ void lcd_clock(void)
   {
     buttons_clear_up_down_click_event ();
 
-    p_lcd_configurations_vars->ui32_configurations_screen_draw_static_info = 1;
+    // reset needed variables of configurations screen
+    p_lcd_configurations_vars->ui8_configurations_screen_draw_static_info = 1;
+    p_lcd_configurations_vars->ui8_configurations_screen_draw_static_info_first_time = 1;
+
     lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
   }
 
@@ -806,6 +809,7 @@ void battery_soc (void)
     else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
 
+ui32_battery_bar_number_previous = 2;
 ui32_battery_bar_number = 3;
 
     // find the color to draw the bars

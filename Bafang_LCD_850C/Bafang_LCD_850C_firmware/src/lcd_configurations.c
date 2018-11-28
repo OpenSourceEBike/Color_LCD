@@ -31,7 +31,8 @@ typedef struct _menu_data
   uint8_t ui8_edit_state;
   uint8_t ui8_visible_item;
   uint8_t ui8_screen_set_values;
-  uint8_t ui8_item_is_menu;
+  uint8_t ui8_next_item_is_title;
+  uint8_t ui8_item_increment;
   buttons_events_type_t menu_buttons_events;
 } struct_menu_data;
 
@@ -64,7 +65,8 @@ static struct_menu_data menu_data =
   .ui8_edit_state = 0,
   .ui8_visible_item = 0,
   .menu_buttons_events = 0,
-  .ui8_screen_set_values = 0
+  .ui8_screen_set_values = 0,
+  .ui8_item_increment = 1
 };
 
 struct_lcd_vars *p_lcd_vars;
@@ -78,6 +80,7 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_
 void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
 void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data);
 void item_var_set_strings(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data, uint8_t *p_strings);
+void item_visible_manage(struct_menu_data *p_menu_data);
 void wheel_speed_title(struct_menu_data *p_menu_data);
 void wheel_max_speed(struct_menu_data *p_menu_data);
 void wheel_perimeter(struct_menu_data *p_menu_data);
@@ -122,7 +125,6 @@ void lcd_configurations_screen(void)
 {
   static uint8_t ui8_first_time = 1;
   uint8_t ui8_i;
-  static uint8_t ui8_last_pressed_button;
 
   // leave config menu with a button_onoff_long_click
   if (buttons_get_onoff_long_click_event ())
@@ -155,32 +157,15 @@ void lcd_configurations_screen(void)
     buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
     menu_data.menu_buttons_events = DOWN_CLICK;
-    ui8_last_pressed_button = 0;
 
-    // execute next code only if weare not setting the values of variables
-    if(!menu_data.ui8_screen_set_values)
+    menu_data.ui8_item_increment = 1;
+    item_visible_manage(&menu_data);
+
+    if(menu_data.ui8_next_item_is_title)
     {
-      // increment to next item
-      if(lcd_configurations_vars.ui8_item_number < MAX_ITEMS)
-      {
-        lcd_configurations_vars.ui8_item_number++;
-        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
-      }
-
-      // increment to next visible item
-      if(lcd_configurations_vars.ui8_item_visible_index < MAX_ITEMS_PER_SCREEN)
-      {
-        lcd_configurations_vars.ui8_item_visible_index++;
-      }
-      // visible item limit, so increment the start index of visible item
-      else
-      {
-        // do not increment more over the last item
-        if(lcd_configurations_vars.ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
-        {
-          lcd_configurations_vars.ui8_item_visible_start_index++;
-        }
-      }
+      menu_data.ui8_next_item_is_title = 0;
+      menu_data.ui8_item_increment = 1;
+      item_visible_manage(&menu_data);
     }
   }
 
@@ -189,31 +174,15 @@ void lcd_configurations_screen(void)
     buttons_clear_up_click_event ();
     buttons_clear_down_click_event ();
     menu_data.menu_buttons_events = UP_CLICK;
-    ui8_last_pressed_button = 1;
 
-    if(!menu_data.ui8_screen_set_values)
+    menu_data.ui8_item_increment = 0;
+    item_visible_manage(&menu_data);
+
+    if(menu_data.ui8_next_item_is_title)
     {
-      // decrement to next item
-      if(lcd_configurations_vars.ui8_item_number > 0)
-      {
-        lcd_configurations_vars.ui8_item_number--;
-        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
-      }
-
-      // decrement to next visible item
-      if(lcd_configurations_vars.ui8_item_visible_index > 1)
-      {
-        lcd_configurations_vars.ui8_item_visible_index--;
-      }
-      // visible item limit, so decrement the start index of visible item
-      else
-      {
-        // do not decrement more over the last item
-        if(lcd_configurations_vars.ui8_item_visible_start_index > 0)
-        {
-          lcd_configurations_vars.ui8_item_visible_start_index--;
-        }
-      }
+      menu_data.ui8_next_item_is_title = 0;
+      menu_data.ui8_item_increment = 0;
+      item_visible_manage(&menu_data);
     }
   }
 
@@ -251,22 +220,8 @@ void lcd_configurations_screen(void)
     }
 
     menu_data.ui8_visible_item = ui8_i;
-    menu_data.ui8_item_is_menu = 0;
     // call each function on the array
     (*p_items_array[lcd_configurations_vars.ui8_item_visible_start_index + ui8_i])(&menu_data);
-
-    if((menu_data.ui8_item_is_menu) &&
-        (menu_data.ui8_edit_state))
-    {
-      if(ui8_last_pressed_button)
-      {
-        buttons_set_events(UP_CLICK);
-      }
-      else
-      {
-        buttons_set_events(DOWN_CLICK);
-      }
-    }
 
     draw_item_index_symbol(&menu_data);
   }
@@ -279,6 +234,65 @@ void lcd_configurations_screen(void)
 
   // clear this variable after 1 full cycle running
   lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 0;
+}
+
+void item_visible_manage(struct_menu_data *p_menu_data)
+{
+  if(p_menu_data->ui8_item_increment)
+  {
+    // execute next code only if weare not setting the values of variables
+    if(!p_menu_data->ui8_screen_set_values)
+    {
+      // increment to next item
+      if(lcd_configurations_vars.ui8_item_number < MAX_ITEMS)
+      {
+        lcd_configurations_vars.ui8_item_number++;
+        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
+      }
+
+      // increment to next visible item
+      if(lcd_configurations_vars.ui8_item_visible_index < MAX_ITEMS_PER_SCREEN)
+      {
+        lcd_configurations_vars.ui8_item_visible_index++;
+      }
+      // visible item limit, so increment the start index of visible item
+      else
+      {
+        // do not increment more over the last item
+        if(lcd_configurations_vars.ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
+        {
+          lcd_configurations_vars.ui8_item_visible_start_index++;
+        }
+      }
+    }
+  }
+  else
+  {
+    if(!menu_data.ui8_screen_set_values)
+    {
+      // decrement to next item
+      if(lcd_configurations_vars.ui8_item_number > 0)
+      {
+        lcd_configurations_vars.ui8_item_number--;
+        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
+      }
+
+      // decrement to next visible item
+      if(lcd_configurations_vars.ui8_item_visible_index > 1)
+      {
+        lcd_configurations_vars.ui8_item_visible_index--;
+      }
+      // visible item limit, so decrement the start index of visible item
+      else
+      {
+        // do not decrement more over the last item
+        if(lcd_configurations_vars.ui8_item_visible_start_index > 0)
+        {
+          lcd_configurations_vars.ui8_item_visible_start_index--;
+        }
+      }
+    }
+  }
 }
 
 void draw_configurations_screen_mask(void)
@@ -324,8 +338,6 @@ void clear_configurations_screen_items(void)
 void wheel_speed_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Wheel speed", p_menu_data);
-
-  p_menu_data->ui8_item_is_menu = 1;
 }
 
 void wheel_max_speed(struct_menu_data *p_menu_data)
@@ -343,6 +355,12 @@ void wheel_max_speed(struct_menu_data *p_menu_data)
 
   item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
+    else { p_menu_data->ui8_next_item_is_title = 0; }
+  }
 }
 
 void wheel_perimeter(struct_menu_data *p_menu_data)
@@ -360,6 +378,11 @@ void wheel_perimeter(struct_menu_data *p_menu_data)
 
   item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void wheel_speed_units(struct_menu_data *p_menu_data)
@@ -377,13 +400,22 @@ void wheel_speed_units(struct_menu_data *p_menu_data)
 
   item_set_strings("Speed units", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "km/h\nmph");
+
+  if(menu_data.ui8_edit_state)
+  {
+    if(p_menu_data->ui8_item_increment == 1) { p_menu_data->ui8_next_item_is_title = 1; }
+    else { p_menu_data->ui8_next_item_is_title = 0; }
+  }
 }
 
 void battery_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery", p_menu_data);
 
-  p_menu_data->ui8_item_is_menu = 1;
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void battery_max_current(struct_menu_data *p_menu_data)
@@ -401,6 +433,12 @@ void battery_max_current(struct_menu_data *p_menu_data)
 
   item_set_strings("Max current", "(amps)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
+    else { p_menu_data->ui8_next_item_is_title = 0; }
+  }
 }
 
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
@@ -418,6 +456,11 @@ void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 
   item_set_strings("Low cut-off", "voltage (volts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void battery_number_cells(struct_menu_data *p_menu_data)
@@ -435,6 +478,11 @@ void battery_number_cells(struct_menu_data *p_menu_data)
 
   item_set_strings("Number of cells", "", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void battery_resistance(struct_menu_data *p_menu_data)
@@ -452,13 +500,17 @@ void battery_resistance(struct_menu_data *p_menu_data)
 
   item_set_strings("Resistance", "(milli ohms)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    if(p_menu_data->ui8_item_increment == 1) { p_menu_data->ui8_next_item_is_title = 1; }
+    else { p_menu_data->ui8_next_item_is_title = 0; }
+  }
 }
 
 void battery_soc_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery SOC", p_menu_data);
-
-  p_menu_data->ui8_item_is_menu = 1;
 }
 
 void battery_soc_enable(struct_menu_data *p_menu_data)
@@ -476,6 +528,12 @@ void battery_soc_enable(struct_menu_data *p_menu_data)
 
   item_set_strings("Feature", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
+
+  if(menu_data.ui8_edit_state)
+  {
+    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
+    else { p_menu_data->ui8_next_item_is_title = 0; }
+  }
 }
 
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
@@ -493,6 +551,11 @@ void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 
   item_set_strings("Decrement", "or increment", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "inc\ndec");
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
@@ -510,6 +573,11 @@ void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 
   item_set_strings("Voltage to reset", "(volts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
@@ -527,6 +595,11 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 
   item_set_strings("Total watts/hour", "", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if(menu_data.ui8_edit_state)
+  {
+    p_menu_data->ui8_next_item_is_title = 0;
+  }
 }
 
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
@@ -892,64 +965,61 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
   uint32_t ui32_line_lenght;
   uint16_t ui16_color;
 
-  if(!p_menu_data->ui8_item_is_menu)
+  // clear at every 1000ms
+  if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
+      (p_menu_data->ui8_edit_state) &&
+      (!p_menu_data->ui8_screen_set_values))
   {
-    // clear at every 1000ms
-    if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
-        (p_menu_data->ui8_edit_state) &&
-        (!p_menu_data->ui8_screen_set_values))
+    ui16_color = C_BLACK;
+
+    ui32_x_position = DISPLAY_WIDTH - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    ui32_line_lenght = 0;
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
     {
-      ui16_color = C_BLACK;
-
-      ui32_x_position = DISPLAY_WIDTH - 1;
-      ui32_y_position = ui16_conf_screen_first_item_y_offset +
-          12 + // padding from top line
-          (p_menu_data->ui8_visible_item * 50);
-      ui32_line_lenght = 0;
-
-      for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-      {
-        UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-        ui32_x_position--;
-        ui32_line_lenght++;
-        ui32_y_position++;
-      }
-
-      for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-      {
-        UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-        ui32_x_position++;
-        ui32_line_lenght--;
-        ui32_y_position++;
-      }
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position--;
+      ui32_line_lenght++;
+      ui32_y_position++;
     }
-    // draw value at every 1000ms or when it changes
-    else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
-        (menu_data.ui8_edit_state))
+
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
     {
-      ui16_color = C_RED;
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position++;
+      ui32_line_lenght--;
+      ui32_y_position++;
+    }
+  }
+  // draw value at every 1000ms or when it changes
+  else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+      (menu_data.ui8_edit_state))
+  {
+    ui16_color = C_RED;
 
-      ui32_x_position = DISPLAY_WIDTH - 1;
-      ui32_y_position = ui16_conf_screen_first_item_y_offset +
-          12 + // padding from top line
-          (p_menu_data->ui8_visible_item * 50);
-      ui32_line_lenght = 0;
+    ui32_x_position = DISPLAY_WIDTH - 1;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    ui32_line_lenght = 0;
 
-      for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-      {
-        UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-        ui32_x_position--;
-        ui32_line_lenght++;
-        ui32_y_position++;
-      }
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position--;
+      ui32_line_lenght++;
+      ui32_y_position++;
+    }
 
-      for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-      {
-        UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-        ui32_x_position++;
-        ui32_line_lenght--;
-        ui32_y_position++;
-      }
+    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
+    {
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      ui32_x_position++;
+      ui32_line_lenght--;
+      ui32_y_position++;
     }
   }
 }

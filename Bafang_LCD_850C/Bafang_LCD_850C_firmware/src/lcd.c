@@ -90,7 +90,6 @@ void lights_state(void);
 void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
-void lcd_configurations_screen(void);
 void draw_configurations_screen_mask(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */

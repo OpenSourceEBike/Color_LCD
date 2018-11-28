@@ -613,6 +613,7 @@ void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_men
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         4 + // padding from top line
         (p_menu_data->ui8_visible_item * 50);
+    if (*ui8_p_string2 == 0) { ui32_y_position += 10; }
     UG_PutString(ui32_x_position, ui32_y_position, ui8_p_string1);
 
     UG_FontSelect(&SMALL_TEXT_FONT);
@@ -972,7 +973,7 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
   else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
       (menu_data.ui8_edit_state))
   {
-    ui16_color = C_RED;
+    ui16_color = C_ORANGE_RED;
 
     ui32_x_position = DISPLAY_WIDTH - 1;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +

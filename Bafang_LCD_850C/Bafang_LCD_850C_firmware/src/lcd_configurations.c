@@ -30,8 +30,8 @@ typedef struct _menu_data
 {
   uint8_t ui8_edit_state;
   uint8_t ui8_visible_item;
+  uint8_t ui8_visible_item_edit;
   uint8_t ui8_screen_set_values;
-  uint8_t ui8_next_item_is_title;
   uint8_t ui8_item_increment;
   buttons_events_type_t menu_buttons_events;
 } struct_menu_data;
@@ -64,6 +64,7 @@ static struct_menu_data menu_data =
 {
   .ui8_edit_state = 0,
   .ui8_visible_item = 0,
+  .ui8_visible_item_edit = 0,
   .menu_buttons_events = 0,
   .ui8_screen_set_values = 0,
   .ui8_item_increment = 1
@@ -97,7 +98,8 @@ void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data);
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data);
 
 // call each function on the array
-void (*p_items_array[])(struct_menu_data *p_menu_data) = {
+void (*p_items_array[])(struct_menu_data *p_menu_data) =
+{
   wheel_speed_title,
   wheel_max_speed,
   wheel_perimeter,
@@ -112,6 +114,24 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) = {
   battery_soc_increment_decrement,
   battery_soc_voltage_to_reset,
   battery_soc_total_watt_hour
+};
+
+uint8_t items_array_is_title[] =
+{
+  0, // hack: first is always a title but let's signal it is not
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0
 };
 
 void lcd_configurations_screen_init(void)
@@ -161,9 +181,9 @@ void lcd_configurations_screen(void)
     menu_data.ui8_item_increment = 1;
     item_visible_manage(&menu_data);
 
-    if(menu_data.ui8_next_item_is_title)
+    // see if next item is a tittle
+    if(items_array_is_title[lcd_configurations_vars.ui8_item_number] == 1)
     {
-      menu_data.ui8_next_item_is_title = 0;
       menu_data.ui8_item_increment = 1;
       item_visible_manage(&menu_data);
     }
@@ -178,9 +198,9 @@ void lcd_configurations_screen(void)
     menu_data.ui8_item_increment = 0;
     item_visible_manage(&menu_data);
 
-    if(menu_data.ui8_next_item_is_title)
+    // see if next item is a tittle
+    if(items_array_is_title[lcd_configurations_vars.ui8_item_number] == 1)
     {
-      menu_data.ui8_next_item_is_title = 0;
       menu_data.ui8_item_increment = 0;
       item_visible_manage(&menu_data);
     }
@@ -193,13 +213,16 @@ void lcd_configurations_screen(void)
     {
       UG_FillScreen(C_BLACK);
       draw_configurations_screen_mask();
-      lcd_configurations_vars.ui8_item_number = 0;
-      lcd_configurations_vars.ui8_previous_item_number = 0xff;
-      lcd_configurations_vars.ui8_item_visible_start_index = 0;
-      lcd_configurations_vars.ui8_item_visible_index = 1;
       lcd_configurations_vars.ui8_configurations_screen_draw_static_info_first_time = 0;
       menu_data.ui8_screen_set_values = 0;
       menu_data.ui8_edit_state = 0;
+
+      lcd_configurations_vars.ui8_item_number = 0;
+      lcd_configurations_vars.ui8_previous_item_number = 0xff;
+      lcd_configurations_vars.ui8_item_visible_start_index = 0;
+      lcd_configurations_vars.ui8_item_visible_index = 0;
+      menu_data.ui8_item_increment = 1;
+      item_visible_manage(&menu_data);
     }
     else
     {
@@ -210,9 +233,10 @@ void lcd_configurations_screen(void)
   for(ui8_i = 0; ui8_i < MAX_ITEMS_PER_SCREEN; ui8_i++)
   {
     // find which item we are pointing to/editing
-    if((lcd_configurations_vars.ui8_item_visible_index - 1) == ui8_i)
+    if(lcd_configurations_vars.ui8_item_visible_index == ui8_i)
     {
       menu_data.ui8_edit_state = 1;
+      menu_data.ui8_visible_item_edit = ui8_i;
     }
     else
     {
@@ -240,7 +264,7 @@ void item_visible_manage(struct_menu_data *p_menu_data)
 {
   if(p_menu_data->ui8_item_increment)
   {
-    // execute next code only if weare not setting the values of variables
+    // execute next code only if we are not setting the values of variables
     if(!p_menu_data->ui8_screen_set_values)
     {
       // increment to next item
@@ -251,7 +275,7 @@ void item_visible_manage(struct_menu_data *p_menu_data)
       }
 
       // increment to next visible item
-      if(lcd_configurations_vars.ui8_item_visible_index < MAX_ITEMS_PER_SCREEN)
+      if(lcd_configurations_vars.ui8_item_visible_index < (MAX_ITEMS_PER_SCREEN - 1))
       {
         lcd_configurations_vars.ui8_item_visible_index++;
       }
@@ -292,6 +316,14 @@ void item_visible_manage(struct_menu_data *p_menu_data)
         }
       }
     }
+  }
+
+  // exception: force first item to never stay on title
+  if(lcd_configurations_vars.ui8_item_visible_start_index == 0 &&
+      lcd_configurations_vars.ui8_item_number == 0)
+  {
+    lcd_configurations_vars.ui8_item_number = 1;
+    lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 0;
   }
 }
 
@@ -355,12 +387,6 @@ void wheel_max_speed(struct_menu_data *p_menu_data)
 
   item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
-    else { p_menu_data->ui8_next_item_is_title = 0; }
-  }
 }
 
 void wheel_perimeter(struct_menu_data *p_menu_data)
@@ -378,11 +404,6 @@ void wheel_perimeter(struct_menu_data *p_menu_data)
 
   item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void wheel_speed_units(struct_menu_data *p_menu_data)
@@ -400,22 +421,11 @@ void wheel_speed_units(struct_menu_data *p_menu_data)
 
   item_set_strings("Speed units", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "km/h\nmph");
-
-  if(menu_data.ui8_edit_state)
-  {
-    if(p_menu_data->ui8_item_increment == 1) { p_menu_data->ui8_next_item_is_title = 1; }
-    else { p_menu_data->ui8_next_item_is_title = 0; }
-  }
 }
 
 void battery_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery", p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void battery_max_current(struct_menu_data *p_menu_data)
@@ -433,12 +443,6 @@ void battery_max_current(struct_menu_data *p_menu_data)
 
   item_set_strings("Max current", "(amps)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
-    else { p_menu_data->ui8_next_item_is_title = 0; }
-  }
 }
 
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
@@ -456,11 +460,6 @@ void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 
   item_set_strings("Low cut-off", "voltage (volts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void battery_number_cells(struct_menu_data *p_menu_data)
@@ -478,11 +477,6 @@ void battery_number_cells(struct_menu_data *p_menu_data)
 
   item_set_strings("Number of cells", "", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void battery_resistance(struct_menu_data *p_menu_data)
@@ -500,12 +494,6 @@ void battery_resistance(struct_menu_data *p_menu_data)
 
   item_set_strings("Resistance", "(milli ohms)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    if(p_menu_data->ui8_item_increment == 1) { p_menu_data->ui8_next_item_is_title = 1; }
-    else { p_menu_data->ui8_next_item_is_title = 0; }
-  }
 }
 
 void battery_soc_title(struct_menu_data *p_menu_data)
@@ -528,12 +516,6 @@ void battery_soc_enable(struct_menu_data *p_menu_data)
 
   item_set_strings("Feature", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
-
-  if(menu_data.ui8_edit_state)
-  {
-    if(p_menu_data->ui8_item_increment == 0) { p_menu_data->ui8_next_item_is_title = 1; }
-    else { p_menu_data->ui8_next_item_is_title = 0; }
-  }
 }
 
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
@@ -551,11 +533,6 @@ void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 
   item_set_strings("Decrement", "or increment", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "inc\ndec");
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
@@ -573,33 +550,27 @@ void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 
   item_set_strings("Voltage to reset", "(volts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
 }
 
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 {
+  uint32_t ui32_value;
+
+  ui32_value = p_configuration_variables->ui32_wh_x10_100_percent / 10;
   struct_var_number lcd_var_number =
   {
-    .p_var_number = &p_configuration_variables->ui32_wh_x10_100_percent,
+    .p_var_number = &ui32_value,
     .ui8_size = 32,
-    .ui8_number_digits = 3,
+    .ui8_number_digits = 4,
     .ui8_decimal_digit = 0,
-    .ui32_max_value = 99900,
+    .ui32_max_value = 9990,
     .ui32_min_value = 0,
-    .ui32_increment_step = 100
+    .ui32_increment_step = 10
   };
 
-  item_set_strings("Total watts/hour", "", p_menu_data);
+  item_set_strings("Battery total", "watts/hour", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-
-  if(menu_data.ui8_edit_state)
-  {
-    p_menu_data->ui8_next_item_is_title = 0;
-  }
+  p_configuration_variables->ui32_wh_x10_100_percent = ui32_value * 10;
 }
 
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
@@ -964,6 +935,9 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
   uint8_t ui8_counter;
   uint32_t ui32_line_lenght;
   uint16_t ui16_color;
+  uint8_t ui8_visible_item;
+
+  ui8_visible_item = lcd_configurations_vars.ui8_item_number - lcd_configurations_vars.ui8_item_visible_start_index;
 
   // clear at every 1000ms
   if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
@@ -975,7 +949,7 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
     ui32_x_position = DISPLAY_WIDTH - 1;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
+        (ui8_visible_item * 50);
     ui32_line_lenght = 0;
 
     for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
@@ -1003,7 +977,7 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
     ui32_x_position = DISPLAY_WIDTH - 1;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (p_menu_data->ui8_visible_item * 50);
+        (ui8_visible_item * 50);
     ui32_line_lenght = 0;
 
     for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)

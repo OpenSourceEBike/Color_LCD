@@ -1025,7 +1025,7 @@ void calc_battery_soc_watts_hour (void)
   }
 
   // 100% - current SOC or just current SOC
-  if (configuration_variables.ui8_show_numeric_battery_soc & 2)
+  if (configuration_variables.ui8_battery_soc_enable & 2)
   {
     if (ui32_temp > 100)
       ui32_temp = 100;

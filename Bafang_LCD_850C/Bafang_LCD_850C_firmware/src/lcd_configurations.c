@@ -75,6 +75,7 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data);
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data);
 void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
 void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data);
+void item_var_set_strings(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data, uint8_t *p_strings);
 void wheel_speed_title(struct_menu_data *p_menu_data);
 void wheel_max_speed(struct_menu_data *p_menu_data);
 void wheel_perimeter(struct_menu_data *p_menu_data);
@@ -336,7 +337,19 @@ void wheel_perimeter(struct_menu_data *p_menu_data)
 
 void wheel_speed_units(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_units_type,
+    .ui8_size = 0,
+    .ui8_number_digits = 0,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
   item_set_strings("Speed units", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "km/h\nmph");
 }
 
 void battery_title(struct_menu_data *p_menu_data)
@@ -419,12 +432,36 @@ void battery_soc_title(struct_menu_data *p_menu_data)
 
 void battery_soc_enable(struct_menu_data *p_menu_data)
 {
-  item_set_strings("Feature", "(enable/disable)", p_menu_data);
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_battery_soc_enable,
+    .ui8_size = 0,
+    .ui8_number_digits = 0,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Feature", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
 }
 
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 {
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_battery_soc_increment_decrement,
+    .ui8_size = 0,
+    .ui8_number_digits = 0,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
   item_set_strings("Decrement", "or increment", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "inc\ndec");
 }
 
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
@@ -514,7 +551,7 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
   uint8_t ui8_draw_var_value = 0;
-  uint8_t ui8_draw_var_value_state = 0;
+  static uint8_t ui8_draw_var_value_state = 0;
   uint32_t ui32_value;
   uint32_t ui32_value_temp;
   uint32_t ui32_value_integer;
@@ -700,6 +737,116 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
           (p_menu_data->ui8_visible_item * 50);
       UG_PutString(ui32_x_position, ui32_y_position, itoa(ui32_value_decimal));
     }
+
+    ui8_draw_var_value_state = 1;
+  }
+}
+
+void item_var_set_strings(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data, uint8_t *p_strings)
+{
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+  uint8_t ui8_draw_var_value = 0;
+  static uint8_t ui8_draw_var_value_state = 0;
+  uint8_t *p_strings_pointer;
+  uint8_t *p_first_char;
+  uint8_t ui8_number_of_chars;
+  uint8_t *p_temp;
+  uint8_t ui8_counter;
+  uint8_t *ui8_p_value;
+
+  ui8_p_value = ((uint8_t *) p_lcd_var_number->p_var_number);
+
+  // if we are in edit mode...
+  if(p_menu_data->ui8_screen_set_values &&
+     p_menu_data->ui8_edit_state)
+  {
+    if(p_menu_data->menu_buttons_events == UP_CLICK)
+    {
+      if(*ui8_p_value <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { *ui8_p_value += p_lcd_var_number->ui32_increment_step; }
+      ui8_draw_var_value = 1;
+    }
+
+    if(p_menu_data->menu_buttons_events == DOWN_CLICK)
+    {
+      if(*ui8_p_value >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { *ui8_p_value -= p_lcd_var_number->ui32_increment_step; }
+      ui8_draw_var_value = 1;
+    }
+
+    p_menu_data->menu_buttons_events = 0;
+  }
+
+  // clear at every 1000ms
+  if((p_menu_data->ui8_screen_set_values) &&
+     (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
+     (p_menu_data->ui8_edit_state))
+  {
+   ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (7 * 12) - (7 * 1);
+   ui32_y_position = ui16_conf_screen_first_item_y_offset +
+       14 + // padding from top line
+       (p_menu_data->ui8_visible_item * 50);
+   UG_FillFrame(ui32_x_position, ui32_y_position, DISPLAY_WIDTH - 16 - 1, ui32_y_position + 20, C_BLACK);
+
+   ui8_draw_var_value_state = 0;
+  }
+  // draw value at every 1000ms
+  else if((p_menu_data->ui8_screen_set_values) &&
+     (p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+     (p_menu_data->ui8_edit_state))
+  {
+    ui8_draw_var_value = 1;
+  }
+  // force draw value at every 1000ms
+  else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
+     !(ui8_draw_var_value_state))
+  {
+    ui8_draw_var_value = 1;
+  }
+
+  if(ui8_item_number != ui8_previous_item_number)
+  {
+    ui8_draw_var_value = 1;
+  }
+
+  if(ui8_draw_var_value)
+  {
+    // find index of the first char of the string
+    p_strings_pointer = p_strings;
+    for(ui8_counter = 0; ui8_counter < *ui8_p_value; ui8_counter++)
+    {
+      while((*p_strings_pointer != '\n') && (*p_strings_pointer != 0))
+      {
+        p_strings_pointer++;
+      }
+      // account for '\n' and 0
+      p_strings_pointer++;
+    }
+    p_first_char = p_strings_pointer;
+
+    // find number of chars of the string
+    p_temp = p_first_char;
+    ui8_number_of_chars = 0;
+    while((*p_temp != '\n') && (*p_temp != 0))
+    {
+      p_temp++;
+      ui8_number_of_chars++;
+    }
+
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui8_number_of_chars * 12) - (ui8_number_of_chars * 1) - 12;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, ui32_x_position + (ui8_number_of_chars * 12) + (ui8_number_of_chars * 1), ui32_y_position + 20, C_BLACK);
+
+    // draw string
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_WHITE);
+    UG_FontSelect(&REGULAR_TEXT_FONT);
+    ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui8_number_of_chars * 12) - (ui8_number_of_chars * 1);
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        14 + // padding from top line
+        (p_menu_data->ui8_visible_item * 50);
+    UG_PutString_with_length(ui32_x_position, ui32_y_position, p_first_char, ui8_number_of_chars);
 
     ui8_draw_var_value_state = 1;
   }

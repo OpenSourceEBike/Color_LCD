@@ -99,6 +99,7 @@ static void variables_to_array(uint8_t *ui8_array);
 void eeprom_init()
 {
   uint8_t ui8_data;
+  uint32_t ui32_eeprom_write_id;
 
   // check if both EEPROM pages have invalid values and if so, write default values on page 0
   if((eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 0) != EEPROM_MAGIC_KEY) &&
@@ -139,7 +140,28 @@ void eeprom_init()
   ui8_data = eeprom_read(ADDRESS_KEY);
   if(ui8_data != KEY) // verify if our key exist
   {
+    // cycle/increment ui32_eeprom_page, to next page
+    ui32_eeprom_page = (ui32_eeprom_page + 1) % 2;
+
+    // erase the new page
+    eeprom_erase_page(ui32_eeprom_page);
+    // write on the new page
     eeprom_write_array(array_default_values, ((uint8_t) EEPROM_BYTES_STORED));
+    // write EEPROM_MAGIC_KEY and EEPROM_PAGE WRITE_ID
+    if(ui32_eeprom_page == 0)
+    {
+      eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
+      ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 1);
+      ui32_eeprom_write_id++;
+      eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
+    }
+    else
+    {
+      eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
+      ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 0);
+      ui32_eeprom_write_id++;
+      eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
+    }
   }
 
   // finally initialize the variables
@@ -192,7 +214,7 @@ static void eeprom_read_values_to_variables(void)
   ui32_temp += (((uint32_t) ui8_temp << 24) & 0xff000000);
   p_configuration_variables->ui32_wh_x10_100_percent = ui32_temp;
 
-  p_configuration_variables->ui8_show_numeric_battery_soc = eeprom_read(ADDRESS_SHOW_NUMERIC_BATTERY_SOC);
+  p_configuration_variables->ui8_battery_soc_enable = eeprom_read(ADDRESS_SHOW_NUMERIC_BATTERY_SOC);
   p_configuration_variables->ui8_odometer_field_state = eeprom_read(ADDRESS_ODOMETER_FIELD_STATE);
   p_configuration_variables->ui8_battery_max_current = eeprom_read(ADDRESS_BATTERY_MAX_CURRENT);
   p_configuration_variables->ui8_target_max_battery_power = eeprom_read(ADDRESS_TARGET_MAX_BATTERY_POWER);
@@ -309,7 +331,7 @@ static void variables_to_array(uint8_t *ui8_array)
   ui8_array [11] = (p_configuration_variables->ui32_wh_x10_100_percent >> 8) & 255;
   ui8_array [12] = (p_configuration_variables->ui32_wh_x10_100_percent >> 16) & 255;
   ui8_array [13] = (p_configuration_variables->ui32_wh_x10_100_percent >> 24) & 255;
-  ui8_array [14] = p_configuration_variables->ui8_show_numeric_battery_soc;
+  ui8_array [14] = p_configuration_variables->ui8_battery_soc_enable;
   ui8_array [15] = p_configuration_variables->ui8_odometer_field_state;
   ui8_array [16] = p_configuration_variables->ui8_battery_max_current;
   ui8_array [17] = p_configuration_variables->ui8_target_max_battery_power;

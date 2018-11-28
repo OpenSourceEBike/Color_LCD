@@ -11,7 +11,7 @@
 
 #include "lcd.h"
 
-#define KEY                                                                 0xe7
+#define KEY                                                                 0x01
 
 #define ADDRESS_KEY                                                         0
 #define ADDRESS_ASSIST_LEVEL                                                1

@@ -4661,6 +4661,39 @@ void UG_PutString( UG_S16 x, UG_S16 y, char* str )
    }
 }
 
+void UG_PutString_with_length( UG_S16 x, UG_S16 y, char* str, uint8_t ui8_length)
+{
+   UG_S16 xp,yp;
+   char chr;
+
+   xp=x;
+   yp=y;
+
+   while ( *str != 0 && ui8_length > 0)
+   {
+     ui8_length--;
+
+      chr = *str;
+      if ( chr == '\n' )
+      {
+         xp = gui->x_dim;
+         str++;
+         continue;
+      }
+
+      if ( xp+gui->font.char_width > gui->x_dim - 1 )
+      {
+         xp = x;
+         yp += gui->font.char_height+gui->font.char_v_space;
+      }
+
+      UG_PutChar(chr, xp, yp, gui->fore_color, gui->back_color);
+
+      xp += gui->font.char_width+gui->font.char_h_space;
+      str++;
+   }
+}
+
 void UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc )
 {
    UG_U16 i,j,k,xo,yo,c,bn;

@@ -40,8 +40,6 @@ static uint16_t ui16_battery_current_filtered_x5;
 static uint16_t ui16_battery_power_filtered_x50;
 static uint16_t ui16_battery_power_filtered;
 
-static uint32_t ui32_wh_x10 = 0;
-
 static uint16_t ui16_pedal_torque_filtered;
 static uint16_t ui16_pedal_power_filtered;
 
@@ -54,8 +52,6 @@ static uint16_t ui16_battery_soc_watts_hour;
 
 uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
 static uint16_t ui16_lcd_power_off_time_counter = 0;
-
-static uint16_t ui16_battery_voltage_soc_x10;
 
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
 
@@ -262,8 +258,8 @@ void lcd_power_off (uint8_t updateDistanceOdo)
 {
 //  if (updateDistanceOdo)
 //  {
-//    configuration_variables.ui32_wh_x10_offset = ui32_wh_x10;
-//    configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
+    configuration_variables.ui32_wh_x10_offset = motor_controller_data.ui32_wh_x10;
+    configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
 //  }
 
   // save the variables on EEPROM
@@ -392,14 +388,12 @@ static void low_pass_filter_pedal_cadence (void)
 void calc_wh (void)
 {
   static uint8_t ui8_1s_timmer_counter = 0;
-  static uint32_t ui32_wh_sum_x5 = 0;
-  static uint32_t ui32_wh_sum_counter = 0;
   uint32_t ui32_temp = 0;
 
   if (ui16_battery_power_filtered_x50 > 0)
   {
-    ui32_wh_sum_x5 += ui16_battery_power_filtered_x50 / 10;
-    ui32_wh_sum_counter++;
+    motor_controller_data.ui32_wh_sum_x5 += ui16_battery_power_filtered_x50 / 10;
+    motor_controller_data.ui32_wh_sum_counter++;
   }
 
   // calc at 1s rate
@@ -408,13 +402,13 @@ void calc_wh (void)
     ui8_1s_timmer_counter = 0;
 
     // avoid  zero divisison
-    if (ui32_wh_sum_counter != 0)
+    if (motor_controller_data.ui32_wh_sum_counter != 0)
     {
-      ui32_temp = ui32_wh_sum_counter / 36;
-      ui32_temp = (ui32_temp * (ui32_wh_sum_x5 / ui32_wh_sum_counter)) / 500;
+      ui32_temp = motor_controller_data.ui32_wh_sum_counter / 36;
+      ui32_temp = (ui32_temp * (motor_controller_data.ui32_wh_sum_x5 / motor_controller_data.ui32_wh_sum_counter)) / 500;
     }
 
-    ui32_wh_x10 = configuration_variables.ui32_wh_x10_offset + ui32_temp;
+    motor_controller_data.ui32_wh_x10 = configuration_variables.ui32_wh_x10_offset + ui32_temp;
   }
 }
 
@@ -629,7 +623,7 @@ void calc_battery_voltage_soc (void)
     // calculate flutuate voltage, that depends on the current and battery pack resistance
     ui16_fluctuate_battery_voltage_x10 = (uint16_t) ((((uint32_t) configuration_variables.ui16_battery_pack_resistance_x1000) * ((uint32_t) ui16_battery_current_filtered_x5)) / ((uint32_t) 500));
     // now add fluctuate voltage value
-    ui16_battery_voltage_soc_x10 = ui16_battery_voltage_filtered_x10 + ui16_fluctuate_battery_voltage_x10;
+    motor_controller_data.ui16_battery_voltage_soc_x10 = ui16_battery_voltage_filtered_x10 + ui16_fluctuate_battery_voltage_x10;
   }
 }
 
@@ -796,16 +790,16 @@ void battery_soc (void)
     // to keep same scale as voltage of x10
     ui32_battery_cells_number_x10 = (uint32_t) (configuration_variables.ui8_battery_cells_number * 10);
 
-    if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
-    else if (ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
+    if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
+    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
 
 ui32_battery_bar_number_previous = 2;
@@ -1017,7 +1011,7 @@ void calc_battery_soc_watts_hour (void)
 {
   uint32_t ui32_temp;
 
-  ui32_temp = ui32_wh_x10 * 100;
+  ui32_temp = motor_controller_data.ui32_wh_x10 * 100;
   if (configuration_variables.ui32_wh_x10_100_percent > 0)
   {
     ui32_temp /= configuration_variables.ui32_wh_x10_100_percent;

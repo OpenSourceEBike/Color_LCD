@@ -38,6 +38,10 @@ typedef struct _motor_controller_data
   uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
   uint16_t ui16_pedal_torque_x10;
   uint16_t ui16_pedal_power_x10;
+  uint16_t ui16_battery_voltage_soc_x10;
+  uint32_t ui32_wh_sum_x5;
+  uint32_t ui32_wh_sum_counter;
+  uint32_t ui32_wh_x10;
 } struct_motor_controller_data;
 
 typedef struct _configuration_variables
@@ -63,12 +67,12 @@ typedef struct _configuration_variables
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
   uint8_t ui8_cruise_control;
-  uint8_t ui8_assist_level_factor [9];
+  uint8_t ui8_assist_level_factor[9];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
-  uint8_t ui8_startup_motor_power_boost_factor [9];
+  uint8_t ui8_startup_motor_power_boost_factor[9];
   uint16_t ui16_adc_motor_temperature_10b;
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;

@@ -22,7 +22,7 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
-#define MAX_ITEMS                 (14 - 1)
+#define MAX_ITEMS                 (42 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
@@ -91,11 +91,39 @@ void battery_max_current(struct_menu_data *p_menu_data);
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data);
 void battery_number_cells(struct_menu_data *p_menu_data);
 void battery_resistance(struct_menu_data *p_menu_data);
+void battery_voltage(struct_menu_data *p_menu_data);
 void battery_soc_title(struct_menu_data *p_menu_data);
 void battery_soc_enable(struct_menu_data *p_menu_data);
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data);
 void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data);
 void battery_soc_total_watt_hour(struct_menu_data *p_menu_data);
+void battery_soc_power_used(struct_menu_data *p_menu_data);
+void assist_level_title(struct_menu_data *p_menu_data);
+void assist_level_number(struct_menu_data *p_menu_data);
+void assist_level_number_1(struct_menu_data *p_menu_data);
+void assist_level_number_2(struct_menu_data *p_menu_data);
+void assist_level_number_3(struct_menu_data *p_menu_data);
+void assist_level_number_4(struct_menu_data *p_menu_data);
+void assist_level_number_5(struct_menu_data *p_menu_data);
+void assist_level_number_6(struct_menu_data *p_menu_data);
+void assist_level_number_7(struct_menu_data *p_menu_data);
+void assist_level_number_8(struct_menu_data *p_menu_data);
+void assist_level_number_9(struct_menu_data *p_menu_data);
+void startup_power_boost_title(struct_menu_data *p_menu_data);
+void startup_power_boost_enable(struct_menu_data *p_menu_data);
+void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data);
+void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data);
+void startup_power_boost_duration(struct_menu_data *p_menu_data);
+void startup_power_boost_fadeout_duration(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_1(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_2(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_3(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_4(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_5(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_6(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_7(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_8(struct_menu_data *p_menu_data);
+void startup_power_boost_factor_9(struct_menu_data *p_menu_data);
 
 // call each function on the array
 void (*p_items_array[])(struct_menu_data *p_menu_data) =
@@ -109,11 +137,39 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   battery_low_cut_off_voltage,
   battery_number_cells,
   battery_resistance,
+  battery_voltage,
   battery_soc_title,
   battery_soc_enable,
   battery_soc_increment_decrement,
   battery_soc_voltage_to_reset,
-  battery_soc_total_watt_hour
+  battery_soc_total_watt_hour,
+  battery_soc_power_used,
+  assist_level_title,
+  assist_level_number,
+  assist_level_number_1,
+  assist_level_number_2,
+  assist_level_number_3,
+  assist_level_number_4,
+  assist_level_number_5,
+  assist_level_number_6,
+  assist_level_number_7,
+  assist_level_number_8,
+  assist_level_number_9,
+  startup_power_boost_title,
+  startup_power_boost_enable,
+  startup_power_boost_startup_everytime,
+  startup_power_boost_limit_max_power,
+  startup_power_boost_duration,
+  startup_power_boost_fadeout_duration,
+  startup_power_boost_factor_1,
+  startup_power_boost_factor_2,
+  startup_power_boost_factor_3,
+  startup_power_boost_factor_4,
+  startup_power_boost_factor_5,
+  startup_power_boost_factor_6,
+  startup_power_boost_factor_7,
+  startup_power_boost_factor_8,
+  startup_power_boost_factor_9,
 };
 
 uint8_t items_array_is_title[] =
@@ -127,11 +183,39 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
+  0,
   1,
   0,
   0,
   0,
-  0
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
 };
 
 void lcd_configurations_screen_init(void)
@@ -496,6 +580,23 @@ void battery_resistance(struct_menu_data *p_menu_data)
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
+void battery_voltage(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui16_battery_voltage_soc_x10,
+    .ui8_size = 16,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 999,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Voltage(read only)", "Considering resistance", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
 void battery_soc_title(struct_menu_data *p_menu_data)
 {
   configurations_screen_item_title_set_strings("Battery SOC", p_menu_data);
@@ -506,8 +607,8 @@ void battery_soc_enable(struct_menu_data *p_menu_data)
   struct_var_number lcd_var_number =
   {
     .p_var_number = &p_configuration_variables->ui8_battery_soc_enable,
-    .ui8_size = 0,
-    .ui8_number_digits = 0,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
     .ui32_max_value = 1,
     .ui32_min_value = 0,
@@ -568,9 +669,460 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
     .ui32_increment_step = 10
   };
 
-  item_set_strings("Battery total", "watts/hour", p_menu_data);
+  item_set_strings("Battery total", "watts/hour (watts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
   p_configuration_variables->ui32_wh_x10_100_percent = ui32_value * 10;
+}
+
+void battery_soc_power_used(struct_menu_data *p_menu_data)
+{
+  // save current value to offset as the values will be saved on EEPROM when leaving configuration menu
+  p_configuration_variables->ui32_wh_x10_offset += p_motor_controller_data->ui32_wh_x10;
+  p_motor_controller_data->ui32_wh_sum_x5 = 0;
+  p_motor_controller_data->ui32_wh_sum_counter = 0;
+  p_motor_controller_data->ui32_wh_x10 = 0;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui32_wh_x10_offset,
+    .ui8_size = 32,
+    .ui8_number_digits = 5,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 99900,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 100
+  };
+
+  item_set_strings("Watts/hour used", "(watts)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Assist level", p_menu_data);
+}
+
+void assist_level_number(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_number_of_assist_levels,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 9,
+    .ui32_min_value = 1,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist levels", "number", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_1(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[0],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 1", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_2(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[1],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 2", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_3(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[2],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 3", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_4(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[3],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 4", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_5(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[4],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 5", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_6(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[5],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 6", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_7(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[6],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 7", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_8(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[7],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 8", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void assist_level_number_9(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_assist_level_factor[8],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 9", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Start. power boost", p_menu_data);
+}
+
+void startup_power_boost_enable(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_feature_enabled,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Feature", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
+}
+
+void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
+{
+  uint8_t ui8_temp = (p_configuration_variables->ui8_startup_motor_power_boost_state & 1);
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui8_temp,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Active on", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "startup\nalways");
+
+  if(ui8_temp) { p_configuration_variables->ui8_startup_motor_power_boost_state |= 1; }
+  else { p_configuration_variables->ui8_startup_motor_power_boost_state &= ~1; }
+}
+
+void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data)
+{
+  uint8_t ui8_temp = (p_configuration_variables->ui8_startup_motor_power_boost_state & 2) >> 1;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui8_temp,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Limit to max", "power", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "no\nyes");
+
+  if(ui8_temp) { p_configuration_variables->ui8_startup_motor_power_boost_state |= 2; }
+  else { p_configuration_variables->ui8_startup_motor_power_boost_state &= ~2; }
+}
+
+void startup_power_boost_duration(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_time,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Duration", "(seconds)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_fadeout_duration(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_fade_time,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Fadeout duration", "(seconds)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_1(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[0],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 1", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_2(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[1],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 2", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_3(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[2],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 3", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_4(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[3],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 4", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_5(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[4],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 5", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_6(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[5],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 6", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_7(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[6],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 7", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_8(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[7],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 8", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void startup_power_boost_factor_9(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_startup_motor_power_boost_factor[8],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Assist level 9", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)

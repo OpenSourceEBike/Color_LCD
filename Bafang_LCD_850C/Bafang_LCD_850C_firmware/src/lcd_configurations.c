@@ -22,7 +22,7 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
-#define MAX_ITEMS                 (42 - 1)
+#define MAX_ITEMS                 (68 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
@@ -52,12 +52,12 @@ static struct_configuration_variables *p_configuration_variables;
 
 static struct_lcd_configurations_vars lcd_configurations_vars =
 {
-  .ui8_configurations_screen_draw_static_info = 0,
-  .ui8_configurations_screen_draw_static_info_first_time = 0,
-  .ui8_item_number = 0,
+  .ui8_item_number = 1,
   .ui8_previous_item_number = 0xff,
   .ui8_item_visible_start_index = 0,
-  .ui8_item_visible_index = 1
+  .ui8_item_visible_index = 1,
+  .ui8_refresh_full_menu_1 = 0,
+  .ui8_refresh_full_menu_2 = 0,
 };
 
 static struct_menu_data menu_data =
@@ -67,7 +67,7 @@ static struct_menu_data menu_data =
   .ui8_visible_item_edit = 0,
   .menu_buttons_events = 0,
   .ui8_screen_set_values = 0,
-  .ui8_item_increment = 1
+  .ui8_item_increment = 1,
 };
 
 struct_lcd_vars *p_lcd_vars;
@@ -76,7 +76,7 @@ static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 
 void draw_configurations_screen_mask(void);
 void clear_configurations_screen_items(void);
-void draw_item_index_symbol(struct_menu_data *p_menu_data);
+void draw_item_cursor(struct_menu_data *p_menu_data);
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data);
 void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_menu_data *p_menu_data);
 void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *p_menu_data);
@@ -124,6 +124,32 @@ void startup_power_boost_factor_6(struct_menu_data *p_menu_data);
 void startup_power_boost_factor_7(struct_menu_data *p_menu_data);
 void startup_power_boost_factor_8(struct_menu_data *p_menu_data);
 void startup_power_boost_factor_9(struct_menu_data *p_menu_data);
+void motor_temperature_title(struct_menu_data *p_menu_data);
+void motor_temperature_min_limit(struct_menu_data *p_menu_data);
+void motor_temperature_max_limit(struct_menu_data *p_menu_data);
+void display_title(struct_menu_data *p_menu_data);
+void display_brightness_backlight_off(struct_menu_data *p_menu_data);
+void display_brightness_backlight_on(struct_menu_data *p_menu_data);
+void display_auto_power_off(struct_menu_data *p_menu_data);
+void display_reset_to_defaults(struct_menu_data *p_menu_data);
+void offroad_title(struct_menu_data *p_menu_data);
+void offroad_active_on_startup(struct_menu_data *p_menu_data);
+void offroad_speed_limit(struct_menu_data *p_menu_data);
+void offroad_limit_power(struct_menu_data *p_menu_data);
+void offroad_power_limit(struct_menu_data *p_menu_data);
+void various_title(struct_menu_data *p_menu_data);
+void various_motor_voltage(struct_menu_data *p_menu_data);
+void various_motor_assistance_startup_without_pedaling(struct_menu_data *p_menu_data);
+void technical_data_title(struct_menu_data *p_menu_data);
+void technical_data_adc_throttle(struct_menu_data *p_menu_data);
+void technical_data_throttle(struct_menu_data *p_menu_data);
+void technical_data_adc_torque_sensor(struct_menu_data *p_menu_data);
+void technical_data_torque_sensor(struct_menu_data *p_menu_data);
+void technical_data_pedal_cadence(struct_menu_data *p_menu_data);
+void technical_data_pedal_human_power(struct_menu_data *p_menu_data);
+void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data);
+void technical_data_motor_speed_erps(struct_menu_data *p_menu_data);
+void technical_data_foc_angle(struct_menu_data *p_menu_data);
 
 // call each function on the array
 void (*p_items_array[])(struct_menu_data *p_menu_data) =
@@ -170,11 +196,37 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   startup_power_boost_factor_7,
   startup_power_boost_factor_8,
   startup_power_boost_factor_9,
+  motor_temperature_title,
+  motor_temperature_min_limit,
+  motor_temperature_max_limit,
+  display_title,
+  display_brightness_backlight_off,
+  display_brightness_backlight_on,
+  display_auto_power_off,
+  display_reset_to_defaults,
+  offroad_title,
+  offroad_active_on_startup,
+  offroad_speed_limit,
+  offroad_limit_power,
+  offroad_power_limit,
+  various_title,
+  various_motor_voltage,
+  various_motor_assistance_startup_without_pedaling,
+  technical_data_title,
+  technical_data_adc_throttle,
+  technical_data_throttle,
+  technical_data_adc_torque_sensor,
+  technical_data_torque_sensor,
+  technical_data_pedal_cadence,
+  technical_data_pedal_human_power,
+  technical_data_pwm_duty_cycle,
+  technical_data_motor_speed_erps,
+  technical_data_foc_angle
 };
 
 uint8_t items_array_is_title[] =
 {
-  0, // hack: first is always a title but let's signal it is not
+  0, // exception: first must always be a title but let's signal it is not
   0,
   0,
   0,
@@ -216,6 +268,32 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
+  1,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
 };
 
 void lcd_configurations_screen_init(void)
@@ -231,7 +309,7 @@ void lcd_configurations_screen(void)
   uint8_t ui8_i;
 
   // leave config menu with a button_onoff_long_click
-  if (buttons_get_onoff_long_click_event ())
+  if(buttons_get_onoff_long_click_event ())
   {
     buttons_clear_onoff_long_click_event ();
 
@@ -242,7 +320,7 @@ void lcd_configurations_screen(void)
   }
 
   // enter/leave screen set values
-  if (buttons_get_onoff_click_event ())
+  if(buttons_get_onoff_click_event ())
   {
     buttons_clear_onoff_click_event ();
     buttons_clear_onoff_long_click_event ();
@@ -291,26 +369,31 @@ void lcd_configurations_screen(void)
   }
 
   // to draw static info
-  if(lcd_configurations_vars.ui8_configurations_screen_draw_static_info)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1 == 1 ||
+      lcd_configurations_vars.ui8_refresh_full_menu_2 == 1 )
   {
-    if (lcd_configurations_vars.ui8_configurations_screen_draw_static_info_first_time == 1)
-    {
-      UG_FillScreen(C_BLACK);
-      draw_configurations_screen_mask();
-      lcd_configurations_vars.ui8_configurations_screen_draw_static_info_first_time = 0;
-      menu_data.ui8_screen_set_values = 0;
-      menu_data.ui8_edit_state = 0;
+    UG_FillScreen(C_BLACK);
+    draw_configurations_screen_mask();
+    clear_configurations_screen_items();
+    menu_data.ui8_screen_set_values = 0;
+    menu_data.ui8_edit_state = 0;
 
+    // let's start at ui8_item_number higher than 0 at first time
+    lcd_configurations_vars.ui8_previous_item_number = 0xff;
+    if(lcd_configurations_vars.ui8_item_number == 0)
+    {
       lcd_configurations_vars.ui8_item_number = 0;
-      lcd_configurations_vars.ui8_previous_item_number = 0xff;
       lcd_configurations_vars.ui8_item_visible_start_index = 0;
       lcd_configurations_vars.ui8_item_visible_index = 0;
       menu_data.ui8_item_increment = 1;
       item_visible_manage(&menu_data);
     }
-    else
+
+    // for the ase we want to reset to defaults
+    if(lcd_configurations_vars.ui8_refresh_full_menu_2 == 1)
     {
-      clear_configurations_screen_items();
+      lcd_configurations_vars.ui8_refresh_full_menu_2 = 0;
+      lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
     }
   }
 
@@ -331,7 +414,7 @@ void lcd_configurations_screen(void)
     // call each function on the array
     (*p_items_array[lcd_configurations_vars.ui8_item_visible_start_index + ui8_i])(&menu_data);
 
-    draw_item_index_symbol(&menu_data);
+    draw_item_cursor(&menu_data);
   }
 
   // track state for item number change
@@ -340,8 +423,7 @@ void lcd_configurations_screen(void)
     lcd_configurations_vars.ui8_previous_item_number = lcd_configurations_vars.ui8_item_number;
   }
 
-  // clear this variable after 1 full cycle running
-  lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 0;
+  lcd_configurations_vars.ui8_refresh_full_menu_1 = 0;
 }
 
 void item_visible_manage(struct_menu_data *p_menu_data)
@@ -355,7 +437,6 @@ void item_visible_manage(struct_menu_data *p_menu_data)
       if(lcd_configurations_vars.ui8_item_number < MAX_ITEMS)
       {
         lcd_configurations_vars.ui8_item_number++;
-        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
       }
 
       // increment to next visible item
@@ -370,6 +451,7 @@ void item_visible_manage(struct_menu_data *p_menu_data)
         if(lcd_configurations_vars.ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
         {
           lcd_configurations_vars.ui8_item_visible_start_index++;
+          lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
         }
       }
     }
@@ -382,7 +464,6 @@ void item_visible_manage(struct_menu_data *p_menu_data)
       if(lcd_configurations_vars.ui8_item_number > 0)
       {
         lcd_configurations_vars.ui8_item_number--;
-        lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 1;
       }
 
       // decrement to next visible item
@@ -397,6 +478,7 @@ void item_visible_manage(struct_menu_data *p_menu_data)
         if(lcd_configurations_vars.ui8_item_visible_start_index > 0)
         {
           lcd_configurations_vars.ui8_item_visible_start_index--;
+          lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
         }
       }
     }
@@ -407,7 +489,7 @@ void item_visible_manage(struct_menu_data *p_menu_data)
       lcd_configurations_vars.ui8_item_number == 0)
   {
     lcd_configurations_vars.ui8_item_number = 1;
-    lcd_configurations_vars.ui8_configurations_screen_draw_static_info = 0;
+    lcd_configurations_vars.ui8_refresh_full_menu_1 = 0;
   }
 }
 
@@ -616,7 +698,7 @@ void battery_soc_enable(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Feature", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
 }
 
 void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
@@ -891,7 +973,7 @@ void startup_power_boost_enable(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Feature", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "enable\ndisable");
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
 }
 
 void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
@@ -1125,13 +1207,453 @@ void startup_power_boost_factor_9(struct_menu_data *p_menu_data)
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
+void motor_temperature_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Motor temperature", p_menu_data);
+}
+
+void motor_temperature_enable(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_temperature_limit_feature_enabled,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Feature", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
+}
+
+void motor_temperature_min_limit(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_motor_temperature_min_value_to_limit,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 125,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Min limit", "(celsius degrees)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void motor_temperature_max_limit(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_motor_temperature_max_value_to_limit,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 125,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Max limit", "(celsius degrees)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void display_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Display", p_menu_data);
+}
+
+void display_brightness_backlight_off(struct_menu_data *p_menu_data)
+{
+  uint8_t ui8_value = p_configuration_variables->ui8_lcd_backlight_off_brightness * 5;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui8_value,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 5
+  };
+
+  item_set_strings("Brightness", "backlight off state (%)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+
+  p_configuration_variables->ui8_lcd_backlight_off_brightness = ui8_value / 5;
+}
+
+void display_brightness_backlight_on(struct_menu_data *p_menu_data)
+{
+  uint8_t ui8_value = p_configuration_variables->ui8_lcd_backlight_on_brightness * 5;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui8_value,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 5
+  };
+
+  item_set_strings("Brightness", "backlight on state (%)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+
+  p_configuration_variables->ui8_lcd_backlight_on_brightness = ui8_value / 5;
+}
+
+void display_auto_power_off(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_lcd_power_off_time_minutes,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Auto power off", "time (minutes)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void display_reset_to_defaults(struct_menu_data *p_menu_data)
+{
+  static uint8_t ui8_reset_to_defaults_counter = 0;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui8_reset_to_defaults_counter,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Reset to defaults", "inc. to 10 to reset", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+
+  if (ui8_reset_to_defaults_counter > 9)
+  {
+    ui8_reset_to_defaults_counter = 0;
+    eeprom_erase_key_value();
+    eeprom_init(); // after erasing the key, eeprom_init() will read the default values
+
+    // this will force refresh of all LCD configuration fields
+    lcd_configurations_vars.ui8_refresh_full_menu_2 = 1;
+  }
+}
+
+void offroad_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Offroad mode", p_menu_data);
+}
+
+void offroad_enable(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_offroad_feature_enabled,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Feature", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
+}
+
+void offroad_active_on_startup(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_offroad_enabled_on_startup,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Active on startup", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "no\nyes");
+}
+
+void offroad_speed_limit(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_offroad_speed_limit,
+    .ui8_size = 8,
+    .ui8_number_digits = 2,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 99,
+    .ui32_min_value = 1,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Speed limit", "(km/h)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void offroad_limit_power(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_offroad_power_limit_enabled,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Limit power", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "no\nyes");
+}
+
+void offroad_power_limit(struct_menu_data *p_menu_data)
+{
+  uint16_t ui16_offroad_power_limit = ((uint16_t) p_configuration_variables->ui8_offroad_power_limit_div25) * 25;
+
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &ui16_offroad_power_limit,
+    .ui8_size = 16,
+    .ui8_number_digits = 4,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 2000,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 25
+  };
+
+  item_set_strings("Power limit", "(watts)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+
+  p_configuration_variables->ui8_offroad_power_limit_div25 = ((uint8_t) ui16_offroad_power_limit / 25);
+}
+
+void various_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Various", p_menu_data);
+}
+
+void various_motor_voltage(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_motor_type,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 2,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Motor voltage", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "48V\n36V\nexper");
+}
+
+void various_motor_assistance_startup_without_pedaling(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_configuration_variables->ui8_motor_assistance_startup_without_pedal_rotation,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Motor assist", "start w/o pedaling", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
+}
+
+void technical_data_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Technical data", p_menu_data);
+}
+
+void technical_data_adc_throttle(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_adc_throttle,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("ADC throttle", "(read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_throttle(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_throttle,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Throttle", "(read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_adc_torque_sensor(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_adc_pedal_torque_sensor,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("ADC torque sensor", "(read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_torque_sensor(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_pedal_torque_sensor,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Torque sensor", "(read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_pedal_cadence(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_pedal_cadence,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Pedal cadence", "(RPM) (read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_pedal_human_power,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Pedal human", "power (read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_duty_cycle,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("PWM duty-cycle", "0 - 255 (read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_motor_speed_erps(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui16_motor_speed_erps,
+    .ui8_size = 16,
+    .ui8_number_digits = 4,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 9999,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Motor speed", "(ERPs) (read only)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void technical_data_foc_angle(struct_menu_data *p_menu_data)
+{
+  struct_var_number lcd_var_number =
+  {
+    .p_var_number = &p_motor_controller_data->ui8_foc_angle,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 255,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 0 // 0 so user can't change the value
+  };
+
+  item_set_strings("Motor FOC angle", "(multiply by 1.4)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
 void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
 
   // update only when item number changes
-  if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     ui32_x_position = 0;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
@@ -1156,7 +1678,7 @@ void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_men
   uint32_t ui32_y_position;
 
   // update only when item number changes
-  if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
@@ -1212,14 +1734,17 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
       if(p_lcd_var_number->ui8_size == 8)
       {
         if((*ui8_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) += p_lcd_var_number->ui32_increment_step; }
+        else { (*ui8_p_var) = (uint8_t) p_lcd_var_number->ui32_max_value; }
       }
       else if(p_lcd_var_number->ui8_size == 16)
       {
         if((*ui16_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui16_p_var) += p_lcd_var_number->ui32_increment_step; }
+        else { (*ui16_p_var) = (uint16_t) p_lcd_var_number->ui32_max_value; }
       }
       else if(p_lcd_var_number->ui8_size == 32)
       {
         if((*ui32_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui32_p_var) += p_lcd_var_number->ui32_increment_step; }
+        else { (*ui32_p_var) = p_lcd_var_number->ui32_max_value; }
       }
 
       ui8_draw_var_value = 1;
@@ -1230,14 +1755,17 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
       if(p_lcd_var_number->ui8_size == 8)
       {
         if((*ui8_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) -= p_lcd_var_number->ui32_increment_step; }
+        else { (*ui8_p_var) = (uint8_t) p_lcd_var_number->ui32_min_value; }
       }
       else if(p_lcd_var_number->ui8_size == 16)
       {
         if((*ui16_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui16_p_var) -= p_lcd_var_number->ui32_increment_step; }
+        else { (*ui16_p_var) = (uint16_t) p_lcd_var_number->ui32_min_value; }
       }
       else if(p_lcd_var_number->ui8_size == 32)
       {
         if((*ui32_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui32_p_var) -= p_lcd_var_number->ui32_increment_step; }
+        else { (*ui32_p_var) = p_lcd_var_number->ui32_min_value; }
       }
 
       ui8_draw_var_value = 1;
@@ -1288,6 +1816,11 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
   }
 
   if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
+  {
+    ui8_draw_var_value = 1;
+  }
+
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     ui8_draw_var_value = 1;
   }
@@ -1481,61 +2014,53 @@ void item_var_set_strings(struct_var_number *p_lcd_var_number, struct_menu_data 
   }
 }
 
-void draw_item_index_symbol(struct_menu_data *p_menu_data)
+void draw_item_cursor(struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position ;
   uint32_t ui32_y_position;
   uint8_t ui8_counter;
   uint32_t ui32_line_lenght;
-  uint16_t ui16_color;
-  uint8_t ui8_visible_item;
+  uint8_t ui8_cursor_index;
+  static uint8_t ui8_cursor_index_previous = 1;
 
-  ui8_visible_item = lcd_configurations_vars.ui8_item_number - lcd_configurations_vars.ui8_item_visible_start_index;
+  ui8_cursor_index = lcd_configurations_vars.ui8_item_number - lcd_configurations_vars.ui8_item_visible_start_index;
+
+  // cursor changed, so delete from the current location before draw on the new one
+  if(ui8_cursor_index != ui8_cursor_index_previous)
+  {
+    ui32_x_position = DISPLAY_WIDTH - 1 - 10;
+    ui32_y_position = ui16_conf_screen_first_item_y_offset +
+        12 + // padding from top line
+        (ui8_cursor_index_previous * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, DISPLAY_WIDTH - 1, ui32_y_position + 20, C_BLACK);
+
+    ui8_cursor_index_previous = ui8_cursor_index;
+  }
 
   // clear at every 1000ms
   if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 1) &&
       (p_menu_data->ui8_edit_state) &&
       (!p_menu_data->ui8_screen_set_values))
   {
-    ui16_color = C_BLACK;
-
-    ui32_x_position = DISPLAY_WIDTH - 1;
+    ui32_x_position = DISPLAY_WIDTH - 1 - 10;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (ui8_visible_item * 50);
-    ui32_line_lenght = 0;
-
-    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-    {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-      ui32_x_position--;
-      ui32_line_lenght++;
-      ui32_y_position++;
-    }
-
-    for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
-    {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
-      ui32_x_position++;
-      ui32_line_lenght--;
-      ui32_y_position++;
-    }
+        (ui8_cursor_index_previous * 50);
+    UG_FillFrame(ui32_x_position, ui32_y_position, DISPLAY_WIDTH - 1, ui32_y_position + 20, C_BLACK);
   }
   // draw value at every 1000ms or when it changes
   else if((p_lcd_vars->ui8_lcd_menu_counter_1000ms_trigger == 2) &&
       (menu_data.ui8_edit_state))
   {
-    ui16_color = C_ORANGE_RED;
-
     ui32_x_position = DISPLAY_WIDTH - 1;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         12 + // padding from top line
-        (ui8_visible_item * 50);
+        (ui8_cursor_index * 50);
     ui32_line_lenght = 0;
 
     for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
     {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_ORANGE_RED);
       ui32_x_position--;
       ui32_line_lenght++;
       ui32_y_position++;
@@ -1543,7 +2068,7 @@ void draw_item_index_symbol(struct_menu_data *p_menu_data)
 
     for(ui8_counter = 0; ui8_counter < 10; ui8_counter++)
     {
-      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, ui16_color);
+      UG_DrawLine(ui32_x_position, ui32_y_position, ui32_x_position + ui32_line_lenght, ui32_y_position, C_ORANGE_RED);
       ui32_x_position++;
       ui32_line_lenght--;
       ui32_y_position++;

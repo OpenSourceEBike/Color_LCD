@@ -131,8 +131,7 @@ void lcd_clock(void)
     buttons_clear_up_down_click_event ();
 
     // reset needed variables of configurations screen
-    p_lcd_configurations_vars->ui8_configurations_screen_draw_static_info = 1;
-    p_lcd_configurations_vars->ui8_configurations_screen_draw_static_info_first_time = 1;
+    p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
 
     lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
   }

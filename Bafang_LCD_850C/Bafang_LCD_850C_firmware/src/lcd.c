@@ -157,10 +157,6 @@ void lcd_draw_main_menu_mask(void)
 
 void lcd_main_screen (void)
 {
-motor_controller_data.ui16_wheel_speed_x10 = 348;
-ui16_battery_power_filtered = 950;
-configuration_variables.ui8_number_of_assist_levels = 5;
-
   // run once only, to draw static info
   if (lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -175,7 +171,7 @@ configuration_variables.ui8_number_of_assist_levels = 5;
 //  walk_assist_state ();
 //  offroad_mode ();
   power();
-  battery_soc ();
+  battery_soc();
 //  lights_state ();
 //  brake ();
 
@@ -712,9 +708,15 @@ void battery_soc (void)
   uint32_t ui32_battery_bar_number_offset;
   uint32_t ui32_battery_cells_number_x10;
   uint16_t ui16_color;
-  uint16_t ui16_color_previous;
+  static uint16_t ui16_color_previous;
   uint32_t ui32_temp;
   uint32_t ui32_i;
+  static uint16_t ui16_battery_voltage_filtered_x10_previous;
+  uint32_t ui32_value_temp;
+  uint32_t ui32_value_integer;
+  uint32_t ui32_value_decimal;
+  uint32_t ui32_value_integer_number_digits;
+  uint8_t ui8_counter;
 
   if (lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -801,9 +803,6 @@ void battery_soc (void)
     else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
 
-ui32_battery_bar_number_previous = 2;
-ui32_battery_bar_number = 3;
-
     // find the color to draw the bars
     if (ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }
     else if (ui32_battery_bar_number == 3) { ui16_color = C_YELLOW; }
@@ -819,7 +818,7 @@ ui32_battery_bar_number = 3;
     // number of vars are equal as before, nothing new to draw so return
     if (ui32_battery_bar_number == ui32_battery_bar_number_previous)
     {
-      return;
+      // do nothing
     }
     // draw new bars
     else if (ui32_battery_bar_number > ui32_battery_bar_number_previous)
@@ -872,6 +871,61 @@ ui32_battery_bar_number = 3;
 
     ui32_battery_bar_number_previous = ui32_battery_bar_number;
     ui16_color_previous = ui16_color;
+
+    // draw volts
+    if(ui16_battery_voltage_filtered_x10 != ui16_battery_voltage_filtered_x10_previous)
+    {
+      ui16_battery_voltage_filtered_x10_previous = ui16_battery_voltage_filtered_x10;
+
+      // first clear the area
+      // 3 digits + 1 point
+      ui32_x1 = 20;
+      ui32_y1 = 35;
+      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 10);
+      ui32_y2 = ui32_y1 + 18;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+
+      ui32_value_integer = ((uint32_t) ui16_battery_voltage_filtered_x10) / 10;
+      ui32_value_decimal = ((uint32_t) ui16_battery_voltage_filtered_x10) % 10;
+
+      // find how many digits is the ui32_value_integer
+      ui32_value_temp = ui32_value_integer;
+      ui32_value_integer_number_digits = 0;
+      for(ui8_counter = 0; ui8_counter < 3; ui8_counter++)
+      {
+        ui32_value_temp /= 10;
+        ui32_value_integer_number_digits++;
+
+        // finish for loop
+        if (ui32_value_temp == 0)
+        {
+          ui32_value_integer_number_digits++;
+          break;
+        }
+      }
+
+      // draw variable value
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_GRAY);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = 20;
+      ui32_y1 = 37;
+      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_integer));
+
+      // draw small point
+      ui32_x1 += 4 + ((ui32_value_integer_number_digits - 1) * 10) - ((ui32_value_integer_number_digits - 1) * 1);
+      ui32_y1 = 48;
+      lcd_pixel_set(ui32_x1, ui32_y1, C_GRAY);
+
+      // draw decimal digit
+      ui32_x1 += 3;
+      ui32_y1 = 37;
+      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_decimal));
+
+      ui32_x1 += (2 + 10);
+      ui32_y1 = 36;
+      UG_PutString(ui32_x1, ui32_y1, "v");
+    }
   }
 }
 

@@ -63,9 +63,9 @@ static uint8_t ui8_lcd_menu_flash_state_temperature;
 static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
-void lcd_main_screen (void);
-void assist_level_state (void);
-void power_off_management (void);
+void lcd_main_screen(void);
+void assist_level_state(void);
+void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void low_pass_filter_battery_voltage_current_power(void);
 void update_menu_flashing_state(void);
@@ -73,7 +73,7 @@ void calc_battery_soc_watts_hour(void);
 void calc_odometer(void);
 static void automatic_power_off_management(void);
 void calc_wh(void);
-void brake (void);
+void brake(void);
 void wheel_speed(void);
 void power(void);
 void power_off_management(void);
@@ -158,7 +158,7 @@ void lcd_draw_main_menu_mask(void)
 void lcd_main_screen (void)
 {
   // run once only, to draw static info
-  if (lcd_vars.ui32_main_screen_draw_static_info)
+  if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_FillScreen(C_BLACK);
     lcd_draw_main_menu_mask();
@@ -173,13 +173,13 @@ void lcd_main_screen (void)
   power();
   battery_soc();
 //  lights_state ();
-//  brake ();
+  brake();
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;
 }
 
-void assist_level_state (void)
+void assist_level_state(void)
 {
   static uint8_t ui8_assist_level_last = 0xff;
 
@@ -230,26 +230,26 @@ void assist_level_state (void)
   }
 }
 
-struct_configuration_variables* get_configuration_variables (void)
+struct_configuration_variables* get_configuration_variables(void)
 {
   return &configuration_variables;
 }
 
-struct_motor_controller_data* get_motor_controller_data (void)
+struct_motor_controller_data* get_motor_controller_data(void)
 {
   return &motor_controller_data;
 }
 
-void power_off_management (void)
+void power_off_management(void)
 {
-  if (buttons_get_onoff_long_click_event() &&
+  if(buttons_get_onoff_long_click_event() &&
       lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
   {
-    lcd_power_off (1);
+    lcd_power_off(1);
   }
 }
 
-void lcd_power_off (uint8_t updateDistanceOdo)
+void lcd_power_off(uint8_t updateDistanceOdo)
 {
 //  if (updateDistanceOdo)
 //  {
@@ -271,7 +271,7 @@ void lcd_power_off (uint8_t updateDistanceOdo)
   while (1) ;
 }
 
-void low_pass_filter_battery_voltage_current_power (void)
+void low_pass_filter_battery_voltage_current_power(void)
 {
   static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
   static uint16_t ui16_battery_current_accumulated_x5 = 0;
@@ -310,7 +310,7 @@ void low_pass_filter_battery_voltage_current_power (void)
   }
 }
 
-void low_pass_filter_pedal_torque_and_power (void)
+void low_pass_filter_pedal_torque_and_power(void)
 {
   static uint32_t ui32_pedal_torque_accumulated = 0;
   static uint32_t ui32_pedal_power_accumulated = 0;
@@ -361,7 +361,7 @@ void low_pass_filter_pedal_torque_and_power (void)
   }
 }
 
-static void low_pass_filter_pedal_cadence (void)
+static void low_pass_filter_pedal_cadence(void)
 {
   static uint16_t ui16_pedal_cadence_accumulated = 0;
 
@@ -380,7 +380,7 @@ static void low_pass_filter_pedal_cadence (void)
   }
 }
 
-void calc_wh (void)
+void calc_wh(void)
 {
   static uint8_t ui8_1s_timmer_counter = 0;
   uint32_t ui32_temp = 0;
@@ -407,7 +407,7 @@ void calc_wh (void)
   }
 }
 
-void calc_odometer (void)
+void calc_odometer(void)
 {
   uint32_t uint32_temp;
   static uint8_t ui8_1s_timmer_counter;
@@ -428,7 +428,7 @@ void calc_odometer (void)
   }
 }
 
-static void automatic_power_off_management (void)
+static void automatic_power_off_management(void)
 {
   if (configuration_variables.ui8_lcd_power_off_time_minutes != 0)
   {
@@ -464,7 +464,7 @@ static void automatic_power_off_management (void)
   }
 }
 
-void update_menu_flashing_state (void)
+void update_menu_flashing_state(void)
 {
   static uint8_t ui8_lcd_menu_counter_100ms = 0;
   static uint8_t ui8_lcd_menu_counter_1000ms = 0;
@@ -562,14 +562,44 @@ void update_menu_flashing_state (void)
   // ***************************************************************************************************
 }
 
-void brake (void)
+void brake(void)
 {
-//  if (motor_controller_data.ui8_braking) { lcd_enable_brake_symbol (1); }
-//  else { lcd_enable_brake_symbol (0); }
+  static uint8_t ui8_braking_previous;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
+
+  // if previous state was disable, draw
+  if((motor_controller_data.ui8_braking != ui8_braking_previous) ||
+      (lcd_vars.ui32_main_screen_draw_static_info))
+  {
+    ui8_braking_previous = motor_controller_data.ui8_braking;
+
+    if(motor_controller_data.ui8_braking)
+    {
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_WHITE);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = 150;
+      ui32_y1 = 14;
+      UG_PutString(ui32_x1, ui32_y1, "brake");
+    }
+    else
+    {
+      // clear area
+      // 5 leters
+      ui32_x1 = 150;
+      ui32_y1 = 14;
+      ui32_x2 = ui32_x1 + ((5 * 10) + (5 * 1) + 1);
+      ui32_y2 = ui32_y1 + 18;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    }
+  }
 }
 
 
-void lcd_set_backlight_intensity (uint8_t ui8_intensity)
+void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 {
 //  if (ui8_intensity == 0)
 //  {
@@ -582,7 +612,7 @@ void lcd_set_backlight_intensity (uint8_t ui8_intensity)
 //  }
 }
 
-void lights_state (void)
+void lights_state(void)
 {
   if (buttons_get_up_long_click_event ())
   {
@@ -608,7 +638,7 @@ void lights_state (void)
 //  lcd_enable_lights_symbol (lcd_lights_symbol);
 }
 
-void calc_battery_voltage_soc (void)
+void calc_battery_voltage_soc(void)
 {
   uint16_t ui16_fluctuate_battery_voltage_x10;
 
@@ -711,12 +741,13 @@ void battery_soc (void)
   static uint16_t ui16_color_previous;
   uint32_t ui32_temp;
   uint32_t ui32_i;
-  static uint16_t ui16_battery_voltage_filtered_x10_previous;
+  static uint16_t ui16_battery_voltage_filtered_x10_previous = 0xffff;
   uint32_t ui32_value_temp;
   uint32_t ui32_value_integer;
   uint32_t ui32_value_decimal;
   uint32_t ui32_value_integer_number_digits;
   uint8_t ui8_counter;
+  static uint16_t ui16_battery_soc_watts_hour_previous = 0xffff;
 
   if (lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -784,49 +815,50 @@ void battery_soc (void)
   }
 
   // update battery level value only at every 100ms / 10 times per second and this helps to visual filter the fast changing values
-  if (ui8_timmer_counter++ >= 10)
+  if((ui8_timmer_counter++ >= 10) ||
+      (lcd_vars.ui32_main_screen_draw_static_info))
   {
     ui8_timmer_counter = 0;
 
     // to keep same scale as voltage of x10
     ui32_battery_cells_number_x10 = (uint32_t) (configuration_variables.ui8_battery_cells_number * 10);
 
-    if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
-    else if (motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
+    if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
+    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
 
     // find the color to draw the bars
-    if (ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }
-    else if (ui32_battery_bar_number == 3) { ui16_color = C_YELLOW; }
-    else if (ui32_battery_bar_number == 2) { ui16_color = C_ORANGE; }
-    else if (ui32_battery_bar_number == 1) { ui16_color = C_RED; }
+    if(ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }
+    else if(ui32_battery_bar_number == 3) { ui16_color = C_YELLOW; }
+    else if(ui32_battery_bar_number == 2) { ui16_color = C_ORANGE; }
+    else if(ui32_battery_bar_number == 1) { ui16_color = C_RED; }
 
     // force draw of the bars if needed
-    if (lcd_vars.ui32_main_screen_draw_static_info)
+    if(lcd_vars.ui32_main_screen_draw_static_info)
     {
       ui32_battery_bar_number_previous = 0;
     }
 
     // number of vars are equal as before, nothing new to draw so return
-    if (ui32_battery_bar_number == ui32_battery_bar_number_previous)
+    if(ui32_battery_bar_number == ui32_battery_bar_number_previous)
     {
       // do nothing
     }
     // draw new bars
-    else if (ui32_battery_bar_number > ui32_battery_bar_number_previous)
+    else if(ui32_battery_bar_number > ui32_battery_bar_number_previous)
     {
       // we need to redraw the total number of bars
-      if (ui16_color != ui16_color_previous)
+      if(ui16_color != ui16_color_previous)
       {
-        for (ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
+        for(ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
         {
           battery_soc_bar_set(ui32_i, ui16_color);
         }
@@ -834,27 +866,27 @@ void battery_soc (void)
       else
       {
         ui32_temp = (ui32_battery_bar_number - ui32_battery_bar_number_previous) + 1;
-        for (ui32_i = 1; ui32_i < ui32_temp; ui32_i++)
+        for(ui32_i = 1; ui32_i < ui32_temp; ui32_i++)
         {
           battery_soc_bar_set(ui32_battery_bar_number_previous + ui32_i, ui16_color);
         }
       }
     }
     // delete bars
-    else if (ui32_battery_bar_number < ui32_battery_bar_number_previous)
+    else if(ui32_battery_bar_number < ui32_battery_bar_number_previous)
     {
       // we need to redraw the total number of bars
-      if (ui16_color != ui16_color_previous)
+      if(ui16_color != ui16_color_previous)
       {
         // first deleted the needed number of vars
         ui32_temp = ui32_battery_bar_number_previous - ui32_battery_bar_number;
-        for (ui32_i = 0; ui32_i <= (ui32_temp - 1); ui32_i++)
+        for(ui32_i = 0; ui32_i <= (ui32_temp - 1); ui32_i++)
         {
           battery_soc_bar_clear(ui32_battery_bar_number_previous - ui32_i);
         }
 
         // now draw the new ones with the new color
-        for (ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
+        for(ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
         {
           battery_soc_bar_set(ui32_i, ui16_color);
         }
@@ -862,7 +894,7 @@ void battery_soc (void)
       else
       {
         ui32_temp = ui32_battery_bar_number_previous - ui32_battery_bar_number;
-        for (ui32_i = 0; ui32_i <= (ui32_temp - 1); ui32_i++)
+        for(ui32_i = 0; ui32_i <= (ui32_temp - 1); ui32_i++)
         {
           battery_soc_bar_clear(ui32_battery_bar_number_previous - ui32_i);
         }
@@ -873,13 +905,15 @@ void battery_soc (void)
     ui16_color_previous = ui16_color;
 
     // draw volts
-    if(ui16_battery_voltage_filtered_x10 != ui16_battery_voltage_filtered_x10_previous)
+    //
+    if((ui16_battery_voltage_filtered_x10 != ui16_battery_voltage_filtered_x10_previous) ||
+        (lcd_vars.ui32_main_screen_draw_static_info))
     {
       ui16_battery_voltage_filtered_x10_previous = ui16_battery_voltage_filtered_x10;
 
       // first clear the area
       // 3 digits + 1 point
-      ui32_x1 = 20;
+      ui32_x1 = 35;
       ui32_y1 = 35;
       ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 10);
       ui32_y2 = ui32_y1 + 18;
@@ -908,7 +942,7 @@ void battery_soc (void)
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_GRAY);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 20;
+      ui32_x1 = 35;
       ui32_y1 = 37;
       UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_integer));
 
@@ -926,9 +960,36 @@ void battery_soc (void)
       ui32_y1 = 36;
       UG_PutString(ui32_x1, ui32_y1, "v");
     }
-  }
-}
 
+    if((ui16_battery_soc_watts_hour != ui16_battery_soc_watts_hour_previous) ||
+        (lcd_vars.ui32_main_screen_draw_static_info))
+    {
+      ui16_battery_soc_watts_hour_previous = ui16_battery_soc_watts_hour;
+
+      // draw SOC in percentage
+      //
+
+      // first clear the area
+      // 3 digits + 1 point
+      ui32_x1 = 90;
+      ui32_y1 = 14;
+      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 1);
+      ui32_y2 = ui32_y1 + 18;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_GRAY);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = 90;
+      ui32_y1 = 14;
+      UG_PutString(ui32_x1, ui32_y1, itoa(ui16_battery_soc_watts_hour));
+
+      ui32_x1 += ((3 * 10) + (3 * 1) + 2);
+      UG_PutString(ui32_x1, ui32_y1, "%");
+    }
+  }
+
+}
 void temperature (void)
 {
   // if motor current is being limited due to temperature, force showing temperature!!

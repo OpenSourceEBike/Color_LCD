@@ -102,6 +102,7 @@ typedef struct _lcd_vars
   lcd_screen_states_t lcd_screen_state;
   uint8_t ui8_lcd_menu_counter_1000ms_state;
   uint8_t ui8_lcd_menu_counter_1000ms_trigger;
+  uint8_t ui8_lcd_menu_max_power;
 } struct_lcd_vars;
 
 void lcd_init(void);

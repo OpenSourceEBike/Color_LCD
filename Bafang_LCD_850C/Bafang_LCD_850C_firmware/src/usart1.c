@@ -13,6 +13,7 @@
 #include "stm32f10x_usart.h"
 #include "lcd.h"
 #include "utils.h"
+#include "usart1.h"
 
 volatile uint8_t ui8_received_package_flag = 0;
 volatile uint8_t ui8_rx_buffer[26];
@@ -351,7 +352,7 @@ void usart1_data_clock (void)
   }
 }
 
-uint8_t usart1_received_first_package (void)
+uint8_t usart1_received_first_package(void)
 {
   return (ui8_usart1_received_first_package == 10) ? 1: 0;
 }

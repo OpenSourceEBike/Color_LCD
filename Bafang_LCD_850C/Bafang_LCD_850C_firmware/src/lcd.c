@@ -19,6 +19,7 @@
 #include "lcd.h"
 #include "buttons.h"
 #include "eeprom.h"
+#include "usart1.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
@@ -65,6 +66,7 @@ static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
 void lcd_main_screen(void);
+uint8_t first_time_management (void);
 void assist_level_state(void);
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
@@ -103,6 +105,9 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
+  if (first_time_management())
+    return;
+
   update_menu_flashing_state();
 
   calc_battery_soc_watts_hour();
@@ -184,6 +189,39 @@ void lcd_main_screen (void)
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;
+}
+
+uint8_t first_time_management (void)
+{
+  static uint8_t ui8_motor_controller_init = 1;
+  uint8_t ui8_status = 0;
+
+  // don't update LCD up to we get first communication package from the motor controller
+  if (ui8_motor_controller_init &&
+      (usart1_received_first_package() == 0))
+  {
+    ui8_status = 1;
+  }
+  // this will be executed only 1 time at startup
+  else if (ui8_motor_controller_init)
+  {
+    ui8_motor_controller_init = 0;
+
+    // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
+    if (((uint32_t) motor_controller_data.ui16_adc_battery_voltage *
+        ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000) > ((uint32_t) configuration_variables.ui16_battery_voltage_reset_wh_counter_x10 * 1000))
+    {
+      configuration_variables.ui32_wh_x10_offset = 0;
+    }
+
+    if (configuration_variables.ui8_offroad_feature_enabled &&
+      configuration_variables.ui8_offroad_enabled_on_startup)
+    {
+      motor_controller_data.ui8_offroad_mode = 1;
+    }
+  }
+
+  return ui8_status;
 }
 
 void assist_level_state(void)
@@ -954,7 +992,7 @@ void battery_soc (void)
 
       // draw variable value
       UG_SetBackcolor(C_BLACK);
-      UG_SetForecolor(C_GRAY);
+      UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
       ui32_x1 = 35;
       ui32_y1 = 37;
@@ -992,7 +1030,7 @@ void battery_soc (void)
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
       UG_SetBackcolor(C_BLACK);
-      UG_SetForecolor(C_GRAY);
+      UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
       ui32_x1 = 90;
       ui32_y1 = 14;
@@ -1030,7 +1068,7 @@ void temperature(void)
 
       // draw
       UG_SetBackcolor(C_BLACK);
-      UG_SetForecolor(C_GRAY);
+      UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
       ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
       ui32_y1 = 14;
@@ -1262,7 +1300,7 @@ void wheel_speed(void)
   }
 }
 
-void calc_battery_soc_watts_hour (void)
+void calc_battery_soc_watts_hour(void)
 {
   uint32_t ui32_temp;
 
@@ -1279,7 +1317,7 @@ void calc_battery_soc_watts_hour (void)
   }
 
   // 100% - current SOC or just current SOC
-  if (configuration_variables.ui8_battery_soc_enable & 2)
+  if (configuration_variables.ui8_battery_soc_increment_decrement)
   {
     if (ui32_temp > 100)
       ui32_temp = 100;

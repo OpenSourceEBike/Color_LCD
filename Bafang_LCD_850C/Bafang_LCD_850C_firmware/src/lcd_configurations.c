@@ -763,7 +763,6 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
 {
   // save current value to offset as the values will be saved on EEPROM when leaving configuration menu
   __disable_irq();
-  p_configuration_variables->ui32_wh_x10_offset += p_motor_controller_data->ui32_wh_x10;
   p_motor_controller_data->ui32_wh_sum_x5 = 0;
   p_motor_controller_data->ui32_wh_sum_counter = 0;
   p_motor_controller_data->ui32_wh_x10 = 0;

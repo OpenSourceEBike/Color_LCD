@@ -16,7 +16,7 @@
 #define USART1_PRIORITY       6
 
 void usart1_init(void);
-void usart1_data_clock (void);
-uint8_t usart1_received_first_package (void);
+void usart1_data_clock(void);
+uint8_t usart1_received_first_package(void);
 
 #endif

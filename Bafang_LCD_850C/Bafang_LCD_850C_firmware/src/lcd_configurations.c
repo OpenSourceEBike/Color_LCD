@@ -22,7 +22,7 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 
-#define MAX_ITEMS                 (68 - 1)
+#define MAX_ITEMS                 (69 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
@@ -125,6 +125,7 @@ void startup_power_boost_factor_7(struct_menu_data *p_menu_data);
 void startup_power_boost_factor_8(struct_menu_data *p_menu_data);
 void startup_power_boost_factor_9(struct_menu_data *p_menu_data);
 void motor_temperature_title(struct_menu_data *p_menu_data);
+void motor_temperature_enable(struct_menu_data *p_menu_data);
 void motor_temperature_min_limit(struct_menu_data *p_menu_data);
 void motor_temperature_max_limit(struct_menu_data *p_menu_data);
 void display_title(struct_menu_data *p_menu_data);
@@ -197,6 +198,7 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   startup_power_boost_factor_8,
   startup_power_boost_factor_9,
   motor_temperature_title,
+  motor_temperature_enable,
   motor_temperature_min_limit,
   motor_temperature_max_limit,
   display_title,
@@ -269,6 +271,7 @@ uint8_t items_array_is_title[] =
   0,
   0,
   1,
+  0,
   0,
   0,
   1,

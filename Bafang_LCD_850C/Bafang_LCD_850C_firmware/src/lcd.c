@@ -301,7 +301,6 @@ void low_pass_filter_battery_voltage_current_power(void)
   __disable_irq();
   ui16_battery_power_filtered_x50 = ui16_battery_current_filtered_x5 * ui16_battery_voltage_filtered_x10;
   ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
-  __enable_irq();
 
   // loose resolution under 200W
   if (ui16_battery_power_filtered < 200)
@@ -321,6 +320,7 @@ void low_pass_filter_battery_voltage_current_power(void)
     ui16_battery_power_filtered /= 25;
     ui16_battery_power_filtered *= 25;
   }
+  __enable_irq();
 }
 
 void low_pass_filter_pedal_torque_and_power(void)
@@ -1007,66 +1007,39 @@ void battery_soc (void)
 void temperature(void)
 {
   static uint8_t ui8_motor_temperature_previous;
-  static uint8_t ui8_motor_temperature_state = 0;
   uint32_t ui32_x1;
   uint32_t ui32_y1;
   uint32_t ui32_x2;
   uint32_t ui32_y2;
   uint8_t ui8_ascii_degree = 176;
 
-  // if motor current is being limited due to temperature, force showing temperature!!
-  if (motor_controller_data.ui8_temperature_current_limiting_value != 255)
+  if (configuration_variables.ui8_temperature_limit_feature_enabled)
   {
     if((motor_controller_data.ui8_motor_temperature != ui8_motor_temperature_previous) ||
-        (ui8_motor_temperature_state == 0) ||
         (lcd_vars.ui32_main_screen_draw_static_info))
     {
       ui8_motor_temperature_previous = motor_controller_data.ui8_motor_temperature;
 
-      if (ui8_lcd_menu_flash_state_temperature)
-      {
-        if(ui8_motor_temperature_state)
-        {
-          ui8_motor_temperature_state = 0;
+      // first clear the area
+      // 5 digits + some space
+      ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
+      ui32_y1 = 14;
+      ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
+      ui32_y2 = ui32_y1 + 18;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-          // clear
-          // first clear the area
-          // 5 digits + some space
-          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
-          ui32_y1 = 14;
-          ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
-          ui32_y2 = ui32_y1 + 18;
-          UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-        }
-      }
-      else
-      {
-        if(ui8_motor_temperature_state == 0)
-        {
-          ui8_motor_temperature_state = 1;
+      // draw
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_GRAY);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
+      ui32_y1 = 14;
+      UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
 
-          // first clear the area
-          // 5 digits + some space
-          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
-          ui32_y1 = 14;
-          ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
-          ui32_y2 = ui32_y1 + 18;
-          UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-          // draw
-          UG_SetBackcolor(C_BLACK);
-          UG_SetForecolor(C_GRAY);
-          UG_FontSelect(&SMALL_TEXT_FONT);
-          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
-          ui32_y1 = 14;
-          UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
-
-          ui32_x1 += ((3 * 10) + (3 * 1) + 1);
-          UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
-          ui32_x1 += 11;
-          UG_PutString(ui32_x1, ui32_y1, "c");
-        }
-      }
+      ui32_x1 += ((3 * 10) + (3 * 1) + 1);
+      UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
+      ui32_x1 += 11;
+      UG_PutString(ui32_x1, ui32_y1, "c");
     }
   }
 }
@@ -1079,6 +1052,8 @@ void power(void)
   uint32_t ui32_x2;
   uint32_t ui32_y2;
   static uint8_t ui8_target_max_battery_power_state = 0;
+  uint16_t _ui16_battery_power_filtered;
+  uint16_t ui16_target_max_power;
 
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -1090,31 +1065,39 @@ void power(void)
 
   if(!lcd_vars.ui8_lcd_menu_max_power)
   {
-    if((ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
+    _ui16_battery_power_filtered = ui16_battery_power_filtered;
+
+    if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         lcd_vars.ui32_main_screen_draw_static_info ||
         ui8_target_max_battery_power_state == 0)
     {
-      ui16_battery_power_filtered_previous = ui16_battery_power_filtered;
+      ui16_battery_power_filtered_previous = _ui16_battery_power_filtered;
       ui8_target_max_battery_power_state = 1;
+
+      if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
 
       // clear area
       ui32_x1 = 200;
       ui32_y1 = 219;
-      ui32_x2 = ui32_x1 + (4 * 24) + (4 * 24) + 1;
+      ui32_x2 = ui32_x1 + (3 * 24) + (3 * 24) + 1;
       ui32_y2 = ui32_y1 + 41;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
       // draw number
       ui32_x1 = 200;
       ui32_y1 = 219;
-      if(ui16_battery_power_filtered > 1000) {  }
-      else if(ui16_battery_power_filtered > 100) { ui32_x1 += 24; }
-      else if(ui16_battery_power_filtered > 10) { ui32_x1 += 48; }
-      else if(ui16_battery_power_filtered > 1) { ui32_x1 += 72; }
+      if(_ui16_battery_power_filtered >= 1000) {  }
+      else if(_ui16_battery_power_filtered >= 100) { ui32_x1 += 24; }
+      else if(_ui16_battery_power_filtered >= 10) { ui32_x1 += 48; }
+      else { ui32_x1 += 72; }
 
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&FONT_24X40);
-      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui16_battery_power_filtered));
+      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) _ui16_battery_power_filtered));
+    }
+    else
+    {
+
     }
   }
   else
@@ -1180,7 +1163,7 @@ void power(void)
         // clear area
         ui32_x1 = 200;
         ui32_y1 = 219;
-        ui32_x2 = ui32_x1 + (4 * 24) + (4 * 24) + 1;
+        ui32_x2 = ui32_x1 + (5 * 24) + (5 * 24) + 1;
         ui32_y2 = ui32_y1 + 41;
         UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
       }
@@ -1190,6 +1173,8 @@ void power(void)
       if(ui8_target_max_battery_power_state == 0)
       {
         ui8_target_max_battery_power_state = 1;
+
+        ui16_target_max_power = configuration_variables.ui8_target_max_battery_power * 25;
 
         // clear area
         ui32_x1 = 200;
@@ -1201,14 +1186,16 @@ void power(void)
         // draw number
         ui32_x1 = 200;
         ui32_y1 = 219;
-        if (ui16_battery_power_filtered > 1000) {  }
-        else if (ui16_battery_power_filtered > 100) { ui32_x1 += 24; }
-        else if (ui16_battery_power_filtered > 10) { ui32_x1 += 48; }
-        else if (ui16_battery_power_filtered > 1) { ui32_x1 += 72; }
+        if(ui16_target_max_power >= 1000) {  }
+        else if(ui16_target_max_power >= 100) { ui32_x1 += 24; }
+        else if(ui16_target_max_power >= 10) { ui32_x1 += 48; }
+        else { ui32_x1 += 72; }
 
         UG_SetForecolor(C_WHITE);
         UG_FontSelect(&FONT_24X40);
-        UG_PutString(ui32_x1, ui32_y1, itoa(((uint32_t) configuration_variables.ui8_target_max_battery_power) * 25));
+        UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui16_target_max_power));
+
+        configuration_variables.ui8_target_max_battery_power = ui16_target_max_power / 25;
       }
     }
   }
@@ -1217,8 +1204,10 @@ void power(void)
 void wheel_speed(void)
 {
   uint32_t ui32_wheel_speed;
-  uint32_t ui32_x_position;
-  uint32_t ui32_y_position;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
   static uint16_t ui16_wheel_speed_x10_last = 0xffff;
 
   if (lcd_vars.ui32_main_screen_draw_static_info)
@@ -1237,31 +1226,39 @@ void wheel_speed(void)
   {
     ui16_wheel_speed_x10_last = motor_controller_data.ui16_wheel_speed_x10;
 
+    ui32_wheel_speed = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 / 10);
+    if (ui32_wheel_speed > 99) { ui32_wheel_speed = 99; }
+
+    // clear area
+    ui32_x1 = 92;
+    ui32_y1 = 106;
+    ui32_x2 = ui32_x1 + 32;
+    ui32_y2 = ui32_y1 + 54;
+    UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+
     UG_SetForecolor(C_WHITE);
     UG_FontSelect(&BIG_NUMBERS_TEXT_FONT);
-
-    ui32_wheel_speed = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 / 10);
-    ui32_x_position = 124;
-    ui32_y_position = 106;
-    if (ui32_wheel_speed > 10)
+    ui32_x1 = 124;
+    ui32_y1 = 106;
+    if (ui32_wheel_speed >= 10)
     {
-      ui32_x_position -= 32;
-      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) ui32_wheel_speed));
-      ui32_x_position += 32;
+      ui32_x1 -= 32;
+      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui32_wheel_speed));
+      ui32_x1 += 32;
     }
     else
     {
-      UG_PutString(ui32_x_position, ui32_y_position, itoa((uint32_t) ui32_wheel_speed));
+      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui32_wheel_speed));
     }
 
     // print dot
     // dot 10 px
-    ui32_x_position += 10;
+    ui32_x1 += 10;
 
     // decimal digit
     UG_FontSelect(&MEDIUM_NUMBERS_TEXT_FONT);
-    ui32_x_position += (24 + 10);
-    UG_PutString(ui32_x_position, ui32_y_position + 10, itoa((uint32_t) motor_controller_data.ui16_wheel_speed_x10 % 10));
+    ui32_x1 += (24 + 10);
+    UG_PutString(ui32_x1, ui32_y1 + 10, itoa((uint32_t) motor_controller_data.ui16_wheel_speed_x10 % 10));
   }
 }
 

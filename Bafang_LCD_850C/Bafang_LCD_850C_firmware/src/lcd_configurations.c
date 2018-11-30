@@ -58,6 +58,7 @@ static struct_lcd_configurations_vars lcd_configurations_vars =
   .ui8_item_visible_index = 1,
   .ui8_refresh_full_menu_1 = 0,
   .ui8_refresh_full_menu_2 = 0,
+  .ui8_battery_soc_power_used_state = 0,
 };
 
 static struct_menu_data menu_data =
@@ -761,12 +762,22 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 
 void battery_soc_power_used(struct_menu_data *p_menu_data)
 {
-  // save current value to offset as the values will be saved on EEPROM when leaving configuration menu
-  __disable_irq();
+  // run only once when start configurations
+  if(lcd_configurations_vars.ui8_battery_soc_power_used_state)
+  {
+    lcd_configurations_vars.ui8_battery_soc_power_used_state = 0;
+
+    // update offset with the total value
+    p_configuration_variables->ui32_wh_x10_offset = p_motor_controller_data->ui32_wh_x10;
+  }
+  // keep reseting this values, as it is not suposed to run the bicycle on configurations menu
+  // we need to reset them because we are here to manage (increment/decrement ui32_wh_x10_offset)
   p_motor_controller_data->ui32_wh_sum_x5 = 0;
   p_motor_controller_data->ui32_wh_sum_counter = 0;
   p_motor_controller_data->ui32_wh_x10 = 0;
 
+  // change offset value as it is the one that is saved on EEPROM, etc
+  __disable_irq();
   struct_var_number lcd_var_number =
   {
     .p_var_number = &p_configuration_variables->ui32_wh_x10_offset,
@@ -780,7 +791,9 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
   __enable_irq();
 
   item_set_strings("Watts/hour used", "(watts)", p_menu_data);
+  __disable_irq();
   item_var_set_number(&lcd_var_number, p_menu_data);
+  __enable_irq();
 }
 
 void assist_level_title(struct_menu_data *p_menu_data)

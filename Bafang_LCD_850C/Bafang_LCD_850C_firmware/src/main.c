@@ -27,8 +27,12 @@ void SetSysClockTo128Mhz(void);
 
 int main(void)
 {
-  SetSysClockTo128Mhz();
+  uint32_t ui32_timer_base_counter_1ms;
+  uint32_t ui32_10ms_loop_counter;
+  static buttons_events_type_t events = 0;
+  static buttons_events_type_t last_events = 0;
 
+  SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
   pins_init();
@@ -42,11 +46,6 @@ int main(void)
   while (buttons_get_onoff_state() ||
       buttons_get_down_state() ||
       buttons_get_up_state()) ;
-
-  uint32_t ui32_timer_base_counter_1ms;
-  uint32_t ui32_10ms_loop_counter;
-  static buttons_events_type_t events = 0;
-  static buttons_events_type_t last_events = 0;
 
   while(1)
   {

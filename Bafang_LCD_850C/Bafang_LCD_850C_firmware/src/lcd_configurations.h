@@ -20,6 +20,7 @@ typedef struct _lcd_configurations
   uint8_t ui8_item_visible_index;
   uint8_t ui8_refresh_full_menu_1;
   uint8_t ui8_refresh_full_menu_2;
+  uint8_t ui8_battery_soc_power_used_state;
 } struct_lcd_configurations_vars;
 
 void lcd_configurations_screen_init(void);

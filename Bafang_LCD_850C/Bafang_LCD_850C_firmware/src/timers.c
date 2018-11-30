@@ -27,7 +27,7 @@ void SysTick_Handler(void) // runs every 1ms
   timer_base_counter_1ms++;
 
   // calc wh every 100ms
-  if(ui8_100ms_timmer_counter < 100)
+  if(ui8_100ms_timmer_counter > 100)
   {
     ui8_100ms_timmer_counter = 0;
 

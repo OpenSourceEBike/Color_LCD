@@ -136,6 +136,9 @@ void lcd_clock(void)
     // reset needed variables of configurations screen
     p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
 
+    // need to track start configuration
+    p_lcd_configurations_vars->ui8_battery_soc_power_used_state = 1;
+
     lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
   }
 
@@ -197,7 +200,7 @@ uint8_t first_time_management (void)
   uint8_t ui8_status = 0;
 
   // don't update LCD up to we get first communication package from the motor controller
-  if (ui8_motor_controller_init &&
+  if(ui8_motor_controller_init &&
       (usart1_received_first_package() == 0))
   {
     ui8_status = 1;

@@ -112,7 +112,8 @@
 /* #define SYSCLK_FREQ_36MHz  36000000 */
 /* #define SYSCLK_FREQ_48MHz  48000000 */
 /* #define SYSCLK_FREQ_56MHz  56000000 */
- #define SYSCLK_FREQ_72MHz  72000000
+#define SYSCLK_FREQ_72MHz  72000000
+//#define SYSCLK_FREQ_128MHz  128000000
 #endif
 
 /*!< Uncomment the following line if you need to use external SRAM mounted
@@ -161,7 +162,8 @@
 #elif defined SYSCLK_FREQ_72MHz
   uint32_t SystemCoreClock         = SYSCLK_FREQ_72MHz;        /*!< System Clock Frequency (Core Clock) */
 #else /*!< HSI Selected as System Clock source */
-  uint32_t SystemCoreClock         = HSI_VALUE;        /*!< System Clock Frequency (Core Clock) */
+//  uint32_t SystemCoreClock         = HSI_VALUE;        /*!< System Clock Frequency (Core Clock) */
+  uint32_t SystemCoreClock         = SYSCLK_FREQ_128MHz;        /*!< System Clock Frequency (Core Clock) */
 #endif
 
 __I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};

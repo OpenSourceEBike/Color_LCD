@@ -73,7 +73,6 @@ void update_menu_flashing_state(void);
 void calc_battery_soc_watts_hour(void);
 void calc_odometer(void);
 static void automatic_power_off_management(void);
-void calc_wh(void);
 void brake(void);
 void wheel_speed(void);
 void power(void);
@@ -263,7 +262,9 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 {
 //  if (updateDistanceOdo)
 //  {
+    __disable_irq();
     configuration_variables.ui32_wh_x10_offset = motor_controller_data.ui32_wh_x10;
+    __enable_irq();
     configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
 //  }
 
@@ -297,8 +298,10 @@ void low_pass_filter_battery_voltage_current_power(void)
   ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
 
   // battery power
+  __disable_irq();
   ui16_battery_power_filtered_x50 = ui16_battery_current_filtered_x5 * ui16_battery_voltage_filtered_x10;
   ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
+  __enable_irq();
 
   // loose resolution under 200W
   if (ui16_battery_power_filtered < 200)
@@ -395,19 +398,19 @@ void calc_wh(void)
   static uint8_t ui8_1s_timmer_counter = 0;
   uint32_t ui32_temp = 0;
 
-  if (ui16_battery_power_filtered_x50 > 0)
+  if(ui16_battery_power_filtered_x50 > 0)
   {
     motor_controller_data.ui32_wh_sum_x5 += ui16_battery_power_filtered_x50 / 10;
     motor_controller_data.ui32_wh_sum_counter++;
   }
 
   // calc at 1s rate
-  if (ui8_1s_timmer_counter++ >= 10)
+  if(ui8_1s_timmer_counter < 10)
   {
     ui8_1s_timmer_counter = 0;
 
     // avoid  zero divisison
-    if (motor_controller_data.ui32_wh_sum_counter != 0)
+    if(motor_controller_data.ui32_wh_sum_counter != 0)
     {
       ui32_temp = motor_controller_data.ui32_wh_sum_counter / 36;
       ui32_temp = (ui32_temp * (motor_controller_data.ui32_wh_sum_x5 / motor_controller_data.ui32_wh_sum_counter)) / 500;
@@ -415,6 +418,7 @@ void calc_wh(void)
 
     motor_controller_data.ui32_wh_x10 = configuration_variables.ui32_wh_x10_offset + ui32_temp;
   }
+  ui8_1s_timmer_counter++;
 }
 
 void calc_odometer(void)
@@ -1265,7 +1269,9 @@ void calc_battery_soc_watts_hour (void)
 {
   uint32_t ui32_temp;
 
+  __disable_irq();
   ui32_temp = motor_controller_data.ui32_wh_x10 * 100;
+  __enable_irq();
   if (configuration_variables.ui32_wh_x10_100_percent > 0)
   {
     ui32_temp /= configuration_variables.ui32_wh_x10_100_percent;

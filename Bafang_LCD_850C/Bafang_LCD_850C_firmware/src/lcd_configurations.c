@@ -759,6 +759,7 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 void battery_soc_power_used(struct_menu_data *p_menu_data)
 {
   // save current value to offset as the values will be saved on EEPROM when leaving configuration menu
+  __disable_irq();
   p_configuration_variables->ui32_wh_x10_offset += p_motor_controller_data->ui32_wh_x10;
   p_motor_controller_data->ui32_wh_sum_x5 = 0;
   p_motor_controller_data->ui32_wh_sum_counter = 0;
@@ -774,6 +775,7 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 100
   };
+  __enable_irq();
 
   item_set_strings("Watts/hour used", "(watts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);

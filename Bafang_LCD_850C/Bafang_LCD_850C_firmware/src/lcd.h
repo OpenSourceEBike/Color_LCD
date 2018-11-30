@@ -107,6 +107,7 @@ typedef struct _lcd_vars
 
 void lcd_init(void);
 void lcd_clock(void);
+void calc_wh(void);
 struct_motor_controller_data* get_motor_controller_data (void);
 struct_configuration_variables* get_configuration_variables (void);
 struct_lcd_vars* get_lcd_vars(void);

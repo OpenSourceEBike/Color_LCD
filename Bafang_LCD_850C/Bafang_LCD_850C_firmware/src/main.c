@@ -34,32 +34,31 @@ int main(void)
   pins_init();
   system_power(1);
   systick_init();
-//  usart1_init();
+  usart1_init();
   eeprom_init();
   lcd_init();
 
-  // block until users releases the buttons
-  while (buttons_get_onoff_state () ||
-      buttons_get_down_state () ||
-      buttons_get_up_state ()) ;
+  // block until user release the buttons
+  while (buttons_get_onoff_state() ||
+      buttons_get_down_state() ||
+      buttons_get_up_state()) ;
 
   uint32_t ui32_timer_base_counter_1ms;
   uint32_t ui32_10ms_loop_counter;
   static buttons_events_type_t events = 0;
   static buttons_events_type_t last_events = 0;
 
-  while (1)
+  while(1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
-    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms ();
-    if ((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 10) // every 10ms
+    ui32_timer_base_counter_1ms = get_timer_base_counter_1ms();
+    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 10) // every 10ms
     {
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
-      buttons_clock ();
-//      usart1_data_clock ();
-
+      buttons_clock();
+      usart1_data_clock();
       lcd_clock();
 
       continue;

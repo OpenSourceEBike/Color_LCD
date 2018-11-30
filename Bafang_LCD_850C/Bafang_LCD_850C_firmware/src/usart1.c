@@ -12,6 +12,7 @@
 #include "pins.h"
 #include "stm32f10x_usart.h"
 #include "lcd.h"
+#include "utils.h"
 
 volatile uint8_t ui8_received_package_flag = 0;
 volatile uint8_t ui8_rx_buffer[26];
@@ -144,7 +145,7 @@ void usart1_data_clock (void)
     ui16_crc_rx = 0xffff;
     for (ui8_i = 0; ui8_i <= 23; ui8_i++)
     {
-      crc16 (ui8_rx_buffer[ui8_i], &ui16_crc_rx);
+      crc16(ui8_rx_buffer[ui8_i], &ui16_crc_rx);
     }
 
     if (((((uint16_t) ui8_rx_buffer [25]) << 8) + ((uint16_t) ui8_rx_buffer [24])) == ui16_crc_rx)

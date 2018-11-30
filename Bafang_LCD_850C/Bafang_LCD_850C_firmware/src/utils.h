@@ -9,11 +9,11 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
-int32_t map (int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
-uint8_t ui8_max (uint8_t value_a, uint8_t value_b);
-uint8_t ui8_min (uint8_t value_a, uint8_t value_b);
+int32_t map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max);
+uint8_t ui8_max(uint8_t value_a, uint8_t value_b);
+uint8_t ui8_min(uint8_t value_a, uint8_t value_b);
 void crc16(uint8_t ui8_data, uint16_t* ui16_crc);
 uint8_t *itoa(uint32_t ui32_i);
-void ftoa(float n, char *res, int afterpoint);
+//void ftoa(float n, char *res, int afterpoint);
 
 #endif /* _UTILS_H */

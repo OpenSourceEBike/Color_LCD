@@ -164,7 +164,7 @@ void lcd_main_screen (void)
     lcd_draw_main_menu_mask();
   }
 
-//  temperature ();
+  temperature ();
   assist_level_state();
 //  odometer ();
   wheel_speed();
@@ -990,40 +990,74 @@ void battery_soc (void)
   }
 
 }
-void temperature (void)
+void temperature(void)
 {
+  static uint8_t ui8_motor_temperature_previous;
+  static uint8_t ui8_motor_temperature_state = 0;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
+  uint8_t ui8_ascii_degree = 176;
+
   // if motor current is being limited due to temperature, force showing temperature!!
   if (motor_controller_data.ui8_temperature_current_limiting_value != 255)
   {
-    if (ui8_lcd_menu_flash_state_temperature)
+    if((motor_controller_data.ui8_motor_temperature != ui8_motor_temperature_previous) ||
+        (ui8_motor_temperature_state == 0) ||
+        (lcd_vars.ui32_main_screen_draw_static_info))
     {
-//      lcd_print (motor_controller_data.ui8_motor_temperature, TEMPERATURE_FIELD, 0);
-//      lcd_enable_temperature_degrees_symbol (1);
-    }
-  }
-  else
-  {
-    switch (configuration_variables.ui8_temperature_field_config)
-    {
-      // show nothing
-      case 0:
-      break;
+      ui8_motor_temperature_previous = motor_controller_data.ui8_motor_temperature;
 
-      // show battery_soc_watts_hour
-      case 1:
-//        lcd_print (ui16_battery_soc_watts_hour, TEMPERATURE_FIELD, 0);
-      break;
+      if (ui8_lcd_menu_flash_state_temperature)
+      {
+        if(ui8_motor_temperature_state)
+        {
+          ui8_motor_temperature_state = 0;
 
-      // show motor temperature
-      case 2:
-//        lcd_print (motor_controller_data.ui8_motor_temperature, TEMPERATURE_FIELD, 0);
-//        lcd_enable_temperature_degrees_symbol (1);
-      break;
+          // clear
+          // first clear the area
+          // 5 digits + some space
+          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
+          ui32_y1 = 14;
+          ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
+          ui32_y2 = ui32_y1 + 18;
+          UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+        }
+      }
+      else
+      {
+        if(ui8_motor_temperature_state == 0)
+        {
+          ui8_motor_temperature_state = 1;
+
+          // first clear the area
+          // 5 digits + some space
+          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
+          ui32_y1 = 14;
+          ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
+          ui32_y2 = ui32_y1 + 18;
+          UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+
+          // draw
+          UG_SetBackcolor(C_BLACK);
+          UG_SetForecolor(C_GRAY);
+          UG_FontSelect(&SMALL_TEXT_FONT);
+          ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
+          ui32_y1 = 14;
+          UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+
+          ui32_x1 += ((3 * 10) + (3 * 1) + 1);
+          UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
+          ui32_x1 += 11;
+          UG_PutString(ui32_x1, ui32_y1, "c");
+        }
+      }
     }
   }
 }
 
-void power (void)
+void power(void)
 {
   static uint16_t ui16_battery_power_filtered_last;
   uint32_t ui32_x_position;

@@ -52,9 +52,6 @@ static uint8_t lcd_lights_symbol = 0;
 
 static uint16_t ui16_battery_soc_watts_hour;
 
-uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
-static uint16_t ui16_lcd_power_off_time_counter = 0;
-
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
 
 static uint8_t ui8_lcd_menu_config_submenu_state = 0;
@@ -105,8 +102,8 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
-//  if (first_time_management())
-//    return;
+  if (first_time_management())
+    return;
 
   update_menu_flashing_state();
 
@@ -229,68 +226,54 @@ uint8_t first_time_management (void)
 
 void assist_level_state(void)
 {
-//  static uint8_t ui8_assist_level_last = 0xff;
-//
-//  if (lcd_vars.ui32_main_screen_draw_static_info)
-//  {
-//    UG_SetBackcolor(C_BLACK);
-//    UG_SetForecolor(C_GRAY);
-//    UG_FontSelect(&FONT_10X16);
-//    UG_PutString(10, 188, "Assist");
-//  }
-//
-//  if (buttons_get_up_click_event() &&
-//      lcd_vars.ui8_lcd_menu_max_power == 0)
-//  {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
-//
-//    configuration_variables.ui8_assist_level++;
-//
-//    if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
-//      { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
-//  }
-//
-//  if (buttons_get_down_click_event() &&
-//      lcd_vars.ui8_lcd_menu_max_power == 0)
-//  {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
-//
-//    if (configuration_variables.ui8_assist_level > 0)
-//      configuration_variables.ui8_assist_level--;
-//  }
-//
-//  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
-//      lcd_vars.ui32_main_screen_draw_static_info)
-//  {
-//    ui8_assist_level_last = configuration_variables.ui8_assist_level;
-//
-//    UG_SetForecolor(C_WHITE);
-//    UG_FontSelect(&FONT_32X53);
-//    UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
-//  }
+  static uint8_t ui8_assist_level_last = 0xff;
 
-static uint16_t ui16_counter = 0;
-static uint16_t ui16_number = 0;
-
-  ui16_counter++;
-  if(ui16_counter >= 100)
+  if (lcd_vars.ui32_main_screen_draw_static_info)
   {
-    ui16_counter = 0;
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_GRAY);
+    UG_FontSelect(&FONT_10X16);
+    UG_PutString(10, 188, "Assist");
+  }
 
-    ui16_number++;
+  if (buttons_get_up_click_event() &&
+      lcd_vars.ui8_lcd_menu_max_power == 0)
+  {
+    buttons_clear_up_click_event ();
+    buttons_clear_up_click_long_click_event ();
+    buttons_clear_up_long_click_event ();
+    buttons_clear_down_click_event ();
+    buttons_clear_down_click_long_click_event ();
+    buttons_clear_down_long_click_event ();
+
+    configuration_variables.ui8_assist_level++;
+
+    if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
+      { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
+  }
+
+  if (buttons_get_down_click_event() &&
+      lcd_vars.ui8_lcd_menu_max_power == 0)
+  {
+    buttons_clear_up_click_event ();
+    buttons_clear_up_click_long_click_event ();
+    buttons_clear_up_long_click_event ();
+    buttons_clear_down_click_event ();
+    buttons_clear_down_click_long_click_event ();
+    buttons_clear_down_long_click_event ();
+
+    if (configuration_variables.ui8_assist_level > 0)
+      configuration_variables.ui8_assist_level--;
+  }
+
+  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
+      lcd_vars.ui32_main_screen_draw_static_info)
+  {
+    ui8_assist_level_last = configuration_variables.ui8_assist_level;
+
     UG_SetForecolor(C_WHITE);
     UG_FontSelect(&FONT_32X53);
-    UG_PutString(25, 210, itoa((uint32_t) ui16_number));
+    UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
   }
 }
 
@@ -334,7 +317,7 @@ void lcd_power_off(uint8_t updateDistanceOdo)
   system_power(0);
 
   // block here
-  while (1) ;
+  while(1) ;
 }
 
 void low_pass_filter_battery_voltage_current_power(void)
@@ -499,13 +482,16 @@ void calc_odometer(void)
 
 static void automatic_power_off_management(void)
 {
-  if (configuration_variables.ui8_lcd_power_off_time_minutes != 0)
+  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
+  static uint16_t ui16_lcd_power_off_time_counter = 0;
+
+  if(configuration_variables.ui8_lcd_power_off_time_minutes != 0)
   {
     // see if we should reset the automatic power off minutes counter
     if ((motor_controller_data.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
         (motor_controller_data.ui8_battery_current_x5 > 0) || // battery current > 0
         (motor_controller_data.ui8_braking) ||                // braking
-        buttons_get_events ())                                 // any button active
+        buttons_get_events())                                 // any button active
     {
       ui16_lcd_power_off_time_counter = 0;
       ui8_lcd_power_off_time_counter_minutes = 0;
@@ -515,14 +501,14 @@ static void automatic_power_off_management(void)
     ui16_lcd_power_off_time_counter++;
 
     // check if we should power off the LCD
-    if (ui16_lcd_power_off_time_counter >= (100 * 60)) // 1 minute passed
+    if(ui16_lcd_power_off_time_counter >= (100 * 60)) // 1 minute passed
     {
       ui16_lcd_power_off_time_counter = 0;
 
       ui8_lcd_power_off_time_counter_minutes++;
-      if (ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
+      if(ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
       {
-        lcd_power_off (1);
+        lcd_power_off(1);
       }
     }
   }

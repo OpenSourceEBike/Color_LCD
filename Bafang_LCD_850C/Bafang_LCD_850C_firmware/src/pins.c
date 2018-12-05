@@ -46,7 +46,7 @@ void pins_init (void)
 
 void system_power (uint32_t ui32_state)
 {
-  if (ui32_state)
+  if(ui32_state)
   {
     GPIO_SetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
   }

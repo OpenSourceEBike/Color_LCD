@@ -105,8 +105,8 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
-  if (first_time_management())
-    return;
+//  if (first_time_management())
+//    return;
 
   update_menu_flashing_state();
 
@@ -229,54 +229,68 @@ uint8_t first_time_management (void)
 
 void assist_level_state(void)
 {
-  static uint8_t ui8_assist_level_last = 0xff;
+//  static uint8_t ui8_assist_level_last = 0xff;
+//
+//  if (lcd_vars.ui32_main_screen_draw_static_info)
+//  {
+//    UG_SetBackcolor(C_BLACK);
+//    UG_SetForecolor(C_GRAY);
+//    UG_FontSelect(&FONT_10X16);
+//    UG_PutString(10, 188, "Assist");
+//  }
+//
+//  if (buttons_get_up_click_event() &&
+//      lcd_vars.ui8_lcd_menu_max_power == 0)
+//  {
+//    buttons_clear_up_click_event ();
+//    buttons_clear_up_click_long_click_event ();
+//    buttons_clear_up_long_click_event ();
+//    buttons_clear_down_click_event ();
+//    buttons_clear_down_click_long_click_event ();
+//    buttons_clear_down_long_click_event ();
+//
+//    configuration_variables.ui8_assist_level++;
+//
+//    if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
+//      { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
+//  }
+//
+//  if (buttons_get_down_click_event() &&
+//      lcd_vars.ui8_lcd_menu_max_power == 0)
+//  {
+//    buttons_clear_up_click_event ();
+//    buttons_clear_up_click_long_click_event ();
+//    buttons_clear_up_long_click_event ();
+//    buttons_clear_down_click_event ();
+//    buttons_clear_down_click_long_click_event ();
+//    buttons_clear_down_long_click_event ();
+//
+//    if (configuration_variables.ui8_assist_level > 0)
+//      configuration_variables.ui8_assist_level--;
+//  }
+//
+//  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
+//      lcd_vars.ui32_main_screen_draw_static_info)
+//  {
+//    ui8_assist_level_last = configuration_variables.ui8_assist_level;
+//
+//    UG_SetForecolor(C_WHITE);
+//    UG_FontSelect(&FONT_32X53);
+//    UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
+//  }
 
-  if (lcd_vars.ui32_main_screen_draw_static_info)
+static uint16_t ui16_counter = 0;
+static uint16_t ui16_number = 0;
+
+  ui16_counter++;
+  if(ui16_counter >= 100)
   {
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_GRAY);
-    UG_FontSelect(&FONT_10X16);
-    UG_PutString(10, 188, "Assist");
-  }
+    ui16_counter = 0;
 
-  if (buttons_get_up_click_event() &&
-      lcd_vars.ui8_lcd_menu_max_power == 0)
-  {
-    buttons_clear_up_click_event ();
-    buttons_clear_up_click_long_click_event ();
-    buttons_clear_up_long_click_event ();
-    buttons_clear_down_click_event ();
-    buttons_clear_down_click_long_click_event ();
-    buttons_clear_down_long_click_event ();
-
-    configuration_variables.ui8_assist_level++;
-
-    if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
-      { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
-  }
-
-  if (buttons_get_down_click_event() &&
-      lcd_vars.ui8_lcd_menu_max_power == 0)
-  {
-    buttons_clear_up_click_event ();
-    buttons_clear_up_click_long_click_event ();
-    buttons_clear_up_long_click_event ();
-    buttons_clear_down_click_event ();
-    buttons_clear_down_click_long_click_event ();
-    buttons_clear_down_long_click_event ();
-
-    if (configuration_variables.ui8_assist_level > 0)
-      configuration_variables.ui8_assist_level--;
-  }
-
-  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
-      lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    ui8_assist_level_last = configuration_variables.ui8_assist_level;
-
+    ui16_number++;
     UG_SetForecolor(C_WHITE);
     UG_FontSelect(&FONT_32X53);
-    UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
+    UG_PutString(25, 210, itoa((uint32_t) ui16_number));
   }
 }
 

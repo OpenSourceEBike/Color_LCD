@@ -42,6 +42,11 @@ void pins_init (void)
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(BUTTON_DOWN__PORT, &GPIO_InitStructure);
+
+  GPIO_InitStructure.GPIO_Pin = LCD_BACKLIGHT__PIN;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(LCD_BACKLIGHT__PORT, &GPIO_InitStructure);
 }
 
 void system_power (uint32_t ui32_state)

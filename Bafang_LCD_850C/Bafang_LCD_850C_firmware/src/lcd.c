@@ -47,9 +47,6 @@ static uint16_t ui16_pedal_power_filtered;
 
 static uint8_t ui8_pedal_cadence_filtered;
 
-static uint8_t ui8_lights_state = 0;
-static uint8_t lcd_lights_symbol = 0;
-
 static uint16_t ui16_battery_soc_watts_hour;
 
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
@@ -106,6 +103,8 @@ void lcd_clock(void)
     return;
 
   update_menu_flashing_state();
+
+  lights_state();
 
   calc_battery_soc_watts_hour();
 
@@ -176,15 +175,14 @@ void lcd_main_screen (void)
     lcd_draw_main_menu_mask();
   }
 
-  temperature ();
+  temperature();
   assist_level_state();
 //  odometer ();
   wheel_speed();
-//  walk_assist_state ();
-//  offroad_mode ();
+//  walk_assist_state();
+//  offroad_mode();
   power();
   battery_soc();
-//  lights_state ();
   brake();
 
   // clear this variable after 1 full cycle running
@@ -311,7 +309,7 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
   // put screen all black and disable backlight
   UG_FillScreen(0);
-  lcd_backlight(0);
+  lcd_set_backlight_intensity(0);
 
   // now disable the power to all the system
   system_power(0);
@@ -656,19 +654,22 @@ void brake(void)
 
 void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 {
-//  if (ui8_intensity == 0)
-//  {
-//    TIM1_CCxCmd (TIM1_CHANNEL_4, DISABLE);
-//  }
-//  else if (ui8_intensity <= 20)
-//  {
-//    TIM1_SetCompare4 ((uint16_t) ui8_intensity);
-//    TIM1_CCxCmd (TIM1_CHANNEL_4, ENABLE);
-//  }
+  if (ui8_intensity == 0)
+  {
+    TIM_CtrlPWMOutputs(TIM3, DISABLE);
+  }
+  else if (ui8_intensity <= 20)
+  {
+    TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
+    TIM_CtrlPWMOutputs(TIM3, ENABLE);
+  }
 }
 
 void lights_state(void)
 {
+  static uint8_t ui8_lights_state = 0;
+  static uint8_t lcd_lights_symbol = 0;
+
   if (buttons_get_up_long_click_event ())
   {
     buttons_clear_up_long_click_event ();
@@ -689,8 +690,6 @@ void lights_state(void)
 
   if (ui8_lights_state == 0) { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_off_brightness); }
   else { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_on_brightness); }
-
-//  lcd_enable_lights_symbol (lcd_lights_symbol);
 }
 
 void calc_battery_voltage_soc(void)

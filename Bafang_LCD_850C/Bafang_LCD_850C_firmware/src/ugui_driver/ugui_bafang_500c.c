@@ -42,18 +42,6 @@ inline void Display_Reset()
 
 }
 
-void lcd_backlight (uint32_t ui32_state)
-{
-  if (ui32_state)
-  {
-    GPIO_SetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-  else
-  {
-    GPIO_ResetBits(LCD_BACKLIGHT__PORT, LCD_BACKLIGHT__PIN);
-  }
-}
-
 void bafang_500C_lcd_init()
 {
   // next step is needed to have PB3 and PB4 working as GPIO
@@ -61,11 +49,6 @@ void bafang_500C_lcd_init()
   GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
   GPIO_InitTypeDef GPIO_InitStructure;
-  GPIO_InitStructure.GPIO_Pin = LCD_BACKLIGHT__PIN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(LCD_BACKLIGHT__PORT, &GPIO_InitStructure);
-
   GPIO_InitStructure.GPIO_Pin = LCD_READ__PIN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -95,9 +78,6 @@ void bafang_500C_lcd_init()
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-  // enable backlight
-  lcd_backlight(1);
 
   // keep RESET and READ pins always at 1
   GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);

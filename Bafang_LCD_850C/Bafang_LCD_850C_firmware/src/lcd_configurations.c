@@ -313,9 +313,9 @@ void lcd_configurations_screen(void)
   uint8_t ui8_i;
 
   // leave config menu with a button_onoff_long_click
-  if(buttons_get_onoff_long_click_event ())
+  if(buttons_get_onoff_long_click_event())
   {
-    buttons_clear_onoff_long_click_event ();
+    buttons_clear_onoff_long_click_event();
 
     p_lcd_vars->ui32_main_screen_draw_static_info = 1;
     p_lcd_vars->lcd_screen_state = LCD_SCREEN_MAIN;
@@ -324,12 +324,12 @@ void lcd_configurations_screen(void)
   }
 
   // enter/leave screen set values
-  if(buttons_get_onoff_click_event ())
+  if(buttons_get_onoff_click_event())
   {
-    buttons_clear_onoff_click_event ();
-    buttons_clear_onoff_long_click_event ();
-    buttons_clear_up_click_event ();
-    buttons_clear_down_click_event ();
+    buttons_clear_onoff_click_event();
+    buttons_clear_onoff_long_click_event();
+    buttons_clear_up_click_event();
+    buttons_clear_down_click_event();
     menu_data.menu_buttons_events = 0;
 
     if(menu_data.ui8_screen_set_values) { menu_data.ui8_screen_set_values = 0; }
@@ -338,11 +338,14 @@ void lcd_configurations_screen(void)
 
   // now get buttons events
   //
-  if(buttons_get_down_click_event ())
+  if(buttons_get_down_click_event() ||
+      buttons_get_down_long_click_event() ||
+      buttons_get_down_click_long_click_event())
   {
-    buttons_clear_up_click_event ();
-    buttons_clear_down_click_event ();
-    menu_data.menu_buttons_events = DOWN_CLICK;
+    if(buttons_get_down_click_event()) { menu_data.menu_buttons_events = DOWN_CLICK; }
+    else if(buttons_get_down_long_click_event()) { menu_data.menu_buttons_events = DOWN_LONG_CLICK; }
+
+    buttons_clear_all_events();
 
     menu_data.ui8_item_increment = 1;
     item_visible_manage(&menu_data);
@@ -355,11 +358,14 @@ void lcd_configurations_screen(void)
     }
   }
 
-  if(buttons_get_up_click_event ())
+  if(buttons_get_up_click_event () ||
+      buttons_get_up_long_click_event() ||
+      buttons_get_up_click_long_click_event())
   {
-    buttons_clear_up_click_event ();
-    buttons_clear_down_click_event ();
-    menu_data.menu_buttons_events = UP_CLICK;
+    if(buttons_get_up_click_event()) { menu_data.menu_buttons_events = UP_CLICK; }
+    else if(buttons_get_up_long_click_event()) { menu_data.menu_buttons_events = UP_LONG_CLICK; }
+
+    buttons_clear_all_events();
 
     menu_data.ui8_item_increment = 0;
     item_visible_manage(&menu_data);
@@ -1728,6 +1734,9 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
   uint8_t *ui8_p_var;
   uint16_t *ui16_p_var;
   uint32_t *ui32_p_var;
+  static uint8_t ui8_long_click_started = 0;
+  static uint8_t ui8_long_click_counter = 0;
+  static uint8_t ui8_long_click_trigger = 0;
 
   if(p_lcd_var_number->ui8_size == 8)
   {
@@ -1742,12 +1751,44 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
     ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
   }
 
+  // if LONG CLICK, keep track of long click so variable is increased automatically 10x every second
+  //
+  if((p_menu_data->menu_buttons_events == UP_LONG_CLICK) ||
+      (p_menu_data->menu_buttons_events == DOWN_LONG_CLICK))
+  {
+    ui8_long_click_started = 1;
+    p_menu_data->menu_buttons_events = 0;
+  }
+
+  // trigger at ever 100ms if UP/DOWN LONG CLICK
+  if((ui8_long_click_started == 1) &&
+      (buttons_get_up_state() ||
+          buttons_get_down_state()))
+  {
+    ui8_long_click_counter++;
+
+    if(ui8_long_click_counter >= 10)
+    {
+      ui8_long_click_counter = 0;
+      ui8_long_click_trigger = 1;
+    }
+  }
+  else
+  {
+    ui8_long_click_started = 0;
+    ui8_long_click_counter = 0;
+  }
+
   // if we are in edit mode...
   if(p_menu_data->ui8_screen_set_values &&
       p_menu_data->ui8_edit_state)
   {
-    if(p_menu_data->menu_buttons_events == UP_CLICK)
+    if((p_menu_data->menu_buttons_events == UP_CLICK) ||
+        (buttons_get_up_state() &&
+            ui8_long_click_trigger))
     {
+      ui8_long_click_trigger = 0;
+
       if(p_lcd_var_number->ui8_size == 8)
       {
         if((*ui8_p_var) <= (p_lcd_var_number->ui32_max_value - p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) += p_lcd_var_number->ui32_increment_step; }
@@ -1767,8 +1808,12 @@ void item_var_set_number(struct_var_number *p_lcd_var_number, struct_menu_data *
       ui8_draw_var_value = 1;
     }
 
-    if(p_menu_data->menu_buttons_events == DOWN_CLICK)
+    if((p_menu_data->menu_buttons_events == DOWN_CLICK) ||
+        (buttons_get_down_state() &&
+                 ui8_long_click_trigger))
     {
+      ui8_long_click_trigger = 0;
+
       if(p_lcd_var_number->ui8_size == 8)
       {
         if((*ui8_p_var) >= (p_lcd_var_number->ui32_min_value + p_lcd_var_number->ui32_increment_step)) { (*ui8_p_var) -= p_lcd_var_number->ui32_increment_step; }

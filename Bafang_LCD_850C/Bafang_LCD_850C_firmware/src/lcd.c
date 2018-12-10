@@ -6,11 +6,10 @@
  * Released under the GPL License, Version 3
  */
 
+#include <math.h>
 #include "stm32f10x.h"
 #include "stm32f10x_gpio.h"
 #include "stdio.h"
-#include <math.h>
-
 #include "main.h"
 #include "config.h"
 #include "utils.h"
@@ -104,8 +103,6 @@ void lcd_clock(void)
 
   update_menu_flashing_state();
 
-  lights_state();
-
   calc_battery_soc_watts_hour();
 
   low_pass_filter_battery_voltage_current_power();
@@ -177,13 +174,13 @@ void lcd_main_screen (void)
 
   temperature();
   assist_level_state();
-//  odometer ();
   wheel_speed();
 //  walk_assist_state();
 //  offroad_mode();
   power();
   battery_soc();
   brake();
+  lights_state();
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;

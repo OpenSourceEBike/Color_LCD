@@ -22,6 +22,7 @@
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "utils.h"
+#include "rtc.h"
 
 void SetSysClockTo128Mhz(void);
 
@@ -29,8 +30,8 @@ int main(void)
 {
   uint32_t ui32_timer_base_counter_1ms;
   uint32_t ui32_10ms_loop_counter;
-  static buttons_events_type_t events = 0;
-  static buttons_events_type_t last_events = 0;
+  static buttons_events_t events = 0;
+  static buttons_events_t last_events = 0;
 
   SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
@@ -41,6 +42,7 @@ int main(void)
   usart1_init();
   eeprom_init();
   timer3_init(); // drives LCD backlight
+  rtc_init();
   lcd_init();
 
   // block until user release the buttons

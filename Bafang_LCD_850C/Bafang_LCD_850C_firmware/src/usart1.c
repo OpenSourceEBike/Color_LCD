@@ -14,6 +14,7 @@
 #include "lcd.h"
 #include "utils.h"
 #include "usart1.h"
+#include "main.h"
 
 volatile uint8_t ui8_received_package_flag = 0;
 volatile uint8_t ui8_rx_buffer[26];
@@ -63,7 +64,7 @@ void usart1_init(void)
 
   // enable the USARTy Interrupt
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = USART1_PRIORITY;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = USART1_INTERRUPT_PRIORITY;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);

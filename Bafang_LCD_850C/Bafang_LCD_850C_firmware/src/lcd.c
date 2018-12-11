@@ -21,6 +21,7 @@
 #include "usart1.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
+#include "rtc.h"
 
 static struct_motor_controller_data motor_controller_data;
 static struct_configuration_variables configuration_variables;
@@ -73,6 +74,7 @@ void wheel_speed(void);
 void power(void);
 void power_off_management(void);
 void temperature(void);
+void time(void);
 void battery_soc(void);
 void calc_battery_voltage_soc(void);
 void low_pass_filter_pedal_torque_and_power(void);
@@ -173,6 +175,7 @@ void lcd_main_screen (void)
   }
 
   temperature();
+  time();
   assist_level_state();
   wheel_speed();
 //  walk_assist_state();
@@ -1039,8 +1042,8 @@ void battery_soc (void)
       UG_PutString(ui32_x1, ui32_y1, "%");
     }
   }
-
 }
+
 void temperature(void)
 {
   static uint8_t ui8_motor_temperature_previous;
@@ -1059,8 +1062,8 @@ void temperature(void)
 
       // first clear the area
       // 5 digits + some space
-      ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
-      ui32_y1 = 14;
+      ui32_x1 = DISPLAY_WIDTH - 1 - 18 - (7 * 10) + (7 * 1) + 10;
+      ui32_y1 = 32;
       ui32_x2 = ui32_x1 + (7 * 10) + (7 * 1) + 10;
       ui32_y2 = ui32_y1 + 18;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
@@ -1069,15 +1072,98 @@ void temperature(void)
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = DISPLAY_WIDTH - 1 - 10 - (7 * 10) + (7 * 1) + 10;
-      ui32_y1 = 14;
-      UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+      ui32_x1 = DISPLAY_WIDTH - 1 - 18 - (7 * 10) + (7 * 1) + 10;
+      ui32_y1 = 32;
 
-      ui32_x1 += ((3 * 10) + (3 * 1) + 1);
-      UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
-      ui32_x1 += 11;
-      UG_PutString(ui32_x1, ui32_y1, "c");
+      if(motor_controller_data.ui8_motor_temperature < 10)
+      {
+        ui32_x1 += 22;
+        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+
+        ui32_x1 += ((1 * 10) + (1 * 1) + 1);
+        UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
+        ui32_x1 += 11;
+        UG_PutString(ui32_x1, ui32_y1, "c");
+      }
+      else if(motor_controller_data.ui8_motor_temperature < 100)
+      {
+        ui32_x1 += 11;
+        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+
+        ui32_x1 += ((2 * 10) + (2 * 1) + 1);
+        UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
+        ui32_x1 += 11;
+        UG_PutString(ui32_x1, ui32_y1, "c");
+      }
+      else
+      {
+        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+
+        ui32_x1 += ((3 * 10) + (3 * 1) + 1);
+        UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
+        ui32_x1 += 11;
+        UG_PutString(ui32_x1, ui32_y1, "c");
+      }
     }
+  }
+}
+
+void time(void)
+{
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
+  static struct_rtc_time_t rtc_time_previous;
+  static struct_rtc_time_t *p_rtc_time_previous;
+  struct_rtc_time_t *p_rtc_time;
+
+  p_rtc_time_previous = &rtc_time_previous;
+  p_rtc_time = rtc_get_time();
+
+  if ((p_rtc_time->ui8_hours != p_rtc_time_previous->ui8_hours) ||
+      (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes))
+  {
+    p_rtc_time_previous->ui8_hours = p_rtc_time->ui8_hours;
+    p_rtc_time_previous->ui8_minutes = p_rtc_time->ui8_minutes;
+
+    // first clear the area
+    // 5 digits + some space
+    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
+    ui32_y1 = 4;
+    ui32_x2 = ui32_x1 + (7 * 12) + (7 * 1) + 12;
+    ui32_y2 = ui32_y1 + 20;
+    UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+
+    // draw
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_WHITE);
+    UG_FontSelect(&REGULAR_TEXT_FONT);
+
+    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
+    ui32_y1 = 4;
+    // add left zero
+    if(p_rtc_time->ui8_hours < 10)
+    {
+      ui32_x1 += 13;
+      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
+      ui32_x1 -= 13;
+    }
+    else
+    {
+      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
+    }
+
+    ui32_x1 += 25;
+    UG_PutString(ui32_x1, ui32_y1, ":");
+    ui32_x1 += 13;
+    // add left zero
+    if(p_rtc_time->ui8_minutes < 10)
+    {
+      UG_PutString(ui32_x1 , ui32_y1, itoa(0));
+      ui32_x1 += 13;
+    }
+    UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_minutes));
   }
 }
 

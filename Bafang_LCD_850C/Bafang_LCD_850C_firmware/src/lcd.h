@@ -10,6 +10,9 @@
 #define LCD_H_
 
 #include <stdint.h>
+#include "ugui/ugui.h"
+
+#define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 
 typedef struct _motor_controller_data
 {
@@ -105,11 +108,28 @@ typedef struct _lcd_vars
   uint8_t ui8_lcd_menu_max_power;
 } struct_lcd_vars;
 
+typedef struct _print_number
+{
+  const UG_FONT* font;
+  UG_COLOR fore_color;
+  UG_COLOR back_color;
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+  uint32_t ui32_x_final_position;
+  uint32_t ui32_y_final_position;
+  uint8_t ui8_previous_digits_array[MAX_NUMBER_DIGITS];
+  uint8_t ui8_field_number_of_digits;
+  uint8_t ui8_left_zero_paddig;
+  uint8_t ui8_left_paddig;
+  uint32_t ui32_number;
+} print_number_t;
+
 void lcd_init(void);
 void lcd_clock(void);
 void calc_wh(void);
 struct_motor_controller_data* get_motor_controller_data (void);
 struct_configuration_variables* get_configuration_variables (void);
 struct_lcd_vars* get_lcd_vars(void);
+void lcd_print_number(print_number_t* number);
 
 #endif /* LCD_H_ */

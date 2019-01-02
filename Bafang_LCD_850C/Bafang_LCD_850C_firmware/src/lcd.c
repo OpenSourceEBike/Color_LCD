@@ -60,7 +60,7 @@ static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
 void lcd_main_screen(void);
-uint8_t first_time_management (void);
+uint8_t first_time_management(void);
 void assist_level_state(void);
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
@@ -100,8 +100,8 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
-  if (first_time_management())
-    return;
+//  if (first_time_management())
+//    return;
 
   update_menu_flashing_state();
 
@@ -189,7 +189,7 @@ void lcd_main_screen (void)
   lcd_vars.ui32_main_screen_draw_static_info = 0;
 }
 
-uint8_t first_time_management (void)
+uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
   uint8_t ui8_status = 0;
@@ -670,9 +670,9 @@ void lights_state(void)
   static uint8_t ui8_lights_state = 0;
   static uint8_t lcd_lights_symbol = 0;
 
-  if (buttons_get_up_long_click_event ())
+  if (buttons_get_up_long_click_event())
   {
-    buttons_clear_up_long_click_event ();
+    buttons_clear_up_long_click_event();
 
     if (ui8_lights_state == 0)
     {
@@ -688,7 +688,7 @@ void lights_state(void)
     }
   }
 
-  if (ui8_lights_state == 0) { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_off_brightness); }
+  if(ui8_lights_state == 0) { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_off_brightness); }
   else { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_on_brightness); }
 }
 
@@ -750,7 +750,7 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
   uint32_t ui32_y1, ui32_y2;
 
   // the first nine bars share the same code
-  if (ui32_bar_number < 10)
+  if(ui32_bar_number < 10)
   {
     ui32_x1 = 11 + (7 * (ui32_bar_number - 1));
     ui32_y1 = 11;
@@ -782,7 +782,7 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
   }
 }
 
-void battery_soc (void)
+void battery_soc(void)
 {
   uint32_t ui32_x1, ui32_x2;
   uint32_t ui32_y1, ui32_y2;
@@ -803,7 +803,17 @@ void battery_soc (void)
   uint8_t ui8_counter;
   static uint16_t ui16_battery_soc_watts_hour_previous = 0xffff;
 
-  if (lcd_vars.ui32_main_screen_draw_static_info)
+  static print_number_t percentage =
+  {
+    .font = &SMALL_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {0, 0, 0, 0, 0},
+    .ui8_field_number_of_digits = 3,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     // first, clear the full symbol area
     ui32_x1 = 10;
@@ -1110,13 +1120,31 @@ void temperature(void)
 
 void time(void)
 {
-  uint32_t ui32_x1;
-  uint32_t ui32_y1;
-  uint32_t ui32_x2;
-  uint32_t ui32_y2;
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
   static struct_rtc_time_t rtc_time_previous;
   static struct_rtc_time_t *p_rtc_time_previous;
   struct_rtc_time_t *p_rtc_time;
+
+  static print_number_t hours =
+  {
+    .font = &REGULAR_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {0, 0, 0, 0, 0},
+    .ui8_field_number_of_digits = 2,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  static print_number_t minutes =
+  {
+    .font = &REGULAR_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {0, 0, 0, 0, 0},
+    .ui8_field_number_of_digits = 2,
+    .ui8_left_zero_paddig = 1,
+  };
 
   p_rtc_time_previous = &rtc_time_previous;
   p_rtc_time = rtc_get_time();
@@ -1127,43 +1155,25 @@ void time(void)
     p_rtc_time_previous->ui8_hours = p_rtc_time->ui8_hours;
     p_rtc_time_previous->ui8_minutes = p_rtc_time->ui8_minutes;
 
-    // first clear the area
-    // 5 digits + some space
-    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
-    ui32_y1 = 4;
-    ui32_x2 = ui32_x1 + (7 * 12) + (7 * 1) + 12;
-    ui32_y2 = ui32_y1 + 20;
-    UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    // print hours number
+    ui32_x_position = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
+    ui32_y_position = 4;
+    hours.ui32_x_position = ui32_x_position;
+    hours.ui32_y_position = ui32_y_position;
+    hours.ui32_number = p_rtc_time->ui8_hours;
+    lcd_print_number(&hours);
 
-    // draw
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
+    // print ":"
+    ui32_x_position = hours.ui32_x_final_position;
+    ui32_y_position = hours.ui32_y_final_position;
+    UG_PutChar(58, ui32_x_position, ui32_y_position, C_WHITE, C_BLACK);
+    ui32_x_position += minutes.font->char_width; // x width from ":"
 
-    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
-    ui32_y1 = 4;
-    // add left zero
-    if(p_rtc_time->ui8_hours < 10)
-    {
-      ui32_x1 += 13;
-      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
-      ui32_x1 -= 13;
-    }
-    else
-    {
-      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
-    }
-
-    ui32_x1 += 25;
-    UG_PutString(ui32_x1, ui32_y1, ":");
-    ui32_x1 += 13;
-    // add left zero
-    if(p_rtc_time->ui8_minutes < 10)
-    {
-      UG_PutString(ui32_x1 , ui32_y1, itoa(0));
-      ui32_x1 += 13;
-    }
-    UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_minutes));
+    // print minutes number
+    minutes.ui32_x_position = ui32_x_position;
+    minutes.ui32_y_position = ui32_y_position;
+    minutes.ui32_number = p_rtc_time->ui8_minutes;
+    lcd_print_number(&minutes);
   }
 }
 
@@ -1178,6 +1188,19 @@ void power(void)
   uint16_t _ui16_battery_power_filtered;
   uint16_t ui16_target_max_power;
 
+  static print_number_t power_number =
+  {
+    .font = &FONT_24X40,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui32_x_position = 200,
+    .ui32_y_position = 219,
+    .ui8_previous_digits_array = {0, 0, 0, 0, 0},
+    .ui8_field_number_of_digits = 4,
+    .ui8_left_zero_paddig = 0,
+    .ui32_number = 0
+  };
+
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
@@ -1190,33 +1213,41 @@ void power(void)
   {
     _ui16_battery_power_filtered = ui16_battery_power_filtered;
 
-    if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
+//    if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
+//        lcd_vars.ui32_main_screen_draw_static_info ||
+//        ui8_target_max_battery_power_state == 0)
+    if(
         lcd_vars.ui32_main_screen_draw_static_info ||
         ui8_target_max_battery_power_state == 0)
     {
-      ui16_battery_power_filtered_previous = _ui16_battery_power_filtered;
-      ui8_target_max_battery_power_state = 1;
+        power_number.ui32_number = 2323;
+        lcd_print_number(&power_number);
 
-      if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
 
-      // clear area
-      ui32_x1 = 200;
-      ui32_y1 = 219;
-      ui32_x2 = ui32_x1 + (3 * 24) + (3 * 24) + 1;
-      ui32_y2 = ui32_y1 + 41;
-      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-      // draw number
-      ui32_x1 = 200;
-      ui32_y1 = 219;
-      if(_ui16_battery_power_filtered >= 1000) {  }
-      else if(_ui16_battery_power_filtered >= 100) { ui32_x1 += 24; }
-      else if(_ui16_battery_power_filtered >= 10) { ui32_x1 += 48; }
-      else { ui32_x1 += 72; }
-
-      UG_SetForecolor(C_WHITE);
-      UG_FontSelect(&FONT_24X40);
-      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) _ui16_battery_power_filtered));
+//      ui16_battery_power_filtered_previous = _ui16_battery_power_filtered;
+//      ui8_target_max_battery_power_state = 1;
+//
+//      if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
+//
+//      // clear area
+//      ui32_x1 = 200;
+//      ui32_y1 = 219;
+//      ui32_x2 = ui32_x1 + (3 * 24) + (3 * 24) + 1;
+//      ui32_y2 = ui32_y1 + 41;
+//      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+//
+//      // draw number
+//      ui32_x1 = 200;
+//      ui32_y1 = 219;
+//      if(_ui16_battery_power_filtered >= 1000) {  }
+//      else if(_ui16_battery_power_filtered >= 100) { ui32_x1 += 24; }
+//      else if(_ui16_battery_power_filtered >= 10) { ui32_x1 += 48; }
+//      else { ui32_x1 += 72; }
+//
+//      UG_SetForecolor(C_WHITE);
+//      UG_FontSelect(&FONT_24X40);
+//      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) _ui16_battery_power_filtered));
     }
     else
     {
@@ -1415,7 +1446,89 @@ void calc_battery_soc_watts_hour(void)
   }
 }
 
-struct_lcd_vars* get_lcd_vars (void)
+struct_lcd_vars* get_lcd_vars(void)
 {
   return &lcd_vars;
 }
+
+void lcd_print_number(print_number_t* number)
+{
+  uint32_t ui32_number_temp;
+  uint8_t ui8_digit_inverse_counter;
+  uint8_t ui8_digits_array[MAX_NUMBER_DIGITS];
+  static uint32_t ui32_power_array[MAX_NUMBER_DIGITS] = {1, 10, 100, 1000, 10000};
+  uint32_t ui32_number = number->ui32_number;
+  uint8_t ui8_i;
+  uint32_t ui32_x_position = number->ui32_x_position;
+  uint32_t ui32_y_position = number->ui32_y_position;
+  // save digit number where number start
+  uint8_t ui8_digit_number_start = 0;
+
+  // can't process over MAX_NUMBER_DIGITS
+  if(number->ui8_field_number_of_digits > MAX_NUMBER_DIGITS)
+  {
+    return;
+  }
+
+  // set the font that will be used
+  UG_FontSelect(number->font);
+
+  // get all digits from the number
+  ui32_number_temp = ui32_number;
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    ui8_digits_array[ui8_i] = ui32_number_temp % 10;
+    ui32_number_temp /= 10;
+
+    // find the digit number start
+    if(ui8_digits_array[ui8_i] != 0)
+    {
+      ui8_digit_number_start = ui8_i;
+    }
+  }
+
+  // loop over all digits
+  ui8_digit_inverse_counter = number->ui8_field_number_of_digits - 1;
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    // only digits that changed
+    if(ui8_digits_array[ui8_i] != number->ui8_previous_digits_array[ui8_i])
+    {
+      if((ui8_digits_array[ui8_digit_inverse_counter] == 0) && (ui8_digit_inverse_counter > ui8_digit_number_start) && (number->ui8_left_zero_paddig))
+      {
+        // print a "0"
+        UG_PutChar(48, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+      if((ui8_digits_array[ui8_digit_inverse_counter] == 0) && (ui8_digit_inverse_counter > ui8_digit_number_start) && (!number->ui8_left_zero_paddig))
+      {
+        // print a " "
+        UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+      else
+      {
+        // print a "0"
+        UG_PutChar((ui8_digits_array[ui8_digit_inverse_counter] + 48), ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+
+      // increase X position for next char
+      ui32_x_position += number->font->char_width + 1;
+
+      ui8_digit_inverse_counter--;
+    }
+    else
+    {
+      // do not change the field, keep with previous value
+    }
+  }
+
+  // save the digits
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    number->ui8_previous_digits_array[ui8_i] = ui8_digits_array[ui8_i];
+  }
+
+  // store final position
+  number->ui32_x_final_position = ui32_x_position;
+  number->ui32_y_final_position = ui32_y_position;
+}
+

@@ -160,9 +160,13 @@ void lcd_clock(void)
 
 void lcd_draw_main_menu_mask(void)
 {
-  UG_DrawLine(10, 60, 310, 60, C_DIM_GRAY);
-  UG_DrawLine(10, 180, 310, 180, C_DIM_GRAY);
-  UG_DrawLine(10, 265, 310, 265, C_DIM_GRAY);
+  UG_DrawLine(0, 39, 319, 39, C_DIM_GRAY);
+  UG_DrawLine(0, 159, 319, 159, C_DIM_GRAY);
+  UG_DrawLine(0, 239, 319, 239, C_DIM_GRAY);
+  UG_DrawLine(0, 319, 319, 319, C_DIM_GRAY);
+
+  // vertical line
+  UG_DrawLine(159, 159, 159, 319, C_DIM_GRAY);
 }
 
 void lcd_main_screen (void)
@@ -174,7 +178,6 @@ void lcd_main_screen (void)
     lcd_draw_main_menu_mask();
   }
 
-  temperature();
   time();
   assist_level_state();
   wheel_speed();
@@ -1156,8 +1159,8 @@ void time(void)
     p_rtc_time_previous->ui8_minutes = p_rtc_time->ui8_minutes;
 
     // print hours number
-    ui32_x_position = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
-    ui32_y_position = 4;
+    ui32_x_position = DISPLAY_WIDTH - 1 - hours.font->char_width - (5 * hours.font->char_width) + (5 * 1);
+    ui32_y_position = 5;
     hours.ui32_x_position = ui32_x_position;
     hours.ui32_y_position = ui32_y_position;
     hours.ui32_number = p_rtc_time->ui8_hours;

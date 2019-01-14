@@ -23,6 +23,15 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
+// Battery SOC symbol:
+// 10 bars, each bar: with = 7, height = 24
+// symbol has contour lines of 1 pixel
+#define BATTERY_SOC_START_X 8
+#define BATTERY_SOC_START_Y 4
+#define BATTERY_SOC_BAR_WITH 7
+#define BATTERY_SOC_BAR_HEIGHT 24
+#define BATTERY_SOC_CONTOUR 1
+
 static struct_motor_controller_data motor_controller_data;
 static struct_configuration_variables configuration_variables;
 
@@ -120,7 +129,7 @@ void lcd_clock(void)
 
   calc_battery_voltage_soc();
   calc_odometer();
-  automatic_power_off_management();
+//  automatic_power_off_management();
 
   // enter menu configurations: UP + DOWN click event
   if (buttons_get_up_down_click_event () &&
@@ -728,32 +737,33 @@ void battery_soc_bar_clear(uint32_t ui32_bar_number)
   // the first nine bars share the same code
   if (ui32_bar_number < 10)
   {
-    ui32_x1 = 11 + (7 * (ui32_bar_number - 1));
-    ui32_y1 = 11;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 19;
+    // draw the bar itself
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * (ui32_bar_number - 1));
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT;
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-    if (ui32_bar_number != 9)
+    // draw bar contour
+    if(ui32_bar_number < 9)
     {
-      ui32_x1 = ui32_x2 + 1;
+      ui32_x1 = ui32_x2 + BATTERY_SOC_CONTOUR;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_BLACK);
     }
     else
     {
       ui32_x1 = ui32_x2 + 1;
-      ui32_y1 = 11 + 6;
-      ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 8;
-      UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+      ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+      ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
+      UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_BLACK);
     }
   }
   else
   {
-    ui32_x1 = 11 + 63;
-    ui32_y1 = 11 + 5;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 9;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9);
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
   }
 }
@@ -766,13 +776,13 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
   // the first nine bars share the same code
   if(ui32_bar_number < 10)
   {
-    ui32_x1 = 11 + (7 * (ui32_bar_number - 1));
-    ui32_y1 = 11;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 19;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * (ui32_bar_number - 1));
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT;
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, ui16_color);
 
-    if (ui32_bar_number != 9)
+    if(ui32_bar_number < 9)
     {
       ui32_x1 = ui32_x2 + 1;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_DIM_GRAY);
@@ -780,18 +790,17 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
     else
     {
       ui32_x1 = ui32_x2 + 1;
-      ui32_y1 = 11 + 6;
-      ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 8;
-      UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_DIM_GRAY);
+      ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+      ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
+      UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_DIM_GRAY);
     }
   }
   else
   {
-    ui32_x1 = 11 + 63;
-    ui32_y1 = 11 + 5;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 9;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9);
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, ui16_color);
   }
 }
@@ -830,65 +839,69 @@ void battery_soc(void)
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     // first, clear the full symbol area
-    ui32_x1 = 10;
-    ui32_y1 = 10;
-    ui32_x2 = ui32_x1 + 56;
-    ui32_y2 = ui32_y1 + 21;
+    // first 9 bars
+    ui32_x1 = BATTERY_SOC_START_X;
+    ui32_y1 = BATTERY_SOC_START_Y;
+    ui32_x2 = ui32_x1 + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR) * 9) + (BATTERY_SOC_CONTOUR * 2);
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT + (BATTERY_SOC_CONTOUR * 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-    ui32_x1 = 10 + 56;
-    ui32_y1 = 10 + 5;
-    ui32_x2 = ui32_x1 + 6;
-    ui32_y2 = ui32_y1 + 11;
+    // last small bar
+    ui32_x1 = ui32_x2;
+    ui32_y1 = BATTERY_SOC_START_Y + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH + (BATTERY_SOC_CONTOUR * 2);
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2) + (BATTERY_SOC_CONTOUR * 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
     // now draw the empty battery symbol
-    ui32_x1 = 10;
-    ui32_y1 = 10;
-    ui32_x2 = ui32_x1 + 63;
+    // first 9 bars
+    ui32_x1 = BATTERY_SOC_START_X;
+    ui32_y1 = BATTERY_SOC_START_Y;
+    ui32_x2 = ui32_x1 + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9) + (BATTERY_SOC_CONTOUR * 2) - 2;
+    ui32_y2 = ui32_y1;
+    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
+
+    // last bar
+    ui32_x1 = ui32_x2;
+    ui32_y1 = ui32_y2;
+    ui32_x2 = ui32_x1;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 4);
+    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
+
+    ui32_x1 = ui32_x2;
+    ui32_y1 = ui32_y2;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1;
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 5;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2) + (BATTERY_SOC_CONTOUR * 2);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 + 7;
+    ui32_x2 = ui32_x1 - (BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1);
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 11;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 4);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 - 7;
+    ui32_x2 = ui32_x1 - (((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9) + (BATTERY_SOC_CONTOUR * 2) - 2);
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 5;
-    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
-
-    ui32_x1 = ui32_x2;
-    ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 - 63;
-    ui32_y2 = ui32_y1;
-    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
-
-    ui32_x1 = ui32_x2;
-    ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 - 21;
+    ui32_y2 = ui32_y1 - (BATTERY_SOC_BAR_HEIGHT + BATTERY_SOC_CONTOUR);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
   }
 
@@ -982,71 +995,13 @@ void battery_soc(void)
     ui32_battery_bar_number_previous = ui32_battery_bar_number;
     ui16_color_previous = ui16_color;
 
-    // draw volts
-    //
-    if((ui16_battery_voltage_filtered_x10 != ui16_battery_voltage_filtered_x10_previous) ||
-        (lcd_vars.ui32_main_screen_draw_static_info))
-    {
-      ui16_battery_voltage_filtered_x10_previous = ui16_battery_voltage_filtered_x10;
-
-      // first clear the area
-      // 3 digits + 1 point
-      ui32_x1 = 35;
-      ui32_y1 = 35;
-      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 10);
-      ui32_y2 = ui32_y1 + 18;
-      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-      ui32_value_integer = ((uint32_t) ui16_battery_voltage_filtered_x10) / 10;
-      ui32_value_decimal = ((uint32_t) ui16_battery_voltage_filtered_x10) % 10;
-
-      // find how many digits is the ui32_value_integer
-      ui32_value_temp = ui32_value_integer;
-      ui32_value_integer_number_digits = 0;
-      for(ui8_counter = 0; ui8_counter < 3; ui8_counter++)
-      {
-        ui32_value_temp /= 10;
-        ui32_value_integer_number_digits++;
-
-        // finish for loop
-        if (ui32_value_temp == 0)
-        {
-          ui32_value_integer_number_digits++;
-          break;
-        }
-      }
-
-      // draw variable value
-      UG_SetBackcolor(C_BLACK);
-      UG_SetForecolor(C_WHITE);
-      UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 35;
-      ui32_y1 = 37;
-      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_integer));
-
-      // draw small point
-      ui32_x1 += 4 + ((ui32_value_integer_number_digits - 1) * 10) - ((ui32_value_integer_number_digits - 1) * 1);
-      ui32_y1 = 48;
-      lcd_pixel_set(ui32_x1, ui32_y1, C_GRAY);
-
-      // draw decimal digit
-      ui32_x1 += 3;
-      ui32_y1 = 37;
-      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_decimal));
-
-      ui32_x1 += (2 + 10);
-      ui32_y1 = 36;
-      UG_PutString(ui32_x1, ui32_y1, "v");
-    }
-
     // draw SOC in percentage
     if((ui16_battery_soc_watts_hour != ui16_battery_soc_watts_hour_previous) ||
         (lcd_vars.ui32_main_screen_draw_static_info))
     {
       ui16_battery_soc_watts_hour_previous = ui16_battery_soc_watts_hour;
-
-      soc.ui32_x_position = 90;
-      soc.ui32_y_position = 14;
+      soc.ui32_x_position = BATTERY_SOC_START_X + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 10) + (BATTERY_SOC_CONTOUR * 2) + 10;
+      soc.ui32_y_position = 10;
       soc.ui32_number = ui16_battery_soc_watts_hour;
       lcd_print_number(&soc);
 
@@ -1160,7 +1115,7 @@ void time(void)
 
     // print hours number
     ui32_x_position = DISPLAY_WIDTH - 1 - hours.font->char_width - (5 * hours.font->char_width) + (5 * 1);
-    ui32_y_position = 5;
+    ui32_y_position = 6;
     hours.ui32_x_position = ui32_x_position;
     hours.ui32_y_position = ui32_y_position;
     hours.ui32_number = p_rtc_time->ui8_hours;

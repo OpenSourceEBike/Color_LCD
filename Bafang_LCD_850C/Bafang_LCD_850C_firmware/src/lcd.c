@@ -180,6 +180,8 @@ void lcd_draw_main_menu_mask(void)
 
 void lcd_main_screen (void)
 {
+  lights_state();
+
   // run once only, to draw static info
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -195,7 +197,6 @@ void lcd_main_screen (void)
   power();
   battery_soc();
   brake();
-  lights_state();
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;
@@ -253,7 +254,7 @@ void assist_level_state(void)
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(10, 188, "Assist");
+    UG_PutString(12, 50, "ASSIST");
   }
 
   if (buttons_get_up_click_event() &&
@@ -292,7 +293,7 @@ void assist_level_state(void)
     ui8_assist_level_previous = configuration_variables.ui8_assist_level;
 
     assist_level.ui32_x_position = 25;
-    assist_level.ui32_y_position = 210;
+    assist_level.ui32_y_position = 84;
     assist_level.ui32_number = (uint32_t) configuration_variables.ui8_assist_level;
     lcd_print_number(&assist_level);
   }
@@ -321,9 +322,9 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 {
 //  if (updateDistanceOdo)
 //  {
-    __disable_irq();
+//    __disable_irq();
     configuration_variables.ui32_wh_x10_offset = motor_controller_data.ui32_wh_x10;
-    __enable_irq();
+//    __enable_irq();
     configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
 //  }
 
@@ -357,7 +358,7 @@ void low_pass_filter_battery_voltage_current_power(void)
   ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
 
   // battery power
-  __disable_irq();
+//  __disable_irq();
   ui16_battery_power_filtered_x50 = ui16_battery_current_filtered_x5 * ui16_battery_voltage_filtered_x10;
   ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
 
@@ -379,7 +380,7 @@ void low_pass_filter_battery_voltage_current_power(void)
     ui16_battery_power_filtered /= 25;
     ui16_battery_power_filtered *= 25;
   }
-  __enable_irq();
+//  __enable_irq();
 }
 
 void low_pass_filter_pedal_torque_and_power(void)
@@ -657,16 +658,16 @@ void brake(void)
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 150;
-      ui32_y1 = 14;
-      UG_PutString(ui32_x1, ui32_y1, "brake");
+      ui32_x1 = 178;
+      ui32_y1 = 10;
+      UG_PutString(ui32_x1, ui32_y1, "BRK");
     }
     else
     {
       // clear area
       // 5 leters
-      ui32_x1 = 150;
-      ui32_y1 = 14;
+      ui32_x1 = 178;
+      ui32_y1 = 10;
       ui32_x2 = ui32_x1 + ((5 * 10) + (5 * 1) + 1);
       ui32_y2 = ui32_y1 + 18;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
@@ -1007,6 +1008,9 @@ void battery_soc(void)
 
       ui32_x1 = soc.ui32_x_final_position + 2;
       ui32_y1 = soc.ui32_y_final_position;
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_WHITE);
+      UG_FontSelect(&SMALL_TEXT_FONT);
       UG_PutString(ui32_x1, ui32_y1, "%");
     }
   }
@@ -1151,12 +1155,13 @@ void power(void)
     .font = &FONT_24X40,
     .fore_color = C_WHITE,
     .back_color = C_BLACK,
-    .ui32_x_position = 200,
-    .ui32_y_position = 219,
+    .ui32_x_position = 191,
+    .ui32_y_position = 191,
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
     .ui8_field_number_of_digits = 4,
     .ui8_left_zero_paddig = 0,
-    .ui32_number = 0
+    .ui32_number = 0,
+    .ui8_refresh_all_digits = 1
   };
 
   if(lcd_vars.ui32_main_screen_draw_static_info)
@@ -1164,7 +1169,7 @@ void power(void)
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(238, 188, "Power");
+    UG_PutString(183, 164, "motor power");
   }
 
   if(!lcd_vars.ui8_lcd_menu_max_power)
@@ -1182,6 +1187,7 @@ void power(void)
 
       power_number.ui32_number = _ui16_battery_power_filtered;
       lcd_print_number(&power_number);
+      power_number.ui8_refresh_all_digits = 0;
     }
     else
     {
@@ -1199,6 +1205,7 @@ void power(void)
       buttons_clear_all_events();
       lcd_vars.ui8_lcd_menu_max_power = 0;
       ui8_target_max_battery_power_state = 0;
+      power_number.ui8_refresh_all_digits = 1;
 
       // save the updated variables on EEPROM
       eeprom_write_variables();
@@ -1249,11 +1256,9 @@ void power(void)
         ui8_target_max_battery_power_state = 0;
 
         // clear area
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        ui32_x2 = ui32_x1 + (5 * 24) + (5 * 24) + 1;
-        ui32_y2 = ui32_y1 + 41;
-        UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+        power_number.ui8_clean_area_all_digits = 1;
+        lcd_print_number(&power_number);
+        power_number.ui8_clean_area_all_digits = 0;
       }
     }
     else
@@ -1264,24 +1269,9 @@ void power(void)
 
         ui16_target_max_power = configuration_variables.ui8_target_max_battery_power * 25;
 
-        // clear area
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        ui32_x2 = ui32_x1 + (4 * 24) + (4 * 24) + 1;
-        ui32_y2 = ui32_y1 + 41;
-        UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-        // draw number
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        if(ui16_target_max_power >= 1000) {  }
-        else if(ui16_target_max_power >= 100) { ui32_x1 += 24; }
-        else if(ui16_target_max_power >= 10) { ui32_x1 += 48; }
-        else { ui32_x1 += 72; }
-
-        UG_SetForecolor(C_WHITE);
-        UG_FontSelect(&FONT_24X40);
-        UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui16_target_max_power));
+        power_number.ui8_refresh_all_digits = 1;
+        power_number.ui32_number = ui16_target_max_power;
+        lcd_print_number(&power_number);
 
         configuration_variables.ui8_target_max_battery_power = ui16_target_max_power / 25;
       }
@@ -1320,10 +1310,10 @@ void wheel_speed(void)
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(200, 135 , "km/h");
+    UG_PutString(257, 50 , "KM/H");
 
     // print dot
-    UG_FillCircle(160, 145, 2, C_WHITE);
+    UG_FillCircle(196, 123, 2, C_WHITE);
   }
 
   if ((motor_controller_data.ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous) ||
@@ -1331,8 +1321,8 @@ void wheel_speed(void)
   {
     ui16_wheel_x10_speed_previous = motor_controller_data.ui16_wheel_speed_x10;
 
-    ui32_x_position = 92;
-    ui32_y_position = 106;
+    ui32_x_position = 126;
+    ui32_y_position = 84;
 
     wheel_speed_integer.ui32_x_position = ui32_x_position;
     wheel_speed_integer.ui32_y_position = ui32_y_position;
@@ -1355,9 +1345,9 @@ void calc_battery_soc_watts_hour(void)
 {
   uint32_t ui32_temp;
 
-  __disable_irq();
+//  __disable_irq();
   ui32_temp = motor_controller_data.ui32_wh_x10 * 100;
-  __enable_irq();
+//  __enable_irq();
   if (configuration_variables.ui32_wh_x10_100_percent > 0)
   {
     ui32_temp /= configuration_variables.ui32_wh_x10_100_percent;
@@ -1427,7 +1417,9 @@ void lcd_print_number(print_number_t* number)
   for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
   {
     // only digits that changed
-    if(ui8_digits_array[ui8_digit_inverse_counter] != number->ui8_previous_digits_array[ui8_digit_inverse_counter])
+    if(((ui8_digits_array[ui8_digit_inverse_counter] != number->ui8_previous_digits_array[ui8_digit_inverse_counter]) ||
+        (number->ui8_refresh_all_digits)) &&
+        (!number->ui8_clean_area_all_digits))
     {
       if((ui8_digits_array[ui8_digit_inverse_counter] == 0) && // if is a 0
           (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
@@ -1450,9 +1442,10 @@ void lcd_print_number(print_number_t* number)
       }
     }
     // the case where there was a 0 but we want to remove it
-    else if((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
+    else if(((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
         (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
-        (!number->ui8_left_zero_paddig)) // if we NOT want to print a 0 at left
+        (!number->ui8_left_zero_paddig)) || // if we NOT want to print a 0 at left
+        (number->ui8_clean_area_all_digits)) // we want to clean, so print a " "
     {
       // print a " "
       UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);

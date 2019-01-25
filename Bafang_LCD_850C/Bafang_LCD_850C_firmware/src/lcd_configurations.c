@@ -790,7 +790,7 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
   p_motor_controller_data->ui32_wh_x10 = 0;
 
   // change offset value as it is the one that is saved on EEPROM, etc
-  __disable_irq();
+//  __disable_irq();
   var_number_t lcd_var_number =
   {
     .p_var_number = &p_configuration_variables->ui32_wh_x10_offset,
@@ -801,12 +801,12 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 100
   };
-  __enable_irq();
+//  __enable_irq();
 
   item_set_strings("Watts/hour used", "(watts)", p_menu_data);
-  __disable_irq();
+//  __disable_irq();
   item_var_set_number(&lcd_var_number, p_menu_data);
-  __enable_irq();
+//  __enable_irq();
 }
 
 void assist_level_title(struct_menu_data *p_menu_data)
@@ -1776,7 +1776,7 @@ void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_men
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
+    UG_FontSelect(&CONFIGURATIONS_TEXT_FONT);
     ui32_x_position = 6;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         4 + // padding from top line
@@ -2009,7 +2009,7 @@ void item_var_set_number(var_number_t *p_lcd_var_number, struct_menu_data *p_men
     // draw variable value
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
+    UG_FontSelect(&CONFIGURATIONS_TEXT_FONT);
     ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui32_value_integer_number_digits * 12) - (ui32_value_integer_number_digits * 1);
     if(p_lcd_var_number->ui8_decimal_digit) { ui32_x_position -= 6; } // offset value for the decimal point
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
@@ -2136,7 +2136,7 @@ void item_var_set_strings(var_number_t *p_lcd_var_number, struct_menu_data *p_me
     // draw string
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
+    UG_FontSelect(&CONFIGURATIONS_TEXT_FONT);
     ui32_x_position = DISPLAY_WIDTH - 16 - 1 - (ui8_number_of_chars * 12) - (ui8_number_of_chars * 1);
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
         14 + // padding from top line

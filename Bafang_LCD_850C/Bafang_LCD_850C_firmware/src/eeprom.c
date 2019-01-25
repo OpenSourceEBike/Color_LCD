@@ -203,9 +203,9 @@ static void eeprom_read_values_to_variables(void)
   ui32_temp += (((uint32_t) ui8_temp << 16) & 0xff0000);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_OFFSET_3);
   ui32_temp += (((uint32_t) ui8_temp << 24) & 0xff000000);
-  __disable_irq();
+//  __disable_irq();
   p_configuration_variables->ui32_wh_x10_offset = ui32_temp;
-  __enable_irq();
+//  __enable_irq();
 
   ui32_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_0);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_1);
@@ -325,12 +325,12 @@ static void variables_to_array(uint8_t *ui8_array)
   ui8_array [3] = (p_configuration_variables->ui16_wheel_perimeter >> 8) & 255;
   ui8_array [4] = p_configuration_variables->ui8_wheel_max_speed;
   ui8_array [5] = p_configuration_variables->ui8_units_type;
-  __disable_irq();
+//  __disable_irq();
   ui8_array [6] = p_configuration_variables->ui32_wh_x10_offset & 255;
   ui8_array [7] = (p_configuration_variables->ui32_wh_x10_offset >> 8) & 255;
   ui8_array [8] = (p_configuration_variables->ui32_wh_x10_offset >> 16) & 255;
   ui8_array [9] = (p_configuration_variables->ui32_wh_x10_offset >> 24) & 255;
-  __enable_irq();
+//  __enable_irq();
   ui8_array [10] = p_configuration_variables->ui32_wh_x10_100_percent & 255;
   ui8_array [11] = (p_configuration_variables->ui32_wh_x10_100_percent >> 8) & 255;
   ui8_array [12] = (p_configuration_variables->ui32_wh_x10_100_percent >> 16) & 255;

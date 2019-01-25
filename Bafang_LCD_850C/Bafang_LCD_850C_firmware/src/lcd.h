@@ -121,8 +121,10 @@ typedef struct _print_number
   uint8_t ui8_field_number_of_digits;
   uint8_t ui8_left_zero_paddig;
   uint8_t ui8_left_paddig;
+  uint8_t ui8_refresh_all_digits;
   uint32_t ui32_number;
   uint8_t ui8_digit_number_start_previous;
+  uint8_t ui8_clean_area_all_digits;
 } print_number_t;
 
 void lcd_init(void);

@@ -32,6 +32,9 @@ void SysTick_Handler(void) // runs every 1ms
   {
     ui8_100ms_timmer_counter = 0;
 
+    // process the data every 100ms
+    lcd_process_rx_data();
+
     // must be called every 100ms
     calc_wh();
   }

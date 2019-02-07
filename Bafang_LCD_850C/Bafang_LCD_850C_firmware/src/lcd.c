@@ -32,6 +32,7 @@
 #define BATTERY_SOC_BAR_HEIGHT 24
 #define BATTERY_SOC_CONTOUR 1
 
+static uart_rx_data_t uart_rx_data;
 static struct_motor_controller_data motor_controller_data;
 static struct_configuration_variables configuration_variables;
 
@@ -93,6 +94,7 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
 void draw_configurations_screen_mask(void);
+void lcd_process_rx_data(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -109,27 +111,12 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
-//  if (first_time_management())
-//    return;
+  if (first_time_management())
+    return;
 
   update_menu_flashing_state();
 
   calc_battery_soc_watts_hour();
-
-  low_pass_filter_battery_voltage_current_power();
-  if (lcd_vars.ui8_lcd_menu_counter_1000ms_state)
-  {
-    low_pass_filter_pedal_cadence();
-  }
-
-  if (ui8_lcd_menu_counter_100ms_state)
-  {
-    low_pass_filter_pedal_torque_and_power();
-  }
-
-  calc_battery_voltage_soc();
-  calc_odometer();
-//  automatic_power_off_management();
 
   // enter menu configurations: UP + DOWN click event
   if (buttons_get_up_down_click_event () &&
@@ -200,6 +187,41 @@ void lcd_main_screen (void)
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;
+}
+
+void lcd_process_rx_data(void)
+{
+  uint8_t* p_rx_buffer;
+  uint8_t ui8_rx[21];
+
+  // copy the rx_buffer data to local buffer and disable UART interrupt to avoid buffer corruption with new data
+  USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); // disable USART receive interrupt
+  p_rx_buffer = usart1_get_rx_buffer();
+  memcpy(&p_rx_buffer[0], &ui8_rx[0], 21);
+  USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable USART receive interrupt
+
+
+  // now do all the calculations that must be done every 100ms
+
+  // must be called every 100ms
+  low_pass_filter_battery_voltage_current_power();
+  low_pass_filter_pedal_torque_and_power();
+
+  if (lcd_vars.ui8_lcd_menu_counter_1000ms_state)
+  {
+    low_pass_filter_pedal_cadence();
+  }
+
+  if (ui8_lcd_menu_counter_100ms_state)
+  {
+    low_pass_filter_pedal_torque_and_power();
+  }
+
+  calc_battery_voltage_soc();
+  calc_odometer();
+  automatic_power_off_management();
+
+  calc_wh();
 }
 
 uint8_t first_time_management(void)
@@ -295,6 +317,7 @@ void assist_level_state(void)
     assist_level.ui32_x_position = 25;
     assist_level.ui32_y_position = 84;
     assist_level.ui32_number = (uint32_t) configuration_variables.ui8_assist_level;
+    assist_level.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&assist_level);
   }
 }
@@ -307,6 +330,11 @@ struct_configuration_variables* get_configuration_variables(void)
 struct_motor_controller_data* get_motor_controller_data(void)
 {
   return &motor_controller_data;
+}
+
+uart_rx_data_t* get_uart_rx_data(void)
+{
+  return &uart_rx_data;
 }
 
 void power_off_management(void)
@@ -358,7 +386,6 @@ void low_pass_filter_battery_voltage_current_power(void)
   ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
 
   // battery power
-//  __disable_irq();
   ui16_battery_power_filtered_x50 = ui16_battery_current_filtered_x5 * ui16_battery_voltage_filtered_x10;
   ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
 
@@ -380,7 +407,6 @@ void low_pass_filter_battery_voltage_current_power(void)
     ui16_battery_power_filtered /= 25;
     ui16_battery_power_filtered *= 25;
   }
-//  __enable_irq();
 }
 
 void low_pass_filter_pedal_torque_and_power(void)
@@ -668,8 +694,8 @@ void brake(void)
       // 5 leters
       ui32_x1 = 178;
       ui32_y1 = 10;
-      ui32_x2 = ui32_x1 + ((5 * 10) + (5 * 1) + 1);
-      ui32_y2 = ui32_y1 + 18;
+      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 1);
+      ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
   }
@@ -1004,6 +1030,7 @@ void battery_soc(void)
       soc.ui32_x_position = BATTERY_SOC_START_X + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 10) + (BATTERY_SOC_CONTOUR * 2) + 10;
       soc.ui32_y_position = 10;
       soc.ui32_number = ui16_battery_soc_watts_hour;
+      soc.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
       lcd_print_number(&soc);
 
       ui32_x1 = soc.ui32_x_final_position + 2;
@@ -1112,7 +1139,8 @@ void time(void)
   p_rtc_time = rtc_get_time();
 
   if ((p_rtc_time->ui8_hours != p_rtc_time_previous->ui8_hours) ||
-      (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes))
+      (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes) ||
+      lcd_vars.ui32_main_screen_draw_static_info)
   {
     p_rtc_time_previous->ui8_hours = p_rtc_time->ui8_hours;
     p_rtc_time_previous->ui8_minutes = p_rtc_time->ui8_minutes;
@@ -1123,6 +1151,7 @@ void time(void)
     hours.ui32_x_position = ui32_x_position;
     hours.ui32_y_position = ui32_y_position;
     hours.ui32_number = p_rtc_time->ui8_hours;
+    hours.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&hours);
 
     // print ":"
@@ -1135,6 +1164,7 @@ void time(void)
     minutes.ui32_x_position = ui32_x_position;
     minutes.ui32_y_position = ui32_y_position;
     minutes.ui32_number = p_rtc_time->ui8_minutes;
+    minutes.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&minutes);
   }
 }
@@ -1186,6 +1216,7 @@ void power(void)
       if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
 
       power_number.ui32_number = _ui16_battery_power_filtered;
+      power_number.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
       lcd_print_number(&power_number);
       power_number.ui8_refresh_all_digits = 0;
     }
@@ -1327,6 +1358,7 @@ void wheel_speed(void)
     wheel_speed_integer.ui32_x_position = ui32_x_position;
     wheel_speed_integer.ui32_y_position = ui32_y_position;
     wheel_speed_integer.ui32_number = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 / 10);
+    wheel_speed_integer.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_integer);
 
     // accounting for dot: 10 px
@@ -1337,6 +1369,7 @@ void wheel_speed(void)
     wheel_speed_decimal.ui32_x_position = ui32_x_position;
     wheel_speed_decimal.ui32_y_position = ui32_y_position;
     wheel_speed_decimal.ui32_number = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 % 10);
+    wheel_speed_decimal.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_decimal);
   }
 }
@@ -1345,9 +1378,8 @@ void calc_battery_soc_watts_hour(void)
 {
   uint32_t ui32_temp;
 
-//  __disable_irq();
   ui32_temp = motor_controller_data.ui32_wh_x10 * 100;
-//  __enable_irq();
+
   if (configuration_variables.ui32_wh_x10_100_percent > 0)
   {
     ui32_temp /= configuration_variables.ui32_wh_x10_100_percent;

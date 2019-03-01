@@ -42,12 +42,9 @@ typedef struct _motor_controller_data
   uint16_t ui16_pedal_torque_x10;
   uint16_t ui16_pedal_power_x10;
   uint16_t ui16_battery_voltage_soc_x10;
-  uint32_t ui32_wh_sum_x5;
-  uint32_t ui32_wh_sum_counter;
-  uint32_t ui32_wh_x10;
 } struct_motor_controller_data;
 
-typedef struct uart_rx_data_struct
+typedef struct processed_vars1_struct
 {
   uint16_t ui16_adc_battery_voltage;
   uint8_t ui8_battery_current_x5;
@@ -68,7 +65,29 @@ typedef struct uart_rx_data_struct
   uint32_t ui32_wheel_speed_sensor_tick_counter;
   uint16_t ui16_pedal_torque_x10;
   uint16_t ui16_pedal_power_x10;
-} uart_rx_data_t;
+  uint16_t ui16_battery_voltage_filtered_x10;
+  uint16_t ui16_battery_current_filtered_x5;
+  uint16_t ui16_battery_power_filtered_x50;
+  uint16_t ui16_battery_power_filtered;
+  uint16_t ui16_pedal_torque_filtered;
+  uint16_t ui16_pedal_power_filtered;
+  uint8_t ui8_pedal_cadence_filtered;
+  uint16_t ui16_battery_voltage_soc_x10;
+  uint32_t ui32_wh_sum_x5;
+  uint32_t ui32_wh_sum_counter;
+  uint32_t ui32_wh_x10;
+} processed_vars1_t;
+
+typedef struct controller_config_vars_struct
+{
+
+} controller_config_vars_t;
+
+typedef struct lcd_vars_struct
+{
+  processed_vars1_t processed_vars_1;
+  controller_config_vars_t controller_config_vars;
+} lcd_vars_t;
 
 typedef struct _configuration_variables
 {
@@ -149,6 +168,8 @@ typedef struct _print_number
   uint8_t ui8_digit_number_start_previous;
   uint8_t ui8_clean_area_all_digits;
 } print_number_t;
+
+extern volatile uint8_t lcd_process_data_1_enable;
 
 void lcd_init(void);
 void lcd_clock(void);

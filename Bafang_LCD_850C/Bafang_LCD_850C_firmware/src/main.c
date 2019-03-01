@@ -60,7 +60,6 @@ int main(void)
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
       buttons_clock();
-      usart1_data_clock();
       lcd_clock();
 
       continue;

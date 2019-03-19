@@ -22,22 +22,37 @@ void delay_ms (uint32_t ms)
 void SysTick_Handler(void) // runs every 1ms
 {
   static uint8_t ui8_100ms_timmer_counter = 0;
+  static uint8_t ui8_layer_2_reschedule = 0;
 
   _ms++; // for delay_ms ()
 
   time_base_counter_1ms++;
 
-  // every 100ms
+  // every 100ms, try process layer 2
   if(ui8_100ms_timmer_counter > 100)
   {
     ui8_100ms_timmer_counter = 0;
 
-    // process the data every 100ms
-    if(lcd_process_data_1_enable)
+    if(ui8_g_layer_2_can_execute)
     {
-      lcd_process_data_1();
+      layer_2();
+    }
+    // let's reschedule because layer_2_can_execute = 0
+    else
+    {
+      ui8_layer_2_reschedule = 1;
     }
   }
+  // let's try process the data. We do not expect it will need to be rescheadule more than the 100ms
+  else if(ui8_layer_2_reschedule)
+  {
+    if(ui8_g_layer_2_can_execute)
+    {
+      ui8_layer_2_reschedule = 0;
+      layer_2();
+    }
+  }
+
   ui8_100ms_timmer_counter++;
 }
 

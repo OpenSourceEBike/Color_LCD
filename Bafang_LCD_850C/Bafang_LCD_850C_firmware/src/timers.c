@@ -9,6 +9,8 @@
 #include "stm32f10x.h"
 #include "timers.h"
 #include "lcd.h"
+#include "main.h"
+#include "pins.h"
 
 static volatile uint32_t _ms;
 volatile uint32_t time_base_counter_1ms = 0;
@@ -21,39 +23,18 @@ void delay_ms (uint32_t ms)
 
 void SysTick_Handler(void) // runs every 1ms
 {
-  static uint8_t ui8_100ms_timmer_counter = 0;
-  static uint8_t ui8_layer_2_reschedule = 0;
-
   _ms++; // for delay_ms ()
 
   time_base_counter_1ms++;
 
-  // every 100ms, try process layer 2
-  if(ui8_100ms_timmer_counter > 100)
+  if(ui32_g_layer_2_delayed_execute)
   {
-    ui8_100ms_timmer_counter = 0;
-
-    if(ui8_g_layer_2_can_execute)
+    if(ui32_g_layer_2_can_execute)
     {
-      layer_2();
-    }
-    // let's reschedule because layer_2_can_execute = 0
-    else
-    {
-      ui8_layer_2_reschedule = 1;
-    }
-  }
-  // let's try process the data. We do not expect it will need to be rescheadule more than the 100ms
-  else if(ui8_layer_2_reschedule)
-  {
-    if(ui8_g_layer_2_can_execute)
-    {
-      ui8_layer_2_reschedule = 0;
+      ui32_g_layer_2_delayed_execute = 0;
       layer_2();
     }
   }
-
-  ui8_100ms_timmer_counter++;
 }
 
 void systick_init (void)
@@ -66,7 +47,7 @@ void systick_init (void)
   }
 }
 
-uint32_t get_time_base_counter_1ms (void)
+volatile uint32_t get_time_base_counter_1ms (void)
 {
   return time_base_counter_1ms;
 }
@@ -88,7 +69,7 @@ void timer3_init(void)
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-  /* PWM1 Mode configuration: Channel1 */
+  /* PWM1 Mode configuration: Channel2 */
   TIM_OCInitTypeDef TIM_OCInitStructure;
   TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
@@ -101,3 +82,52 @@ void timer3_init(void)
   TIM_Cmd(TIM3, ENABLE);
 }
 
+// every 100ms
+void TIM4_IRQHandler(void)
+{
+  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+  {
+    /* Clear TIMx TIM_IT_Update pending interrupt bit */
+    TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+
+    if(ui32_g_layer_2_can_execute)
+    {
+      layer_2();
+    }
+    else
+    {
+      ui32_g_layer_2_delayed_execute = 1;
+    }
+  }
+}
+
+void timer4_init(void)
+{
+  // enable TIMx clock
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+
+  // reset TIMx
+  TIM_DeInit(TIM4);
+
+  /* Time base configuration */
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+  TIM_TimeBaseStructure.TIM_Period = (10000 - 1);
+  TIM_TimeBaseStructure.TIM_Prescaler = (1280 - 1); // 128MHz clock (PCLK1), 128MHz/12800000 = 10Hz --> 1ms each increment of the counter/timer
+  TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseInit (TIM4, &TIM_TimeBaseStructure);
+
+  /* Enable the TIMx global Interrupt */
+  NVIC_InitTypeDef NVIC_InitStructure;
+  NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = TIM4_INTERRUPT_PRIORITY;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init (&NVIC_InitStructure);
+
+  /* TIMx TIM_IT_Update enable */
+  TIM_ITConfig (TIM4, TIM_IT_Update, ENABLE);
+
+  /* TIM4 counter enable */
+  TIM_Cmd (TIM4, ENABLE);
+}

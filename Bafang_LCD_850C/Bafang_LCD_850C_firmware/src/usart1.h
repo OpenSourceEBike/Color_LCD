@@ -11,9 +11,10 @@
 
 #include "stdio.h"
 
-extern volatile ui8_g_received_package_flag;
-
 void usart1_init(void);
-uint8_t* usart1_get_rx_buffer (void);
+uint8_t* usart1_get_rx_buffer(void);
+uint8_t usart1_received_package(void);
+void usart1_reset_received_package(void);
+void usart1_send_byte_and_block(uint8_t ui8_byte);
 
 #endif

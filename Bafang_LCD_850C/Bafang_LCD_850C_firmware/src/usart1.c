@@ -6,8 +6,8 @@
  * Released under the GPL License, Version 3
  */
 
+#include <string.h>
 #include "usart1.h"
-
 #include "stm32f10x.h"
 #include "pins.h"
 #include "stm32f10x_usart.h"
@@ -16,25 +16,8 @@
 #include "usart1.h"
 #include "main.h"
 
-static volatile uint8_t ui8_rx[26];
-volatile uint8_t ui8_rx_buffer[24];
-static volatile uint8_t ui8_rx_counter = 0;
-static volatile uint8_t ui8_tx[11];
-volatile uint8_t ui8_tx_buffer[11];
-static volatile uint8_t ui8_tx_counter = 0;
-static volatile uint8_t ui8_i;
-static volatile uint8_t ui8_checksum;
-static uint16_t ui16_crc_rx;
-static uint16_t ui16_crc_tx;
-static uint8_t ui8_lcd_variable_id = 0;
-static uint8_t ui8_master_comm_package_id = 0;
-static uint8_t ui8_slave_comm_package_id = 0;
-static volatile uint8_t ui8_byte_received;
-static volatile uint8_t ui8_state_machine = 0;
-static volatile uint8_t ui8_usart1_received_first_package = 0;
-volatile ui8_g_received_package_flag = 0;
-
-static uart_rx_vars_t *mp_uart_rx_data;
+uint8_t ui8_rx_buffer[24];
+volatile uint8_t ui8_received_package_flag = 0;
 
 void usart1_init(void)
 {
@@ -86,6 +69,13 @@ void usart1_init(void)
 // USART1 Tx and Rx interrupt handler.
 void USART1_IRQHandler()
 {
+  uint8_t ui8_byte_received;
+  static uint8_t ui8_state_machine = 0;
+  static uint8_t ui8_rx[26];
+  static uint8_t ui8_rx_counter = 0;
+  uint8_t ui8_i;
+  uint16_t ui16_crc_rx;
+
   // The interrupt may be from Tx, Rx, or both.
   if(USART_GetITStatus(USART1, USART_IT_ORE) == SET)
   {
@@ -136,11 +126,16 @@ void USART1_IRQHandler()
           crc16(ui8_rx[ui8_i], &ui16_crc_rx);
         }
 
-        if(((((uint16_t) ui8_rx [25]) << 8) + ((uint16_t) ui8_rx [24])) == ui16_crc_rx)
+        if(((((uint16_t) ui8_rx[25]) << 8) + ((uint16_t) ui8_rx[24])) == ui16_crc_rx)
         {
-          // now store the received data to rx_buffer
-          memcpy(&ui8_rx_buffer[0], &ui8_rx[0], 24);
-          ui8_g_received_package_flag = 1;
+          // copy to the other buffer only if we processed already the last package
+          if(!ui8_received_package_flag)
+          {
+            ui8_received_package_flag = 1;
+
+            // store the received data to rx_buffer
+            memcpy(ui8_rx_buffer, ui8_rx, 24);
+          }
         }
       }
       break;
@@ -151,140 +146,24 @@ void USART1_IRQHandler()
   }
 }
 
-void usart1_data_clock (void)
-{
-  static uint32_t ui32_wss_tick_temp;
-  struct_motor_controller_data *p_motor_controller_data;
-  struct_configuration_variables *p_configuration_variables;
-
-
-
-      // now send the data to the motor controller
-      // start up byte
-      ui8_tx_buffer[0] = 0x59;
-      ui8_tx_buffer[1] = ui8_master_comm_package_id;
-      ui8_tx_buffer[2] = ui8_slave_comm_package_id;
-
-      // set assist level value
-      if (p_configuration_variables->ui8_assist_level)
-      {
-        ui8_tx_buffer[3] = p_configuration_variables->ui8_assist_level_factor [((p_configuration_variables->ui8_assist_level) - 1)];
-      }
-      else
-      {
-        ui8_tx_buffer[3] = 0;
-      }
-
-      // set lights state
-      // walk assist level state
-      // set offroad state
-      ui8_tx_buffer[4] = (p_motor_controller_data->ui8_lights & 1) |
-          ((p_motor_controller_data->ui8_walk_assist_level & 1) << 1) |
-          ((p_motor_controller_data->ui8_offroad_mode & 1) << 2);
-
-      // battery max current in amps
-      ui8_tx_buffer[5] = p_configuration_variables->ui8_battery_max_current;
-
-      // battery power
-      ui8_tx_buffer[6] = p_configuration_variables->ui8_target_max_battery_power;
-
-      switch (ui8_master_comm_package_id)
-      {
-        case 0:
-          // battery low voltage cut-off
-          ui8_tx_buffer[7] = (uint8_t) (p_configuration_variables->ui16_battery_low_voltage_cut_off_x10 & 0xff);
-          ui8_tx_buffer[8] = (uint8_t) (p_configuration_variables->ui16_battery_low_voltage_cut_off_x10 >> 8);
-        break;
-
-        case 1:
-          // wheel perimeter
-          ui8_tx_buffer[7] = (uint8_t) (p_configuration_variables->ui16_wheel_perimeter & 0xff);
-          ui8_tx_buffer[8] = (uint8_t) (p_configuration_variables->ui16_wheel_perimeter >> 8);
-        break;
-
-        case 2:
-          // wheel max speed
-          ui8_tx_buffer[7] = p_configuration_variables->ui8_wheel_max_speed;
-        break;
-
-        case 3:
-          // bit 0: cruise control
-          // bit 1: motor voltage type: 36V or 48V
-          // bit 2: MOTOR_ASSISTANCE_CAN_START_WITHOUT_PEDAL_ROTATION
-          ui8_tx_buffer[7] = ((p_configuration_variables->ui8_cruise_control & 1) |
-                             ((p_configuration_variables->ui8_motor_type & 3) << 1) |
-                              ((p_configuration_variables->ui8_motor_assistance_startup_without_pedal_rotation & 1) << 3) |
-                              ((p_configuration_variables->ui8_temperature_limit_feature_enabled & 1) << 4));
-          ui8_tx_buffer[8] = p_configuration_variables->ui8_startup_motor_power_boost_state;
-        break;
-
-        case 4:
-          // startup motor power boost
-          ui8_tx_buffer[7] = p_configuration_variables->ui8_startup_motor_power_boost_factor [((p_configuration_variables->ui8_assist_level) - 1)];
-          // startup motor power boost time
-          ui8_tx_buffer[8] = p_configuration_variables->ui8_startup_motor_power_boost_time;
-        break;
-
-        case 5:
-          // startup motor power boost fade time
-          ui8_tx_buffer[7] = p_configuration_variables->ui8_startup_motor_power_boost_fade_time;
-          // boost feature enabled
-          ui8_tx_buffer[8] = (p_configuration_variables->ui8_startup_motor_power_boost_feature_enabled & 1) ? 1 : 0;
-        break;
-
-        case 6:
-          // motor over temperature min and max values to limit
-          ui8_tx_buffer[7] = p_configuration_variables->ui8_motor_temperature_min_value_to_limit;
-          ui8_tx_buffer[8] = p_configuration_variables->ui8_motor_temperature_max_value_to_limit;
-        break;
-
-        case 7:
-          // offroad mode configuration
-          ui8_tx_buffer[7] = ((p_configuration_variables->ui8_offroad_feature_enabled & 1) |
-                                ((p_configuration_variables->ui8_offroad_enabled_on_startup & 1) << 1));
-          ui8_tx_buffer[8] = p_configuration_variables->ui8_offroad_speed_limit;
-        break;
-
-        case 8:
-          // offroad mode power limit configuration
-          ui8_tx_buffer[7] = p_configuration_variables->ui8_offroad_power_limit_enabled & 1;
-          ui8_tx_buffer[8] = p_configuration_variables->ui8_offroad_power_limit_div25;
-        break;
-
-        default:
-          ui8_lcd_variable_id = 0;
-        break;
-      }
-
-      // prepare crc of the package
-      ui16_crc_tx = 0xffff;
-      for (ui8_i = 0; ui8_i <= 8; ui8_i++)
-      {
-        crc16 (ui8_tx_buffer[ui8_i], &ui16_crc_tx);
-      }
-      ui8_tx_buffer[9] = (uint8_t) (ui16_crc_tx & 0xff);
-      ui8_tx_buffer[10] = (uint8_t) (ui16_crc_tx >> 8) & 0xff;
-
-      // send the full package to UART
-      for (ui8_i = 0; ui8_i <= 10; ui8_i++)
-      {
-        // wait for any previous data to be sent
-        while (USART_GetFlagStatus (USART1, USART_FLAG_TXE) == RESET) ;
-        USART_SendData (USART1, ui8_tx_buffer[ui8_i]);
-      }
-
-      // let's wait for 10 packages, seems that first ADC battery voltage is an incorrect value
-      ui8_usart1_received_first_package++;
-      if (ui8_usart1_received_first_package > 10)
-        ui8_usart1_received_first_package = 10;
-    }
-
-    // enable USART1 receive interrupt as we are now ready to receive a new package
-    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // disable USART receive interrupt
-  }
-}
-
 uint8_t* usart1_get_rx_buffer(void)
 {
-  return &ui8_rx_buffer[0];
+  return ui8_rx_buffer;
+}
+
+uint8_t usart1_received_package(void)
+{
+  return ui8_received_package_flag;
+}
+
+void usart1_reset_received_package(void)
+{
+  ui8_received_package_flag = 0;
+}
+
+void usart1_send_byte_and_block(uint8_t ui8_byte)
+{
+  // wait for any previous data to be sent
+  while (USART_GetFlagStatus (USART1, USART_FLAG_TXE) == RESET) ;
+  USART_SendData (USART1, ui8_byte);
 }

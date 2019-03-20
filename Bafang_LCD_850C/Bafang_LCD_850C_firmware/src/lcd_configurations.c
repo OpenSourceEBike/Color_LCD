@@ -39,7 +39,7 @@ typedef struct _menu_data
 
 typedef struct _var_number
 {
-  void *p_var_number;
+  volatile void *p_var_number;
   uint8_t ui8_size;
   uint8_t ui8_number_digits;
   uint8_t ui8_decimal_digit;
@@ -48,7 +48,7 @@ typedef struct _var_number
   uint32_t ui32_increment_step;
 } var_number_t;
 
-static l3_vars_t *p_l3_vars;
+volatile static l3_vars_t *p_l3_vars;
 
 static struct_lcd_configurations_vars lcd_configurations_vars =
 {

@@ -180,7 +180,7 @@ static void eeprom_read_values_to_variables(void)
   uint32_t ui32_temp;
   uint8_t ui8_index;
 
-  l3_vars_t *p_l3_output_vars;
+  volatile l3_vars_t *p_l3_output_vars;
   p_l3_output_vars = get_l3_vars();
 
   p_l3_output_vars->ui8_assist_level = eeprom_read(ADDRESS_ASSIST_LEVEL);
@@ -313,7 +313,7 @@ static void variables_to_array(uint8_t *ui8_array)
 {
   uint8_t ui8_index;
 
-  l3_vars_t *p_l3_vars;
+  volatile l3_vars_t *p_l3_vars;
   p_l3_vars = get_l3_vars();
 
   ui8_array [0] = KEY;

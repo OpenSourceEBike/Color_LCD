@@ -12,7 +12,8 @@
 // INTERRUPTS PRIORITIES
 // Define for the NVIC IRQChannel Preemption Priority
 // lower number has higher priority
-#define USART1_INTERRUPT_PRIORITY       4
+#define USART1_INTERRUPT_PRIORITY       3
+#define USART1_DMA_INTERRUPT_PRIORITY   4
 #define TIM4_INTERRUPT_PRIORITY         5
 #define RTC_INTERRUT_PRIORITY           6
 

@@ -40,8 +40,8 @@ lcd_vars_t lcd_vars =
   .ui8_lcd_menu_max_power = 0,
 };
 
-static l2_vars_t l2_vars;
-static l3_vars_t l3_vars;
+volatile l2_vars_t l2_vars;
+volatile l3_vars_t l3_vars;
 
 static struct_lcd_configurations_vars *p_lcd_configurations_vars;
 
@@ -569,7 +569,7 @@ void assist_level_state(void)
   }
 }
 
-l3_vars_t* get_l3_vars(void)
+volatile l3_vars_t* get_l3_vars(void)
 {
   return &l3_vars;
 }

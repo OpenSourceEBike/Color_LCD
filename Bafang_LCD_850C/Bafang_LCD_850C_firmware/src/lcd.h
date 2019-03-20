@@ -215,7 +215,7 @@ void lcd_init(void);
 void lcd_clock(void);
 void l2_calc_wh(void);
 void layer_2(void);
-l3_vars_t* get_l3_vars (void);
+volatile l3_vars_t* get_l3_vars (void);
 lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
 

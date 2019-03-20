@@ -53,11 +53,11 @@ int main(void)
       buttons_get_down_state() ||
       buttons_get_up_state()) ;
 
-  GPIO_InitTypeDef GPIO_InitStructure;
-  GPIO_InitStructure.GPIO_Pin = USART1_TX__PIN;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_Init(USART1__PORT, &GPIO_InitStructure);
+//  GPIO_InitTypeDef GPIO_InitStructure;
+//  GPIO_InitStructure.GPIO_Pin = USART1_TX__PIN;
+//  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+//  GPIO_Init(USART1__PORT, &GPIO_InitStructure);
 
   while(1)
   {

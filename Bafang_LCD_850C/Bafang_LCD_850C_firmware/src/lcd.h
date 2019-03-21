@@ -210,7 +210,6 @@ typedef struct _print_number
 
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 extern volatile uint32_t ui32_g_layer_2_delayed_execute;
-extern volatile uint32_t ui32_g_dma_usart_tx_ongoing;
 extern volatile uint8_t ui8_g_usart1_tx_buffer[11];
 
 void lcd_init(void);

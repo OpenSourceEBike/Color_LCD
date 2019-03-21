@@ -176,7 +176,7 @@ void buttons_clock (void)
       ui32_onoff_button_state_counter++;
 
       // event long click
-      if (ui32_onoff_button_state_counter > 80) // 2 seconds
+      if (ui32_onoff_button_state_counter > 100) // 2 seconds
       {
         buttons_set_events(ONOFF_LONG_CLICK);
         ui32_onoff_button_state = 2;
@@ -224,7 +224,7 @@ void buttons_clock (void)
       }
 
       // event click
-      if (ui32_onoff_button_state_counter > 16)
+      if (ui32_onoff_button_state_counter > 20)
       {
         buttons_set_events(ONOFF_CLICK);
         ui32_onoff_button_state = 0;
@@ -236,7 +236,7 @@ void buttons_clock (void)
       ui32_onoff_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if (ui32_onoff_button_state_counter > 40)
+      if (ui32_onoff_button_state_counter > 50)
       {
         buttons_set_events(ONOFF_CLICK_LONG_CLICK);
         ui32_onoff_button_state = 2;
@@ -275,7 +275,7 @@ void buttons_clock (void)
       ui32_up_button_state_counter++;
 
       // event long click
-      if (ui32_up_button_state_counter++ > 80) // 2 seconds
+      if (ui32_up_button_state_counter++ > 100) // 2 seconds
       {
         // up and down button click
         if (ui32_down_button_state == 1)
@@ -334,7 +334,7 @@ void buttons_clock (void)
       }
 
       // event click
-      if (ui32_up_button_state_counter > 12)
+      if (ui32_up_button_state_counter > 20)
       {
         buttons_set_events(UP_CLICK);
         ui32_up_button_state = 0;
@@ -346,7 +346,7 @@ void buttons_clock (void)
       ui32_up_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if (ui32_up_button_state_counter > 40)
+      if (ui32_up_button_state_counter > 50)
       {
         buttons_set_events(UP_CLICK_LONG_CLICK);
         ui32_up_button_state = 2;
@@ -385,7 +385,7 @@ void buttons_clock (void)
       ui32_down_button_state_counter++;
 
       // event long click
-      if (ui32_down_button_state_counter++ > 80) // 2 seconds
+      if (ui32_down_button_state_counter++ > 100) // 2 seconds
       {
         // up and down button click
         if (ui32_up_button_state == 1)
@@ -445,7 +445,7 @@ void buttons_clock (void)
       }
 
       // event click
-      if (ui32_down_button_state_counter > 12)
+      if (ui32_down_button_state_counter > 15)
       {
         buttons_set_events(DOWN_CLICK);
         ui32_down_button_state = 0;
@@ -457,7 +457,7 @@ void buttons_clock (void)
       ui32_down_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if (ui32_down_button_state_counter > 40)
+      if (ui32_down_button_state_counter > 50)
       {
         buttons_set_events(DOWN_CLICK_LONG_CLICK);
         ui32_down_button_state = 2;

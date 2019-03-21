@@ -32,8 +32,8 @@ void usart1_init(void)
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 
   DMA_DeInit(DMA1_Channel4);
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)USART1;
-  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)ui8_g_usart1_tx_buffer;
+  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART1->DR);
+  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) &ui8_g_usart1_tx_buffer;
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
   DMA_InitStructure.DMA_BufferSize = 11;
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -72,27 +72,18 @@ void usart1_init(void)
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
-//  // enable DMA USART1 interrupt
-//  NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel4_IRQn;
-//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = USART1_DMA_INTERRUPT_PRIORITY;
-//  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-//  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//  NVIC_Init(&NVIC_InitStructure);
-
   USART_ClearITPendingBit(USART1, USART_IT_RXNE);
   USART_ClearITPendingBit(USART1, USART_IT_TXE);
-//  DMA_ClearITPendingBit(DMA1_IT_TC4);
 
   // enable the USART
   USART_Cmd(USART1, ENABLE);
 
-  USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
   DMA_Cmd(DMA1_Channel4, ENABLE);
+  USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
   USART_Cmd(USART1, ENABLE);
 
   // enable USART Receive and Transmit interrupts
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-//  DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
 }
 
 // USART1 Tx and Rx interrupt handler.
@@ -175,27 +166,10 @@ void USART1_IRQHandler()
   }
 }
 
-void DMA1_Channel4_IRQHandler()
-{
-  if(DMA_GetITStatus(DMA1_IT_TC4) == SET)
-  {
-    ui32_g_dma_usart_tx_ongoing = 0;
-    DMA_ClearITPendingBit(DMA1_IT_TC4 | DMA1_IT_GL4);
-  }
-
-  DMA_ClearITPendingBit(DMA1_IT_TC4);
-  DMA_ClearITPendingBit(DMA1_IT_GL4);
-  DMA_ClearITPendingBit(DMA1_IT_HT4);
-  DMA_ClearITPendingBit(DMA1_IT_TE4);
-
-  DMA_Cmd(DMA1_Channel4, DISABLE);
-}
-
 void usart1_start_dma_transfer(void)
 {
   DMA_Cmd(DMA1_Channel4, DISABLE);
   DMA_SetCurrDataCounter(DMA1_Channel4, 11);
-  USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
   DMA_Cmd(DMA1_Channel4, ENABLE);
 }
 

@@ -57,7 +57,6 @@ static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
 volatile uint32_t ui32_g_layer_2_can_execute = 0;
 volatile uint32_t ui32_g_layer_2_delayed_execute = 0;
-volatile uint32_t ui32_g_dma_usart_tx_ongoing = 0;
 
 static uint16_t ui16_m_battery_soc_watts_hour = 0;
 
@@ -110,7 +109,7 @@ void lcd_clock(void)
   static uint8_t ui8_counter_100ms = 0;
 
   // every 100ms
-  if(ui8_counter_100ms++ >= 3)
+  if(ui8_counter_100ms++ >= 4)
   {
     ui8_counter_100ms = 0;
 
@@ -121,8 +120,8 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-//  if (first_time_management())
-//    return;
+  if (first_time_management())
+    return;
 
   update_menu_flashing_state();
 
@@ -449,11 +448,7 @@ void layer_2(void)
 
   // send the full package to UART
   // start DMA UART transfer
-//  if(!ui32_g_dma_usart_tx_ongoing)
-//  {
-//    ui32_g_dma_usart_tx_ongoing = 1;
-    usart1_start_dma_transfer();
-//  }
+  usart1_start_dma_transfer();
 
   // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
   ui8_m_usart1_received_first_package++;
@@ -812,7 +807,7 @@ void update_menu_flashing_state(void)
 
   // ***************************************************************************************************
   // For flashing on menus, 0.5 seconds flash
-  if (ui8_lcd_menu_flash_counter++ > 20)
+  if (ui8_lcd_menu_flash_counter++ > 25)
   {
     ui8_lcd_menu_flash_counter = 0;
 
@@ -825,7 +820,7 @@ void update_menu_flashing_state(void)
 
   // ***************************************************************************************************
   ui8_lcd_menu_counter_100ms_state = 0;
-  if (ui8_lcd_menu_counter_100ms++ > 4)
+  if (ui8_lcd_menu_counter_100ms++ > 5)
   {
     ui8_lcd_menu_counter_100ms = 0;
     ui8_lcd_menu_counter_100ms_state = 1;
@@ -836,7 +831,7 @@ void update_menu_flashing_state(void)
 
   if(lcd_vars.ui8_lcd_menu_counter_1000ms_state)
   {
-    if(ui8_lcd_menu_counter_1000ms++ > 32)
+    if(ui8_lcd_menu_counter_1000ms++ > 40)
     {
       ui8_lcd_menu_counter_1000ms = 0;
       lcd_vars.ui8_lcd_menu_counter_1000ms_state = 0;
@@ -845,7 +840,7 @@ void update_menu_flashing_state(void)
   }
   else
   {
-    if(ui8_lcd_menu_counter_1000ms++ > 8)
+    if(ui8_lcd_menu_counter_1000ms++ > 10)
     {
       ui8_lcd_menu_counter_1000ms = 0;
       lcd_vars.ui8_lcd_menu_counter_1000ms_state = 1;

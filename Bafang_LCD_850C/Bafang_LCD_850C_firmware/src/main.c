@@ -64,7 +64,7 @@ int main(void)
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
     ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
-    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 25) // every 25ms
+    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 20) // every 20ms
     {
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 

@@ -24,12 +24,14 @@
 #include "utils.h"
 #include "rtc.h"
 
+#include "stm32f10x_usart.h"
+
 void SetSysClockTo128Mhz(void);
 
 int main(void)
 {
-  uint32_t ui32_timer_base_counter_1ms;
-  uint32_t ui32_10ms_loop_counter;
+  volatile uint32_t ui32_timer_base_counter_1ms;
+  volatile uint32_t ui32_10ms_loop_counter;
   static buttons_events_t events = 0;
   static buttons_events_t last_events = 0;
 
@@ -41,26 +43,33 @@ int main(void)
   systick_init();
   usart1_init();
   eeprom_init();
-  timer3_init(); // drives LCD backlight
   rtc_init();
+  timer3_init(); // drives LCD backlight
   lcd_init();
+  timer4_init();
 
   // block until user release the buttons
   while (buttons_get_onoff_state() ||
       buttons_get_down_state() ||
       buttons_get_up_state()) ;
 
+//  GPIO_InitTypeDef GPIO_InitStructure;
+//  GPIO_InitStructure.GPIO_Pin = USART1_TX__PIN;
+//  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+//  GPIO_Init(USART1__PORT, &GPIO_InitStructure);
+
   while(1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
     ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
-    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 10) // every 10ms
+    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 20) // every 20ms
     {
       ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
 
+      // next 2 lines takes about 11ms to execute (main menu). Measured on 2019.03.04.
       buttons_clock();
-      usart1_data_clock();
       lcd_clock();
 
       continue;

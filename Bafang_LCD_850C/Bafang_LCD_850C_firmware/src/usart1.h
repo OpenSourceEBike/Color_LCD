@@ -12,7 +12,10 @@
 #include "stdio.h"
 
 void usart1_init(void);
-void usart1_data_clock(void);
-uint8_t usart1_received_first_package(void);
+uint8_t* usart1_get_rx_buffer(void);
+uint8_t usart1_received_package(void);
+void usart1_reset_received_package(void);
+void usart1_send_byte_and_block(uint8_t ui8_byte);
+void usart1_start_dma_transfer(void);
 
 #endif

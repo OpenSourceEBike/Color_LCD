@@ -23,10 +23,16 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
-static struct_motor_controller_data motor_controller_data;
-static struct_configuration_variables configuration_variables;
+// Battery SOC symbol:
+// 10 bars, each bar: with = 7, height = 24
+// symbol has contour lines of 1 pixel
+#define BATTERY_SOC_START_X 8
+#define BATTERY_SOC_START_Y 4
+#define BATTERY_SOC_BAR_WITH 7
+#define BATTERY_SOC_BAR_HEIGHT 24
+#define BATTERY_SOC_CONTOUR 1
 
-struct_lcd_vars lcd_vars =
+lcd_vars_t lcd_vars =
 {
   .ui32_main_screen_draw_static_info = 1,
   .lcd_screen_state = LCD_SCREEN_MAIN,
@@ -34,20 +40,10 @@ struct_lcd_vars lcd_vars =
   .ui8_lcd_menu_max_power = 0,
 };
 
+volatile l2_vars_t l2_vars;
+volatile l3_vars_t l3_vars;
+
 static struct_lcd_configurations_vars *p_lcd_configurations_vars;
-
-static uint16_t ui16_battery_voltage_filtered_x10;
-static uint16_t ui16_battery_current_filtered_x5;
-
-static uint16_t ui16_battery_power_filtered_x50;
-static uint16_t ui16_battery_power_filtered;
-
-static uint16_t ui16_pedal_torque_filtered;
-static uint16_t ui16_pedal_power_filtered;
-
-static uint8_t ui8_pedal_cadence_filtered;
-
-static uint16_t ui16_battery_soc_watts_hour;
 
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
 
@@ -59,16 +55,25 @@ static uint8_t ui8_lcd_menu_flash_state_temperature;
 static uint8_t ui8_lcd_menu_config_submenu_number = 0;
 static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 
+volatile uint32_t ui32_g_layer_2_can_execute = 0;
+volatile uint32_t ui32_g_layer_2_delayed_execute = 0;
+
+static uint16_t ui16_m_battery_soc_watts_hour = 0;
+
+static uint8_t ui8_m_usart1_received_first_package = 0;
+
+volatile uint8_t ui8_g_usart1_tx_buffer[11];
+
 void lcd_main_screen(void);
-uint8_t first_time_management (void);
+uint8_t first_time_management(void);
 void assist_level_state(void);
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
-void low_pass_filter_battery_voltage_current_power(void);
+void l2_low_pass_filter_battery_voltage_current_power(void);
 void update_menu_flashing_state(void);
 void calc_battery_soc_watts_hour(void);
-void calc_odometer(void);
-static void automatic_power_off_management(void);
+void l2_calc_odometer(void);
+static void l2_automatic_power_off_management(void);
 void brake(void);
 void wheel_speed(void);
 void power(void);
@@ -76,14 +81,15 @@ void power_off_management(void);
 void temperature(void);
 void time(void);
 void battery_soc(void);
-void calc_battery_voltage_soc(void);
-void low_pass_filter_pedal_torque_and_power(void);
-static void low_pass_filter_pedal_cadence(void);
+void l2_calc_battery_voltage_soc(void);
+void l2_low_pass_filter_pedal_torque_and_power(void);
+static void l2_low_pass_filter_pedal_cadence(void);
 void lights_state(void);
 void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
 void draw_configurations_screen_mask(void);
+void copy_layer_2_layer_3_vars(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -100,27 +106,26 @@ void lcd_init(void)
 
 void lcd_clock(void)
 {
+  static uint8_t ui8_counter_100ms = 0;
+
+  // every 100ms
+  if(ui8_counter_100ms++ >= 4)
+  {
+    ui8_counter_100ms = 0;
+
+    // receive data from layer 2 to layer 3
+    // send data from layer 3 to layer 2
+    ui32_g_layer_2_can_execute = 0;
+    copy_layer_2_layer_3_vars();
+    ui32_g_layer_2_can_execute = 1;
+  }
+
   if (first_time_management())
     return;
 
   update_menu_flashing_state();
 
   calc_battery_soc_watts_hour();
-
-  low_pass_filter_battery_voltage_current_power();
-  if (lcd_vars.ui8_lcd_menu_counter_1000ms_state)
-  {
-    low_pass_filter_pedal_cadence();
-  }
-
-  if (ui8_lcd_menu_counter_100ms_state)
-  {
-    low_pass_filter_pedal_torque_and_power();
-  }
-
-  calc_battery_voltage_soc();
-  calc_odometer();
-  automatic_power_off_management();
 
   // enter menu configurations: UP + DOWN click event
   if (buttons_get_up_down_click_event () &&
@@ -144,7 +149,7 @@ void lcd_clock(void)
     lcd_vars.ui8_lcd_menu_max_power = 1;
   }
 
-  switch (lcd_vars.lcd_screen_state)
+  switch(lcd_vars.lcd_screen_state)
   {
     case LCD_SCREEN_MAIN:
       lcd_main_screen();
@@ -160,13 +165,19 @@ void lcd_clock(void)
 
 void lcd_draw_main_menu_mask(void)
 {
-  UG_DrawLine(10, 60, 310, 60, C_DIM_GRAY);
-  UG_DrawLine(10, 180, 310, 180, C_DIM_GRAY);
-  UG_DrawLine(10, 265, 310, 265, C_DIM_GRAY);
+  UG_DrawLine(0, 39, 319, 39, C_DIM_GRAY);
+  UG_DrawLine(0, 159, 319, 159, C_DIM_GRAY);
+  UG_DrawLine(0, 239, 319, 239, C_DIM_GRAY);
+  UG_DrawLine(0, 319, 319, 319, C_DIM_GRAY);
+
+  // vertical line
+  UG_DrawLine(159, 159, 159, 319, C_DIM_GRAY);
 }
 
 void lcd_main_screen (void)
 {
+  lights_state();
+
   // run once only, to draw static info
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -174,7 +185,6 @@ void lcd_main_screen (void)
     lcd_draw_main_menu_mask();
   }
 
-  temperature();
   time();
   assist_level_state();
   wheel_speed();
@@ -183,20 +193,290 @@ void lcd_main_screen (void)
   power();
   battery_soc();
   brake();
-  lights_state();
 
   // clear this variable after 1 full cycle running
   lcd_vars.ui32_main_screen_draw_static_info = 0;
 }
 
-uint8_t first_time_management (void)
+void layer_2(void)
+{
+  uint8_t *p_rx_buffer = 0;
+  static uint32_t ui32_wheel_speed_sensor_tick_temp;
+  static uint8_t ui8_i;
+  uint8_t ui8_temp;
+  uint16_t ui16_crc_tx;
+  static uint8_t ui8_lcd_variable_id = 0;
+  static uint8_t ui8_master_comm_package_id = 0;
+  static uint8_t ui8_slave_comm_package_id = 0;
+  static uint8_t ui8_state_machine = 0;
+  static uint8_t ui8_received_package_flag = 0;
+
+  /************************************************************************************************/
+  // process rx package
+  if(usart1_received_package())
+  {
+    p_rx_buffer = usart1_get_rx_buffer();
+
+    // now process rx data
+    // only if first byte is equal to package start byte
+    if(*p_rx_buffer == 67)
+    {
+      p_rx_buffer++;
+
+      // send a variable for each package sent but first verify if the last one was received otherwise, keep repeating
+      // keep cycling so all variables are sent
+#define VARIABLE_ID_MAX_NUMBER 9
+      if ((*p_rx_buffer) == ui8_master_comm_package_id) // last package data ID was receipt, so send the next one
+      {
+        ui8_master_comm_package_id = (ui8_master_comm_package_id + 1) % VARIABLE_ID_MAX_NUMBER;
+      }
+      p_rx_buffer++;
+
+      ui8_slave_comm_package_id = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui16_adc_battery_voltage = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui16_adc_battery_voltage |= ((uint16_t) (*p_rx_buffer & 0x30)) << 4;
+      p_rx_buffer++;
+
+      l2_vars.ui8_battery_current_x5 = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui16_wheel_speed_x10 = (uint16_t) *p_rx_buffer;
+      p_rx_buffer++;
+      l2_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
+      p_rx_buffer++;
+
+      ui8_temp = *p_rx_buffer;
+      l2_vars.ui8_braking = ui8_temp & 1;
+      p_rx_buffer++;
+
+      if(l2_vars.ui8_temperature_limit_feature_enabled)
+      {
+        l2_vars.ui8_adc_throttle = *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui8_motor_temperature = *p_rx_buffer;
+        p_rx_buffer++;
+      }
+      else
+      {
+        l2_vars.ui8_adc_throttle = *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui8_throttle = *p_rx_buffer;
+        p_rx_buffer++;
+      }
+
+      l2_vars.ui8_adc_pedal_torque_sensor = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui8_pedal_torque_sensor = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui8_pedal_cadence = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui8_pedal_human_power = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui8_duty_cycle = *p_rx_buffer;
+      p_rx_buffer++;
+
+      l2_vars.ui16_motor_speed_erps = (uint16_t) *p_rx_buffer;
+      p_rx_buffer++;
+      l2_vars.ui16_motor_speed_erps += ((uint16_t) *p_rx_buffer << 8);
+      p_rx_buffer++;
+
+      l2_vars.ui8_foc_angle = *p_rx_buffer;
+      p_rx_buffer++;
+
+      switch (ui8_slave_comm_package_id)
+      {
+        case 0:
+          // error states
+          l2_vars.ui8_error_states = *p_rx_buffer;
+        break;
+
+        case 1:
+          // temperature actual limiting value
+          l2_vars.ui8_temperature_current_limiting_value = *p_rx_buffer;
+        break;
+
+        case 2:
+          // wheel_speed_sensor_tick_counter
+          ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
+        break;
+
+        case 3:
+          // wheel_speed_sensor_tick_counter
+          ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 8);
+        break;
+
+        case 4:
+          // wheel_speed_sensor_tick_counter
+          ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 16);
+          l2_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
+        break;
+      }
+      p_rx_buffer++;
+
+      // ui16_pedal_torque_x10
+      l2_vars.ui16_pedal_torque_x10 = (uint16_t) *p_rx_buffer;
+      p_rx_buffer++;
+      l2_vars.ui16_pedal_torque_x10 += ((uint16_t) *p_rx_buffer << 8);
+      p_rx_buffer++;
+
+      // ui16_pedal_power_x10
+      l2_vars.ui16_pedal_power_x10 = (uint16_t) *p_rx_buffer;
+      p_rx_buffer++;
+      l2_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
+      p_rx_buffer++;
+
+      usart1_reset_received_package();
+    }
+  }
+  /************************************************************************************************/
+
+  /************************************************************************************************/
+  // send tx package
+
+  // start up byte
+  ui8_g_usart1_tx_buffer[0] = 0x59;
+  ui8_g_usart1_tx_buffer[1] = ui8_master_comm_package_id;
+  ui8_g_usart1_tx_buffer[2] = ui8_slave_comm_package_id;
+
+  // set assist level value
+  if(l2_vars.ui8_assist_level)
+  {
+    ui8_g_usart1_tx_buffer[3] = l2_vars.ui8_assist_level_factor[((l2_vars.ui8_assist_level) - 1)];
+  }
+  else
+  {
+    ui8_g_usart1_tx_buffer[3] = 0;
+  }
+
+  // set lights state
+  // walk assist level state
+  // set offroad state
+  ui8_g_usart1_tx_buffer[4] = (l2_vars.ui8_lights & 1) |
+      ((l2_vars.ui8_walk_assist_level & 1) << 1) |
+      ((l2_vars.ui8_offroad_mode & 1) << 2);
+
+  // battery max current in amps
+  ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_battery_max_current;
+
+  // battery power
+  ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_target_max_battery_power;
+
+  switch (ui8_master_comm_package_id)
+  {
+    case 0:
+      // battery low voltage cut-off
+      ui8_g_usart1_tx_buffer[7] = (uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
+      ui8_g_usart1_tx_buffer[8] = (uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
+    break;
+
+    case 1:
+      // wheel perimeter
+      ui8_g_usart1_tx_buffer[7] = (uint8_t) (l2_vars.ui16_wheel_perimeter & 0xff);
+      ui8_g_usart1_tx_buffer[8] = (uint8_t) (l2_vars.ui16_wheel_perimeter >> 8);
+    break;
+
+    case 2:
+      // wheel max speed
+      ui8_g_usart1_tx_buffer[7] = l2_vars.ui8_wheel_max_speed;
+    break;
+
+    case 3:
+      // bit 0: cruise control
+      // bit 1: motor voltage type: 36V or 48V
+      // bit 2: MOTOR_ASSISTANCE_CAN_START_WITHOUT_PEDAL_ROTATION
+      ui8_g_usart1_tx_buffer[7] = ((l2_vars.ui8_cruise_control & 1) |
+                         ((l2_vars.ui8_motor_type & 3) << 1) |
+                          ((l2_vars.ui8_motor_assistance_startup_without_pedal_rotation & 1) << 3) |
+                          ((l2_vars.ui8_temperature_limit_feature_enabled & 1) << 4));
+      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_startup_motor_power_boost_state;
+    break;
+
+    case 4:
+      // startup motor power boost
+      ui8_g_usart1_tx_buffer[7] = l2_vars.ui8_startup_motor_power_boost_factor [((l2_vars.ui8_assist_level) - 1)];
+      // startup motor power boost time
+      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_startup_motor_power_boost_time;
+    break;
+
+    case 5:
+      // startup motor power boost fade time
+      ui8_g_usart1_tx_buffer[7] = l2_vars.ui8_startup_motor_power_boost_fade_time;
+      // boost feature enabled
+      ui8_g_usart1_tx_buffer[8] = (l2_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ? 1 : 0;
+    break;
+
+    case 6:
+      // motor over temperature min and max values to limit
+      ui8_g_usart1_tx_buffer[7] = l2_vars.ui8_motor_temperature_min_value_to_limit;
+      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_motor_temperature_max_value_to_limit;
+    break;
+
+    case 7:
+      // offroad mode configuration
+      ui8_g_usart1_tx_buffer[7] = ((l2_vars.ui8_offroad_feature_enabled & 1) |
+                            ((l2_vars.ui8_offroad_enabled_on_startup & 1) << 1));
+      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_offroad_speed_limit;
+    break;
+
+    case 8:
+      // offroad mode power limit configuration
+      ui8_g_usart1_tx_buffer[7] = l2_vars.ui8_offroad_power_limit_enabled & 1;
+      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_offroad_power_limit_div25;
+    break;
+
+    default:
+      ui8_lcd_variable_id = 0;
+    break;
+  }
+
+  // prepare crc of the package
+  ui16_crc_tx = 0xffff;
+  for (ui8_i = 0; ui8_i <= 8; ui8_i++)
+  {
+    crc16 (ui8_g_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
+  }
+  ui8_g_usart1_tx_buffer[9] = (uint8_t) (ui16_crc_tx & 0xff);
+  ui8_g_usart1_tx_buffer[10] = (uint8_t) (ui16_crc_tx >> 8) & 0xff;
+
+  // send the full package to UART
+  // start DMA UART transfer
+  usart1_start_dma_transfer();
+
+  // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
+  ui8_m_usart1_received_first_package++;
+  if(ui8_m_usart1_received_first_package > 10)
+    ui8_m_usart1_received_first_package = 10;
+
+  /************************************************************************************************/
+  // now do all the calculations that must be done every 100ms
+
+
+  l2_low_pass_filter_battery_voltage_current_power();
+//  l2_low_pass_filter_pedal_torque_and_power();
+//  l2_low_pass_filter_pedal_cadence();
+  l2_calc_battery_voltage_soc();
+//  l2_calc_odometer();
+//  l2_calc_wh();
+//  automatic_power_off_management();
+  /************************************************************************************************/
+}
+
+uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
   uint8_t ui8_status = 0;
 
   // don't update LCD up to we get first communication package from the motor controller
   if(ui8_motor_controller_init &&
-      (usart1_received_first_package() == 0))
+      (ui8_m_usart1_received_first_package < 10))
   {
     ui8_status = 1;
   }
@@ -206,16 +486,16 @@ uint8_t first_time_management (void)
     ui8_motor_controller_init = 0;
 
     // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
-    if (((uint32_t) motor_controller_data.ui16_adc_battery_voltage *
-        ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000) > ((uint32_t) configuration_variables.ui16_battery_voltage_reset_wh_counter_x10 * 1000))
+    if (((uint32_t) l3_vars.ui16_adc_battery_voltage *
+        ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000) > ((uint32_t) l3_vars.ui16_battery_voltage_reset_wh_counter_x10 * 1000))
     {
-      configuration_variables.ui32_wh_x10_offset = 0;
+      l3_vars.ui32_wh_x10_offset = 0;
     }
 
-    if (configuration_variables.ui8_offroad_feature_enabled &&
-      configuration_variables.ui8_offroad_enabled_on_startup)
+    if (l3_vars.ui8_offroad_feature_enabled &&
+      l3_vars.ui8_offroad_enabled_on_startup)
     {
-      motor_controller_data.ui8_offroad_mode = 1;
+      l3_vars.ui8_offroad_mode = 1;
     }
   }
 
@@ -224,14 +504,24 @@ uint8_t first_time_management (void)
 
 void assist_level_state(void)
 {
-  static uint8_t ui8_assist_level_last = 0xff;
+  static print_number_t assist_level =
+  {
+    .font = &FONT_32X53,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 1,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  static uint8_t ui8_assist_level_previous = 0xff;
 
   if (lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(10, 188, "Assist");
+    UG_PutString(12, 50, "ASSIST");
   }
 
   if (buttons_get_up_click_event() &&
@@ -244,10 +534,10 @@ void assist_level_state(void)
     buttons_clear_down_click_long_click_event ();
     buttons_clear_down_long_click_event ();
 
-    configuration_variables.ui8_assist_level++;
+    l3_vars.ui8_assist_level++;
 
-    if (configuration_variables.ui8_assist_level > configuration_variables.ui8_number_of_assist_levels)
-      { configuration_variables.ui8_assist_level = configuration_variables.ui8_number_of_assist_levels; }
+    if (l3_vars.ui8_assist_level > l3_vars.ui8_number_of_assist_levels)
+      { l3_vars.ui8_assist_level = l3_vars.ui8_number_of_assist_levels; }
   }
 
   if (buttons_get_down_click_event() &&
@@ -260,35 +550,32 @@ void assist_level_state(void)
     buttons_clear_down_click_long_click_event ();
     buttons_clear_down_long_click_event ();
 
-    if (configuration_variables.ui8_assist_level > 0)
-      configuration_variables.ui8_assist_level--;
+    if (l3_vars.ui8_assist_level > 0)
+      l3_vars.ui8_assist_level--;
   }
 
-  if ((configuration_variables.ui8_assist_level != ui8_assist_level_last) ||
+  if ((l3_vars.ui8_assist_level != ui8_assist_level_previous) ||
       lcd_vars.ui32_main_screen_draw_static_info)
   {
-    ui8_assist_level_last = configuration_variables.ui8_assist_level;
+    ui8_assist_level_previous = l3_vars.ui8_assist_level;
 
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&FONT_32X53);
-    UG_PutString(25, 210, itoa((uint32_t) configuration_variables.ui8_assist_level));
+    assist_level.ui32_x_position = 25;
+    assist_level.ui32_y_position = 84;
+    assist_level.ui32_number = (uint32_t) l3_vars.ui8_assist_level;
+    assist_level.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&assist_level);
   }
 }
 
-struct_configuration_variables* get_configuration_variables(void)
+volatile l3_vars_t* get_l3_vars(void)
 {
-  return &configuration_variables;
-}
-
-struct_motor_controller_data* get_motor_controller_data(void)
-{
-  return &motor_controller_data;
+  return &l3_vars;
 }
 
 void power_off_management(void)
 {
   if(buttons_get_onoff_long_click_event() &&
-      lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+    lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
   {
     lcd_power_off(1);
   }
@@ -298,10 +585,8 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 {
 //  if (updateDistanceOdo)
 //  {
-    __disable_irq();
-    configuration_variables.ui32_wh_x10_offset = motor_controller_data.ui32_wh_x10;
-    __enable_irq();
-    configuration_variables.ui32_odometer_x10 += ((uint32_t) configuration_variables.ui16_odometer_distance_x10);
+    l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
+    l3_vars.ui32_odometer_x10 += ((uint32_t) l3_vars.ui16_odometer_distance_x10);
 //  }
 
   // save the variables on EEPROM
@@ -318,203 +603,201 @@ void lcd_power_off(uint8_t updateDistanceOdo)
   while(1) ;
 }
 
-void low_pass_filter_battery_voltage_current_power(void)
+void l2_low_pass_filter_battery_voltage_current_power(void)
 {
   static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
   static uint16_t ui16_battery_current_accumulated_x5 = 0;
 
   // low pass filter battery voltage
   ui32_battery_voltage_accumulated_x10000 -= ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT;
-  ui32_battery_voltage_accumulated_x10000 += (uint32_t) motor_controller_data.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
-  ui16_battery_voltage_filtered_x10 = ((uint32_t) (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
+  ui32_battery_voltage_accumulated_x10000 += (uint32_t) l2_vars.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+  l2_vars.ui16_battery_voltage_filtered_x10 = ((uint32_t) (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
 
   // low pass filter batery current
   ui16_battery_current_accumulated_x5 -= ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
-  ui16_battery_current_accumulated_x5 += (uint16_t) motor_controller_data.ui8_battery_current_x5;
-  ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
+  ui16_battery_current_accumulated_x5 += (uint16_t) l2_vars.ui8_battery_current_x5;
+  l2_vars.ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
 
   // battery power
-  __disable_irq();
-  ui16_battery_power_filtered_x50 = ui16_battery_current_filtered_x5 * ui16_battery_voltage_filtered_x10;
-  ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
+  l2_vars.ui16_battery_power_filtered_x50 = l2_vars.ui16_battery_current_filtered_x5 * l2_vars.ui16_battery_voltage_filtered_x10;
+  l2_vars.ui16_battery_power_filtered = l2_vars.ui16_battery_power_filtered_x50 / 50;
 
   // loose resolution under 200W
-  if (ui16_battery_power_filtered < 200)
+  if(l2_vars.ui16_battery_power_filtered < 200)
   {
-    ui16_battery_power_filtered /= 10;
-    ui16_battery_power_filtered *= 10;
+    l2_vars.ui16_battery_power_filtered /= 10;
+    l2_vars.ui16_battery_power_filtered *= 10;
   }
   // loose resolution under 400W
-  else if (ui16_battery_power_filtered < 400)
+  else if(l2_vars.ui16_battery_power_filtered < 400)
   {
-    ui16_battery_power_filtered /= 20;
-    ui16_battery_power_filtered *= 20;
+    l2_vars.ui16_battery_power_filtered /= 20;
+    l2_vars.ui16_battery_power_filtered *= 20;
   }
   // loose resolution all other values
   else
   {
-    ui16_battery_power_filtered /= 25;
-    ui16_battery_power_filtered *= 25;
+    l2_vars.ui16_battery_power_filtered /= 25;
+    l2_vars.ui16_battery_power_filtered *= 25;
   }
-  __enable_irq();
 }
 
-void low_pass_filter_pedal_torque_and_power(void)
+void l2_low_pass_filter_pedal_torque_and_power(void)
 {
-  static uint32_t ui32_pedal_torque_accumulated = 0;
-  static uint32_t ui32_pedal_power_accumulated = 0;
-
-  // low pass filter
-  ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
-  ui32_pedal_torque_accumulated += (uint32_t) motor_controller_data.ui16_pedal_torque_x10 / 10;
-  ui16_pedal_torque_filtered = ((uint32_t) (ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT));
-
-  // low pass filter
-  ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-  ui32_pedal_power_accumulated += (uint32_t) motor_controller_data.ui16_pedal_power_x10 / 10;
-  ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-
-  if (ui16_pedal_torque_filtered > 200)
-  {
-    ui16_pedal_torque_filtered /= 20;
-    ui16_pedal_torque_filtered *= 20;
-  }
-  else if (ui16_pedal_torque_filtered > 100)
-  {
-    ui16_pedal_torque_filtered /= 10;
-    ui16_pedal_torque_filtered *= 10;
-  }
-  else
-  {
-    // do nothing to roginal values
-  }
-
-  if (ui16_pedal_power_filtered > 500)
-  {
-    ui16_pedal_power_filtered /= 25;
-    ui16_pedal_power_filtered *= 25;
-  }
-  else if (ui16_pedal_power_filtered > 200)
-  {
-    ui16_pedal_power_filtered /= 20;
-    ui16_pedal_power_filtered *= 20;
-  }
-  else if (ui16_pedal_power_filtered > 10)
-  {
-    ui16_pedal_power_filtered /= 10;
-    ui16_pedal_power_filtered *= 10;
-  }
-  else
-  {
-    ui16_pedal_power_filtered = 0; // no point to show less than 10W
-  }
+//  static uint32_t ui32_pedal_torque_accumulated = 0;
+//  static uint32_t ui32_pedal_power_accumulated = 0;
+//
+//  // low pass filter
+//  ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
+//  ui32_pedal_torque_accumulated += (uint32_t) uart_rx_vars.ui16_pedal_torque_x10 / 10;
+//  processed_vars.ui16_pedal_torque_filtered = ((uint32_t) (ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT));
+//
+//  // low pass filter
+//  ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+//  ui32_pedal_power_accumulated += (uint32_t) uart_rx_vars.ui16_pedal_power_x10 / 10;
+//  processed_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+//
+//  if(processed_vars.ui16_pedal_torque_filtered > 200)
+//  {
+//    processed_vars.ui16_pedal_torque_filtered /= 20;
+//    processed_vars.ui16_pedal_torque_filtered *= 20;
+//  }
+//  else if(processed_vars.ui16_pedal_torque_filtered > 100)
+//  {
+//    processed_vars.ui16_pedal_torque_filtered /= 10;
+//    processed_vars.ui16_pedal_torque_filtered *= 10;
+//  }
+//  else
+//  {
+//    // do nothing to original values
+//  }
+//
+//  if(processed_vars.ui16_pedal_power_filtered > 500)
+//  {
+//    processed_vars.ui16_pedal_power_filtered /= 25;
+//    processed_vars.ui16_pedal_power_filtered *= 25;
+//  }
+//  else if(processed_vars.ui16_pedal_power_filtered > 200)
+//  {
+//    processed_vars.ui16_pedal_power_filtered /= 20;
+//    processed_vars.ui16_pedal_power_filtered *= 20;
+//  }
+//  else if(processed_vars.ui16_pedal_power_filtered > 10)
+//  {
+//    processed_vars.ui16_pedal_power_filtered /= 10;
+//    processed_vars.ui16_pedal_power_filtered *= 10;
+//  }
+//  else
+//  {
+//    processed_vars.ui16_pedal_power_filtered = 0; // no point to show less than 10W
+//  }
 }
 
-static void low_pass_filter_pedal_cadence(void)
+static void l2_low_pass_filter_pedal_cadence(void)
 {
   static uint16_t ui16_pedal_cadence_accumulated = 0;
 
   // low pass filter
   ui16_pedal_cadence_accumulated -= (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
-  ui16_pedal_cadence_accumulated += (uint16_t) motor_controller_data.ui8_pedal_cadence;
+  ui16_pedal_cadence_accumulated += (uint16_t) l2_vars.ui8_pedal_cadence;
 
   // consider the filtered value only for medium and high values of the unfiltered value
-  if (motor_controller_data.ui8_pedal_cadence > 20)
+  if(l2_vars.ui8_pedal_cadence > 20)
   {
-    ui8_pedal_cadence_filtered = (uint8_t) (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
+    l2_vars.ui8_pedal_cadence_filtered = (uint8_t) (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
   }
   else
   {
-    ui8_pedal_cadence_filtered = motor_controller_data.ui8_pedal_cadence;
+    l2_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence;
   }
 }
 
-void calc_wh(void)
+void l2_calc_wh(void)
 {
-  static uint8_t ui8_1s_timmer_counter = 0;
-  uint32_t ui32_temp = 0;
-
-  if(ui16_battery_power_filtered_x50 > 0)
-  {
-    motor_controller_data.ui32_wh_sum_x5 += ui16_battery_power_filtered_x50 / 10;
-    motor_controller_data.ui32_wh_sum_counter++;
-  }
-
-  // calc at 1s rate
-  if(ui8_1s_timmer_counter < 10)
-  {
-    ui8_1s_timmer_counter = 0;
-
-    // avoid  zero divisison
-    if(motor_controller_data.ui32_wh_sum_counter != 0)
-    {
-      ui32_temp = motor_controller_data.ui32_wh_sum_counter / 36;
-      ui32_temp = (ui32_temp * (motor_controller_data.ui32_wh_sum_x5 / motor_controller_data.ui32_wh_sum_counter)) / 500;
-    }
-
-    motor_controller_data.ui32_wh_x10 = configuration_variables.ui32_wh_x10_offset + ui32_temp;
-  }
-  ui8_1s_timmer_counter++;
+//  static uint8_t ui8_1s_timmer_counter = 0;
+//  uint32_t ui32_temp = 0;
+//
+//  if(ui16_battery_power_filtered_x50 > 0)
+//  {
+//    processed_vars.ui32_wh_sum_x5 += processed_vars.ui16_battery_power_filtered_x50 / 10;
+//    processed_vars.ui32_wh_sum_counter++;
+//  }
+//
+//  // calc at 1s rate
+//  if(ui8_1s_timmer_counter < 10)
+//  {
+//    ui8_1s_timmer_counter = 0;
+//
+//    // avoid  zero divisison
+//    if(processed_vars.ui32_wh_sum_counter != 0)
+//    {
+//      ui32_temp = processed_vars.ui32_wh_sum_counter / 36;
+//      ui32_temp = (ui32_temp * (processed_vars.ui32_wh_sum_x5 / processed_vars.ui32_wh_sum_counter)) / 500;
+//    }
+//
+//    processed_vars.ui32_wh_x10 = processed_vars.ui32_wh_x10_offset + ui32_temp;
+//  }
+//  ui8_1s_timmer_counter++;
 }
 
-void calc_odometer(void)
+void l2_calc_odometer(void)
 {
-  uint32_t uint32_temp;
-  static uint8_t ui8_1s_timmer_counter;
-
-  // calc at 1s rate
-  if (ui8_1s_timmer_counter++ >= 100)
-  {
-    ui8_1s_timmer_counter = 0;
-
-    uint32_temp = (motor_controller_data.ui32_wheel_speed_sensor_tick_counter - motor_controller_data.ui32_wheel_speed_sensor_tick_counter_offset)
-        * ((uint32_t) configuration_variables.ui16_wheel_perimeter);
-    // avoid division by 0
-    if (uint32_temp > 100000) { uint32_temp /= 100000;}  // milimmeters to 0.1kms
-    else { uint32_temp = 0; }
-
-    // now store the value on the global variable
-    configuration_variables.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
-  }
+//  uint32_t uint32_temp;
+//  static uint8_t ui8_1s_timmer_counter;
+//
+//  // calc at 1s rate
+//  if (ui8_1s_timmer_counter++ >= 10)
+//  {
+//    ui8_1s_timmer_counter = 0;
+//
+//    uint32_temp = (uart_rx_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)
+//        * ((uint32_t) configuration_variables.ui16_wheel_perimeter);
+//    // avoid division by 0
+//    if (uint32_temp > 100000) { uint32_temp /= 100000;}  // milimmeters to 0.1kms
+//    else { uint32_temp = 0; }
+//
+//    // now store the value on the global variable
+//    configuration_variables.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
+//  }
 }
 
-static void automatic_power_off_management(void)
+static void l2_automatic_power_off_management(void)
 {
-  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
-  static uint16_t ui16_lcd_power_off_time_counter = 0;
-
-  if(configuration_variables.ui8_lcd_power_off_time_minutes != 0)
-  {
-    // see if we should reset the automatic power off minutes counter
-    if ((motor_controller_data.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
-        (motor_controller_data.ui8_battery_current_x5 > 0) || // battery current > 0
-        (motor_controller_data.ui8_braking) ||                // braking
-        buttons_get_events())                                 // any button active
-    {
-      ui16_lcd_power_off_time_counter = 0;
-      ui8_lcd_power_off_time_counter_minutes = 0;
-    }
-
-    // increment the automatic power off minutes counter
-    ui16_lcd_power_off_time_counter++;
-
-    // check if we should power off the LCD
-    if(ui16_lcd_power_off_time_counter >= (100 * 60)) // 1 minute passed
-    {
-      ui16_lcd_power_off_time_counter = 0;
-
-      ui8_lcd_power_off_time_counter_minutes++;
-      if(ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
-      {
-        lcd_power_off(1);
-      }
-    }
-  }
-  else
-  {
-    ui16_lcd_power_off_time_counter = 0;
-    ui8_lcd_power_off_time_counter_minutes = 0;
-  }
+//  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
+//  static uint16_t ui16_lcd_power_off_time_counter = 0;
+//
+//  if(configuration_variables.ui8_lcd_power_off_time_minutes != 0)
+//  {
+//    // see if we should reset the automatic power off minutes counter
+//    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
+//        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
+//        (l3_vars.ui8_braking) ||                // braking
+//        buttons_get_events())                                 // any button active
+//    {
+//      ui16_lcd_power_off_time_counter = 0;
+//      ui8_lcd_power_off_time_counter_minutes = 0;
+//    }
+//
+//    // increment the automatic power off minutes counter
+//    ui16_lcd_power_off_time_counter++;
+//
+//    // check if we should power off the LCD
+//    if(ui16_lcd_power_off_time_counter >= (10 * 60)) // 1 minute passed
+//    {
+//      ui16_lcd_power_off_time_counter = 0;
+//
+//      ui8_lcd_power_off_time_counter_minutes++;
+//      if(ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
+//      {
+//        lcd_power_off(1);
+//      }
+//    }
+//  }
+//  else
+//  {
+//    ui16_lcd_power_off_time_counter = 0;
+//    ui8_lcd_power_off_time_counter_minutes = 0;
+//  }
 }
 
 void update_menu_flashing_state(void)
@@ -524,7 +807,7 @@ void update_menu_flashing_state(void)
 
   // ***************************************************************************************************
   // For flashing on menus, 0.5 seconds flash
-  if (ui8_lcd_menu_flash_counter++ > 50)
+  if (ui8_lcd_menu_flash_counter++ > 25)
   {
     ui8_lcd_menu_flash_counter = 0;
 
@@ -537,7 +820,7 @@ void update_menu_flashing_state(void)
 
   // ***************************************************************************************************
   ui8_lcd_menu_counter_100ms_state = 0;
-  if (ui8_lcd_menu_counter_100ms++ > 10)
+  if (ui8_lcd_menu_counter_100ms++ > 5)
   {
     ui8_lcd_menu_counter_100ms = 0;
     ui8_lcd_menu_counter_100ms_state = 1;
@@ -548,7 +831,7 @@ void update_menu_flashing_state(void)
 
   if(lcd_vars.ui8_lcd_menu_counter_1000ms_state)
   {
-    if(ui8_lcd_menu_counter_1000ms++ > 80)
+    if(ui8_lcd_menu_counter_1000ms++ > 40)
     {
       ui8_lcd_menu_counter_1000ms = 0;
       lcd_vars.ui8_lcd_menu_counter_1000ms_state = 0;
@@ -557,7 +840,7 @@ void update_menu_flashing_state(void)
   }
   else
   {
-    if(ui8_lcd_menu_counter_1000ms++ > 20)
+    if(ui8_lcd_menu_counter_1000ms++ > 10)
     {
       ui8_lcd_menu_counter_1000ms = 0;
       lcd_vars.ui8_lcd_menu_counter_1000ms_state = 1;
@@ -566,53 +849,53 @@ void update_menu_flashing_state(void)
   }
   // ***************************************************************************************************
 
-  // ***************************************************************************************************
-  // For flashing the temperature field when the current is being limited due to motor over temperature
-  // flash only if current is being limited: ui8_temperature_current_limiting_value != 255
-  if (motor_controller_data.ui8_temperature_current_limiting_value != 255)
-  {
-    if (ui8_lcd_menu_flash_state_temperature == 0) // state 0: disabled
-    {
-      if (ui16_lcd_menu_flash_counter_temperature > 0)
-      {
-        ui16_lcd_menu_flash_counter_temperature--;
-      }
-
-      if (ui16_lcd_menu_flash_counter_temperature == 0)
-      {
-        // if motor_controller_data.ui8_temperature_current_limiting_value == 0, flash quicker meaning motor is shutoff
-        if (motor_controller_data.ui8_temperature_current_limiting_value > 0)
-        {
-          ui16_lcd_menu_flash_counter_temperature = 50 + ((uint16_t) motor_controller_data.ui8_temperature_current_limiting_value);
-        }
-        else
-        {
-          ui16_lcd_menu_flash_counter_temperature = 25;
-        }
-
-        ui8_lcd_menu_flash_state_temperature = 1;
-      }
-    }
-
-    if (ui8_lcd_menu_flash_state_temperature == 1) // state 1: enabled
-    {
-      if (ui16_lcd_menu_flash_counter_temperature > 0)
-      {
-        ui16_lcd_menu_flash_counter_temperature--;
-      }
-
-      if (ui16_lcd_menu_flash_counter_temperature == 0)
-      {
-        ui16_lcd_menu_flash_counter_temperature = 25; // 0.25 second
-        ui8_lcd_menu_flash_state_temperature = 0;
-      }
-    }
-  }
-  else
-  {
-    ui8_lcd_menu_flash_state_temperature = 1;
-  }
-  // ***************************************************************************************************
+//  // ***************************************************************************************************
+//  // For flashing the temperature field when the current is being limited due to motor over temperature
+//  // flash only if current is being limited: ui8_temperature_current_limiting_value != 255
+//  if (l3_vars.ui8_temperature_current_limiting_value != 255)
+//  {
+//    if (ui8_lcd_menu_flash_state_temperature == 0) // state 0: disabled
+//    {
+//      if (ui16_lcd_menu_flash_counter_temperature > 0)
+//      {
+//        ui16_lcd_menu_flash_counter_temperature--;
+//      }
+//
+//      if (ui16_lcd_menu_flash_counter_temperature == 0)
+//      {
+//        // if l3_vars.ui8_temperature_current_limiting_value == 0, flash quicker meaning motor is shutoff
+//        if (l3_vars.ui8_temperature_current_limiting_value > 0)
+//        {
+//          ui16_lcd_menu_flash_counter_temperature = 50 + ((uint16_t) l3_vars.ui8_temperature_current_limiting_value);
+//        }
+//        else
+//        {
+//          ui16_lcd_menu_flash_counter_temperature = 25;
+//        }
+//
+//        ui8_lcd_menu_flash_state_temperature = 1;
+//      }
+//    }
+//
+//    if (ui8_lcd_menu_flash_state_temperature == 1) // state 1: enabled
+//    {
+//      if (ui16_lcd_menu_flash_counter_temperature > 0)
+//      {
+//        ui16_lcd_menu_flash_counter_temperature--;
+//      }
+//
+//      if (ui16_lcd_menu_flash_counter_temperature == 0)
+//      {
+//        ui16_lcd_menu_flash_counter_temperature = 25; // 0.25 second
+//        ui8_lcd_menu_flash_state_temperature = 0;
+//      }
+//    }
+//  }
+//  else
+//  {
+//    ui8_lcd_menu_flash_state_temperature = 1;
+//  }
+//  // ***************************************************************************************************
 }
 
 void brake(void)
@@ -624,28 +907,28 @@ void brake(void)
   uint32_t ui32_y2;
 
   // if previous state was disable, draw
-  if((motor_controller_data.ui8_braking != ui8_braking_previous) ||
+  if((l3_vars.ui8_braking != ui8_braking_previous) ||
       (lcd_vars.ui32_main_screen_draw_static_info))
   {
-    ui8_braking_previous = motor_controller_data.ui8_braking;
+    ui8_braking_previous = l3_vars.ui8_braking;
 
-    if(motor_controller_data.ui8_braking)
+    if(l3_vars.ui8_braking)
     {
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 150;
-      ui32_y1 = 14;
-      UG_PutString(ui32_x1, ui32_y1, "brake");
+      ui32_x1 = 178;
+      ui32_y1 = 10;
+      UG_PutString(ui32_x1, ui32_y1, "BRK");
     }
     else
     {
       // clear area
       // 5 leters
-      ui32_x1 = 150;
-      ui32_y1 = 14;
-      ui32_x2 = ui32_x1 + ((5 * 10) + (5 * 1) + 1);
-      ui32_y2 = ui32_y1 + 18;
+      ui32_x1 = 178;
+      ui32_y1 = 10;
+      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 1);
+      ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
   }
@@ -670,40 +953,37 @@ void lights_state(void)
   static uint8_t ui8_lights_state = 0;
   static uint8_t lcd_lights_symbol = 0;
 
-  if (buttons_get_up_long_click_event ())
+  if (buttons_get_up_long_click_event())
   {
-    buttons_clear_up_long_click_event ();
+    buttons_clear_up_long_click_event();
 
     if (ui8_lights_state == 0)
     {
       ui8_lights_state = 1;
       lcd_lights_symbol = 1;
-      motor_controller_data.ui8_lights = 1;
+      l3_vars.ui8_lights = 1;
     }
     else
     {
       ui8_lights_state = 0;
       lcd_lights_symbol = 0;
-      motor_controller_data.ui8_lights = 0;
+      l3_vars.ui8_lights = 0;
     }
   }
 
-  if (ui8_lights_state == 0) { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_off_brightness); }
-  else { lcd_set_backlight_intensity (configuration_variables.ui8_lcd_backlight_on_brightness); }
+  if(ui8_lights_state == 0) { lcd_set_backlight_intensity (l3_vars.ui8_lcd_backlight_off_brightness); }
+  else { lcd_set_backlight_intensity (l3_vars.ui8_lcd_backlight_on_brightness); }
 }
 
-void calc_battery_voltage_soc(void)
+void l2_calc_battery_voltage_soc(void)
 {
   uint16_t ui16_fluctuate_battery_voltage_x10;
 
   // update battery level value only at every 100ms / 10 times per second and this helps to visual filter the fast changing values
-  if (ui8_lcd_menu_counter_100ms_state)
-  {
-    // calculate flutuate voltage, that depends on the current and battery pack resistance
-    ui16_fluctuate_battery_voltage_x10 = (uint16_t) ((((uint32_t) configuration_variables.ui16_battery_pack_resistance_x1000) * ((uint32_t) ui16_battery_current_filtered_x5)) / ((uint32_t) 500));
-    // now add fluctuate voltage value
-    motor_controller_data.ui16_battery_voltage_soc_x10 = ui16_battery_voltage_filtered_x10 + ui16_fluctuate_battery_voltage_x10;
-  }
+  // calculate flutuate voltage, that depends on the current and battery pack resistance
+  ui16_fluctuate_battery_voltage_x10 = (uint16_t) ((((uint32_t) l3_vars.ui16_battery_pack_resistance_x1000) * ((uint32_t) l2_vars.ui16_battery_current_filtered_x5)) / ((uint32_t) 500));
+  // now add fluctuate voltage value
+  l2_vars.ui16_battery_voltage_soc_x10 = l2_vars.ui16_battery_voltage_filtered_x10 + ui16_fluctuate_battery_voltage_x10;
 }
 
 void battery_soc_bar_clear(uint32_t ui32_bar_number)
@@ -714,32 +994,33 @@ void battery_soc_bar_clear(uint32_t ui32_bar_number)
   // the first nine bars share the same code
   if (ui32_bar_number < 10)
   {
-    ui32_x1 = 11 + (7 * (ui32_bar_number - 1));
-    ui32_y1 = 11;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 19;
+    // draw the bar itself
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * (ui32_bar_number - 1));
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT;
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-    if (ui32_bar_number != 9)
+    // draw bar contour
+    if(ui32_bar_number < 9)
     {
-      ui32_x1 = ui32_x2 + 1;
+      ui32_x1 = ui32_x2 + BATTERY_SOC_CONTOUR;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_BLACK);
     }
     else
     {
       ui32_x1 = ui32_x2 + 1;
-      ui32_y1 = 11 + 6;
-      ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 8;
-      UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+      ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+      ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
+      UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_BLACK);
     }
   }
   else
   {
-    ui32_x1 = 11 + 63;
-    ui32_y1 = 11 + 5;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 9;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9);
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
   }
 }
@@ -750,15 +1031,15 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
   uint32_t ui32_y1, ui32_y2;
 
   // the first nine bars share the same code
-  if (ui32_bar_number < 10)
+  if(ui32_bar_number < 10)
   {
-    ui32_x1 = 11 + (7 * (ui32_bar_number - 1));
-    ui32_y1 = 11;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 19;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * (ui32_bar_number - 1));
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT;
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, ui16_color);
 
-    if (ui32_bar_number != 9)
+    if(ui32_bar_number < 9)
     {
       ui32_x1 = ui32_x2 + 1;
       UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_DIM_GRAY);
@@ -766,23 +1047,22 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
     else
     {
       ui32_x1 = ui32_x2 + 1;
-      ui32_y1 = 11 + 6;
-      ui32_x2 = ui32_x1;
-      ui32_y2 = ui32_y1 + 8;
-      UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_DIM_GRAY);
+      ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+      ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
+      UG_DrawLine(ui32_x1, ui32_y1, ui32_x1, ui32_y2, C_DIM_GRAY);
     }
   }
   else
   {
-    ui32_x1 = 11 + 63;
-    ui32_y1 = 11 + 5;
-    ui32_x2 = ui32_x1 + 5;
-    ui32_y2 = ui32_y1 + 9;
+    ui32_x1 = BATTERY_SOC_START_X + BATTERY_SOC_CONTOUR + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9);
+    ui32_y1 = BATTERY_SOC_START_Y + BATTERY_SOC_CONTOUR + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, ui16_color);
   }
 }
 
-void battery_soc (void)
+void battery_soc(void)
 {
   uint32_t ui32_x1, ui32_x2;
   uint32_t ui32_y1, ui32_y2;
@@ -803,68 +1083,82 @@ void battery_soc (void)
   uint8_t ui8_counter;
   static uint16_t ui16_battery_soc_watts_hour_previous = 0xffff;
 
-  if (lcd_vars.ui32_main_screen_draw_static_info)
+  static print_number_t soc =
+  {
+    .font = &SMALL_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 3,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     // first, clear the full symbol area
-    ui32_x1 = 10;
-    ui32_y1 = 10;
-    ui32_x2 = ui32_x1 + 56;
-    ui32_y2 = ui32_y1 + 21;
+    // first 9 bars
+    ui32_x1 = BATTERY_SOC_START_X;
+    ui32_y1 = BATTERY_SOC_START_Y;
+    ui32_x2 = ui32_x1 + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR) * 9) + (BATTERY_SOC_CONTOUR * 2);
+    ui32_y2 = ui32_y1 + BATTERY_SOC_BAR_HEIGHT + (BATTERY_SOC_CONTOUR * 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
-    ui32_x1 = 10 + 56;
-    ui32_y1 = 10 + 5;
-    ui32_x2 = ui32_x1 + 6;
-    ui32_y2 = ui32_y1 + 11;
+    // last small bar
+    ui32_x1 = ui32_x2;
+    ui32_y1 = BATTERY_SOC_START_Y + (BATTERY_SOC_BAR_HEIGHT / 4);
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH + (BATTERY_SOC_CONTOUR * 2);
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2) + (BATTERY_SOC_CONTOUR * 2);
     UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
 
     // now draw the empty battery symbol
-    ui32_x1 = 10;
-    ui32_y1 = 10;
-    ui32_x2 = ui32_x1 + 63;
+    // first 9 bars
+    ui32_x1 = BATTERY_SOC_START_X;
+    ui32_y1 = BATTERY_SOC_START_Y;
+    ui32_x2 = ui32_x1 + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9) + (BATTERY_SOC_CONTOUR * 2) - 2;
+    ui32_y2 = ui32_y1;
+    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
+
+    // last bar
+    ui32_x1 = ui32_x2;
+    ui32_y1 = ui32_y2;
+    ui32_x2 = ui32_x1;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 4);
+    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
+
+    ui32_x1 = ui32_x2;
+    ui32_y1 = ui32_y2;
+    ui32_x2 = ui32_x1 + BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1;
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 5;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 2) + (BATTERY_SOC_CONTOUR * 2);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 + 7;
+    ui32_x2 = ui32_x1 - (BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1);
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 11;
+    ui32_y2 = ui32_y1 + (BATTERY_SOC_BAR_HEIGHT / 4);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 - 7;
+    ui32_x2 = ui32_x1 - (((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 9) + (BATTERY_SOC_CONTOUR * 2) - 2);
     ui32_y2 = ui32_y1;
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
 
     ui32_x1 = ui32_x2;
     ui32_y1 = ui32_y2;
     ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 + 5;
-    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
-
-    ui32_x1 = ui32_x2;
-    ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1 - 63;
-    ui32_y2 = ui32_y1;
-    UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
-
-    ui32_x1 = ui32_x2;
-    ui32_y1 = ui32_y2;
-    ui32_x2 = ui32_x1;
-    ui32_y2 = ui32_y1 - 21;
+    ui32_y2 = ui32_y1 - (BATTERY_SOC_BAR_HEIGHT + BATTERY_SOC_CONTOUR);
     UG_DrawLine(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_WHITE);
   }
 
@@ -875,18 +1169,18 @@ void battery_soc (void)
     ui8_timmer_counter = 0;
 
     // to keep same scale as voltage of x10
-    ui32_battery_cells_number_x10 = (uint32_t) (configuration_variables.ui8_battery_cells_number * 10);
+    ui32_battery_cells_number_x10 = (uint32_t) (l3_vars.ui8_battery_cells_number * 10);
 
-    if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
-    else if(motor_controller_data.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
+    if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 6; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 5; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 4; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 3; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 2; }
+    else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 1; }
     else { ui32_battery_bar_number = 0; }
 
     // find the color to draw the bars
@@ -958,87 +1252,22 @@ void battery_soc (void)
     ui32_battery_bar_number_previous = ui32_battery_bar_number;
     ui16_color_previous = ui16_color;
 
-    // draw volts
-    //
-    if((ui16_battery_voltage_filtered_x10 != ui16_battery_voltage_filtered_x10_previous) ||
+    // draw SOC in percentage
+    if((ui16_m_battery_soc_watts_hour != ui16_battery_soc_watts_hour_previous) ||
         (lcd_vars.ui32_main_screen_draw_static_info))
     {
-      ui16_battery_voltage_filtered_x10_previous = ui16_battery_voltage_filtered_x10;
+      ui16_battery_soc_watts_hour_previous = ui16_m_battery_soc_watts_hour;
+      soc.ui32_x_position = BATTERY_SOC_START_X + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 10) + (BATTERY_SOC_CONTOUR * 2) + 10;
+      soc.ui32_y_position = 10;
+      soc.ui32_number = ui16_m_battery_soc_watts_hour;
+      soc.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+      lcd_print_number(&soc);
 
-      // first clear the area
-      // 3 digits + 1 point
-      ui32_x1 = 35;
-      ui32_y1 = 35;
-      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 10);
-      ui32_y2 = ui32_y1 + 18;
-      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-      ui32_value_integer = ((uint32_t) ui16_battery_voltage_filtered_x10) / 10;
-      ui32_value_decimal = ((uint32_t) ui16_battery_voltage_filtered_x10) % 10;
-
-      // find how many digits is the ui32_value_integer
-      ui32_value_temp = ui32_value_integer;
-      ui32_value_integer_number_digits = 0;
-      for(ui8_counter = 0; ui8_counter < 3; ui8_counter++)
-      {
-        ui32_value_temp /= 10;
-        ui32_value_integer_number_digits++;
-
-        // finish for loop
-        if (ui32_value_temp == 0)
-        {
-          ui32_value_integer_number_digits++;
-          break;
-        }
-      }
-
-      // draw variable value
+      ui32_x1 = soc.ui32_x_final_position + 2;
+      ui32_y1 = soc.ui32_y_final_position;
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 35;
-      ui32_y1 = 37;
-      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_integer));
-
-      // draw small point
-      ui32_x1 += 4 + ((ui32_value_integer_number_digits - 1) * 10) - ((ui32_value_integer_number_digits - 1) * 1);
-      ui32_y1 = 48;
-      lcd_pixel_set(ui32_x1, ui32_y1, C_GRAY);
-
-      // draw decimal digit
-      ui32_x1 += 3;
-      ui32_y1 = 37;
-      UG_PutString(ui32_x1, ui32_y1, itoa(ui32_value_decimal));
-
-      ui32_x1 += (2 + 10);
-      ui32_y1 = 36;
-      UG_PutString(ui32_x1, ui32_y1, "v");
-    }
-
-    if((ui16_battery_soc_watts_hour != ui16_battery_soc_watts_hour_previous) ||
-        (lcd_vars.ui32_main_screen_draw_static_info))
-    {
-      ui16_battery_soc_watts_hour_previous = ui16_battery_soc_watts_hour;
-
-      // draw SOC in percentage
-      //
-
-      // first clear the area
-      // 3 digits + 1 point
-      ui32_x1 = 90;
-      ui32_y1 = 14;
-      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 1);
-      ui32_y2 = ui32_y1 + 18;
-      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-      UG_SetBackcolor(C_BLACK);
-      UG_SetForecolor(C_WHITE);
-      UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 90;
-      ui32_y1 = 14;
-      UG_PutString(ui32_x1, ui32_y1, itoa(ui16_battery_soc_watts_hour));
-
-      ui32_x1 += ((3 * 10) + (3 * 1) + 2);
       UG_PutString(ui32_x1, ui32_y1, "%");
     }
   }
@@ -1053,12 +1282,12 @@ void temperature(void)
   uint32_t ui32_y2;
   uint8_t ui8_ascii_degree = 176;
 
-  if (configuration_variables.ui8_temperature_limit_feature_enabled)
+  if (l3_vars.ui8_temperature_limit_feature_enabled)
   {
-    if((motor_controller_data.ui8_motor_temperature != ui8_motor_temperature_previous) ||
+    if((l3_vars.ui8_motor_temperature != ui8_motor_temperature_previous) ||
         (lcd_vars.ui32_main_screen_draw_static_info))
     {
-      ui8_motor_temperature_previous = motor_controller_data.ui8_motor_temperature;
+      ui8_motor_temperature_previous = l3_vars.ui8_motor_temperature;
 
       // first clear the area
       // 5 digits + some space
@@ -1075,20 +1304,20 @@ void temperature(void)
       ui32_x1 = DISPLAY_WIDTH - 1 - 18 - (7 * 10) + (7 * 1) + 10;
       ui32_y1 = 32;
 
-      if(motor_controller_data.ui8_motor_temperature < 10)
+      if(l3_vars.ui8_motor_temperature < 10)
       {
         ui32_x1 += 22;
-        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+        UG_PutString(ui32_x1, ui32_y1, itoa(l3_vars.ui8_motor_temperature));
 
         ui32_x1 += ((1 * 10) + (1 * 1) + 1);
         UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
         ui32_x1 += 11;
         UG_PutString(ui32_x1, ui32_y1, "c");
       }
-      else if(motor_controller_data.ui8_motor_temperature < 100)
+      else if(l3_vars.ui8_motor_temperature < 100)
       {
         ui32_x1 += 11;
-        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+        UG_PutString(ui32_x1, ui32_y1, itoa(l3_vars.ui8_motor_temperature));
 
         ui32_x1 += ((2 * 10) + (2 * 1) + 1);
         UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
@@ -1097,7 +1326,7 @@ void temperature(void)
       }
       else
       {
-        UG_PutString(ui32_x1, ui32_y1, itoa(motor_controller_data.ui8_motor_temperature));
+        UG_PutString(ui32_x1, ui32_y1, itoa(l3_vars.ui8_motor_temperature));
 
         ui32_x1 += ((3 * 10) + (3 * 1) + 1);
         UG_PutString(ui32_x1, ui32_y1, &ui8_ascii_degree);
@@ -1110,60 +1339,63 @@ void temperature(void)
 
 void time(void)
 {
-  uint32_t ui32_x1;
-  uint32_t ui32_y1;
-  uint32_t ui32_x2;
-  uint32_t ui32_y2;
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
   static struct_rtc_time_t rtc_time_previous;
   static struct_rtc_time_t *p_rtc_time_previous;
   struct_rtc_time_t *p_rtc_time;
+
+  static print_number_t hours =
+  {
+    .font = &REGULAR_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 2,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  static print_number_t minutes =
+  {
+    .font = &REGULAR_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 2,
+    .ui8_left_zero_paddig = 1,
+  };
 
   p_rtc_time_previous = &rtc_time_previous;
   p_rtc_time = rtc_get_time();
 
   if ((p_rtc_time->ui8_hours != p_rtc_time_previous->ui8_hours) ||
-      (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes))
+      (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes) ||
+      lcd_vars.ui32_main_screen_draw_static_info)
   {
     p_rtc_time_previous->ui8_hours = p_rtc_time->ui8_hours;
     p_rtc_time_previous->ui8_minutes = p_rtc_time->ui8_minutes;
 
-    // first clear the area
-    // 5 digits + some space
-    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
-    ui32_y1 = 4;
-    ui32_x2 = ui32_x1 + (7 * 12) + (7 * 1) + 12;
-    ui32_y2 = ui32_y1 + 20;
-    UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    // print hours number
+    ui32_x_position = DISPLAY_WIDTH - 1 - hours.font->char_width - (5 * hours.font->char_width) + (5 * 1);
+    ui32_y_position = 6;
+    hours.ui32_x_position = ui32_x_position;
+    hours.ui32_y_position = ui32_y_position;
+    hours.ui32_number = p_rtc_time->ui8_hours;
+    hours.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&hours);
 
-    // draw
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&REGULAR_TEXT_FONT);
+    // print ":"
+    ui32_x_position = hours.ui32_x_final_position;
+    ui32_y_position = hours.ui32_y_final_position;
+    UG_PutChar(58, ui32_x_position, ui32_y_position, C_WHITE, C_BLACK);
+    ui32_x_position += minutes.font->char_width; // x width from ":"
 
-    ui32_x1 = DISPLAY_WIDTH - 1 - 12 - (7 * 12) + (7 * 1) + 12;
-    ui32_y1 = 4;
-    // add left zero
-    if(p_rtc_time->ui8_hours < 10)
-    {
-      ui32_x1 += 13;
-      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
-      ui32_x1 -= 13;
-    }
-    else
-    {
-      UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_hours));
-    }
-
-    ui32_x1 += 25;
-    UG_PutString(ui32_x1, ui32_y1, ":");
-    ui32_x1 += 13;
-    // add left zero
-    if(p_rtc_time->ui8_minutes < 10)
-    {
-      UG_PutString(ui32_x1 , ui32_y1, itoa(0));
-      ui32_x1 += 13;
-    }
-    UG_PutString(ui32_x1 , ui32_y1, itoa(p_rtc_time->ui8_minutes));
+    // print minutes number
+    minutes.ui32_x_position = ui32_x_position;
+    minutes.ui32_y_position = ui32_y_position;
+    minutes.ui32_number = p_rtc_time->ui8_minutes;
+    minutes.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&minutes);
   }
 }
 
@@ -1178,17 +1410,31 @@ void power(void)
   uint16_t _ui16_battery_power_filtered;
   uint16_t ui16_target_max_power;
 
+  static print_number_t power_number =
+  {
+    .font = &FONT_24X40,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui32_x_position = 191,
+    .ui32_y_position = 191,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 4,
+    .ui8_left_zero_paddig = 0,
+    .ui32_number = 0,
+    .ui8_refresh_all_digits = 1
+  };
+
   if(lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(238, 188, "Power");
+    UG_PutString(183, 164, "motor power");
   }
 
   if(!lcd_vars.ui8_lcd_menu_max_power)
   {
-    _ui16_battery_power_filtered = ui16_battery_power_filtered;
+    _ui16_battery_power_filtered = l3_vars.ui16_battery_power_filtered;
 
     if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         lcd_vars.ui32_main_screen_draw_static_info ||
@@ -1199,24 +1445,10 @@ void power(void)
 
       if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
 
-      // clear area
-      ui32_x1 = 200;
-      ui32_y1 = 219;
-      ui32_x2 = ui32_x1 + (3 * 24) + (3 * 24) + 1;
-      ui32_y2 = ui32_y1 + 41;
-      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
-
-      // draw number
-      ui32_x1 = 200;
-      ui32_y1 = 219;
-      if(_ui16_battery_power_filtered >= 1000) {  }
-      else if(_ui16_battery_power_filtered >= 100) { ui32_x1 += 24; }
-      else if(_ui16_battery_power_filtered >= 10) { ui32_x1 += 48; }
-      else { ui32_x1 += 72; }
-
-      UG_SetForecolor(C_WHITE);
-      UG_FontSelect(&FONT_24X40);
-      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) _ui16_battery_power_filtered));
+      power_number.ui32_number = _ui16_battery_power_filtered;
+      power_number.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+      lcd_print_number(&power_number);
+      power_number.ui8_refresh_all_digits = 0;
     }
     else
     {
@@ -1234,6 +1466,7 @@ void power(void)
       buttons_clear_all_events();
       lcd_vars.ui8_lcd_menu_max_power = 0;
       ui8_target_max_battery_power_state = 0;
+      power_number.ui8_refresh_all_digits = 1;
 
       // save the updated variables on EEPROM
       eeprom_write_variables();
@@ -1246,34 +1479,34 @@ void power(void)
     {
       buttons_clear_all_events();
 
-      if(configuration_variables.ui8_target_max_battery_power < 10)
+      if(l3_vars.ui8_target_max_battery_power < 10)
       {
-        configuration_variables.ui8_target_max_battery_power++;
+        l3_vars.ui8_target_max_battery_power++;
       }
       else
       {
-        configuration_variables.ui8_target_max_battery_power += 2;
+        l3_vars.ui8_target_max_battery_power += 2;
       }
 
       // limit to 100 * 25 = 2500 Watts
-      if(configuration_variables.ui8_target_max_battery_power > 100) { configuration_variables.ui8_target_max_battery_power = 100; }
+      if(l3_vars.ui8_target_max_battery_power > 100) { l3_vars.ui8_target_max_battery_power = 100; }
     }
 
     if(buttons_get_down_click_event ())
     {
       buttons_clear_all_events();
 
-      if(configuration_variables.ui8_target_max_battery_power == 0)
+      if(l3_vars.ui8_target_max_battery_power == 0)
       {
 
       }
-      else if(configuration_variables.ui8_target_max_battery_power <= 10)
+      else if(l3_vars.ui8_target_max_battery_power <= 10)
       {
-        configuration_variables.ui8_target_max_battery_power--;
+        l3_vars.ui8_target_max_battery_power--;
       }
       else
       {
-        configuration_variables.ui8_target_max_battery_power -= 2;
+        l3_vars.ui8_target_max_battery_power -= 2;
       }
     }
 
@@ -1284,11 +1517,9 @@ void power(void)
         ui8_target_max_battery_power_state = 0;
 
         // clear area
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        ui32_x2 = ui32_x1 + (5 * 24) + (5 * 24) + 1;
-        ui32_y2 = ui32_y1 + 41;
-        UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+        power_number.ui8_clean_area_all_digits = 1;
+        lcd_print_number(&power_number);
+        power_number.ui8_clean_area_all_digits = 0;
       }
     }
     else
@@ -1297,28 +1528,13 @@ void power(void)
       {
         ui8_target_max_battery_power_state = 1;
 
-        ui16_target_max_power = configuration_variables.ui8_target_max_battery_power * 25;
+        ui16_target_max_power = l3_vars.ui8_target_max_battery_power * 25;
 
-        // clear area
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        ui32_x2 = ui32_x1 + (4 * 24) + (4 * 24) + 1;
-        ui32_y2 = ui32_y1 + 41;
-        UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+        power_number.ui8_refresh_all_digits = 1;
+        power_number.ui32_number = ui16_target_max_power;
+        lcd_print_number(&power_number);
 
-        // draw number
-        ui32_x1 = 200;
-        ui32_y1 = 219;
-        if(ui16_target_max_power >= 1000) {  }
-        else if(ui16_target_max_power >= 100) { ui32_x1 += 24; }
-        else if(ui16_target_max_power >= 10) { ui32_x1 += 48; }
-        else { ui32_x1 += 72; }
-
-        UG_SetForecolor(C_WHITE);
-        UG_FontSelect(&FONT_24X40);
-        UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui16_target_max_power));
-
-        configuration_variables.ui8_target_max_battery_power = ui16_target_max_power / 25;
+        l3_vars.ui8_target_max_battery_power = ui16_target_max_power / 25;
       }
     }
   }
@@ -1326,62 +1542,65 @@ void power(void)
 
 void wheel_speed(void)
 {
-  uint32_t ui32_wheel_speed;
-  uint32_t ui32_x1;
-  uint32_t ui32_y1;
-  uint32_t ui32_x2;
-  uint32_t ui32_y2;
-  static uint16_t ui16_wheel_speed_x10_last = 0xffff;
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+  static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
+
+  static print_number_t wheel_speed_integer =
+  {
+    .font = &BIG_NUMBERS_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 2,
+    .ui8_left_zero_paddig = 0,
+  };
+
+  static print_number_t wheel_speed_decimal =
+  {
+    .font = &MEDIUM_NUMBERS_TEXT_FONT,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 1,
+    .ui8_left_zero_paddig = 0,
+  };
 
   if (lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_GRAY);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(200, 135 , "km/h");
+    UG_PutString(257, 50 , "KM/H");
 
     // print dot
-    UG_FillCircle(160, 145, 2, C_WHITE);
+    UG_FillCircle(196, 123, 2, C_WHITE);
   }
 
-  if ((motor_controller_data.ui16_wheel_speed_x10 != ui16_wheel_speed_x10_last) ||
+  if ((l3_vars.ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous) ||
       lcd_vars.ui32_main_screen_draw_static_info)
   {
-    ui16_wheel_speed_x10_last = motor_controller_data.ui16_wheel_speed_x10;
+    ui16_wheel_x10_speed_previous = l3_vars.ui16_wheel_speed_x10;
 
-    ui32_wheel_speed = (uint32_t) (motor_controller_data.ui16_wheel_speed_x10 / 10);
-    if (ui32_wheel_speed > 99) { ui32_wheel_speed = 99; }
+    ui32_x_position = 126;
+    ui32_y_position = 84;
 
-    // clear area
-    ui32_x1 = 92;
-    ui32_y1 = 106;
-    ui32_x2 = ui32_x1 + 32;
-    ui32_y2 = ui32_y1 + 54;
-    UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    wheel_speed_integer.ui32_x_position = ui32_x_position;
+    wheel_speed_integer.ui32_y_position = ui32_y_position;
+    wheel_speed_integer.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 / 10);
+    wheel_speed_integer.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&wheel_speed_integer);
 
-    UG_SetForecolor(C_WHITE);
-    UG_FontSelect(&BIG_NUMBERS_TEXT_FONT);
-    ui32_x1 = 124;
-    ui32_y1 = 106;
-    if (ui32_wheel_speed >= 10)
-    {
-      ui32_x1 -= 32;
-      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui32_wheel_speed));
-      ui32_x1 += 32;
-    }
-    else
-    {
-      UG_PutString(ui32_x1, ui32_y1, itoa((uint32_t) ui32_wheel_speed));
-    }
+    // accounting for dot: 10 px
+    ui32_x_position = wheel_speed_integer.ui32_x_final_position + 10;
 
-    // print dot
-    // dot 10 px
-    ui32_x1 += 10;
+    ui32_y_position = ui32_y_position + 10;
 
-    // decimal digit
-    UG_FontSelect(&MEDIUM_NUMBERS_TEXT_FONT);
-    ui32_x1 += (24 + 10);
-    UG_PutString(ui32_x1, ui32_y1 + 10, itoa((uint32_t) motor_controller_data.ui16_wheel_speed_x10 % 10));
+    wheel_speed_decimal.ui32_x_position = ui32_x_position;
+    wheel_speed_decimal.ui32_y_position = ui32_y_position;
+    wheel_speed_decimal.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 % 10);
+    wheel_speed_decimal.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&wheel_speed_decimal);
   }
 }
 
@@ -1389,12 +1608,11 @@ void calc_battery_soc_watts_hour(void)
 {
   uint32_t ui32_temp;
 
-  __disable_irq();
-  ui32_temp = motor_controller_data.ui32_wh_x10 * 100;
-  __enable_irq();
-  if (configuration_variables.ui32_wh_x10_100_percent > 0)
+  ui32_temp = l3_vars.ui32_wh_x10 * 100;
+
+  if (l3_vars.ui32_wh_x10_100_percent > 0)
   {
-    ui32_temp /= configuration_variables.ui32_wh_x10_100_percent;
+    ui32_temp /= l3_vars.ui32_wh_x10_100_percent;
   }
   else
   {
@@ -1402,20 +1620,199 @@ void calc_battery_soc_watts_hour(void)
   }
 
   // 100% - current SOC or just current SOC
-  if (configuration_variables.ui8_battery_soc_increment_decrement)
+  if (l3_vars.ui8_battery_soc_increment_decrement)
   {
     if (ui32_temp > 100)
       ui32_temp = 100;
 
-    ui16_battery_soc_watts_hour = 100 - ui32_temp;
+    ui16_m_battery_soc_watts_hour = 100 - ui32_temp;
   }
   else
   {
-    ui16_battery_soc_watts_hour = ui32_temp;
+    ui16_m_battery_soc_watts_hour = ui32_temp;
   }
 }
 
-struct_lcd_vars* get_lcd_vars (void)
+void lcd_print_number(print_number_t* number)
+{
+  uint32_t ui32_number_temp;
+  uint8_t ui8_digit_inverse_counter;
+  uint8_t ui8_digits_array[MAX_NUMBER_DIGITS];
+  static uint32_t ui32_power_array[MAX_NUMBER_DIGITS] = {1, 10, 100, 1000, 10000};
+  uint32_t ui32_number = number->ui32_number;
+  uint8_t ui8_i;
+  uint32_t ui32_x_position = number->ui32_x_position;
+  uint32_t ui32_y_position = number->ui32_y_position;
+  // save digit number where number start
+  uint8_t ui8_digit_number_start = 0;
+
+  // can't process over MAX_NUMBER_DIGITS
+  if(number->ui8_field_number_of_digits > MAX_NUMBER_DIGITS)
+  {
+    return;
+  }
+
+  // set the font that will be used
+  UG_FontSelect(number->font);
+
+  // get all digits from the number
+  ui32_number_temp = ui32_number;
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    ui8_digits_array[ui8_i] = ui32_number_temp % 10;
+    ui32_number_temp /= 10;
+
+    // find the digit number start
+    if(ui8_digits_array[ui8_i] != 0)
+    {
+      ui8_digit_number_start = ui8_i;
+    }
+  }
+
+  // loop over all digits
+  ui8_digit_inverse_counter = number->ui8_field_number_of_digits - 1;
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    // only digits that changed
+    if(((ui8_digits_array[ui8_digit_inverse_counter] != number->ui8_previous_digits_array[ui8_digit_inverse_counter]) ||
+        (number->ui8_refresh_all_digits)) &&
+        (!number->ui8_clean_area_all_digits))
+    {
+      if((ui8_digits_array[ui8_digit_inverse_counter] == 0) && // if is a 0
+          (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+          (number->ui8_left_zero_paddig)) // if we want to print a 0 at left
+      {
+        // print a "0"
+        UG_PutChar(48, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+      else if((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
+          (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+          (!number->ui8_left_zero_paddig)) // if we NOT want to print a 0 at left
+      {
+        // print a " "
+        UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+      else
+      {
+        // print the digit
+        UG_PutChar((ui8_digits_array[ui8_digit_inverse_counter] + 48), ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      }
+    }
+    // the case where there was a 0 but we want to remove it
+    else if(((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
+        (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+        (!number->ui8_left_zero_paddig)) || // if we NOT want to print a 0 at left
+        (number->ui8_clean_area_all_digits)) // we want to clean, so print a " "
+    {
+      // print a " "
+      UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+    }
+    // the case where there was a " " but we need to write a 0
+    else if((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
+        (ui8_digit_number_start > number->ui8_digit_number_start_previous)) // if is a digit at left from the first digit
+    {
+      // print a "0"
+      UG_PutChar(48, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+    }
+    else
+    {
+      // do not change the field, keep with previous value
+    }
+
+    ui8_digit_inverse_counter--;
+
+    // increase X position for next char
+    ui32_x_position += number->font->char_width + 1;
+  }
+
+  // save the digits
+  for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+  {
+    number->ui8_previous_digits_array[ui8_i] = ui8_digits_array[ui8_i];
+  }
+
+  number->ui8_digit_number_start_previous = ui8_digit_number_start;
+
+  // store final position
+  number->ui32_x_final_position = ui32_x_position;
+  number->ui32_y_final_position = ui32_y_position;
+}
+
+void copy_layer_2_layer_3_vars(void)
+{
+  l3_vars.ui16_adc_battery_voltage = l2_vars.ui16_adc_battery_voltage;
+  l3_vars.ui8_battery_current_x5 = l2_vars.ui8_battery_current_x5;
+  l3_vars.ui8_throttle = l2_vars.ui8_throttle;
+  l3_vars.ui8_adc_pedal_torque_sensor = l2_vars.ui8_adc_pedal_torque_sensor;
+  l3_vars.ui8_pedal_torque_sensor = l2_vars.ui8_pedal_torque_sensor;
+  l3_vars.ui8_pedal_human_power = l2_vars.ui8_pedal_human_power;
+  l3_vars.ui8_duty_cycle = l2_vars.ui8_duty_cycle;
+  l3_vars.ui8_error_states = l2_vars.ui8_error_states;
+  l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;
+  l3_vars.ui8_pedal_cadence = l2_vars.ui8_pedal_cadence;
+  l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
+  l3_vars.ui8_temperature_current_limiting_value = l2_vars.ui8_temperature_current_limiting_value;
+  l3_vars.ui8_motor_temperature = l2_vars.ui8_motor_temperature;
+  l3_vars.ui32_wheel_speed_sensor_tick_counter = l2_vars.ui32_wheel_speed_sensor_tick_counter;
+  l3_vars.ui16_pedal_power_x10 = l2_vars.ui16_pedal_power_x10;
+  l3_vars.ui16_battery_voltage_filtered_x10 = l2_vars.ui16_battery_voltage_filtered_x10;
+  l3_vars.ui16_battery_current_filtered_x5 = l2_vars.ui16_battery_current_filtered_x5;
+  l3_vars.ui16_battery_power_filtered_x50 = l2_vars.ui16_battery_power_filtered_x50;
+  l3_vars.ui16_battery_power_filtered = l2_vars.ui16_battery_power_filtered;
+  l3_vars.ui16_pedal_torque_filtered = l2_vars.ui16_pedal_torque_filtered;
+  l3_vars.ui16_pedal_power_filtered = l2_vars.ui16_pedal_power_filtered;
+  l3_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence_filtered;
+  l3_vars.ui16_battery_voltage_soc_x10 = l2_vars.ui16_battery_voltage_soc_x10;
+  l3_vars.ui32_wh_sum_x5 = l2_vars.ui32_wh_sum_x5;
+  l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
+  l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
+  l3_vars.ui8_braking = l2_vars.ui8_braking;
+
+  l2_vars.ui8_assist_level = l3_vars.ui8_assist_level;
+  l2_vars.ui8_assist_level_factor[0] = l3_vars.ui8_assist_level_factor[0];
+  l2_vars.ui8_assist_level_factor[1] = l3_vars.ui8_assist_level_factor[1];
+  l2_vars.ui8_assist_level_factor[2] = l3_vars.ui8_assist_level_factor[2];
+  l2_vars.ui8_assist_level_factor[3] = l3_vars.ui8_assist_level_factor[3];
+  l2_vars.ui8_assist_level_factor[4] = l3_vars.ui8_assist_level_factor[4];
+  l2_vars.ui8_assist_level_factor[5] = l3_vars.ui8_assist_level_factor[5];
+  l2_vars.ui8_assist_level_factor[6] = l3_vars.ui8_assist_level_factor[6];
+  l2_vars.ui8_assist_level_factor[7] = l3_vars.ui8_assist_level_factor[7];
+  l2_vars.ui8_assist_level_factor[8] = l3_vars.ui8_assist_level_factor[8];
+  l2_vars.ui8_lights = l3_vars.ui8_lights;
+  l2_vars.ui8_walk_assist_level = l3_vars.ui8_walk_assist_level;
+  l2_vars.ui8_offroad_mode = l3_vars.ui8_offroad_mode;
+  l2_vars.ui8_battery_max_current = l3_vars.ui8_battery_max_current;
+  l2_vars.ui8_target_max_battery_power = l3_vars.ui8_target_max_battery_power;
+  l2_vars.ui16_battery_low_voltage_cut_off_x10 = l3_vars.ui16_battery_low_voltage_cut_off_x10;
+  l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
+  l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
+  l2_vars.ui8_cruise_control = l3_vars.ui8_cruise_control;
+  l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
+  l2_vars.ui8_motor_assistance_startup_without_pedal_rotation = l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
+  l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
+  l2_vars.ui8_startup_motor_power_boost_state = l3_vars.ui8_startup_motor_power_boost_state;
+  l2_vars.ui8_startup_motor_power_boost_time = l3_vars.ui8_startup_motor_power_boost_time;
+  l2_vars.ui8_startup_motor_power_boost_factor[1] = l3_vars.ui8_startup_motor_power_boost_factor[0];
+  l2_vars.ui8_startup_motor_power_boost_factor[2] = l3_vars.ui8_startup_motor_power_boost_factor[1];
+  l2_vars.ui8_startup_motor_power_boost_factor[3] = l3_vars.ui8_startup_motor_power_boost_factor[2];
+  l2_vars.ui8_startup_motor_power_boost_factor[4] = l3_vars.ui8_startup_motor_power_boost_factor[3];
+  l2_vars.ui8_startup_motor_power_boost_factor[5] = l3_vars.ui8_startup_motor_power_boost_factor[4];
+  l2_vars.ui8_startup_motor_power_boost_factor[6] = l3_vars.ui8_startup_motor_power_boost_factor[5];
+  l2_vars.ui8_startup_motor_power_boost_factor[7] = l3_vars.ui8_startup_motor_power_boost_factor[7];
+  l2_vars.ui8_startup_motor_power_boost_factor[8] = l3_vars.ui8_startup_motor_power_boost_factor[8];
+  l2_vars.ui8_startup_motor_power_boost_factor[9] = l3_vars.ui8_startup_motor_power_boost_factor[9];
+  l2_vars.ui8_startup_motor_power_boost_fade_time = l3_vars.ui8_startup_motor_power_boost_fade_time;
+  l2_vars.ui8_startup_motor_power_boost_feature_enabled = l3_vars.ui8_startup_motor_power_boost_feature_enabled;
+  l2_vars.ui8_motor_temperature_min_value_to_limit = l3_vars.ui8_motor_temperature_min_value_to_limit;
+  l2_vars.ui8_motor_temperature_max_value_to_limit = l3_vars.ui8_motor_temperature_max_value_to_limit;
+  l2_vars.ui8_offroad_feature_enabled = l3_vars.ui8_offroad_feature_enabled;
+  l2_vars.ui8_offroad_enabled_on_startup = l3_vars.ui8_offroad_enabled_on_startup;
+  l2_vars.ui8_offroad_speed_limit = l3_vars.ui8_offroad_speed_limit;
+  l2_vars.ui8_offroad_power_limit_enabled = l3_vars.ui8_offroad_power_limit_enabled;
+  l2_vars.ui8_offroad_power_limit_div25 = l3_vars.ui8_offroad_power_limit_div25;
+}
+
+lcd_vars_t* get_lcd_vars(void)
 {
   return &lcd_vars;
 }

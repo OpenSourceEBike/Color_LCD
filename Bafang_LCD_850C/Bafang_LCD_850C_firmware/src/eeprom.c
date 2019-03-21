@@ -170,9 +170,6 @@ void eeprom_init()
 
 void eeprom_init_variables(void)
 {
-  struct_configuration_variables *p_configuration_variables;
-  p_configuration_variables = get_configuration_variables();
-
   eeprom_read_values_to_variables();
 }
 
@@ -183,18 +180,18 @@ static void eeprom_read_values_to_variables(void)
   uint32_t ui32_temp;
   uint8_t ui8_index;
 
-  struct_configuration_variables *p_configuration_variables;
-  p_configuration_variables = get_configuration_variables();
+  volatile l3_vars_t *p_l3_output_vars;
+  p_l3_output_vars = get_l3_vars();
 
-  p_configuration_variables->ui8_assist_level = eeprom_read(ADDRESS_ASSIST_LEVEL);
+  p_l3_output_vars->ui8_assist_level = eeprom_read(ADDRESS_ASSIST_LEVEL);
 
   ui16_temp = eeprom_read(ADDRESS_WHEEL_PERIMETER_0);
   ui8_temp = eeprom_read(ADDRESS_WHEEL_PERIMETER_1);
   ui16_temp += (((uint16_t) ui8_temp << 8) & 0xff00);
-  p_configuration_variables->ui16_wheel_perimeter = ui16_temp;
+  p_l3_output_vars->ui16_wheel_perimeter = ui16_temp;
 
-  p_configuration_variables->ui8_wheel_max_speed = eeprom_read(ADDRESS_MAX_WHEEL_SPEED);
-  p_configuration_variables->ui8_units_type = eeprom_read(ADDRESS_UNITS_TYPE);
+  p_l3_output_vars->ui8_wheel_max_speed = eeprom_read(ADDRESS_MAX_WHEEL_SPEED);
+  p_l3_output_vars->ui8_units_type = eeprom_read(ADDRESS_UNITS_TYPE);
 
   ui32_temp = eeprom_read(ADDRESS_HW_X10_OFFSET_0);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_OFFSET_1);
@@ -203,9 +200,9 @@ static void eeprom_read_values_to_variables(void)
   ui32_temp += (((uint32_t) ui8_temp << 16) & 0xff0000);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_OFFSET_3);
   ui32_temp += (((uint32_t) ui8_temp << 24) & 0xff000000);
-  __disable_irq();
-  p_configuration_variables->ui32_wh_x10_offset = ui32_temp;
-  __enable_irq();
+//  __disable_irq();
+  p_l3_output_vars->ui32_wh_x10_offset = ui32_temp;
+//  __enable_irq();
 
   ui32_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_0);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_1);
@@ -214,70 +211,70 @@ static void eeprom_read_values_to_variables(void)
   ui32_temp += (((uint32_t) ui8_temp << 16) & 0xff0000);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_3);
   ui32_temp += (((uint32_t) ui8_temp << 24) & 0xff000000);
-  p_configuration_variables->ui32_wh_x10_100_percent = ui32_temp;
+  p_l3_output_vars->ui32_wh_x10_100_percent = ui32_temp;
 
-  p_configuration_variables->ui8_battery_soc_enable = eeprom_read(ADDRESS_SHOW_NUMERIC_BATTERY_SOC);
-  p_configuration_variables->ui8_odometer_field_state = eeprom_read(ADDRESS_ODOMETER_FIELD_STATE);
-  p_configuration_variables->ui8_battery_max_current = eeprom_read(ADDRESS_BATTERY_MAX_CURRENT);
-  p_configuration_variables->ui8_target_max_battery_power = eeprom_read(ADDRESS_TARGET_MAX_BATTERY_POWER);
-  p_configuration_variables->ui8_battery_cells_number = eeprom_read(ADDRESS_BATTERY_CELLS_NUMBER);
+  p_l3_output_vars->ui8_battery_soc_enable = eeprom_read(ADDRESS_SHOW_NUMERIC_BATTERY_SOC);
+  p_l3_output_vars->ui8_odometer_field_state = eeprom_read(ADDRESS_ODOMETER_FIELD_STATE);
+  p_l3_output_vars->ui8_battery_max_current = eeprom_read(ADDRESS_BATTERY_MAX_CURRENT);
+  p_l3_output_vars->ui8_target_max_battery_power = eeprom_read(ADDRESS_TARGET_MAX_BATTERY_POWER);
+  p_l3_output_vars->ui8_battery_cells_number = eeprom_read(ADDRESS_BATTERY_CELLS_NUMBER);
 
   ui16_temp = eeprom_read(ADDRESS_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_0);
   ui8_temp = eeprom_read(ADDRESS_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_1);
   ui16_temp += (((uint16_t) ui8_temp << 8) & 0xff00);
-  p_configuration_variables->ui16_battery_low_voltage_cut_off_x10 = ui16_temp;
+  p_l3_output_vars->ui16_battery_low_voltage_cut_off_x10 = ui16_temp;
 
   ui8_temp = eeprom_read(ADDRESS_CONFIG_0);
-  p_configuration_variables->ui8_motor_type = ui8_temp & 3;
-  p_configuration_variables->ui8_motor_assistance_startup_without_pedal_rotation = (ui8_temp & 4) >> 2;
-  p_configuration_variables->ui8_temperature_limit_feature_enabled = (ui8_temp & 8) >> 3;
-  p_configuration_variables->ui8_temperature_field_config = (ui8_temp & 48) >> 4;
+  p_l3_output_vars->ui8_motor_type = ui8_temp & 3;
+  p_l3_output_vars->ui8_motor_assistance_startup_without_pedal_rotation = (ui8_temp & 4) >> 2;
+  p_l3_output_vars->ui8_temperature_limit_feature_enabled = (ui8_temp & 8) >> 3;
+  p_l3_output_vars->ui8_temperature_field_config = (ui8_temp & 48) >> 4;
 
-  p_configuration_variables->ui8_number_of_assist_levels = eeprom_read(ADDRESS_NUMBER_OF_ASSIST_LEVELS);
+  p_l3_output_vars->ui8_number_of_assist_levels = eeprom_read(ADDRESS_NUMBER_OF_ASSIST_LEVELS);
   for (ui8_index = 0; ui8_index < 9; ui8_index++)
   {
-    p_configuration_variables->ui8_assist_level_factor [ui8_index] = eeprom_read(ADDRESS_ASSIST_LEVEL_FACTOR_1 + ui8_index);
+    p_l3_output_vars->ui8_assist_level_factor [ui8_index] = eeprom_read(ADDRESS_ASSIST_LEVEL_FACTOR_1 + ui8_index);
   }
 
-  p_configuration_variables->ui8_startup_motor_power_boost_feature_enabled = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED);
-  p_configuration_variables->ui8_startup_motor_power_boost_state = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_STATE);
-  p_configuration_variables->ui8_startup_motor_power_boost_time = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_TIME);
+  p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED);
+  p_l3_output_vars->ui8_startup_motor_power_boost_state = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_STATE);
+  p_l3_output_vars->ui8_startup_motor_power_boost_time = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_TIME);
   for (ui8_index = 0; ui8_index < 9; ui8_index++)
   {
-    p_configuration_variables->ui8_startup_motor_power_boost_factor [ui8_index] = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1 + ui8_index);
+    p_l3_output_vars->ui8_startup_motor_power_boost_factor [ui8_index] = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1 + ui8_index);
   }
 
-  p_configuration_variables->ui8_startup_motor_power_boost_fade_time = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_FADE_TIME);
+  p_l3_output_vars->ui8_startup_motor_power_boost_fade_time = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_FADE_TIME);
 
-  p_configuration_variables->ui8_motor_temperature_min_value_to_limit = eeprom_read(ADDRESS_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT);
-  p_configuration_variables->ui8_motor_temperature_max_value_to_limit = eeprom_read(ADDRESS_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT);
+  p_l3_output_vars->ui8_motor_temperature_min_value_to_limit = eeprom_read(ADDRESS_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT);
+  p_l3_output_vars->ui8_motor_temperature_max_value_to_limit = eeprom_read(ADDRESS_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT);
 
   ui16_temp = eeprom_read(ADDRESS_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_0);
   ui8_temp = eeprom_read(ADDRESS_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_1);
   ui16_temp += (((uint16_t) ui8_temp << 8) & 0xff00);
-  p_configuration_variables->ui16_battery_voltage_reset_wh_counter_x10 = ui16_temp;
+  p_l3_output_vars->ui16_battery_voltage_reset_wh_counter_x10 = ui16_temp;
 
-  p_configuration_variables->ui8_lcd_power_off_time_minutes = eeprom_read(ADDRESS_LCD_POWER_OFF_TIME);
-  p_configuration_variables->ui8_lcd_backlight_on_brightness = eeprom_read(ADDRESS_LCD_BACKLIGHT_ON_BRIGHTNESS);
-  p_configuration_variables->ui8_lcd_backlight_off_brightness = eeprom_read(ADDRESS_LCD_BACKLIGHT_OFF_BRIGHTNESS);
+  p_l3_output_vars->ui8_lcd_power_off_time_minutes = eeprom_read(ADDRESS_LCD_POWER_OFF_TIME);
+  p_l3_output_vars->ui8_lcd_backlight_on_brightness = eeprom_read(ADDRESS_LCD_BACKLIGHT_ON_BRIGHTNESS);
+  p_l3_output_vars->ui8_lcd_backlight_off_brightness = eeprom_read(ADDRESS_LCD_BACKLIGHT_OFF_BRIGHTNESS);
 
   ui16_temp = eeprom_read(ADDRESS_BATTERY_PACK_RESISTANCE_0);
   ui8_temp = eeprom_read(ADDRESS_BATTERY_PACK_RESISTANCE_1);
   ui16_temp += (((uint16_t) ui8_temp << 8) & 0xff00);
-  p_configuration_variables->ui16_battery_pack_resistance_x1000 = ui16_temp;
+  p_l3_output_vars->ui16_battery_pack_resistance_x1000 = ui16_temp;
 
-  p_configuration_variables->ui8_offroad_feature_enabled = eeprom_read(ADDRESS_OFFROAD_FEATURE_ENABLED);
-  p_configuration_variables->ui8_offroad_enabled_on_startup = eeprom_read(ADDRESS_OFFROAD_MODE_ENABLED_ON_STARTUP);
-  p_configuration_variables->ui8_offroad_speed_limit = eeprom_read(ADDRESS_OFFROAD_SPEED_LIMIT);
-  p_configuration_variables->ui8_offroad_power_limit_enabled = eeprom_read(ADDRESS_OFFROAD_POWER_LIMIT_ENABLED);
-  p_configuration_variables->ui8_offroad_power_limit_div25 = eeprom_read(ADDRESS_OFFROAD_POWER_LIMIT_DIV25);
+  p_l3_output_vars->ui8_offroad_feature_enabled = eeprom_read(ADDRESS_OFFROAD_FEATURE_ENABLED);
+  p_l3_output_vars->ui8_offroad_enabled_on_startup = eeprom_read(ADDRESS_OFFROAD_MODE_ENABLED_ON_STARTUP);
+  p_l3_output_vars->ui8_offroad_speed_limit = eeprom_read(ADDRESS_OFFROAD_SPEED_LIMIT);
+  p_l3_output_vars->ui8_offroad_power_limit_enabled = eeprom_read(ADDRESS_OFFROAD_POWER_LIMIT_ENABLED);
+  p_l3_output_vars->ui8_offroad_power_limit_div25 = eeprom_read(ADDRESS_OFFROAD_POWER_LIMIT_DIV25);
 
   ui32_temp = eeprom_read(ADDRESS_ODOMETER_X10_0);
   ui8_temp = eeprom_read(ADDRESS_ODOMETER_X10_1);
   ui32_temp += (((uint32_t) ui8_temp << 8) & 0xff00);
   ui8_temp = eeprom_read(ADDRESS_ODOMETER_X10_2);
   ui32_temp += (((uint32_t) ui8_temp << 16) & 0xff0000);
-  p_configuration_variables->ui32_odometer_x10 = ui32_temp;
+  p_l3_output_vars->ui32_odometer_x10 = ui32_temp;
 }
 
 void eeprom_write_variables(void)
@@ -316,73 +313,71 @@ static void variables_to_array(uint8_t *ui8_array)
 {
   uint8_t ui8_index;
 
-  struct_configuration_variables *p_configuration_variables;
-  p_configuration_variables = get_configuration_variables();
+  volatile l3_vars_t *p_l3_vars;
+  p_l3_vars = get_l3_vars();
 
   ui8_array [0] = KEY;
-  ui8_array [1] = p_configuration_variables->ui8_assist_level;
-  ui8_array [2] = p_configuration_variables->ui16_wheel_perimeter & 255;
-  ui8_array [3] = (p_configuration_variables->ui16_wheel_perimeter >> 8) & 255;
-  ui8_array [4] = p_configuration_variables->ui8_wheel_max_speed;
-  ui8_array [5] = p_configuration_variables->ui8_units_type;
-  __disable_irq();
-  ui8_array [6] = p_configuration_variables->ui32_wh_x10_offset & 255;
-  ui8_array [7] = (p_configuration_variables->ui32_wh_x10_offset >> 8) & 255;
-  ui8_array [8] = (p_configuration_variables->ui32_wh_x10_offset >> 16) & 255;
-  ui8_array [9] = (p_configuration_variables->ui32_wh_x10_offset >> 24) & 255;
-  __enable_irq();
-  ui8_array [10] = p_configuration_variables->ui32_wh_x10_100_percent & 255;
-  ui8_array [11] = (p_configuration_variables->ui32_wh_x10_100_percent >> 8) & 255;
-  ui8_array [12] = (p_configuration_variables->ui32_wh_x10_100_percent >> 16) & 255;
-  ui8_array [13] = (p_configuration_variables->ui32_wh_x10_100_percent >> 24) & 255;
-  ui8_array [14] = p_configuration_variables->ui8_battery_soc_enable;
-  ui8_array [15] = p_configuration_variables->ui8_odometer_field_state;
-  ui8_array [16] = p_configuration_variables->ui8_battery_max_current;
-  ui8_array [17] = p_configuration_variables->ui8_target_max_battery_power;
-  ui8_array [18] = p_configuration_variables->ui8_battery_cells_number;
-  ui8_array [19] = p_configuration_variables->ui16_battery_low_voltage_cut_off_x10 & 255;
-  ui8_array [20] = (p_configuration_variables->ui16_battery_low_voltage_cut_off_x10 >> 8) & 255;
-  ui8_array [21] = (p_configuration_variables->ui8_motor_type & 3) |
-                      ((p_configuration_variables->ui8_motor_assistance_startup_without_pedal_rotation & 1) << 2) |
-                      ((p_configuration_variables->ui8_temperature_limit_feature_enabled & 1) << 3) |
-                      ((p_configuration_variables->ui8_temperature_field_config & 3) << 4);
+  ui8_array [1] = p_l3_vars->ui8_assist_level;
+  ui8_array [2] = p_l3_vars->ui16_wheel_perimeter & 255;
+  ui8_array [3] = (p_l3_vars->ui16_wheel_perimeter >> 8) & 255;
+  ui8_array [4] = p_l3_vars->ui8_wheel_max_speed;
+  ui8_array [5] = p_l3_vars->ui8_units_type;
+  ui8_array [6] = p_l3_vars->ui32_wh_x10_offset & 255;
+  ui8_array [7] = (p_l3_vars->ui32_wh_x10_offset >> 8) & 255;
+  ui8_array [8] = (p_l3_vars->ui32_wh_x10_offset >> 16) & 255;
+  ui8_array [9] = (p_l3_vars->ui32_wh_x10_offset >> 24) & 255;
+  ui8_array [10] = p_l3_vars->ui32_wh_x10_100_percent & 255;
+  ui8_array [11] = (p_l3_vars->ui32_wh_x10_100_percent >> 8) & 255;
+  ui8_array [12] = (p_l3_vars->ui32_wh_x10_100_percent >> 16) & 255;
+  ui8_array [13] = (p_l3_vars->ui32_wh_x10_100_percent >> 24) & 255;
+  ui8_array [14] = p_l3_vars->ui8_battery_soc_enable;
+  ui8_array [15] = p_l3_vars->ui8_odometer_field_state;
+  ui8_array [16] = p_l3_vars->ui8_battery_max_current;
+  ui8_array [17] = p_l3_vars->ui8_target_max_battery_power;
+  ui8_array [18] = p_l3_vars->ui8_battery_cells_number;
+  ui8_array [19] = p_l3_vars->ui16_battery_low_voltage_cut_off_x10 & 255;
+  ui8_array [20] = (p_l3_vars->ui16_battery_low_voltage_cut_off_x10 >> 8) & 255;
+  ui8_array [21] = (p_l3_vars->ui8_motor_type & 3) |
+                      ((p_l3_vars->ui8_motor_assistance_startup_without_pedal_rotation & 1) << 2) |
+                      ((p_l3_vars->ui8_temperature_limit_feature_enabled & 1) << 3) |
+                      ((p_l3_vars->ui8_temperature_field_config & 3) << 4);
 
   for (ui8_index = 0; ui8_index < 9; ui8_index++)
   {
-    ui8_array [22 + ui8_index] = p_configuration_variables->ui8_assist_level_factor [ui8_index];
+    ui8_array [22 + ui8_index] = p_l3_vars->ui8_assist_level_factor [ui8_index];
   }
-  ui8_array [31] = p_configuration_variables->ui8_number_of_assist_levels;
+  ui8_array [31] = p_l3_vars->ui8_number_of_assist_levels;
 
-  ui8_array [32] = p_configuration_variables->ui8_startup_motor_power_boost_feature_enabled;
-  ui8_array [33] = p_configuration_variables->ui8_startup_motor_power_boost_state;
+  ui8_array [32] = p_l3_vars->ui8_startup_motor_power_boost_feature_enabled;
+  ui8_array [33] = p_l3_vars->ui8_startup_motor_power_boost_state;
   for (ui8_index = 0; ui8_index < 9; ui8_index++)
   {
-    ui8_array [34 + ui8_index] = p_configuration_variables->ui8_startup_motor_power_boost_factor [ui8_index];
+    ui8_array [34 + ui8_index] = p_l3_vars->ui8_startup_motor_power_boost_factor [ui8_index];
   }
-  ui8_array [43] = p_configuration_variables->ui8_startup_motor_power_boost_time;
-  ui8_array [44] = p_configuration_variables->ui8_startup_motor_power_boost_fade_time;
-  ui8_array [45] = p_configuration_variables->ui8_motor_temperature_min_value_to_limit;
-  ui8_array [46] = p_configuration_variables->ui8_motor_temperature_max_value_to_limit;
+  ui8_array [43] = p_l3_vars->ui8_startup_motor_power_boost_time;
+  ui8_array [44] = p_l3_vars->ui8_startup_motor_power_boost_fade_time;
+  ui8_array [45] = p_l3_vars->ui8_motor_temperature_min_value_to_limit;
+  ui8_array [46] = p_l3_vars->ui8_motor_temperature_max_value_to_limit;
 
-  ui8_array [47] = p_configuration_variables->ui16_battery_voltage_reset_wh_counter_x10 & 255;
-  ui8_array [48] = (p_configuration_variables->ui16_battery_voltage_reset_wh_counter_x10 >> 8) & 255;
+  ui8_array [47] = p_l3_vars->ui16_battery_voltage_reset_wh_counter_x10 & 255;
+  ui8_array [48] = (p_l3_vars->ui16_battery_voltage_reset_wh_counter_x10 >> 8) & 255;
 
-  ui8_array [49] = p_configuration_variables->ui8_lcd_power_off_time_minutes;
-  ui8_array [50] = p_configuration_variables->ui8_lcd_backlight_on_brightness;
-  ui8_array [51] = p_configuration_variables->ui8_lcd_backlight_off_brightness;
+  ui8_array [49] = p_l3_vars->ui8_lcd_power_off_time_minutes;
+  ui8_array [50] = p_l3_vars->ui8_lcd_backlight_on_brightness;
+  ui8_array [51] = p_l3_vars->ui8_lcd_backlight_off_brightness;
 
-  ui8_array [52] = p_configuration_variables->ui16_battery_pack_resistance_x1000 & 255;
-  ui8_array [53] = (p_configuration_variables->ui16_battery_pack_resistance_x1000 >> 8) & 255;
+  ui8_array [52] = p_l3_vars->ui16_battery_pack_resistance_x1000 & 255;
+  ui8_array [53] = (p_l3_vars->ui16_battery_pack_resistance_x1000 >> 8) & 255;
 
-  ui8_array [54] = p_configuration_variables->ui8_offroad_feature_enabled;
-  ui8_array [55] = p_configuration_variables->ui8_offroad_enabled_on_startup;
-  ui8_array [56] = p_configuration_variables->ui8_offroad_speed_limit;
-  ui8_array [57] = p_configuration_variables->ui8_offroad_power_limit_enabled;
-  ui8_array [58] = p_configuration_variables->ui8_offroad_power_limit_div25;
+  ui8_array [54] = p_l3_vars->ui8_offroad_feature_enabled;
+  ui8_array [55] = p_l3_vars->ui8_offroad_enabled_on_startup;
+  ui8_array [56] = p_l3_vars->ui8_offroad_speed_limit;
+  ui8_array [57] = p_l3_vars->ui8_offroad_power_limit_enabled;
+  ui8_array [58] = p_l3_vars->ui8_offroad_power_limit_div25;
 
-  ui8_array [59] = p_configuration_variables->ui32_odometer_x10 & 255;
-  ui8_array [60] = (p_configuration_variables->ui32_odometer_x10 >> 8) & 255;
-  ui8_array [61] = (p_configuration_variables->ui32_odometer_x10 >> 16) & 255;
+  ui8_array [59] = p_l3_vars->ui32_odometer_x10 & 255;
+  ui8_array [60] = (p_l3_vars->ui32_odometer_x10 >> 8) & 255;
+  ui8_array [61] = (p_l3_vars->ui32_odometer_x10 >> 16) & 255;
 }
 
 static void eeprom_write_array(uint8_t *p_array, uint32_t ui32_len)

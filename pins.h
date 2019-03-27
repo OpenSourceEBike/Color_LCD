@@ -12,7 +12,7 @@
 #include "nordic_common.h"
 #include "nrf.h"
 
-#define SYSTEM_POWER_ON_OFF__PIN 0
+#define SYSTEM_POWER_ON_OFF__PIN              9
 
 #define LCD_RESET__PIN
 #define LCD_COMMAND_DATA__PIN

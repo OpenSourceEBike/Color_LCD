@@ -53,6 +53,7 @@
 #include <string.h>
 #include "nordic_common.h"
 #include "nrf.h"
+#include "nrf_delay.h"
 //#include "ble_hci.h"
 //#include "ble_advdata.h"
 //#include "ble_advertising.h"
@@ -67,6 +68,7 @@
 //#include "bsp_btn_ble.h"
 
 #include "pins.h"
+#include "lcd.h"
 
 //#define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 //
@@ -638,11 +640,12 @@ int main(void)
 
   pins_init();
   system_power(1);
+  lcd_init();
 
   // Enter main loop.
   while(1)
   {
-
+    lcd_init();
   }
 }
 

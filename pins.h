@@ -14,11 +14,10 @@
 
 #define SYSTEM_POWER_ON_OFF__PIN              9
 
-#define LCD_RESET__PIN
-#define LCD_COMMAND_DATA__PIN
-#define LCD_CHIP_SELECT__PIN
-#define LCD_WRITE__PIN
-#define LCD_READ__PIN
+#define LCD_COMMAND_DATA__PIN                 30
+#define LCD_CHIP_SELECT__PIN                  4
+#define LCD_CLOCK                             6
+#define LCD_DATA                              7
 
 #define BUTTON_UP__PIN
 #define BUTTON_ONOFF__PIN

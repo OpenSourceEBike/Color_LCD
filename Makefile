@@ -13,6 +13,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf51.S \
   $(SDK_ROOT)/components/toolchain/system_nrf51.c \
   $(PROJ_DIR)/pins.c \
+  $(PROJ_DIR)/lcd.c \
   $(PROJ_DIR)/main.c \
 #  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
 #  $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \

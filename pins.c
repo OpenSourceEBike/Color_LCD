@@ -23,10 +23,10 @@ void system_power(uint32_t state)
 {
   if(state)
   {
-    nrf_gpio_pin_clear(SYSTEM_POWER_ON_OFF__PIN);
+    nrf_gpio_pin_set(SYSTEM_POWER_ON_OFF__PIN);
   }
   else
   {
-    nrf_gpio_pin_set(SYSTEM_POWER_ON_OFF__PIN);
+    nrf_gpio_pin_clear(SYSTEM_POWER_ON_OFF__PIN);
   }
 }

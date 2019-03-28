@@ -10,5 +10,6 @@
 #define LCD_H_
 
 void lcd_init(void);
+void send_data(uint8_t data);
 
 #endif /* LCD_H_ */

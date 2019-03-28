@@ -101,6 +101,13 @@ void lcd_init(void)
   nrf_gpio_cfg_output(LCD_CLOCK);
   nrf_gpio_cfg_output(LCD_DATA);
 
+  // initial delay
+  nrf_gpio_pin_clear(LCD_CLOCK);
+  nrf_gpio_pin_clear(LCD_DATA);
+  nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
+  nrf_gpio_pin_set(LCD_CHIP_SELECT__PIN);
+  nrf_delay_ms(50);
+
   // send initialization sequence of commands
   for(uint8_t i = 0; i < sizeof(init_array); i++)
   {
@@ -145,4 +152,19 @@ void send_byte(command_data_t command_data, uint8_t byte)
   nrf_delay_us(1);
   nrf_gpio_pin_set(LCD_CHIP_SELECT__PIN);
   nrf_delay_us(1);
+}
+
+void send_data(uint8_t data)
+{
+  for(uint8_t i = 0; i < 16; i++)
+  {
+    send_byte(COMMAND, 0xb0 + i);
+    send_byte(COMMAND, 0);
+    send_byte(COMMAND, 10);
+
+    for(uint8_t j = 0; j < 64; j++)
+    {
+      send_byte(DATA, data);
+    }
+  }
 }

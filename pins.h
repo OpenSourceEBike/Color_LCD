@@ -16,8 +16,10 @@
 
 #define LCD_COMMAND_DATA__PIN                 30
 #define LCD_CHIP_SELECT__PIN                  4
-#define LCD_CLOCK                             6
-#define LCD_DATA                              7
+//#define LCD_CLOCK                             6
+//#define LCD_DATA                              7
+#define LCD_CLOCK                             7
+#define LCD_DATA                              6
 
 #define BUTTON_UP__PIN
 #define BUTTON_ONOFF__PIN

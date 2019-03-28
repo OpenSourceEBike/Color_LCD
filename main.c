@@ -645,7 +645,7 @@ int main(void)
   // Enter main loop.
   while(1)
   {
-    lcd_init();
+    send_data(0x0f);
   }
 }
 

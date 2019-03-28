@@ -27,14 +27,14 @@ void SysTick_Handler(void) // runs every 1ms
 
   time_base_counter_1ms++;
 
-  if(ui32_g_layer_2_delayed_execute)
-  {
-    if(ui32_g_layer_2_can_execute)
-    {
-      ui32_g_layer_2_delayed_execute = 0;
-      layer_2();
-    }
-  }
+//  if(ui32_g_layer_2_delayed_execute)
+//  {
+//    if(ui32_g_layer_2_can_execute)
+//    {
+//      ui32_g_layer_2_delayed_execute = 0;
+//      layer_2();
+//    }
+//  }
 }
 
 void systick_init (void)

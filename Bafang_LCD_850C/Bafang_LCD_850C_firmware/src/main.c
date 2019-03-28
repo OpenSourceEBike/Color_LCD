@@ -23,6 +23,7 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "utils.h"
 #include "rtc.h"
+#include "graph.h"
 
 #include "stm32f10x_usart.h"
 
@@ -32,6 +33,7 @@ int main(void)
 {
   volatile uint32_t ui32_timer_base_counter_1ms;
   volatile uint32_t ui32_10ms_loop_counter;
+  volatile uint32_t ui32_3500ms_loop_counter;
   static buttons_events_t events = 0;
   static buttons_events_t last_events = 0;
 
@@ -53,11 +55,11 @@ int main(void)
       buttons_get_down_state() ||
       buttons_get_up_state()) ;
 
-//  GPIO_InitTypeDef GPIO_InitStructure;
-//  GPIO_InitStructure.GPIO_Pin = USART1_TX__PIN;
-//  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//  GPIO_Init(USART1__PORT, &GPIO_InitStructure);
+  GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitStructure.GPIO_Pin = USART1_TX__PIN;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(USART1__PORT, &GPIO_InitStructure);
 
   while(1)
   {
@@ -71,7 +73,18 @@ int main(void)
       // next 2 lines takes about 11ms to execute (main menu). Measured on 2019.03.04.
       buttons_clock();
       lcd_clock();
+      continue;
+    }
 
+    // because of continue; at the end of each if code block that will stop the while (1) loop there,
+    // the first if block code will have the higher priority over any others
+    ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
+//    if((ui32_timer_base_counter_1ms - ui32_3500ms_loop_counter) > 3500) // every 3.5 seconds
+if((ui32_timer_base_counter_1ms - ui32_3500ms_loop_counter) > 1000)
+    {
+      ui32_3500ms_loop_counter = ui32_timer_base_counter_1ms;
+
+      graphs_draw();
       continue;
     }
   }

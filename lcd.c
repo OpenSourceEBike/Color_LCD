@@ -8,6 +8,7 @@
 
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
+#include "lcd.h"
 #include "pins.h"
 
 typedef enum
@@ -16,7 +17,7 @@ typedef enum
   COMMAND = 1
 } command_data_t;
 
-void send_byte(uint8_t byte, uint8_t command_data);
+static void send_byte(uint8_t byte, uint8_t command_data);
 
 void lcd_init(void)
 {
@@ -107,22 +108,19 @@ void lcd_init(void)
   }
 }
 
-void send_byte(uint8_t byte, command_data_t command_data)
+void send_byte(command_data_t command_data, uint8_t byte)
 {
   nrf_delay_us(1);
   nrf_gpio_pin_clear(LCD_CHIP_SELECT__PIN);
   nrf_delay_us(1);
-
-  nrf_gpio_pin_clear(LCD_COMMAND_DATA__PIN);
-
-//  if(command_data == COMMAND)
-//  {
-//    nrf_gpio_pin_clear(LCD_COMMAND_DATA__PIN);
-//  }
-//  else
-//  {
-//    nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
-//  }
+  if(command_data == COMMAND)
+  {
+    nrf_gpio_pin_clear(LCD_COMMAND_DATA__PIN);
+  }
+  else
+  {
+    nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
+  }
   nrf_delay_us(1);
 
   for(uint8_t i = 0; i < 8; i++)

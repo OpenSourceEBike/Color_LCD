@@ -19,12 +19,11 @@
 #include "timers.h"
 #include "usart1.h"
 #include "eeprom.h"
+#include "graphs.h"
 #include "ugui/ugui.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "utils.h"
 #include "rtc.h"
-#include "graph.h"
-
 #include "stm32f10x_usart.h"
 
 void SetSysClockTo128Mhz(void);
@@ -49,6 +48,7 @@ int main(void)
   timer3_init(); // drives LCD backlight
   lcd_init();
   timer4_init();
+  graphs_init();
 
   // block until user release the buttons
   while (buttons_get_onoff_state() ||

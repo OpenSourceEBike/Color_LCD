@@ -6,10 +6,11 @@
  * Released under the GPL License, Version 3
  */
 
-#ifndef GRAPH_H_
-#define GRAPH_H_
+#ifndef GRAPHS_H_
+#define GRAPHS_H_
 
 void graphs_update_data(void);
 void graphs_draw(void);
+void graphs_init(void);
 
 #endif /* GRAPH_H_ */

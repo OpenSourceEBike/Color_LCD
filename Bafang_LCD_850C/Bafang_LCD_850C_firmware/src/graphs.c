@@ -7,6 +7,8 @@
  */
 
 //#include <math.h>
+#include "graphs.h"
+
 #include <string.h>
 #include "stm32f10x.h"
 #include "stdio.h"
@@ -14,9 +16,9 @@
 #include "config.h"
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
-#include "graph.h"
+#include "lcd.h"
 
-uint8_t ui8_array_data[255 * 4] =
+uint32_t ui32_array_data[255 * 4] =
 {
     239 ,
     241 ,
@@ -327,16 +329,15 @@ void graphs_draw(void)
   // draw only the next line and keep the others intact
   for(i = 0; i < number_lines_to_draw; i++)
   {
-    y_amplitude = graphs[0].ui32_data[graphs[0].ui32_x_last_index + i];
     y_amplitude = graphs[0].ui32_data[graphs[0].ui32_x_last_index + i] - graphs[0].ui32_graph_data_y_min;
     y_amplitude *= graphs[0].ui32_data_y_rate_per_pixel_x100;
     y_amplitude /= 100;
 
     UG_DrawLine(graph_next_start_x + i,       // X1
                 GRAPH_START_Y,                // Y1
-                graph_next_start_x + i + 1,   // X2
+                graph_next_start_x + i,       // X2
                 GRAPH_START_Y - y_amplitude,  //Y2
-                C_DIM_GRAY);
+                C_WHITE);
   }
 }
 
@@ -344,17 +345,19 @@ void graphs_draw(void)
 // every 3500ms
 void graphs_update_data(void)
 {
-  UG_FillFrame(GRAPH_START_X, GRAPH_START_Y - 100, 260, GRAPH_START_Y, C_BLACK);
+  UG_FillFrame(GRAPH_START_X, GRAPH_START_Y - 100, 315, GRAPH_START_Y, C_BLACK);
 
-  memcpy(graphs[0].ui32_data, ui8_array_data, (255 * 4) * 4);
+  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
 
   graphs[0].ui32_graph_data_y_min = 0;
   graphs[0].ui32_graph_data_y_max = 255;
-  graphs[0].ui32_data_y_rate_per_pixel_x100 = ((graphs[0].ui32_graph_data_y_max - graphs[0].ui32_graph_data_y_min)
-                                              * 100)
-                                              / GRAPH_Y_LENGHT;
+  graphs[0].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) /
+      (graphs[0].ui32_graph_data_y_max - graphs[0].ui32_graph_data_y_min);
   graphs[0].ui32_data_last_index = 254;
   graphs[0].ui32_data_start_index = 0;
 }
 
-
+void graphs_init(void)
+{
+  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
+}

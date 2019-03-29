@@ -120,8 +120,8 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-  if (first_time_management())
-    return;
+//  if (first_time_management())
+//    return;
 
   update_menu_flashing_state();
 
@@ -1083,6 +1083,8 @@ void battery_soc(void)
   uint8_t ui8_counter;
   static uint16_t ui16_battery_soc_watts_hour_previous = 0xffff;
 
+l3_vars.ui16_battery_voltage_soc_x10 = 584;
+
   static print_number_t soc =
   {
     .font = &SMALL_TEXT_FONT,
@@ -1436,6 +1438,9 @@ void power(void)
   {
     _ui16_battery_power_filtered = l3_vars.ui16_battery_power_filtered;
 
+_ui16_battery_power_filtered = 950;
+ui16_battery_power_filtered_previous = 0;
+
     if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         lcd_vars.ui32_main_screen_draw_static_info ||
         ui8_target_max_battery_power_state == 0)
@@ -1545,6 +1550,8 @@ void wheel_speed(void)
   uint32_t ui32_x_position;
   uint32_t ui32_y_position;
   static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
+
+l3_vars.ui16_wheel_speed_x10 = 375;
 
   static print_number_t wheel_speed_integer =
   {

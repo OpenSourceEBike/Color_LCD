@@ -219,5 +219,6 @@ void layer_2(void);
 volatile l3_vars_t* get_l3_vars (void);
 lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
+void lcd_draw_main_menu_mask(void);
 
 #endif /* LCD_H_ */

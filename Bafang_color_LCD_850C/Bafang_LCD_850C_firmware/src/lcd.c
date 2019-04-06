@@ -22,6 +22,7 @@
 #include "ugui_driver/ugui_bafang_500c.h"
 #include "ugui/ugui.h"
 #include "rtc.h"
+#include "graphs.h"
 
 // Battery SOC symbol:
 // 10 bars, each bar: with = 7, height = 24
@@ -64,6 +65,8 @@ static uint8_t ui8_m_usart1_received_first_package = 0;
 
 volatile uint8_t ui8_g_usart1_tx_buffer[11];
 
+static graphs_t *m_p_graphs;
+
 void lcd_main_screen(void);
 uint8_t first_time_management(void);
 void assist_level_state(void);
@@ -90,6 +93,7 @@ void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color);
 void battery_soc_bar_clear(uint32_t ui32_bar_number);
 void draw_configurations_screen_mask(void);
 void copy_layer_2_layer_3_vars(void);
+void graphs_measurements_update(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -102,6 +106,8 @@ void lcd_init(void)
 
   // init variables with the stored value on EEPROM
   eeprom_init_variables ();
+
+  m_p_graphs = get_graphs();
 }
 
 void lcd_clock(void)
@@ -389,14 +395,11 @@ void layer_2(void)
     break;
 
     case 3:
-      // bit 0: cruise control
-      // bit 1: motor voltage type: 36V or 48V
-      // bit 2: MOTOR_ASSISTANCE_CAN_START_WITHOUT_PEDAL_ROTATION
-      ui8_g_usart1_tx_buffer[7] = ((l2_vars.ui8_cruise_control & 1) |
-                         ((l2_vars.ui8_motor_type & 3) << 1) |
-                          ((l2_vars.ui8_motor_assistance_startup_without_pedal_rotation & 1) << 3) |
-                          ((l2_vars.ui8_temperature_limit_feature_enabled & 1) << 4));
-      ui8_g_usart1_tx_buffer[8] = l2_vars.ui8_startup_motor_power_boost_state;
+      ui8_g_usart1_tx_buffer[7] = ((l2_vars.ui8_motor_type & 3) |
+                          ((l2_vars.ui8_motor_assistance_startup_without_pedal_rotation & 1) << 2) |
+                          ((l2_vars.ui8_temperature_limit_feature_enabled & 1) << 3));
+      ui8_g_usart1_tx_buffer[8] = (l2_vars.ui8_startup_motor_power_boost_state & 1) |
+                          ((l2_vars.ui8_startup_motor_power_boost_state & 1) << 1);
     break;
 
     case 4:
@@ -466,6 +469,8 @@ void layer_2(void)
 //  l2_calc_odometer();
 //  l2_calc_wh();
 //  automatic_power_off_management();
+
+  graphs_measurements_update();
   /************************************************************************************************/
 }
 
@@ -1438,8 +1443,8 @@ void power(void)
   {
     _ui16_battery_power_filtered = l3_vars.ui16_battery_power_filtered;
 
-_ui16_battery_power_filtered = 950;
-ui16_battery_power_filtered_previous = 0;
+//_ui16_battery_power_filtered = 950;
+//ui16_battery_power_filtered_previous = 0;
 
     if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         lcd_vars.ui32_main_screen_draw_static_info ||
@@ -1551,7 +1556,7 @@ void wheel_speed(void)
   uint32_t ui32_y_position;
   static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
 
-l3_vars.ui16_wheel_speed_x10 = 375;
+//l3_vars.ui16_wheel_speed_x10 = 375;
 
   static print_number_t wheel_speed_integer =
   {
@@ -1793,7 +1798,6 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui16_battery_low_voltage_cut_off_x10 = l3_vars.ui16_battery_low_voltage_cut_off_x10;
   l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
   l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
-  l2_vars.ui8_cruise_control = l3_vars.ui8_cruise_control;
   l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
   l2_vars.ui8_motor_assistance_startup_without_pedal_rotation = l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
   l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
@@ -1822,4 +1826,34 @@ void copy_layer_2_layer_3_vars(void)
 lcd_vars_t* get_lcd_vars(void)
 {
   return &lcd_vars;
+}
+
+void graphs_measurements_update(void)
+{
+//  static uint32_t counter = 0;
+//
+//  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered_x50 / 50;
+//  counter++;
+//  if(counter >= 35)
+//  {
+//    counter = 0;
+//    m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
+//    m_p_graphs[0].measurement.ui32_sum_value = 0;
+//
+//    m_p_graphs[0].ui32_x_last_index
+//
+//    m_p_graphs[0].ui32_data[]
+//
+//
+//
+//    uint32_t ui32_data[255 * 4]; // holds up to 1h of data
+//      uint32_t ui32_graph_data_y_min;
+//      uint32_t ui32_graph_data_y_max;
+//      uint32_t ui32_data_y_rate_per_pixel_x100;
+//      uint32_t ui32_x_last_index;
+//      uint32_t ui32_data_last_index;
+//      uint32_t ui32_data_start_index;
+//
+//  }
+
 }

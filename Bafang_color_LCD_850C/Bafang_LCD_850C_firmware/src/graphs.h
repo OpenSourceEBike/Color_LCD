@@ -9,8 +9,30 @@
 #ifndef GRAPHS_H_
 #define GRAPHS_H_
 
+#include "stdio.h"
+
+typedef struct graphs_measurement_struct
+{
+  uint32_t ui32_sum_value;
+} graphs_measurement_t;
+
+typedef struct graphs_struct
+{
+  uint8_t ui8_title[17];
+  uint32_t ui32_data[255 * 4]; // holds up to 1h of data
+  uint32_t ui32_graph_data_y_min;
+  uint32_t ui32_graph_data_y_max;
+  uint32_t ui32_data_y_rate_per_pixel_x100;
+  uint32_t ui32_data_y_last_value;
+  uint32_t ui32_x_last_index;
+  uint32_t ui32_data_last_index;
+  uint32_t ui32_data_start_index;
+  graphs_measurement_t measurement;
+} graphs_t;
+
 void graphs_update_data(void);
 void graphs_draw(void);
 void graphs_init(void);
+graphs_t *get_graphs(void);
 
 #endif /* GRAPH_H_ */

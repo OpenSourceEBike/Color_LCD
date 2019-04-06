@@ -84,7 +84,7 @@ if((ui32_timer_base_counter_1ms - ui32_3500ms_loop_counter) > 1000)
     {
       ui32_3500ms_loop_counter = ui32_timer_base_counter_1ms;
 
-      graphs_draw();
+//      graphs_draw();
       continue;
     }
   }

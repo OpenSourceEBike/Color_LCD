@@ -284,24 +284,11 @@ uint32_t ui32_array_data[255 * 4] =
 
 // 255 pixels for data points
 // 255 points of each graph
-// 60 minutes: 255 * 14000 ms
-// 30 minutes: 255 * 7000 ms
+// 60 minutes: 255 * (3500 * 4) ms
+// 30 minutes: 255 * (3500 * 2) ms
 // 15 minutes: 255 * 3500 ms
 
-typedef struct graph_struct
-{
-  uint8_t ui8_title[17];
-  uint32_t ui32_data[255 * 4]; // holds up to 1h of data
-  uint32_t ui32_graph_data_y_min;
-  uint32_t ui32_graph_data_y_max;
-  uint32_t ui32_data_y_rate_per_pixel_x100;
-  uint32_t ui32_data_y_last_value;
-  uint32_t ui32_x_last_index;
-  uint32_t ui32_data_last_index;
-  uint32_t ui32_data_start_index;
-} graph_t;
-
-graph_t graphs[5];
+graphs_t graphs[5];
 
 // graph ID based on array index number
 typedef enum
@@ -360,4 +347,9 @@ void graphs_update_data(void)
 void graphs_init(void)
 {
   memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
+}
+
+graphs_t *get_graphs(void)
+{
+  return graphs;
 }

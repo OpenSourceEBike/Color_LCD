@@ -342,10 +342,10 @@ void graphs_draw(void)
     .ui8_left_zero_paddig = 0,
   };
 
-  if(m_first_line)
-  {
-    graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[0];
-  }
+//  if(m_first_line)
+//  {
+//    graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[0];
+//  }
 
   // calc new min and max values
   graphs_measurements_calc_min_max_y();
@@ -363,7 +363,7 @@ void graphs_draw(void)
 
 
   // finally store the new value
-//  graphs[0].ui32_data[graphs[0].ui32_data_last_index] 18= graphs[0].ui32_data_y_last_value;
+  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
 
   // now increment the x_last_index and keep at 255 at ui32_data_y_last_valuethe end of graph if is the case
 //  graphs[0].ui32_draw_x_last_index++;
@@ -456,7 +456,7 @@ void graphs_draw(void)
     graphs[0].ui32_draw_x_last_index = x_index;
   }
 
-  graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[graphs[0].ui32_data_last_index];
+//  graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[graphs[0].ui32_data_last_index];
 
   // find if we are yet drawing the first 255 points
   if(ui32_m_graphs_data_array_over_255 == 0 &&
@@ -532,7 +532,7 @@ void graphs_measurements_calc_min_max_y(void)
   if(m_first_line)
   {
     m_first_line = 0;
-//    graphs[0].ui32_graph_data_y_min = 0;
+//    graphs[0].ui32_graph_datui32_data_y_last_valuea_y_min = 0;
   }
 
   // we will be adding and removing points to graph
@@ -700,7 +700,7 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
 
 void graphs_init(void)
 {
-  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
+//  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
 
   graphs[0].ui32_data_y_last_value = 0;
   graphs[0].ui32_data_last_index = 1;

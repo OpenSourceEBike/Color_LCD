@@ -1841,17 +1841,30 @@ void graphs_measurements_update(void)
   static uint32_t counter = 0;
 
   // sum the battery_power_filtered
-  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered_x50 / 50;
+  if(l2_vars.ui16_battery_power_filtered)
+    {
+    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
+    }
 
   // every 3.5 seconds, update the graph array values
-//  if(++counter >= 35)
-if(++counter >= 5)
+  if(++counter >= 35)
+//if(++counter >= 5)
   {
-    counter = 0;
+    if(m_p_graphs[0].measurement.ui32_sum_value)
+      {
+        /*store the average value on the 3.5 seconds*/
+        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
+        m_p_graphs[0].measurement.ui32_sum_value = 0;
+      }
+    else
+      {
+        /*store the average value on the 3.5 seconds*/
+        m_p_graphs[0].ui32_data_y_last_value = 0;
+        m_p_graphs[0].measurement.ui32_sum_value = 0;
+      }
 
-    /*store the average value on the 3.5 seconds*/
-//    m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-//    m_p_graphs[0].measurement.ui32_sum_value = 0;
+
+    counter = 0;
 
     // signal to draw graphs on main loop
     ui32_m_draw_graphs = 1;

@@ -66,6 +66,7 @@ static uint8_t ui8_m_usart1_received_first_package = 0;
 volatile uint8_t ui8_g_usart1_tx_buffer[11];
 
 static graphs_t *m_p_graphs;
+static uint32_t ui32_m_draw_graphs = 0;
 
 void lcd_main_screen(void);
 uint8_t first_time_management(void);
@@ -182,6 +183,13 @@ void lcd_draw_main_menu_mask(void)
 
 void lcd_main_screen (void)
 {
+  // ui32_m_draw_graphs == 1 only every 3.5 seconds or higher
+  if(ui32_m_draw_graphs)
+  {
+    ui32_m_draw_graphs = 0;
+    graphs_draw();
+  }
+
   lights_state();
 
   // run once only, to draw static info
@@ -1830,30 +1838,22 @@ lcd_vars_t* get_lcd_vars(void)
 
 void graphs_measurements_update(void)
 {
-//  static uint32_t counter = 0;
-//
-//  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered_x50 / 50;
-//  counter++;
-//  if(counter >= 35)
-//  {
-//    counter = 0;
+  static uint32_t counter = 0;
+
+  // sum the battery_power_filtered
+  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered_x50 / 50;
+
+  // every 3.5 seconds, update the graph array values
+//  if(++counter >= 35)
+if(++counter >= 5)
+  {
+    counter = 0;
+
+    /*store the average value on the 3.5 seconds*/
 //    m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
 //    m_p_graphs[0].measurement.ui32_sum_value = 0;
-//
-//    m_p_graphs[0].ui32_x_last_index
-//
-//    m_p_graphs[0].ui32_data[]
-//
-//
-//
-//    uint32_t ui32_data[255 * 4]; // holds up to 1h of data
-//      uint32_t ui32_graph_data_y_min;
-//      uint32_t ui32_graph_data_y_max;
-//      uint32_t ui32_data_y_rate_per_pixel_x100;
-//      uint32_t ui32_x_last_index;
-//      uint32_t ui32_data_last_index;
-//      uint32_t ui32_data_start_index;
-//
-//  }
 
+    // signal to draw graphs on main loop
+    ui32_m_draw_graphs = 1;
+  }
 }

@@ -5696,27 +5696,28 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name=".Q1" library="transistor-small-signal" library_urn="urn:adsk.eagle:library:401" deviceset="BSS123" device="" package3d_urn="urn:adsk.eagle:package:28738/2"/>
 <part name=".Q2" library="transistor-small-signal" library_urn="urn:adsk.eagle:library:401" deviceset="BSS123" device="" package3d_urn="urn:adsk.eagle:package:28738/2"/>
-<part name=".R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="10k"/>
+<part name=".R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3"/>
 <part name="+3V1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V3" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="1k"/>
-<part name="C4" library="Nordic_nRF" deviceset="CAPACITOR" device="_0402_N" value="100nF"/>
+<part name="C4" library="Nordic_nRF" deviceset="CAPACITOR" device="_0402_N"/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name=".R25" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="300k"/>
 <part name=".R24" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="16k"/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
-<part name=".R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="10k"/>
-<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3" value="10k"/>
+<part name=".R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3"/>
+<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R0603" package3d_urn="urn:adsk.eagle:package:23555/3"/>
 <part name="+3V6" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 </parts>
 <sheets>
 <sheet>
 <plain>
-<text x="7.62" y="109.22" size="1.778" layer="91">Bidirectional Level Shifter (on PowerBoard)</text>
+<text x="7.62" y="106.68" size="1.778" layer="91">Bidirectional Level Shifter (on PowerBoard)
+Downstream pullup resistors are mandatory!</text>
 <text x="142.24" y="144.78" size="1.6764" layer="91">Function of Power Switch (PS):
 
 + PS turns on power as long as pressed.
@@ -5833,15 +5834,15 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <instance part=".Q2" gate="G$1" x="43.18" y="147.32" smashed="yes" rot="MR270">
 <attribute name="NAME" x="43.18" y="144.78" size="1.778" layer="95" rot="MR270"/>
 </instance>
-<instance part=".R2" gate="G$1" x="50.8" y="154.94" smashed="yes" rot="R270">
-<attribute name="NAME" x="52.2986" y="158.75" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="47.498" y="158.75" size="1.778" layer="96" rot="R270"/>
+<instance part=".R2" gate="G$1" x="50.8" y="152.4" smashed="yes" rot="R270">
+<attribute name="NAME" x="52.2986" y="156.21" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="47.498" y="156.21" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="+3V1" gate="G$1" x="50.8" y="167.64" smashed="yes">
-<attribute name="VALUE" x="48.26" y="162.56" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V1" gate="G$1" x="50.8" y="165.1" smashed="yes">
+<attribute name="VALUE" x="48.26" y="160.02" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="+3V2" gate="G$1" x="50.8" y="139.7" smashed="yes">
-<attribute name="VALUE" x="48.26" y="134.62" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V2" gate="G$1" x="50.8" y="137.16" smashed="yes">
+<attribute name="VALUE" x="48.26" y="132.08" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="+3V3" gate="G$1" x="81.28" y="96.52" smashed="yes">
 <attribute name="VALUE" x="78.74" y="91.44" size="1.778" layer="96" rot="R90"/>
@@ -5877,9 +5878,9 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <instance part="P+1" gate="VCC" x="17.78" y="73.66" smashed="yes">
 <attribute name="VALUE" x="15.24" y="71.12" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part=".R1" gate="G$1" x="50.8" y="127" smashed="yes" rot="R270">
-<attribute name="NAME" x="52.2986" y="130.81" size="1.778" layer="95" rot="R270"/>
-<attribute name="VALUE" x="47.498" y="130.81" size="1.778" layer="96" rot="R270"/>
+<instance part=".R1" gate="G$1" x="50.8" y="124.46" smashed="yes" rot="R270">
+<attribute name="NAME" x="52.2986" y="128.27" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="47.498" y="128.27" size="1.778" layer="96" rot="R270"/>
 </instance>
 <instance part="R4" gate="G$1" x="71.12" y="86.36" smashed="yes" rot="R90">
 <attribute name="NAME" x="69.6214" y="82.55" size="1.778" layer="95" rot="R90"/>
@@ -6086,7 +6087,6 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <pinref part=".Q2" gate="G$1" pin="S"/>
 <pinref part=".R2" gate="G$1" pin="2"/>
 <wire x1="48.26" y1="147.32" x2="50.8" y2="147.32" width="0.1524" layer="91"/>
-<wire x1="50.8" y1="147.32" x2="50.8" y2="149.86" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="147.32" x2="71.12" y2="147.32" width="0.1524" layer="91" style="shortdash"/>
 <junction x="50.8" y="147.32"/>
 <label x="71.12" y="147.32" size="1.778" layer="95" xref="yes"/>
@@ -6102,7 +6102,6 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <pinref part=".Q1" gate="G$1" pin="S"/>
 <pinref part=".R1" gate="G$1" pin="2"/>
 <wire x1="48.26" y1="119.38" x2="50.8" y2="119.38" width="0.1524" layer="91"/>
-<wire x1="50.8" y1="119.38" x2="50.8" y2="121.92" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="119.38" x2="71.12" y2="119.38" width="0.1524" layer="91" style="shortdash"/>
 <junction x="50.8" y="119.38"/>
 <label x="71.12" y="119.38" size="1.778" layer="95" xref="yes"/>
@@ -6245,20 +6244,20 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <segment>
 <pinref part=".R2" gate="G$1" pin="1"/>
 <pinref part=".Q2" gate="G$1" pin="G"/>
-<wire x1="50.8" y1="160.02" x2="45.72" y2="160.02" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="160.02" x2="45.72" y2="152.4" width="0.1524" layer="91"/>
+<wire x1="50.8" y1="157.48" x2="45.72" y2="157.48" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="157.48" x2="45.72" y2="152.4" width="0.1524" layer="91"/>
 <pinref part="+3V1" gate="G$1" pin="+3V3"/>
-<wire x1="50.8" y1="165.1" x2="50.8" y2="160.02" width="0.1524" layer="91"/>
-<junction x="50.8" y="160.02"/>
+<wire x1="50.8" y1="162.56" x2="50.8" y2="157.48" width="0.1524" layer="91"/>
+<junction x="50.8" y="157.48"/>
 </segment>
 <segment>
 <pinref part=".R1" gate="G$1" pin="1"/>
 <pinref part=".Q1" gate="G$1" pin="G"/>
-<wire x1="50.8" y1="132.08" x2="45.72" y2="132.08" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="132.08" x2="45.72" y2="124.46" width="0.1524" layer="91"/>
+<wire x1="50.8" y1="129.54" x2="45.72" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="129.54" x2="45.72" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="+3V2" gate="G$1" pin="+3V3"/>
-<wire x1="50.8" y1="137.16" x2="50.8" y2="132.08" width="0.1524" layer="91"/>
-<junction x="50.8" y="132.08"/>
+<wire x1="50.8" y1="134.62" x2="50.8" y2="129.54" width="0.1524" layer="91"/>
+<junction x="50.8" y="129.54"/>
 </segment>
 <segment>
 <pinref part="R4" gate="G$1" pin="2"/>

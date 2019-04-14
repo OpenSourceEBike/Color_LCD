@@ -135,10 +135,10 @@ void lcd_clock(void)
   calc_battery_soc_watts_hour();
 
   // enter menu configurations: UP + DOWN click event
-  if (buttons_get_up_down_click_event () &&
+  if(buttons_get_up_down_click_event() &&
       lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
   {
-    buttons_clear_up_down_click_event ();
+    buttons_clear_up_down_click_event();
 
     // reset needed variables of configurations screen
     p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
@@ -150,7 +150,7 @@ void lcd_clock(void)
   }
 
   // enter in menu set power: ONOFF + UP click event
-  if (buttons_get_onoff_state() && buttons_get_up_state())
+  if(buttons_get_onoff_state() && buttons_get_up_state())
   {
     buttons_clear_all_events();
     lcd_vars.ui8_lcd_menu_max_power = 1;
@@ -181,7 +181,7 @@ void lcd_draw_main_menu_mask(void)
   UG_DrawLine(159, 159, 159, 319, C_DIM_GRAY);
 }
 
-void lcd_main_screen (void)
+void lcd_main_screen(void)
 {
   // ui32_m_draw_graphs == 1 only every 3.5 seconds or higher
   if(ui32_m_draw_graphs)
@@ -1095,8 +1095,6 @@ void battery_soc(void)
   uint32_t ui32_value_integer_number_digits;
   uint8_t ui8_counter;
   static uint16_t ui16_battery_soc_watts_hour_previous = 0xffff;
-
-l3_vars.ui16_battery_voltage_soc_x10 = 584;
 
   static print_number_t soc =
   {

@@ -296,9 +296,9 @@ typedef enum
   PEDAL_HUMAN_POWER = 4
 } graph_id_t;
 
-volatile uint32_t ui32_m_graphs_data_array_over_255 = 0;
-static uint32_t ui32_m_refresh_graphs = 1;
-static uint32_t m_first_line = 1;
+volatile uint32_t m_graphs_data_array_over_255 = 0;
+static uint32_t m_new_max_min = 0;
+static uint32_t m_refresh_graph = 0;
 
 void graphs_measurements_calc_min_max_y(void);
 static void graphs_measurements_search_max_y(uint32_t graph_nr);
@@ -342,10 +342,19 @@ void graphs_draw(void)
     .ui8_left_zero_paddig = 0,
   };
 
-//  if(m_first_line)
-//  {
-//    graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[0];
-//  }
+  // see if we should increase both index
+  if(m_graphs_data_array_over_255)
+  {
+    graphs[0].ui32_data_last_index = (graphs[0].ui32_data_last_index + 1) % 256;
+    graphs[0].ui32_data_start_index = (graphs[0].ui32_data_start_index + 1) % 256;
+  }
+  else
+  {
+    graphs[0].ui32_data_last_index = (graphs[0].ui32_data_last_index + 1) % 256;
+  }
+
+  // store the new value on the data array
+  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
 
   // calc new min and max values
   graphs_measurements_calc_min_max_y();
@@ -356,78 +365,54 @@ void graphs_draw(void)
     graphs[0].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) /
       (graphs[0].ui32_graph_data_y_max - graphs[0].ui32_graph_data_y_min);
   }
+  // case if max and min are equal or zero
   else
   {
     graphs[0].ui32_data_y_rate_per_pixel_x100 = 0;
   }
 
-
-  // finally store the new value
-  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
-
-  // now increment the x_last_index and keep at 255 at ui32_data_y_last_valuethe end of graph if is the case
-//  graphs[0].ui32_draw_x_last_index++;
-//  if(graphs[0].ui32_draw_x_last_index >= 255)
-//  {
-//    graphs[0].ui32_draw_x_last_index = 255;
-//  }
-
-//  x_index++;
-//  if(x_index >= 255)
-//  {
-//    x_index = 255;
-//  }
-//  // calc number of lines to draw
-//  if(graphs[0].ui32_data_last_index > graphs[0].ui32_data_start_index)
-//  {
-//    number_lines_to_draw = graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index;
-//  }
-//  else
-//  {
-//    number_lines_to_draw = 255 - (graphs[0].ui32_data_start_index - graphs[0].ui32_data_last_index);
-//  }
-//  number_lines_to_draw -= (graphs[0].ui32_x_last_index + 1);
-
   // draw full lines because the full graph need to be refreshed
-  if(ui32_m_graphs_data_array_over_255)
+  if(m_graphs_data_array_over_255)
   {
-    number_lines_to_draw = 255;
-    ui32_m_refresh_graphs = 1;
+    number_lines_to_draw = 256;
+    x_index = 254;
+
+    // clean all lines on the LCD
+    UG_FillFrame(GRAPH_START_X,
+                 GRAPH_START_Y - 100,
+                 315,
+                 GRAPH_START_Y,
+                 C_BLACK);
+  }
+  else if(m_new_max_min)
+  {
+    number_lines_to_draw = (graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index) + 1;
     x_index = 0;
+
+    // clean all lines on the LCD
+    UG_FillFrame(GRAPH_START_X,
+                 GRAPH_START_Y - 100,
+                 315,
+                 GRAPH_START_Y,
+                 C_BLACK);
   }
   // draw only the new 1 line
   else
   {
     number_lines_to_draw = 1;
+
     x_index = graphs[0].ui32_draw_x_last_index;
   }
 
-  if(ui32_m_refresh_graphs)
+  // draw the lines
+  for(i = 0; i < number_lines_to_draw; i++)
   {
-    ui32_m_refresh_graphs = 0;
-
-    // calc number of lines to draw
-    if(ui32_m_graphs_data_array_over_255 == 0)
+    x_index++;
+    if(x_index >= 256)
     {
-      if(graphs[0].ui32_data_last_index >= graphs[0].ui32_data_start_index)
-      {
-        number_lines_to_draw = graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index;
-      }
-      else
-      {
-        number_lines_to_draw = 255 - (graphs[0].ui32_data_start_index - graphs[0].ui32_data_last_index);
-      }
-
       x_index = 0;
     }
 
-    // clean all lines on the LCD
-    UG_FillFrame(GRAPH_START_X, GRAPH_START_Y - 100, 315, GRAPH_START_Y, C_BLACK);
-  }
-
-  // draw only the next line and keep the others intact
-  for(i = 0; i < number_lines_to_draw; i++)
-  {
     y_amplitude = graphs[0].ui32_data[x_index] - graphs[0].ui32_graph_data_y_min;
     y_amplitude *= graphs[0].ui32_data_y_rate_per_pixel_x100;
     if(y_amplitude)
@@ -446,34 +431,16 @@ void graphs_draw(void)
                 graph_next_start_x,           // X2
                 GRAPH_START_Y - y_amplitude,  // Y2
                 C_WHITE);
-
-    x_index++;
-    if(x_index >= 255)
-    {
-      x_index = 255;
-    }
-
-    graphs[0].ui32_draw_x_last_index = x_index;
   }
 
-//  graphs[0].ui32_data_y_last_value = graphs[0].ui32_data[graphs[0].ui32_data_last_index];
+  // save last x index for next time
+  graphs[0].ui32_draw_x_last_index = x_index;
 
   // find if we are yet drawing the first 255 points
-  if(ui32_m_graphs_data_array_over_255 == 0 &&
+  if(m_graphs_data_array_over_255 == 0 &&
       graphs[0].ui32_data_last_index >= 255)
   {
-    ui32_m_graphs_data_array_over_255 = 1;
-  }
-
-  // see if we should increase both index
-  if(ui32_m_graphs_data_array_over_255)
-  {
-    graphs[0].ui32_data_last_index = (graphs[0].ui32_data_last_index + 1) % 256;
-    graphs[0].ui32_data_start_index = (graphs[0].ui32_data_start_index + 1) % 256;
-  }
-  else
-  {
-    graphs[0].ui32_data_last_index = (graphs[0].ui32_data_last_index + 1) % 256;
+    m_graphs_data_array_over_255 = 1;
   }
 
   // draw max and min values as also last value
@@ -494,12 +461,17 @@ void graphs_draw(void)
   graph_last_value.ui32_number = graphs[0].ui32_data_y_last_value;
   graph_last_value.ui8_refresh_all_digits = 1;
   lcd_print_number(&graph_last_value);
+
+  m_new_max_min = 0;
+  m_refresh_graph = 0;
 }
 
 void graphs_measurements_calc_min_max_y(void)
 {
+  uint32_t start_index;
+
   // we are only yet adding a new point to graph
-  if(ui32_m_graphs_data_array_over_255 == 0)
+  if(m_graphs_data_array_over_255 == 0)
   {
     // equal to min
     if(graphs[0].ui32_data_y_last_value == graphs[0].ui32_graph_data_y_min)
@@ -511,7 +483,7 @@ void graphs_measurements_calc_min_max_y(void)
     {
       graphs[0].ui32_graph_data_y_min = graphs[0].ui32_data_y_last_value;
       graphs[0].ui32_graph_data_y_min_counter = 1;
-      ui32_m_refresh_graphs = 1;
+      m_new_max_min = 1;
     }
 
     // equal to maxUG_FillFrame(GRAPH_START_X, GRAPH_START_Y - 100, 315, GRAPH_START_Y, C_BLACK);
@@ -524,15 +496,8 @@ void graphs_measurements_calc_min_max_y(void)
     {
       graphs[0].ui32_graph_data_y_max = graphs[0].ui32_data_y_last_value;
       graphs[0].ui32_graph_data_y_max_counter = 1;
-      ui32_m_refresh_graphs = 1;
+      m_new_max_min = 1;
     }
-  }
-
-  // force min value on very first line
-  if(m_first_line)
-  {
-    m_first_line = 0;
-//    graphs[0].ui32_graph_datui32_data_y_last_valuea_y_min = 0;
   }
 
   // we will be adding and removing points to graph
@@ -551,6 +516,7 @@ void graphs_measurements_calc_min_max_y(void)
     {
       graphs[0].ui32_graph_data_y_min = graphs[0].ui32_data_y_last_value;
       graphs[0].ui32_graph_data_y_min_counter = 1;
+      m_new_max_min = 1;
     }
 
     // equal to max
@@ -558,18 +524,30 @@ void graphs_measurements_calc_min_max_y(void)
     {
       graphs[0].ui32_graph_data_y_max_counter++;
     }
-    // higher than maxSMALL_TEXT_FONT
+    // higher than max
     else if(graphs[0].ui32_data_y_last_value > graphs[0].ui32_graph_data_y_max)
     {
       graphs[0].ui32_graph_data_y_max = graphs[0].ui32_data_y_last_value;
       graphs[0].ui32_graph_data_y_max_counter = 1;
+      m_new_max_min = 1;
     }
 
     // point to remove
     //
 
+    // our start_index is a previous number
+    start_index = graphs[0].ui32_data_start_index;
+    if(start_index == 0)
+    {
+      start_index = 255;
+    }
+    else
+    {
+      start_index--;
+    }
+
     // equal to min
-    if(graphs[0].ui32_data[graphs[0].ui32_data_start_index] == graphs[0]      .ui32_graph_data_y_min)
+    if(graphs[0].ui32_data[start_index] == graphs[0].ui32_graph_data_y_min)
     {
       if(graphs[0].ui32_graph_data_y_min_counter > 1)
       {
@@ -578,11 +556,12 @@ void graphs_measurements_calc_min_max_y(void)
       else
       {
         graphs_measurements_search_min_y(0);
+        m_new_max_min = 1;
       }
     }
 
     // equal to max
-    if(graphs[0].ui32_data[graphs[0].ui32_data_start_index] == graphs[0].ui32_graph_data_y_max)
+    if(graphs[0].ui32_data[start_index] == graphs[0].ui32_graph_data_y_max)
     {
       if(graphs[0].ui32_graph_data_y_max_counter > 1)
       {
@@ -591,6 +570,7 @@ void graphs_measurements_calc_min_max_y(void)
       else
       {
         graphs_measurements_search_max_y(0);
+        m_new_max_min = 1;
       }
     }
   }
@@ -621,8 +601,8 @@ static void graphs_measurements_search_min_y(uint32_t graph_nr)
   {
     index = 0;
   }
-  //for(i = 0; i < search_nr_points; ++i)
-for(i = 0; i < 254; ++i)
+
+  for(i = 0; i < search_nr_points; ++i)
   {
     // new min point
     if(graphs[graph_nr].ui32_data[index] < min)
@@ -636,15 +616,7 @@ for(i = 0; i < 254; ++i)
       graphs[graph_nr].ui32_graph_data_y_min_counter++;
     }
 
-    // increase index
-    if(index >= 255)
-    {
-      index = 0;
-    }
-    else
-    {
-      index++;
-    }
+    index++;
   }
 }
 
@@ -672,6 +644,7 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
   {
     index = 0;
   }
+
   for(i = 0; i < search_nr_points; ++i)
   {
     // new max point
@@ -686,15 +659,7 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
       graphs[graph_nr].ui32_graph_data_y_max_counter++;
     }
 
-    // increase index
-    if(index >= 255)
-    {
-      index = 0;
-    }
-    else
-    {
-      index++;
-    }
+    index++;
   }
 }
 
@@ -703,7 +668,7 @@ void graphs_init(void)
 //  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
 
   graphs[0].ui32_data_y_last_value = 0;
-  graphs[0].ui32_data_last_index = 1;
+  graphs[0].ui32_data_last_index = 0;
   graphs[0].ui32_data_start_index = 0;
   graphs[0].ui32_graph_data_y_max = 0;
   graphs[0].ui32_graph_data_y_max_counter = 0;

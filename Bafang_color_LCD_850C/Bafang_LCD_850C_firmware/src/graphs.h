@@ -23,7 +23,7 @@ typedef struct graphs_measurement_struct
 typedef struct graphs_struct
 {
   uint8_t ui8_title[17];
-  uint32_t ui32_data[255 * 4]; // holds up to 1h of data
+  uint32_t ui32_data[256 * 4]; // holds up to 1h of data
   uint32_t ui32_graph_data_y_min;
   uint32_t ui32_graph_data_y_min_counter;
   uint32_t ui32_graph_data_y_max;

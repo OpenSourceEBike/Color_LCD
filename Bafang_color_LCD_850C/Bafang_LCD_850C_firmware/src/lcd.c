@@ -81,6 +81,7 @@ static void l2_automatic_power_off_management(void);
 void brake(void);
 void wheel_speed(void);
 void power(void);
+void pedal_human_power(void);
 void power_off_management(void);
 void temperature(void);
 void time(void);
@@ -205,6 +206,7 @@ void lcd_main_screen(void)
 //  walk_assist_state();
 //  offroad_mode();
   power();
+  pedal_human_power();
   battery_soc();
   brake();
 
@@ -471,7 +473,7 @@ void layer_2(void)
 
 
   l2_low_pass_filter_battery_voltage_current_power();
-//  l2_low_pass_filter_pedal_torque_and_power();
+  l2_low_pass_filter_pedal_torque_and_power();
 //  l2_low_pass_filter_pedal_cadence();
   l2_calc_battery_voltage_soc();
 //  l2_calc_odometer();
@@ -657,53 +659,53 @@ void l2_low_pass_filter_battery_voltage_current_power(void)
 
 void l2_low_pass_filter_pedal_torque_and_power(void)
 {
-//  static uint32_t ui32_pedal_torque_accumulated = 0;
-//  static uint32_t ui32_pedal_power_accumulated = 0;
-//
-//  // low pass filter
-//  ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
-//  ui32_pedal_torque_accumulated += (uint32_t) uart_rx_vars.ui16_pedal_torque_x10 / 10;
-//  processed_vars.ui16_pedal_torque_filtered = ((uint32_t) (ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT));
-//
-//  // low pass filter
-//  ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-//  ui32_pedal_power_accumulated += (uint32_t) uart_rx_vars.ui16_pedal_power_x10 / 10;
-//  processed_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-//
-//  if(processed_vars.ui16_pedal_torque_filtered > 200)
-//  {
-//    processed_vars.ui16_pedal_torque_filtered /= 20;
-//    processed_vars.ui16_pedal_torque_filtered *= 20;
-//  }
-//  else if(processed_vars.ui16_pedal_torque_filtered > 100)
-//  {
-//    processed_vars.ui16_pedal_torque_filtered /= 10;
-//    processed_vars.ui16_pedal_torque_filtered *= 10;
-//  }
-//  else
-//  {
-//    // do nothing to original values
-//  }
-//
-//  if(processed_vars.ui16_pedal_power_filtered > 500)
-//  {
-//    processed_vars.ui16_pedal_power_filtered /= 25;
-//    processed_vars.ui16_pedal_power_filtered *= 25;
-//  }
-//  else if(processed_vars.ui16_pedal_power_filtered > 200)
-//  {
-//    processed_vars.ui16_pedal_power_filtered /= 20;
-//    processed_vars.ui16_pedal_power_filtered *= 20;
-//  }
-//  else if(processed_vars.ui16_pedal_power_filtered > 10)
-//  {
-//    processed_vars.ui16_pedal_power_filtered /= 10;
-//    processed_vars.ui16_pedal_power_filtered *= 10;
-//  }
-//  else
-//  {
-//    processed_vars.ui16_pedal_power_filtered = 0; // no point to show less than 10W
-//  }
+  static uint32_t ui32_pedal_torque_accumulated = 0;
+  static uint32_t ui32_pedal_power_accumulated = 0;
+
+  // low pass filter
+  ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
+  ui32_pedal_torque_accumulated += (uint32_t) l2_vars.ui16_pedal_torque_x10 / 10;
+  l2_vars.ui16_pedal_torque_filtered = ((uint32_t) (ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT));
+
+  // low pass filter
+  ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+  l2_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+
+  if(l2_vars.ui16_pedal_torque_filtered > 200)
+  {
+    l2_vars.ui16_pedal_torque_filtered /= 20;
+    l2_vars.ui16_pedal_torque_filtered *= 20;
+  }
+  else if(l2_vars.ui16_pedal_torque_filtered > 100)
+  {
+    l2_vars.ui16_pedal_torque_filtered /= 10;
+    l2_vars.ui16_pedal_torque_filtered *= 10;
+  }
+  else
+  {
+    // do nothing to original values
+  }
+
+  if(l2_vars.ui16_pedal_power_filtered > 500)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 25;
+    l2_vars.ui16_pedal_power_filtered *= 25;
+  }
+  else if(l2_vars.ui16_pedal_power_filtered > 200)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 20;
+    l2_vars.ui16_pedal_power_filtered *= 20;
+  }
+  else if(l2_vars.ui16_pedal_power_filtered > 10)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 10;
+    l2_vars.ui16_pedal_power_filtered *= 10;
+  }
+  else
+  {
+    l2_vars.ui16_pedal_power_filtered = 0; // no point to show less than 10W
+  }
 }
 
 static void l2_low_pass_filter_pedal_cadence(void)
@@ -1553,6 +1555,57 @@ void power(void)
         l3_vars.ui8_target_max_battery_power = ui16_target_max_power / 25;
       }
     }
+  }
+}
+
+void pedal_human_power(void)
+{
+  static uint16_t ui16_pedal_power_previous = 0;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
+  uint16_t ui16_pedal_power;
+
+  static print_number_t power_number =
+  {
+    .font = &FONT_24X40,
+    .fore_color = C_WHITE,
+    .back_color = C_BLACK,
+    .ui32_x_position = 204,
+    .ui32_y_position = 268,
+    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
+    .ui8_field_number_of_digits = 3,
+    .ui8_left_zero_paddig = 0,
+    .ui32_number = 0,
+    .ui8_refresh_all_digits = 1
+  };
+
+  if(lcd_vars.ui32_main_screen_draw_static_info)
+  {
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(C_GRAY);
+    UG_FontSelect(&FONT_10X16);
+    UG_PutString(178, 241, "human power");
+  }
+
+  ui16_pedal_power = l3_vars.ui16_pedal_power_filtered;
+
+  if((ui16_pedal_power != ui16_pedal_power_previous) ||
+      lcd_vars.ui32_main_screen_draw_static_info)
+  {
+    ui16_pedal_power_previous = ui16_pedal_power;
+
+    if (ui16_pedal_power > 999) { ui16_pedal_power = 999; }
+
+    power_number.ui32_number = ui16_pedal_power;
+    power_number.ui8_refresh_all_digits = lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&power_number);
+    power_number.ui8_refresh_all_digits = 0;
+  }
+  else
+  {
+
   }
 }
 

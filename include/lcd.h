@@ -12,7 +12,5 @@
 #include "ugui.h"
 
 void lcd_init(void);
-void lcd_refresh(void);
-void pset(UG_S16 x, UG_S16 y, UG_COLOR col);
 
 #endif /* LCD_H_ */

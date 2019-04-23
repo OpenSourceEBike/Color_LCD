@@ -7,8 +7,7 @@
 #include "pins.h"
 #include "lcd.h"
 #include "ugui.h"
-
-
+#include "fonts.h"
 
 /* Variable definition */
 UG_GUI gui;
@@ -28,20 +27,19 @@ int main(void)
 {
   gpio_init();
   lcd_init();
-
-  UG_FillCircle(31, 96, 15, C_WHITE);
-  UG_FontSelect(&FONT_8X14);
-  UG_ConsoleSetArea(0, 0, 63, 63);
-  UG_ConsoleSetForecolor(C_WHITE);
   system_power(true);
+
+  UG_ConsoleSetArea(0, 0, 63, 127);
+  UG_ConsoleSetForecolor(C_WHITE);
+
+  UG_FontSelect(&MY_FONT_8X12);
+  static const char degC[] = { 31, 'C' };
+  UG_ConsolePutString("23 ");
+  UG_ConsolePutString(degC);
 
   // Enter main loop.
   while (1)
   {
-    UG_ConsolePutString("Hello\n");
-    nrf_delay_ms(500);
-    UG_ConsolePutString("World!\n");
-    nrf_delay_ms(500);
   }
 }
 

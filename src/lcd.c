@@ -37,6 +37,7 @@ extern UG_GUI gui;
 
 /* Frame buffer in RAM with same structure as LCD memory --> 16 pages a 64 columns (1 kB) */
 uint8_t frameBuffer[16][64];
+uint8_t spi_byte_tx;
 
 /* Init sequence sampled by casainho from original SW102 display */
 const uint8_t init_array[] = { 0xAE, 0xA8, 0x3F, 0xD5, 0x50, 0xC0, 0xD3, 0x60, 0xDC, 0x00, 0x20, 0x81, 0xBF, 0xA0, 0xA4, 0xA6, 0xAD, 0x8A, 0xD9, 0x1F, 0xDB, 0x30, 0xAF };
@@ -97,7 +98,8 @@ static void set_data(void)
 static void send_cmd(uint8_t cmd)
 {
   set_cmd();
-  nrf_drv_spi_transfer(&spi, &cmd, 1, NULL, 0);
+  spi_byte_tx = cmd;
+  nrf_drv_spi_transfer(&spi, &spi_byte_tx, 1, NULL, 0);
 }
 
 /**
@@ -106,7 +108,8 @@ static void send_cmd(uint8_t cmd)
 static void send_byte(uint8_t byte)
 {
   set_data();
-  nrf_drv_spi_transfer(&spi, &byte, 1, NULL, 0);
+  spi_byte_tx = byte;
+  nrf_drv_spi_transfer(&spi, &spi_byte_tx, 1, NULL, 0);
 }
 
 /**

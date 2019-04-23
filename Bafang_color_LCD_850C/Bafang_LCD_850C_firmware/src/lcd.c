@@ -79,6 +79,7 @@ void calc_battery_soc_watts_hour(void);
 void l2_calc_odometer(void);
 static void l2_automatic_power_off_management(void);
 void brake(void);
+void walk_assist_state(void);
 void wheel_speed(void);
 void power(void);
 void pedal_human_power(void);
@@ -203,7 +204,7 @@ void lcd_main_screen(void)
   time();
   assist_level_state();
   wheel_speed();
-//  walk_assist_state();
+  walk_assist_state();
 //  offroad_mode();
   power();
   pedal_human_power();
@@ -362,8 +363,11 @@ void layer_2(void)
   ui8_g_usart1_tx_buffer[1] = ui8_master_comm_package_id;
   ui8_g_usart1_tx_buffer[2] = ui8_slave_comm_package_id;
 
-  // set assist level value
-  if(l2_vars.ui8_assist_level)
+  if(l2_vars.ui8_walk_assist)
+  {
+    ui8_g_usart1_tx_buffer[3] = l2_vars.ui8_walk_assist_level_factor[((l2_vars.ui8_assist_level) - 1)];
+  }
+  else if(l2_vars.ui8_assist_level)
   {
     ui8_g_usart1_tx_buffer[3] = l2_vars.ui8_assist_level_factor[((l2_vars.ui8_assist_level) - 1)];
   }
@@ -376,7 +380,7 @@ void layer_2(void)
   // walk assist level state
   // set offroad state
   ui8_g_usart1_tx_buffer[4] = (l2_vars.ui8_lights & 1) |
-      ((l2_vars.ui8_walk_assist_level & 1) << 1) |
+      ((l2_vars.ui8_walk_assist & 1) << 1) |
       ((l2_vars.ui8_offroad_mode & 1) << 2);
 
   // battery max current in amps
@@ -934,15 +938,15 @@ void brake(void)
       UG_FontSelect(&SMALL_TEXT_FONT);
       ui32_x1 = 178;
       ui32_y1 = 10;
-      UG_PutString(ui32_x1, ui32_y1, "BRK");
+      UG_PutString(ui32_x1, ui32_y1, "B");
     }
     else
     {
       // clear area
-      // 5 leters
+      // 1 leters
       ui32_x1 = 178;
       ui32_y1 = 10;
-      ui32_x2 = ui32_x1 + ((3 * 10) + (3 * 1) + 1);
+      ui32_x2 = ui32_x1 + ((1 * 10) + (1 * 1) + 1);
       ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
@@ -1572,10 +1576,10 @@ void pedal_human_power(void)
     .font = &FONT_24X40,
     .fore_color = C_WHITE,
     .back_color = C_BLACK,
-    .ui32_x_position = 204,
+    .ui32_x_position = 191,
     .ui32_y_position = 268,
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
-    .ui8_field_number_of_digits = 3,
+    .ui8_field_number_of_digits = 4,
     .ui8_left_zero_paddig = 0,
     .ui32_number = 0,
     .ui8_refresh_all_digits = 1
@@ -1838,7 +1842,6 @@ void copy_layer_2_layer_3_vars(void)
   l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
   l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
   l3_vars.ui8_braking = l2_vars.ui8_braking;
-
   l2_vars.ui8_assist_level = l3_vars.ui8_assist_level;
   l2_vars.ui8_assist_level_factor[0] = l3_vars.ui8_assist_level_factor[0];
   l2_vars.ui8_assist_level_factor[1] = l3_vars.ui8_assist_level_factor[1];
@@ -1849,8 +1852,18 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_assist_level_factor[6] = l3_vars.ui8_assist_level_factor[6];
   l2_vars.ui8_assist_level_factor[7] = l3_vars.ui8_assist_level_factor[7];
   l2_vars.ui8_assist_level_factor[8] = l3_vars.ui8_assist_level_factor[8];
+  l2_vars.ui8_walk_assist_feature_enabled = l3_vars.ui8_walk_assist_feature_enabled;
+  l2_vars.ui8_walk_assist_level_factor[0] = l3_vars.ui8_walk_assist_level_factor[0];
+  l2_vars.ui8_walk_assist_level_factor[1] = l3_vars.ui8_walk_assist_level_factor[1];
+  l2_vars.ui8_walk_assist_level_factor[2] = l3_vars.ui8_walk_assist_level_factor[2];
+  l2_vars.ui8_walk_assist_level_factor[3] = l3_vars.ui8_walk_assist_level_factor[3];
+  l2_vars.ui8_walk_assist_level_factor[4] = l3_vars.ui8_walk_assist_level_factor[4];
+  l2_vars.ui8_walk_assist_level_factor[5] = l3_vars.ui8_walk_assist_level_factor[5];
+  l2_vars.ui8_walk_assist_level_factor[6] = l3_vars.ui8_walk_assist_level_factor[6];
+  l2_vars.ui8_walk_assist_level_factor[7] = l3_vars.ui8_walk_assist_level_factor[7];
+  l2_vars.ui8_walk_assist_level_factor[8] = l3_vars.ui8_walk_assist_level_factor[8];
   l2_vars.ui8_lights = l3_vars.ui8_lights;
-  l2_vars.ui8_walk_assist_level = l3_vars.ui8_walk_assist_level;
+  l2_vars.ui8_walk_assist = l3_vars.ui8_walk_assist;
   l2_vars.ui8_offroad_mode = l3_vars.ui8_offroad_mode;
   l2_vars.ui8_battery_max_current = l3_vars.ui8_battery_max_current;
   l2_vars.ui8_target_max_battery_power = l3_vars.ui8_target_max_battery_power;
@@ -1880,6 +1893,8 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_offroad_speed_limit = l3_vars.ui8_offroad_speed_limit;
   l2_vars.ui8_offroad_power_limit_enabled = l3_vars.ui8_offroad_power_limit_enabled;
   l2_vars.ui8_offroad_power_limit_div25 = l3_vars.ui8_offroad_power_limit_div25;
+
+  l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
 }
 
 lcd_vars_t* get_lcd_vars(void)
@@ -1891,33 +1906,93 @@ void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
 
-  // sum the battery_power_filtered
-  if(l2_vars.ui16_battery_power_filtered)
-    {
-    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
-    }
+  // sum the value
+  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
 
   // every 3.5 seconds, update the graph array values
   if(++counter >= 35)
-//if(++counter >= 5)
   {
     if(m_p_graphs[0].measurement.ui32_sum_value)
-      {
-        /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
-      }
+    {
+      /*store the average value on the 3.5 seconds*/
+      m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
+      m_p_graphs[0].measurement.ui32_sum_value = 0;
+    }
     else
-      {
-        /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = 0;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
-      }
-
+    {
+      /*store the average value on the 3.5 seconds*/
+      m_p_graphs[0].ui32_data_y_last_value = 0;
+      m_p_graphs[0].measurement.ui32_sum_value = 0;
+    }
 
     counter = 0;
 
     // signal to draw graphs on main loop
     ui32_m_draw_graphs = 1;
+  }
+}
+
+void walk_assist_state(void)
+{
+  static uint8_t ui8_walk_assist_state = 0;
+  static uint8_t ui8_walk_assist_previous;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
+
+  if(lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
+      l3_vars.ui8_walk_assist_feature_enabled)
+  {
+    if(buttons_get_down_long_click_event())
+    {
+      // clear button long down click event
+      buttons_clear_down_long_click_event();
+      ui8_walk_assist_state = 1;
+    }
+
+    // if down button is still pressed
+    if(ui8_walk_assist_state &&
+        buttons_get_down_state())
+    {
+      l3_vars.ui8_walk_assist = 1;
+    }
+    else if(buttons_get_down_state() == 0)
+    {
+      ui8_walk_assist_state = 0;
+      l3_vars.ui8_walk_assist = 0;
+    }
+  }
+  else
+  {
+    ui8_walk_assist_state = 0;
+    l3_vars.ui8_walk_assist = 0;
+  }
+
+  // if previous state was disable, draw
+  if((l3_vars.ui8_walk_assist != ui8_walk_assist_previous) ||
+      (lcd_vars.ui32_main_screen_draw_static_info))
+  {
+    ui8_walk_assist_previous = l3_vars.ui8_walk_assist;
+
+    if(l3_vars.ui8_walk_assist)
+    {
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_WHITE);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = 190;
+      ui32_y1 = 10;
+      UG_PutString(ui32_x1, ui32_y1, "W");
+    }
+    else
+    {
+      // clear area
+      // 1 leters
+      ui32_x1 = 190;
+      ui32_y1 = 10;
+      ui32_x2 = ui32_x1 + ((1 * 10) + (1 * 1) + 1);
+      ui32_y2 = ui32_y1 + 16;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    }
   }
 }

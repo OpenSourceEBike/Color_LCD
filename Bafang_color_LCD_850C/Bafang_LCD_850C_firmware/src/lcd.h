@@ -67,6 +67,8 @@ typedef struct l2_vars_struct
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
   uint8_t ui8_assist_level_factor[9];
+  uint8_t ui8_walk_assist_feature_enabled;
+  uint8_t ui8_walk_assist_level_factor[9];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
   uint8_t ui8_startup_motor_power_boost_time;
@@ -89,7 +91,7 @@ typedef struct l2_vars_struct
 
   uint8_t ui8_lights;
   uint8_t ui8_braking;
-  uint8_t ui8_walk_assist_level;
+  uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
 } l2_vars_t;
 
@@ -146,6 +148,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
   uint8_t ui8_assist_level_factor[9];
+  uint8_t ui8_walk_assist_feature_enabled;
+  uint8_t ui8_walk_assist_level_factor[9];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
   uint8_t ui8_startup_motor_power_boost_time;
@@ -168,7 +172,7 @@ typedef struct l3_vars_struct
 
   uint8_t ui8_lights;
   uint8_t ui8_braking;
-  uint8_t ui8_walk_assist_level;
+  uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
 } l3_vars_t;
 

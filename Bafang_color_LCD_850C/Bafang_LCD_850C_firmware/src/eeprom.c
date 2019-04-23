@@ -82,7 +82,17 @@ static uint8_t array_default_values[EEPROM_BYTES_STORED] = {
   DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25,
   DEFAULT_VALUE_ODOMETER_X10,
   DEFAULT_VALUE_ODOMETER_X10,
-  DEFAULT_VALUE_ODOMETER_X10
+  DEFAULT_VALUE_ODOMETER_X10,
+  DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_3,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_4,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_5,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_6,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
+  DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9
 };
 
 uint32_t ui32_eeprom_page = 0;
@@ -200,9 +210,7 @@ static void eeprom_read_values_to_variables(void)
   ui32_temp += (((uint32_t) ui8_temp << 16) & 0xff0000);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_OFFSET_3);
   ui32_temp += (((uint32_t) ui8_temp << 24) & 0xff000000);
-//  __disable_irq();
   p_l3_output_vars->ui32_wh_x10_offset = ui32_temp;
-//  __enable_irq();
 
   ui32_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_0);
   ui8_temp = eeprom_read(ADDRESS_HW_X10_100_PERCENT_OFFSET_1);
@@ -234,6 +242,13 @@ static void eeprom_read_values_to_variables(void)
   for (ui8_index = 0; ui8_index < 9; ui8_index++)
   {
     p_l3_output_vars->ui8_assist_level_factor [ui8_index] = eeprom_read(ADDRESS_ASSIST_LEVEL_FACTOR_1 + ui8_index);
+  }
+
+  p_l3_output_vars->ui8_walk_assist_feature_enabled = eeprom_read(ADDRESS_WALK_ASSIST_FEATURE_ENABLED);
+  p_l3_output_vars->ui8_number_of_assist_levels = eeprom_read(ADDRESS_NUMBER_OF_ASSIST_LEVELS);
+  for (ui8_index = 0; ui8_index < 9; ui8_index++)
+  {
+    p_l3_output_vars->ui8_walk_assist_level_factor[ui8_index] = eeprom_read(ADDRESS_WALK_ASSIST_LEVEL_FACTOR_1 + ui8_index);
   }
 
   p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled = eeprom_read(ADDRESS_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED);
@@ -378,6 +393,12 @@ static void variables_to_array(uint8_t *ui8_array)
   ui8_array [59] = p_l3_vars->ui32_odometer_x10 & 255;
   ui8_array [60] = (p_l3_vars->ui32_odometer_x10 >> 8) & 255;
   ui8_array [61] = (p_l3_vars->ui32_odometer_x10 >> 16) & 255;
+
+  ui8_array [62] = p_l3_vars->ui8_walk_assist_feature_enabled;
+  for(ui8_index = 0; ui8_index < 9; ui8_index++)
+  {
+    ui8_array[63 + ui8_index] = p_l3_vars->ui8_walk_assist_level_factor[ui8_index];
+  }
 }
 
 static void eeprom_write_array(uint8_t *p_array, uint32_t ui32_len)

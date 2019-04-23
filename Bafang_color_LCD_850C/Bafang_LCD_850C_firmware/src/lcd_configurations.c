@@ -23,7 +23,7 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
-#define MAX_ITEMS                 (71 - 1)
+#define MAX_ITEMS                 (82 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
@@ -110,6 +110,17 @@ void assist_level_number_6(struct_menu_data *p_menu_data);
 void assist_level_number_7(struct_menu_data *p_menu_data);
 void assist_level_number_8(struct_menu_data *p_menu_data);
 void assist_level_number_9(struct_menu_data *p_menu_data);
+void walk_assist_level_title(struct_menu_data *p_menu_data);
+void walk_assist_level_enable(struct_menu_data *p_menu_data);
+void walk_assist_level_number_1(struct_menu_data *p_menu_data);
+void walk_assist_level_number_2(struct_menu_data *p_menu_data);
+void walk_assist_level_number_3(struct_menu_data *p_menu_data);
+void walk_assist_level_number_4(struct_menu_data *p_menu_data);
+void walk_assist_level_number_5(struct_menu_data *p_menu_data);
+void walk_assist_level_number_6(struct_menu_data *p_menu_data);
+void walk_assist_level_number_7(struct_menu_data *p_menu_data);
+void walk_assist_level_number_8(struct_menu_data *p_menu_data);
+void walk_assist_level_number_9(struct_menu_data *p_menu_data);
 void startup_power_boost_title(struct_menu_data *p_menu_data);
 void startup_power_boost_enable(struct_menu_data *p_menu_data);
 void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data);
@@ -185,6 +196,17 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   assist_level_number_7,
   assist_level_number_8,
   assist_level_number_9,
+  walk_assist_level_title,
+  walk_assist_level_enable,
+  walk_assist_level_number_1,
+  walk_assist_level_number_2,
+  walk_assist_level_number_3,
+  walk_assist_level_number_4,
+  walk_assist_level_number_5,
+  walk_assist_level_number_6,
+  walk_assist_level_number_7,
+  walk_assist_level_number_8,
+  walk_assist_level_number_9,
   startup_power_boost_title,
   startup_power_boost_enable,
   startup_power_boost_startup_everytime,
@@ -237,19 +259,19 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
-  1,
+  1, // battery_title
   0,
   0,
   0,
   0,
   0,
-  1,
+  1, // battery_soc_title
   0,
   0,
   0,
   0,
   0,
-  1,
+  1, // assist_level_title
   0,
   0,
   0,
@@ -260,7 +282,18 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
-  1,
+  1, // walk assist_level_title
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1, // startup_power_boost_title
   0,
   0,
   0,
@@ -979,6 +1012,181 @@ void assist_level_number_9(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Assist level 9", "factor", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_title(struct_menu_data *p_menu_data)
+{
+  configurations_screen_item_title_set_strings("Walk assist level", p_menu_data);
+}
+
+void walk_assist_level_enable(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_feature_enabled,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Feature", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
+}
+
+void walk_assist_level_number_1(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[0],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 1", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_2(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[1],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 2", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_3(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[2],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 3", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_4(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[3],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 4", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_5(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[4],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 5", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_6(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[5],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 6", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_7(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[6],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 7", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_8(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[7],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 8", "", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void walk_assist_level_number_9(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[8],
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 100,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Walk assist level 9", "", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 

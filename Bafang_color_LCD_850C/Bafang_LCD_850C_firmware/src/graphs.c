@@ -311,6 +311,7 @@ void graphs_draw(void)
   uint32_t y_amplitude;
   uint32_t graph_next_start_x;
   uint32_t x_index;
+  uint32_t temp;
 
   static print_number_t graph_max_value =
   {
@@ -360,15 +361,16 @@ void graphs_draw(void)
   graphs_measurements_calc_min_max_y();
 
   // calc new pixel ratio
+  temp = 0;
   if(graphs[0].ui32_graph_data_y_max > graphs[0].ui32_graph_data_y_min)
   {
-    graphs[0].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) /
-      (graphs[0].ui32_graph_data_y_max - graphs[0].ui32_graph_data_y_min);
+    temp = graphs[0].ui32_graph_data_y_max - graphs[0].ui32_graph_data_y_min;
   }
-  // case if max and min are equal or zero
-  else
+
+  graphs[0].ui32_data_y_rate_per_pixel_x100 = 0;
+  if(temp)
   {
-    graphs[0].ui32_data_y_rate_per_pixel_x100 = 0;
+    graphs[0].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) / temp;
   }
 
   // draw full lines because the full graph need to be refreshed
@@ -407,12 +409,6 @@ void graphs_draw(void)
   // draw the lines
   for(i = 0; i < number_lines_to_draw; i++)
   {
-    x_index++;
-    if(x_index >= 256)
-    {
-      x_index = 0;
-    }
-
     y_amplitude = graphs[0].ui32_data[x_index] - graphs[0].ui32_graph_data_y_min;
     y_amplitude *= graphs[0].ui32_data_y_rate_per_pixel_x100;
     if(y_amplitude)
@@ -431,6 +427,12 @@ void graphs_draw(void)
                 graph_next_start_x,           // X2
                 GRAPH_START_Y - y_amplitude,  // Y2
                 C_WHITE);
+  }
+
+  x_index++;
+  if(x_index >= 256)
+  {
+    x_index = 0;
   }
 
   // save last x index for next time

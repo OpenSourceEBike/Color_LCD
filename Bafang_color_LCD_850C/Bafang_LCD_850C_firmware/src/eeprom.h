@@ -75,7 +75,17 @@
 #define ADDRESS_ODOMETER_X10_0                                              59
 #define ADDRESS_ODOMETER_X10_1                                              60
 #define ADDRESS_ODOMETER_X10_2                                              61
-#define EEPROM_BYTES_STORED                                                 62 // CAN'T BE HIGHER THAN 255
+#define ADDRESS_WALK_ASSIST_FEATURE_ENABLED                                 62
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_1                                  63
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_2                                  64
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_3                                  65
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_4                                  66
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_5                                  67
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_6                                  68
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_7                                  69
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_8                                  70
+#define ADDRESS_WALK_ASSIST_LEVEL_FACTOR_9                                  71
+#define EEPROM_BYTES_STORED                                                 72 // CAN'T BE HIGHER THAN 255
 
 void eeprom_init(void);
 void eeprom_init_variables(void);

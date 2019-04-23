@@ -46,8 +46,19 @@
 //                      Fixed some minor bugs.
 //
 //  Oct 11, 2014  V0.1  First release.
+//
+//
+//
+//  "SW102 Extensions" by lowPerformer 2019
+//
+//
 /* -------------------------------------------------------------------------------- */
 #include "ugui.h"
+
+/* SW102 Extensions */
+static void (*p_refresh)( void ) = (void *)0;
+UG_U8 calledByParent, calledByUpdate;
+void _UG_Refresh( void );
 
 /* Static functions */
  UG_RESULT _UG_WindowDrawTitle( UG_WINDOW* wnd );
@@ -4598,6 +4609,11 @@ UG_S16 UG_Init( UG_GUI* g, void (*p)(UG_S16,UG_S16,UG_COLOR), UG_S16 x, UG_S16 y
    return 1;
 }
 
+void UG_SetRefresh(void (*p)(void))
+{
+  p_refresh = (void(*)( void ))p;
+}
+
 UG_S16 UG_SelectGUI( UG_GUI* g )
 {
    gui = g;
@@ -4611,7 +4627,9 @@ void UG_FontSelect( const UG_FONT* font )
 
 void UG_FillScreen( UG_COLOR c )
 {
+   calledByParent = 1;
    UG_FillFrame(0,0,gui->x_dim-1,gui->y_dim-1,c);
+   _UG_Refresh();
 }
 
 void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
@@ -4644,11 +4662,15 @@ void UG_FillFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
          gui->pset(n,m,c);
       }
    }
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_FillRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG_COLOR c )
 {
    UG_S16  x,y,xd;
+   calledByParent = 1;
 
    if ( x2 < x1 )
    {
@@ -4694,6 +4716,8 @@ void UG_FillRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG
      }
      x++;
    }
+
+   _UG_Refresh();
 }
 
 void UG_DrawMesh( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
@@ -4720,6 +4744,8 @@ void UG_DrawMesh( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
          gui->pset(n,m,c);
       }
    }
+
+   _UG_Refresh();
 }
 
 void UG_DrawFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
@@ -4728,11 +4754,16 @@ void UG_DrawFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
    UG_DrawLine(x1,y2,x2,y2,c);
    UG_DrawLine(x1,y1,x1,y2,c);
    UG_DrawLine(x2,y1,x2,y2,c);
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_DrawRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG_COLOR c )
 {
    UG_S16 n;
+   calledByParent = 1;
+
    if ( x2 < x1 )
    {
       n = x2;
@@ -4757,6 +4788,8 @@ void UG_DrawRoundFrame( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_S16 r, UG
    UG_DrawArc(x2-r, y1+r, r, 0x03, c);
    UG_DrawArc(x1+r, y2-r, r, 0x30, c);
    UG_DrawArc(x2-r, y2-r, r, 0xC0, c);
+
+   _UG_Refresh();
 }
 
 void UG_DrawPixel( UG_S16 x0, UG_S16 y0, UG_COLOR c )
@@ -4799,11 +4832,15 @@ void UG_DrawCircle( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_COLOR c )
          xd += 2;
       }
    }
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_FillCircle( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_COLOR c )
 {
    UG_S16  x,y,xd;
+   calledByParent = 1;
 
    if ( x0<0 ) return;
    if ( y0<0 ) return;
@@ -4837,6 +4874,8 @@ void UG_FillCircle( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_COLOR c )
      x++;
    }
    UG_DrawCircle(x0, y0, r,c);
+
+   _UG_Refresh();
 }
 
 void UG_DrawArc( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_U8 s, UG_COLOR c )
@@ -4881,6 +4920,9 @@ void UG_DrawArc( UG_S16 x0, UG_S16 y0, UG_S16 r, UG_U8 s, UG_COLOR c )
          xd += 2;
       }
    }
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_DrawLine( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
@@ -4934,6 +4976,9 @@ void UG_DrawLine( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
          gui->pset(drawx, drawy,c);
       }
    }  
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_PutString( UG_S16 x, UG_S16 y, char* str )
@@ -4941,6 +4986,7 @@ void UG_PutString( UG_S16 x, UG_S16 y, char* str )
    UG_S16 xp,yp;
    UG_U8 cw;
    char chr;
+   calledByParent = 1;
 
    xp=x;
    yp=y;
@@ -4966,17 +5012,23 @@ void UG_PutString( UG_S16 x, UG_S16 y, char* str )
 
       xp += cw + gui->char_h_space;
    }
+
+   _UG_Refresh();
 }
 
 void UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc )
 {
 	_UG_PutChar(chr,x,y,fc,bc,&gui->font);
+
+	if (!calledByParent && !calledByUpdate)
+	  _UG_Refresh();
 }
 
 void UG_ConsolePutString( char* str )
 {
    char chr;
    UG_U8 cw;
+   calledByParent = 1;
 
    while ( *str != 0 )
    {
@@ -5006,6 +5058,8 @@ void UG_ConsolePutString( char* str )
       UG_PutChar(chr, gui->console.x_pos, gui->console.y_pos, gui->console.fore_color, gui->console.back_color);
       str++;
    }
+
+   _UG_Refresh();
 }
 
 void UG_ConsoleSetArea( UG_S16 xs, UG_S16 ys, UG_S16 xe, UG_S16 ye )
@@ -5593,12 +5647,13 @@ void _UG_ProcessTouchData( UG_WINDOW* wnd )
    }
 }
 
-void _UG_UpdateObjects( UG_WINDOW* wnd )
+UG_U8 _UG_UpdateObjects( UG_WINDOW* wnd )
 {
    UG_U16 i,objcnt;
    UG_OBJECT* obj;
    UG_U8 objstate;
    UG_U8 objtouch;
+   UG_U8 updated = 0;
 
    /* Check each object, if it needs to be updated? */
    objcnt = wnd->objcnt;
@@ -5612,6 +5667,7 @@ void _UG_UpdateObjects( UG_WINDOW* wnd )
          if ( objstate & OBJ_STATE_UPDATE )
          {
             obj->update(wnd,obj);
+            updated = 1;
          }
          if ( (objstate & OBJ_STATE_VISIBLE) && (objstate & OBJ_STATE_TOUCH_ENABLE) )
          {
@@ -5622,6 +5678,8 @@ void _UG_UpdateObjects( UG_WINDOW* wnd )
          }
       }
    }
+
+   return updated;
 }
 
 void _UG_HandleEvents( UG_WINDOW* wnd )
@@ -5742,6 +5800,8 @@ void UG_DriverDisable( UG_U8 type )
 void UG_Update( void )
 {
    UG_WINDOW* wnd;
+   UG_U8 refresh = 0;
+   calledByUpdate = calledByParent = 1;
 
    /* Is somebody waiting for this update? */
    if ( gui->state & UG_SATUS_WAIT_FOR_UPDATE ) gui->state &= ~UG_SATUS_WAIT_FOR_UPDATE;
@@ -5762,6 +5822,7 @@ void UG_Update( void )
             {
                /* Redraw title of the last window */
                _UG_WindowDrawTitle( gui->last_window );
+               refresh = 1;
             }
          }
          gui->active_window->state &= ~WND_STATE_REDRAW_TITLE;
@@ -5779,16 +5840,20 @@ void UG_Update( void )
       {
          /* Do it! */
          _UG_WindowUpdate( wnd );
+         refresh = 1;
       }
 
       /* Is the window visible? */
       if ( wnd->state & WND_STATE_VISIBLE )
       {
          _UG_ProcessTouchData( wnd );
-         _UG_UpdateObjects( wnd );
+         refresh |= _UG_UpdateObjects( wnd );
          _UG_HandleEvents( wnd );
       }
    }
+
+   if (refresh != 0)
+     _UG_Refresh();
 }
 
 void UG_WaitForUpdate( void )
@@ -5841,6 +5906,9 @@ void UG_DrawBMP( UG_S16 xp, UG_S16 yp, UG_BMP* bmp )
       }
       yp++;
    }
+
+   if (!calledByParent && !calledByUpdate)
+     _UG_Refresh();
 }
 
 void UG_TouchUpdate( UG_S16 xp, UG_S16 yp, UG_U8 state )
@@ -8234,4 +8302,10 @@ void _UG_ImageUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
    }
 }
 
+void _UG_Refresh(void)
+{
+  if (*p_refresh != 0)
+    (*p_refresh)();
 
+  calledByParent = calledByUpdate = 0;
+}

@@ -1048,6 +1048,8 @@ UG_RESULT UG_ImageShow( UG_WINDOW* wnd, UG_U8 id );
 UG_RESULT UG_ImageHide( UG_WINDOW* wnd, UG_U8 id );
 UG_RESULT UG_ImageSetBMP( UG_WINDOW* wnd, UG_U8 id, const UG_BMP* bmp );
 
+/* SW102 Extensions */
+void UG_SetRefresh( void (*p)(void) );
 
 
 #endif

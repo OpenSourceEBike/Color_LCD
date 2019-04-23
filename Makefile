@@ -14,7 +14,6 @@ SRC_FILES += \
   $(PROJ_DIR)/src/lcd.c \
   $(PROJ_DIR)/src/ugui.c \
   $(SDK_ROOT)/components/libraries/queue/nrf_queue.c \
-  $(SDK_ROOT)/components/libraries/spi_mngr/nrf_spi_mngr.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \

@@ -4,7 +4,6 @@
 #include "nrf51822_peripherals.h"
 
 /* TIMER */
-#define LCD_REFRESH_TIMER_INSTANCE  0
 
 /* SPI */
 #define LCD_SPI_INSTANCE  0

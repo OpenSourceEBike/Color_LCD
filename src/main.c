@@ -29,7 +29,6 @@ int main(void)
   gpio_init();
   lcd_init();
 
-  UG_Init(&gui, (void (*)(UG_S16, UG_S16, UG_COLOR)) pset, 64, 128);
   UG_FillCircle(31, 96, 15, C_WHITE);
   UG_FontSelect(&FONT_8X14);
   UG_ConsoleSetArea(0, 0, 63, 63);

@@ -32,6 +32,11 @@ int main(void)
   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
+  UG_FontSelect(&MY_FONT_BATTERY);
+  static const char bat[] = { 31 };
+  UG_ConsolePutString(bat);
+  UG_ConsolePutString("\n");
+
   UG_FontSelect(&MY_FONT_8X12);
   static const char degC[] = { 31, 'C' };
   UG_ConsolePutString("23 ");

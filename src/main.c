@@ -18,8 +18,6 @@ UG_GUI gui;
 static void system_power(bool state);
 static void gpio_init(void);
 
-
-
 /**
  * @brief Application main entry.
  */
@@ -33,13 +31,15 @@ int main(void)
   UG_ConsoleSetForecolor(C_WHITE);
 
   UG_FontSelect(&MY_FONT_BATTERY);
-  static const char bat[] = { 31 };
-  UG_ConsolePutString(bat);
-  UG_ConsolePutString("\n");
+  UG_ConsolePutString("5\n");
+  UG_ConsolePutString("4\n");
+  UG_ConsolePutString("3\n");
+  UG_ConsolePutString("2\n");
+  UG_ConsolePutString("1\n");
+  UG_ConsolePutString("0\n");
 
   UG_FontSelect(&MY_FONT_8X12);
   static const char degC[] = { 31, 'C' };
-  UG_ConsolePutString("23 ");
   UG_ConsolePutString(degC);
 
   // Enter main loop.

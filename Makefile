@@ -1,11 +1,11 @@
 PROJECT_NAME     := SW102_Display
-TARGETS          := nrf51422_sw102
+TARGETS          := nrf51822_sw102
 OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ./nRF5_SDK_15.3.0
 PROJ_DIR := .
 
-$(OUTPUT_DIRECTORY)/nrf51422_sw102.out: \
+$(OUTPUT_DIRECTORY)/nrf51822_sw102.out: \
   LINKER_SCRIPT  := gcc_nrf51.ld
 
 # Source files common to all targets
@@ -109,12 +109,12 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: nrf51422_sw102
+default: nrf51822_sw102
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo		nrf51422_sw102
+	@echo		nrf51822_sw102
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
 
@@ -136,7 +136,7 @@ flash: default
 erase:
 	nrfjprog -f nrf51 --eraseall
 
-SDK_CONFIG_FILE := ../config/sdk_config.h
+SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)

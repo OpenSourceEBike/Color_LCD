@@ -17,7 +17,7 @@
 #include "pins.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
-#include "nrf_drv_spi.h"
+#include "nrfx_spi.h"
 
 /* Function prototype */
 static void set_cmd(void);
@@ -37,15 +37,14 @@ extern UG_GUI gui;
 
 /* Frame buffer in RAM with same structure as LCD memory --> 16 pages a 64 columns (1 kB) */
 uint8_t frameBuffer[16][64];
-uint8_t spi_byte_tx;
 
 /* Init sequence sampled by casainho from original SW102 display */
 const uint8_t init_array[] = { 0xAE, 0xA8, 0x3F, 0xD5, 0x50, 0xC0, 0xD3, 0x60, 0xDC, 0x00, 0x20, 0x81, 0xBF, 0xA0, 0xA4, 0xA6, 0xAD, 0x8A, 0xD9, 0x1F, 0xDB, 0x30, 0xAF };
 
 /* SPI instance */
-const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(LCD_SPI_INSTANCE);
+const nrfx_spi_t spi = NRFX_SPI_INSTANCE(LCD_SPI_INSTANCE);
 
-
+const nrfx_spi_xfer_desc_t xfer_desc_init = {init_array, ARRAY_SIZE(init_array), NULL, 0};
 
 /**
  * @brief LCD initialization including hardware layer.
@@ -64,7 +63,7 @@ void lcd_init(void)
 
   // Set up initialization sequence
   set_cmd();
-  nrf_drv_spi_transfer(&spi, init_array, ARRAY_SIZE(init_array), NULL, 0);
+  nrfx_spi_xfer(&spi, &xfer_desc_init, 0);
 
   // Clear internal RAM
   lcd_refresh(); // Is already initialized to zero in bss segment.
@@ -98,8 +97,8 @@ static void set_data(void)
 static void send_cmd(uint8_t cmd)
 {
   set_cmd();
-  spi_byte_tx = cmd;
-  nrf_drv_spi_transfer(&spi, &spi_byte_tx, 1, NULL, 0);
+  nrfx_spi_xfer_desc_t xfer_desc_byte_tx = {&cmd, 1, NULL, 0};
+  nrfx_spi_xfer(&spi, &xfer_desc_byte_tx, 0);
 }
 
 /**
@@ -108,8 +107,8 @@ static void send_cmd(uint8_t cmd)
 static void send_byte(uint8_t byte)
 {
   set_data();
-  spi_byte_tx = byte;
-  nrf_drv_spi_transfer(&spi, &spi_byte_tx, 1, NULL, 0);
+  nrfx_spi_xfer_desc_t xfer_desc_byte_tx = {&byte, 1, NULL, 0};
+  nrfx_spi_xfer(&spi, &xfer_desc_byte_tx, 0);
 }
 
 /**
@@ -127,7 +126,8 @@ static void lcd_refresh(void)
     send_cmd(0x10);
     // send page data
     set_data();
-    nrf_drv_spi_transfer(&spi, &frameBuffer[i][0], 64, NULL, 0);
+    nrfx_spi_xfer_desc_t xfer_desc_frameBuffer = {&frameBuffer[i][0], 64, NULL, 0};
+    nrfx_spi_xfer(&spi, &xfer_desc_frameBuffer, 0);
   }
 }
 
@@ -136,17 +136,16 @@ static void lcd_refresh(void)
  */
 static void spi_init(void)
 {
-  nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
+  nrfx_spi_config_t spi_config = NRFX_SPI_DEFAULT_CONFIG;
   spi_config.ss_pin = LCD_CHIP_SELECT__PIN;
-  spi_config.miso_pin = NRF_DRV_SPI_PIN_NOT_USED; // No data from LCD
   spi_config.mosi_pin = LCD_DATA__PIN;
   spi_config.sck_pin = LCD_CLOCK__PIN;
   /* DEFAULT_CONFIG may change */
-  spi_config.frequency = NRF_DRV_SPI_FREQ_4M; // SH1107 data sheet p. 52 (Vdd 3.3 V)
-  spi_config.mode = NRF_DRV_SPI_MODE_0;
-  spi_config.bit_order = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST;
+  spi_config.frequency = NRF_SPI_FREQ_4M; // SH1107 data sheet p. 52 (Vdd 3.3 V)
+  spi_config.mode = NRF_SPI_MODE_0;
+  spi_config.bit_order = NRF_SPI_BIT_ORDER_MSB_FIRST;
 
-  nrf_drv_spi_init(&spi, &spi_config, NULL, NULL);
+  nrfx_spi_init(&spi, &spi_config, NULL, NULL);
 }
 
 /**

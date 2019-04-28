@@ -18,8 +18,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
+  $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
@@ -62,8 +61,11 @@ INC_FOLDERS += \
 # Libraries common to all targets
 LIB_FILES += \
 
-# Optimization flags
+# Optimization flags release
 OPT = -O3 -g3
+# Optimization flags debug
+#OPT = -O0 -g3 -DDEBUG_NRF
+
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
@@ -129,8 +131,8 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 # Flash the program
 flash: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf51422_sw102.hex
-	nrfjprog -f nrf51 --program $(OUTPUT_DIRECTORY)/nrf51422_sw102.hex --sectorerase
+	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
+	nrfjprog -f nrf51 --program $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --sectorerase
 	nrfjprog -f nrf51 --reset
 
 erase:

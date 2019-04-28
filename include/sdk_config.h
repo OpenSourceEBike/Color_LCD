@@ -74,6 +74,7 @@
 */
 
 
+
 #ifndef SDK_CONFIG_H
 #define SDK_CONFIG_H
 // <<< Use Configuration Wizard in Context Menu >>>\n
@@ -81,62 +82,29 @@
 #include "app_config.h"
 #endif
 
-// <h> Board Support 
 
-//==========================================================
-// <q> BSP_BTN_BLE_ENABLED  - bsp_btn_ble - Button Control for BLE
- 
-
-#ifndef BSP_BTN_BLE_ENABLED
-#define BSP_BTN_BLE_ENABLED 0
-#endif
-
-// </h> 
-//==========================================================
-
-// <h> nRF_BLE 
+// <h> nRF_BLE
 
 //==========================================================
 // <q> BLE_ADVERTISING_ENABLED  - ble_advertising - Advertising module
- 
+
 
 #ifndef BLE_ADVERTISING_ENABLED
 #define BLE_ADVERTISING_ENABLED 0
 #endif
 
-// <q> BLE_DB_DISCOVERY_ENABLED  - ble_db_discovery - Database discovery module
- 
-
-#ifndef BLE_DB_DISCOVERY_ENABLED
-#define BLE_DB_DISCOVERY_ENABLED 0
-#endif
-
 // <q> BLE_DTM_ENABLED  - ble_dtm - Module for testing RF/PHY using DTM commands
- 
+
 
 #ifndef BLE_DTM_ENABLED
 #define BLE_DTM_ENABLED 0
 #endif
 
 // <q> BLE_RACP_ENABLED  - ble_racp - Record Access Control Point library
- 
+
 
 #ifndef BLE_RACP_ENABLED
 #define BLE_RACP_ENABLED 0
-#endif
-
-// <q> NRF_BLE_GATT_ENABLED  - nrf_ble_gatt - GATT module
- 
-
-#ifndef NRF_BLE_GATT_ENABLED
-#define NRF_BLE_GATT_ENABLED 0
-#endif
-
-// <q> NRF_BLE_LESC_ENABLED  - nrf_ble_lesc - Le Secure Connection
- 
-
-#ifndef NRF_BLE_LESC_ENABLED
-#define NRF_BLE_LESC_ENABLED 0
 #endif
 
 // <e> NRF_BLE_QWR_ENABLED - nrf_ble_qwr - Queued writes support module (prepare/execute write)
@@ -144,111 +112,10 @@
 #ifndef NRF_BLE_QWR_ENABLED
 #define NRF_BLE_QWR_ENABLED 0
 #endif
-// <o> NRF_BLE_QWR_MAX_ATTR - Maximum number of attribute handles that can be registered. This number must be adjusted according to the number of attributes for which Queued Writes will be enabled. If it is zero, the module will reject all Queued Write requests. 
+// <o> NRF_BLE_QWR_MAX_ATTR - Maximum number of attribute handles that can be registered. This number must be adjusted according to the number of attributes for which Queued Writes will be enabled. If it is zero, the module will reject all Queued Write requests.
 #ifndef NRF_BLE_QWR_MAX_ATTR
 #define NRF_BLE_QWR_MAX_ATTR 0
 #endif
-
-// </e>
-
-// <e> NRF_BLE_SCAN_ENABLED - nrf_ble_scan - Scanning Module
-//==========================================================
-#ifndef NRF_BLE_SCAN_ENABLED
-#define NRF_BLE_SCAN_ENABLED 0
-#endif
-// <o> NRF_BLE_SCAN_BUFFER - Data length for an advertising set. 
-#ifndef NRF_BLE_SCAN_BUFFER
-#define NRF_BLE_SCAN_BUFFER 31
-#endif
-
-// <o> NRF_BLE_SCAN_NAME_MAX_LEN - Maximum size for the name to search in the advertisement report. 
-#ifndef NRF_BLE_SCAN_NAME_MAX_LEN
-#define NRF_BLE_SCAN_NAME_MAX_LEN 32
-#endif
-
-// <o> NRF_BLE_SCAN_SHORT_NAME_MAX_LEN - Maximum size of the short name to search for in the advertisement report. 
-#ifndef NRF_BLE_SCAN_SHORT_NAME_MAX_LEN
-#define NRF_BLE_SCAN_SHORT_NAME_MAX_LEN 32
-#endif
-
-// <o> NRF_BLE_SCAN_SCAN_INTERVAL - Scanning interval. Determines the scan interval in units of 0.625 millisecond. 
-#ifndef NRF_BLE_SCAN_SCAN_INTERVAL
-#define NRF_BLE_SCAN_SCAN_INTERVAL 160
-#endif
-
-// <o> NRF_BLE_SCAN_SCAN_DURATION - Duration of a scanning session in units of 10 ms. Range: 0x0001 - 0xFFFF (10 ms to 10.9225 ms). If set to 0x0000, the scanning continues until it is explicitly disabled. 
-#ifndef NRF_BLE_SCAN_SCAN_DURATION
-#define NRF_BLE_SCAN_SCAN_DURATION 0
-#endif
-
-// <o> NRF_BLE_SCAN_SCAN_WINDOW - Scanning window. Determines the scanning window in units of 0.625 millisecond. 
-#ifndef NRF_BLE_SCAN_SCAN_WINDOW
-#define NRF_BLE_SCAN_SCAN_WINDOW 80
-#endif
-
-// <o> NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL - Determines minimum connection interval in milliseconds. 
-#ifndef NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL
-#define NRF_BLE_SCAN_MIN_CONNECTION_INTERVAL 7.5
-#endif
-
-// <o> NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL - Determines maximum connection interval in milliseconds. 
-#ifndef NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL
-#define NRF_BLE_SCAN_MAX_CONNECTION_INTERVAL 30
-#endif
-
-// <o> NRF_BLE_SCAN_SLAVE_LATENCY - Determines the slave latency in counts of connection events. 
-#ifndef NRF_BLE_SCAN_SLAVE_LATENCY
-#define NRF_BLE_SCAN_SLAVE_LATENCY 0
-#endif
-
-// <o> NRF_BLE_SCAN_SUPERVISION_TIMEOUT - Determines the supervision time-out in units of 10 millisecond. 
-#ifndef NRF_BLE_SCAN_SUPERVISION_TIMEOUT
-#define NRF_BLE_SCAN_SUPERVISION_TIMEOUT 4000
-#endif
-
-// <o> NRF_BLE_SCAN_SCAN_PHY  - PHY to scan on.
- 
-// <0=> BLE_GAP_PHY_AUTO 
-// <1=> BLE_GAP_PHY_1MBPS 
-// <2=> BLE_GAP_PHY_2MBPS 
-// <4=> BLE_GAP_PHY_CODED 
-// <255=> BLE_GAP_PHY_NOT_SET 
-
-#ifndef NRF_BLE_SCAN_SCAN_PHY
-#define NRF_BLE_SCAN_SCAN_PHY 1
-#endif
-
-// <e> NRF_BLE_SCAN_FILTER_ENABLE - Enabling filters for the Scanning Module.
-//==========================================================
-#ifndef NRF_BLE_SCAN_FILTER_ENABLE
-#define NRF_BLE_SCAN_FILTER_ENABLE 1
-#endif
-// <o> NRF_BLE_SCAN_UUID_CNT - Number of filters for UUIDs. 
-#ifndef NRF_BLE_SCAN_UUID_CNT
-#define NRF_BLE_SCAN_UUID_CNT 1
-#endif
-
-// <o> NRF_BLE_SCAN_NAME_CNT - Number of name filters. 
-#ifndef NRF_BLE_SCAN_NAME_CNT
-#define NRF_BLE_SCAN_NAME_CNT 1
-#endif
-
-// <o> NRF_BLE_SCAN_SHORT_NAME_CNT - Number of short name filters. 
-#ifndef NRF_BLE_SCAN_SHORT_NAME_CNT
-#define NRF_BLE_SCAN_SHORT_NAME_CNT 0
-#endif
-
-// <o> NRF_BLE_SCAN_ADDRESS_CNT - Number of address filters. 
-#ifndef NRF_BLE_SCAN_ADDRESS_CNT
-#define NRF_BLE_SCAN_ADDRESS_CNT 1
-#endif
-
-// <o> NRF_BLE_SCAN_APPEARANCE_CNT - Number of appearance filters. 
-#ifndef NRF_BLE_SCAN_APPEARANCE_CNT
-#define NRF_BLE_SCAN_APPEARANCE_CNT 0
-#endif
-
-// </e>
 
 // </e>
 
@@ -257,12 +124,12 @@
 #ifndef PEER_MANAGER_ENABLED
 #define PEER_MANAGER_ENABLED 0
 #endif
-// <o> PM_MAX_REGISTRANTS - Number of event handlers that can be registered. 
+// <o> PM_MAX_REGISTRANTS - Number of event handlers that can be registered.
 #ifndef PM_MAX_REGISTRANTS
 #define PM_MAX_REGISTRANTS 3
 #endif
 
-// <o> PM_FLASH_BUFFERS - Number of internal buffers for flash operations. 
+// <o> PM_FLASH_BUFFERS - Number of internal buffers for flash operations.
 // <i> Decrease this value to lower RAM usage.
 
 #ifndef PM_FLASH_BUFFERS
@@ -270,7 +137,7 @@
 #endif
 
 // <q> PM_CENTRAL_ENABLED  - Enable/disable central-specific Peer Manager functionality.
- 
+
 
 // <i> Enable/disable central-specific Peer Manager functionality.
 
@@ -279,7 +146,7 @@
 #endif
 
 // <q> PM_SERVICE_CHANGED_ENABLED  - Enable/disable the service changed management for GATT server in Peer Manager.
- 
+
 
 // <i> If not using a GATT server, or using a server wihout a service changed characteristic,
 // <i> disable this to save code space.
@@ -289,7 +156,7 @@
 #endif
 
 // <q> PM_PEER_RANKS_ENABLED  - Enable/disable the peer rank management in Peer Manager.
- 
+
 
 // <i> Set this to false to save code space if not using the peer rank API.
 
@@ -298,12 +165,12 @@
 #endif
 
 // <q> PM_LESC_ENABLED  - Enable/disable LESC support in Peer Manager.
- 
+
 
 // <i> If set to true, you need to call nrf_ble_lesc_request_handler() in the main loop to respond to LESC-related BLE events. If LESC support is not required, set this to false to save code space.
 
 #ifndef PM_LESC_ENABLED
-#define PM_LESC_ENABLED 1
+#define PM_LESC_ENABLED 0
 #endif
 
 // <e> PM_RA_PROTECTION_ENABLED - Enable/disable protection against repeated pairing attempts in Peer Manager.
@@ -311,22 +178,22 @@
 #ifndef PM_RA_PROTECTION_ENABLED
 #define PM_RA_PROTECTION_ENABLED 0
 #endif
-// <o> PM_RA_PROTECTION_TRACKED_PEERS_NUM - Maximum number of peers whose authorization status can be tracked. 
+// <o> PM_RA_PROTECTION_TRACKED_PEERS_NUM - Maximum number of peers whose authorization status can be tracked.
 #ifndef PM_RA_PROTECTION_TRACKED_PEERS_NUM
 #define PM_RA_PROTECTION_TRACKED_PEERS_NUM 8
 #endif
 
-// <o> PM_RA_PROTECTION_MIN_WAIT_INTERVAL - Minimum waiting interval (in ms) before a new pairing attempt can be initiated. 
+// <o> PM_RA_PROTECTION_MIN_WAIT_INTERVAL - Minimum waiting interval (in ms) before a new pairing attempt can be initiated.
 #ifndef PM_RA_PROTECTION_MIN_WAIT_INTERVAL
 #define PM_RA_PROTECTION_MIN_WAIT_INTERVAL 4000
 #endif
 
-// <o> PM_RA_PROTECTION_MAX_WAIT_INTERVAL - Maximum waiting interval (in ms) before a new pairing attempt can be initiated. 
+// <o> PM_RA_PROTECTION_MAX_WAIT_INTERVAL - Maximum waiting interval (in ms) before a new pairing attempt can be initiated.
 #ifndef PM_RA_PROTECTION_MAX_WAIT_INTERVAL
 #define PM_RA_PROTECTION_MAX_WAIT_INTERVAL 64000
 #endif
 
-// <o> PM_RA_PROTECTION_REWARD_PERIOD - Reward period (in ms). 
+// <o> PM_RA_PROTECTION_REWARD_PERIOD - Reward period (in ms).
 // <i> The waiting interval is gradually decreased when no new failed pairing attempts are made during reward period.
 
 #ifndef PM_RA_PROTECTION_REWARD_PERIOD
@@ -335,7 +202,7 @@
 
 // </e>
 
-// <o> PM_HANDLER_SEC_DELAY_MS - Delay before starting security. 
+// <o> PM_HANDLER_SEC_DELAY_MS - Delay before starting security.
 // <i>  This might be necessary for interoperability reasons, especially as peripheral.
 
 #ifndef PM_HANDLER_SEC_DELAY_MS
@@ -344,7 +211,7 @@
 
 // </e>
 
-// </h> 
+// </h>
 //==========================================================
 
 // <h> nRF_BLE_Services 
@@ -786,7 +653,7 @@
 // <i> The CC310 hardware-accelerated cryptography backend (only available on nRF52840).
 //==========================================================
 #ifndef NRF_CRYPTO_BACKEND_CC310_ENABLED
-#define NRF_CRYPTO_BACKEND_CC310_ENABLED 1
+#define NRF_CRYPTO_BACKEND_CC310_ENABLED 0
 #endif
 // <q> NRF_CRYPTO_BACKEND_CC310_AES_CBC_ENABLED  - Enable the AES CBC mode using CC310.
  
@@ -1406,30 +1273,6 @@
 
 // </e>
 
-// <h> nrf_crypto_rng - RNG Configuration
-
-//==========================================================
-// <q> NRF_CRYPTO_RNG_STATIC_MEMORY_BUFFERS_ENABLED  - Use static memory buffers for context and temporary init buffer.
- 
-
-// <i> Always recommended when using the nRF HW RNG as the context and temporary buffers are small. Consider disabling if using the CC310 RNG in a RAM constrained application. In this case, memory must be provided to nrf_crypto_rng_init, or it can be allocated internally provided that NRF_CRYPTO_ALLOCATOR does not allocate memory on the stack.
-
-#ifndef NRF_CRYPTO_RNG_STATIC_MEMORY_BUFFERS_ENABLED
-#define NRF_CRYPTO_RNG_STATIC_MEMORY_BUFFERS_ENABLED 1
-#endif
-
-// <q> NRF_CRYPTO_RNG_AUTO_INIT_ENABLED  - Initialize the RNG module automatically when nrf_crypto is initialized.
- 
-
-// <i> Automatic initialization is only supported with static or internally allocated context and temporary memory.
-
-#ifndef NRF_CRYPTO_RNG_AUTO_INIT_ENABLED
-#define NRF_CRYPTO_RNG_AUTO_INIT_ENABLED 1
-#endif
-
-// </h> 
-//==========================================================
-
 // </h> 
 //==========================================================
 
@@ -1461,72 +1304,112 @@
 
 // <h> nRF_Drivers 
 
-// <e> NRFX_ADC_ENABLED - nrfx_adc - ADC peripheral driver
-//==========================================================
-#ifndef NRFX_ADC_ENABLED
-#define NRFX_ADC_ENABLED 1
-#endif
-// <o> NRFX_ADC_CONFIG_IRQ_PRIORITY  - Interrupt priority
+// <q> EGU_ENABLED  - nrf_drv_swi - SWI(EGU) peripheral driver - legacy layer
+ 
 
-// <0=> 0 (highest)
-// <1=> 1
-// <2=> 2
+#ifndef EGU_ENABLED
+#define EGU_ENABLED 0
+#endif
+
+// <e> GPIOTE_ENABLED - nrf_drv_gpiote - GPIOTE peripheral driver - legacy layer
+//==========================================================
+#ifndef GPIOTE_ENABLED
+#define GPIOTE_ENABLED 0
+#endif
+
+// <o> GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS - Number of lower power input pins 
+#ifndef GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS
+#define GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 1
+#endif
+
+// <o> GPIOTE_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
 // <3=> 3
 
-#ifndef NRFX_ADC_CONFIG_IRQ_PRIORITY
-#define NRFX_ADC_CONFIG_IRQ_PRIORITY 3
-#endif
-
-// <e> NRFX_ADC_CONFIG_LOG_ENABLED - Enables logging in the module.
-//==========================================================
-#ifndef NRFX_ADC_CONFIG_LOG_ENABLED
-#define NRFX_ADC_CONFIG_LOG_ENABLED 0
-#endif
-// <o> NRFX_ADC_CONFIG_LOG_LEVEL  - Default Severity level
-
-// <0=> Off
-// <1=> Error
-// <2=> Warning
-// <3=> Info
-// <4=> Debug
-
-#ifndef NRFX_ADC_CONFIG_LOG_LEVEL
-#define NRFX_ADC_CONFIG_LOG_LEVEL 3
-#endif
-
-// <o> NRFX_ADC_CONFIG_INFO_COLOR  - ANSI escape code prefix.
-
-// <0=> Default
-// <1=> Black
-// <2=> Red
-// <3=> Green
-// <4=> Yellow
-// <5=> Blue
-// <6=> Magenta
-// <7=> Cyan
-// <8=> White
-
-#ifndef NRFX_ADC_CONFIG_INFO_COLOR
-#define NRFX_ADC_CONFIG_INFO_COLOR 0
-#endif
-
-// <o> NRFX_ADC_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
-
-// <0=> Default
-// <1=> Black
-// <2=> Red
-// <3=> Green
-// <4=> Yellow
-// <5=> Blue
-// <6=> Magenta
-// <7=> Cyan
-// <8=> White
-
-#ifndef NRFX_ADC_CONFIG_DEBUG_COLOR
-#define NRFX_ADC_CONFIG_DEBUG_COLOR 0
+#ifndef GPIOTE_CONFIG_IRQ_PRIORITY
+#define GPIOTE_CONFIG_IRQ_PRIORITY 3
 #endif
 
 // </e>
+
+// <e> LPCOMP_ENABLED - nrf_drv_lpcomp - LPCOMP peripheral driver - legacy layer
+//==========================================================
+#ifndef LPCOMP_ENABLED
+#define LPCOMP_ENABLED 0
+#endif
+// <o> LPCOMP_CONFIG_REFERENCE  - Reference voltage
+ 
+// <0=> Supply 1/8 
+// <1=> Supply 2/8 
+// <2=> Supply 3/8 
+// <3=> Supply 4/8 
+// <4=> Supply 5/8 
+// <5=> Supply 6/8 
+// <6=> Supply 7/8 
+// <8=> Supply 1/16 (nRF52) 
+// <9=> Supply 3/16 (nRF52) 
+// <10=> Supply 5/16 (nRF52) 
+// <11=> Supply 7/16 (nRF52) 
+// <12=> Supply 9/16 (nRF52) 
+// <13=> Supply 11/16 (nRF52) 
+// <14=> Supply 13/16 (nRF52) 
+// <15=> Supply 15/16 (nRF52) 
+// <7=> External Ref 0 
+// <65543=> External Ref 1 
+
+#ifndef LPCOMP_CONFIG_REFERENCE
+#define LPCOMP_CONFIG_REFERENCE 3
+#endif
+
+// <o> LPCOMP_CONFIG_DETECTION  - Detection
+ 
+// <0=> Crossing 
+// <1=> Up 
+// <2=> Down 
+
+#ifndef LPCOMP_CONFIG_DETECTION
+#define LPCOMP_CONFIG_DETECTION 2
+#endif
+
+// <o> LPCOMP_CONFIG_INPUT  - Analog input
+ 
+// <0=> 0 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+// <4=> 4 
+// <5=> 5 
+// <6=> 6 
+// <7=> 7 
+
+#ifndef LPCOMP_CONFIG_INPUT
+#define LPCOMP_CONFIG_INPUT 0
+#endif
+
+// <q> LPCOMP_CONFIG_HYST  - Hysteresis
+ 
+
+#ifndef LPCOMP_CONFIG_HYST
+#define LPCOMP_CONFIG_HYST 0
+#endif
+
+// <o> LPCOMP_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3
+
+#ifndef LPCOMP_CONFIG_IRQ_PRIORITY
+#define LPCOMP_CONFIG_IRQ_PRIORITY 3
+#endif
 
 // </e>
 
@@ -1552,7 +1435,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3
+// <3=> 3 
 
 #ifndef NRFX_CLOCK_CONFIG_IRQ_PRIORITY
 #define NRFX_CLOCK_CONFIG_IRQ_PRIORITY 3
@@ -1616,6 +1499,7 @@
 #ifndef NRFX_GPIOTE_ENABLED
 #define NRFX_GPIOTE_ENABLED 0
 #endif
+
 // <o> NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS - Number of lower power input pins 
 #ifndef NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS
 #define NRFX_GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 1
@@ -1751,7 +1635,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3
+// <3=> 3 
 
 #ifndef NRFX_LPCOMP_CONFIG_IRQ_PRIORITY
 #define NRFX_LPCOMP_CONFIG_IRQ_PRIORITY 3
@@ -1898,99 +1782,6 @@
 
 #ifndef NRFX_PPI_CONFIG_DEBUG_COLOR
 #define NRFX_PPI_CONFIG_DEBUG_COLOR 0
-#endif
-
-// </e>
-
-// </e>
-
-// <e> NRFX_PRS_ENABLED - nrfx_prs - Peripheral Resource Sharing module
-//==========================================================
-#ifndef NRFX_PRS_ENABLED
-#define NRFX_PRS_ENABLED 0
-#endif
-// <q> NRFX_PRS_BOX_0_ENABLED  - Enables box 0 in the module.
- 
-
-#ifndef NRFX_PRS_BOX_0_ENABLED
-#define NRFX_PRS_BOX_0_ENABLED 0
-#endif
-
-// <q> NRFX_PRS_BOX_1_ENABLED  - Enables box 1 in the module.
- 
-
-#ifndef NRFX_PRS_BOX_1_ENABLED
-#define NRFX_PRS_BOX_1_ENABLED 0
-#endif
-
-// <q> NRFX_PRS_BOX_2_ENABLED  - Enables box 2 in the module.
- 
-
-#ifndef NRFX_PRS_BOX_2_ENABLED
-#define NRFX_PRS_BOX_2_ENABLED 0
-#endif
-
-// <q> NRFX_PRS_BOX_3_ENABLED  - Enables box 3 in the module.
- 
-
-#ifndef NRFX_PRS_BOX_3_ENABLED
-#define NRFX_PRS_BOX_3_ENABLED 0
-#endif
-
-// <q> NRFX_PRS_BOX_4_ENABLED  - Enables box 4 in the module.
- 
-
-#ifndef NRFX_PRS_BOX_4_ENABLED
-#define NRFX_PRS_BOX_4_ENABLED 1
-#endif
-
-// <e> NRFX_PRS_CONFIG_LOG_ENABLED - Enables logging in the module.
-//==========================================================
-#ifndef NRFX_PRS_CONFIG_LOG_ENABLED
-#define NRFX_PRS_CONFIG_LOG_ENABLED 0
-#endif
-// <o> NRFX_PRS_CONFIG_LOG_LEVEL  - Default Severity level
- 
-// <0=> Off 
-// <1=> Error 
-// <2=> Warning 
-// <3=> Info 
-// <4=> Debug 
-
-#ifndef NRFX_PRS_CONFIG_LOG_LEVEL
-#define NRFX_PRS_CONFIG_LOG_LEVEL 3
-#endif
-
-// <o> NRFX_PRS_CONFIG_INFO_COLOR  - ANSI escape code prefix.
- 
-// <0=> Default 
-// <1=> Black 
-// <2=> Red 
-// <3=> Green 
-// <4=> Yellow 
-// <5=> Blue 
-// <6=> Magenta 
-// <7=> Cyan 
-// <8=> White 
-
-#ifndef NRFX_PRS_CONFIG_INFO_COLOR
-#define NRFX_PRS_CONFIG_INFO_COLOR 0
-#endif
-
-// <o> NRFX_PRS_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
- 
-// <0=> Default 
-// <1=> Black 
-// <2=> Red 
-// <3=> Green 
-// <4=> Yellow 
-// <5=> Blue 
-// <6=> Magenta 
-// <7=> Cyan 
-// <8=> White 
-
-#ifndef NRFX_PRS_CONFIG_DEBUG_COLOR
-#define NRFX_PRS_CONFIG_DEBUG_COLOR 0
 #endif
 
 // </e>
@@ -2162,7 +1953,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3 
+// <3=> 3
 
 #ifndef NRFX_RNG_CONFIG_IRQ_PRIORITY
 #define NRFX_RNG_CONFIG_IRQ_PRIORITY 3
@@ -2238,13 +2029,6 @@
 
 #ifndef NRFX_RTC1_ENABLED
 #define NRFX_RTC1_ENABLED 0
-#endif
-
-// <q> NRFX_RTC2_ENABLED  - Enable RTC2 instance
- 
-
-#ifndef NRFX_RTC2_ENABLED
-#define NRFX_RTC2_ENABLED 0
 #endif
 
 // <o> NRFX_RTC_MAXIMUM_LATENCY_US - Maximum possible time[us] in highest priority interrupt 
@@ -2336,31 +2120,31 @@
 #define NRFX_SPIS_ENABLED 0
 #endif
 // <q> NRFX_SPIS0_ENABLED  - Enable SPIS0 instance
-
+ 
 
 #ifndef NRFX_SPIS0_ENABLED
 #define NRFX_SPIS0_ENABLED 0
 #endif
 
 // <o> NRFX_SPIS_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
-
-// <0=> 0 (highest)
-// <1=> 1
-// <2=> 2
+ 
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
 // <3=> 3
 
 #ifndef NRFX_SPIS_DEFAULT_CONFIG_IRQ_PRIORITY
 #define NRFX_SPIS_DEFAULT_CONFIG_IRQ_PRIORITY 3
 #endif
 
-// <o> NRFX_SPIS_DEFAULT_DEF - SPIS default DEF character  <0-255>
+// <o> NRFX_SPIS_DEFAULT_DEF - SPIS default DEF character  <0-255> 
 
 
 #ifndef NRFX_SPIS_DEFAULT_DEF
 #define NRFX_SPIS_DEFAULT_DEF 255
 #endif
 
-// <o> NRFX_SPIS_DEFAULT_ORC - SPIS default ORC character  <0-255>
+// <o> NRFX_SPIS_DEFAULT_ORC - SPIS default ORC character  <0-255> 
 
 
 #ifndef NRFX_SPIS_DEFAULT_ORC
@@ -2373,50 +2157,64 @@
 #define NRFX_SPIS_CONFIG_LOG_ENABLED 0
 #endif
 // <o> NRFX_SPIS_CONFIG_LOG_LEVEL  - Default Severity level
-
-// <0=> Off
-// <1=> Error
-// <2=> Warning
-// <3=> Info
-// <4=> Debug
+ 
+// <0=> Off 
+// <1=> Error 
+// <2=> Warning 
+// <3=> Info 
+// <4=> Debug 
 
 #ifndef NRFX_SPIS_CONFIG_LOG_LEVEL
 #define NRFX_SPIS_CONFIG_LOG_LEVEL 3
 #endif
 
 // <o> NRFX_SPIS_CONFIG_INFO_COLOR  - ANSI escape code prefix.
-
-// <0=> Default
-// <1=> Black
-// <2=> Red
-// <3=> Green
-// <4=> Yellow
-// <5=> Blue
-// <6=> Magenta
-// <7=> Cyan
-// <8=> White
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
 
 #ifndef NRFX_SPIS_CONFIG_INFO_COLOR
 #define NRFX_SPIS_CONFIG_INFO_COLOR 0
 #endif
 
 // <o> NRFX_SPIS_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
-
-// <0=> Default
-// <1=> Black
-// <2=> Red
-// <3=> Green
-// <4=> Yellow
-// <5=> Blue
-// <6=> Magenta
-// <7=> Cyan
-// <8=> White
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
 
 #ifndef NRFX_SPIS_CONFIG_DEBUG_COLOR
 #define NRFX_SPIS_CONFIG_DEBUG_COLOR 0
 #endif
 
 // </e>
+
+// <q> NRFX_SPIS_NRF52_ANOMALY_109_WORKAROUND_ENABLED  - Enables nRF52 Anomaly 109 workaround for SPIS.
+ 
+
+// <i> The workaround uses a GPIOTE channel to generate interrupts
+// <i> on falling edges detected on the CSN line. This will make
+// <i> the CPU active for the moment when SPIS starts DMA transfers,
+// <i> and this way the transfers will be protected.
+// <i> This workaround uses GPIOTE driver, so this driver must be
+// <i> enabled as well.
+
+#ifndef NRFX_SPIS_NRF52_ANOMALY_109_WORKAROUND_ENABLED
+#define NRFX_SPIS_NRF52_ANOMALY_109_WORKAROUND_ENABLED 0
+#endif
 
 // </e>
 
@@ -2454,21 +2252,10 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3 
+// <3=> 3
 
 #ifndef NRFX_SPI_DEFAULT_CONFIG_IRQ_PRIORITY
 #define NRFX_SPI_DEFAULT_CONFIG_IRQ_PRIORITY 3
-#endif
-
-// <o> SPI_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority (legacy configuration)
-
-// <0=> 0 (highest)
-// <1=> 1
-// <2=> 2
-// <3=> 3
-
-#ifndef SPI_DEFAULT_CONFIG_IRQ_PRIORITY
-#define SPI_DEFAULT_CONFIG_IRQ_PRIORITY 3
 #endif
 
 // <e> NRFX_SPI_CONFIG_LOG_ENABLED - Enables logging in the module.
@@ -2799,7 +2586,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3 
+// <3=> 3
 
 #ifndef NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY
 #define NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY 3
@@ -2917,7 +2704,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3
+// <3=> 3 
 
 #ifndef NRFX_UART_DEFAULT_CONFIG_IRQ_PRIORITY
 #define NRFX_UART_DEFAULT_CONFIG_IRQ_PRIORITY 3
@@ -3072,7 +2859,674 @@
 
 // </e>
 
-// </h> 
+// <e> NRF_CLOCK_ENABLED - nrf_drv_clock - CLOCK peripheral driver - legacy layer
+//==========================================================
+#ifndef NRF_CLOCK_ENABLED
+#define NRF_CLOCK_ENABLED 0
+#endif
+// <o> CLOCK_CONFIG_LF_SRC  - LF Clock Source
+ 
+// <0=> RC 
+// <1=> XTAL 
+// <2=> Synth 
+// <131073=> External Low Swing 
+// <196609=> External Full Swing 
+
+#ifndef CLOCK_CONFIG_LF_SRC
+#define CLOCK_CONFIG_LF_SRC 1
+#endif
+
+// <q> CLOCK_CONFIG_LF_CAL_ENABLED  - Calibration enable for LF Clock Source
+ 
+
+#ifndef CLOCK_CONFIG_LF_CAL_ENABLED
+#define CLOCK_CONFIG_LF_CAL_ENABLED 0
+#endif
+
+// <o> CLOCK_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef CLOCK_CONFIG_IRQ_PRIORITY
+#define CLOCK_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// </e>
+
+// <e> POWER_ENABLED - nrf_drv_power - POWER peripheral driver - legacy layer
+//==========================================================
+#ifndef POWER_ENABLED
+#define POWER_ENABLED 0
+#endif
+// <o> POWER_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3
+
+#ifndef POWER_CONFIG_IRQ_PRIORITY
+#define POWER_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <q> POWER_CONFIG_DEFAULT_DCDCEN  - The default configuration of main DCDC regulator
+ 
+
+// <i> This settings means only that components for DCDC regulator are installed and it can be enabled.
+
+#ifndef POWER_CONFIG_DEFAULT_DCDCEN
+#define POWER_CONFIG_DEFAULT_DCDCEN 0
+#endif
+
+// <q> POWER_CONFIG_DEFAULT_DCDCENHV  - The default configuration of High Voltage DCDC regulator
+ 
+
+// <i> This settings means only that components for DCDC regulator are installed and it can be enabled.
+
+#ifndef POWER_CONFIG_DEFAULT_DCDCENHV
+#define POWER_CONFIG_DEFAULT_DCDCENHV 0
+#endif
+
+// </e>
+
+// <q> PPI_ENABLED  - nrf_drv_ppi - PPI peripheral driver - legacy layer
+ 
+
+#ifndef PPI_ENABLED
+#define PPI_ENABLED 0
+#endif
+
+
+// <e> QDEC_ENABLED - nrf_drv_qdec - QDEC peripheral driver - legacy layer
+//==========================================================
+#ifndef QDEC_ENABLED
+#define QDEC_ENABLED 0
+#endif
+// <o> QDEC_CONFIG_REPORTPER  - Report period
+ 
+// <0=> 10 Samples 
+// <1=> 40 Samples 
+// <2=> 80 Samples 
+// <3=> 120 Samples 
+// <4=> 160 Samples 
+// <5=> 200 Samples 
+// <6=> 240 Samples 
+// <7=> 280 Samples 
+
+#ifndef QDEC_CONFIG_REPORTPER
+#define QDEC_CONFIG_REPORTPER 0
+#endif
+
+// <o> QDEC_CONFIG_SAMPLEPER  - Sample period
+ 
+// <0=> 128 us 
+// <1=> 256 us 
+// <2=> 512 us 
+// <3=> 1024 us 
+// <4=> 2048 us 
+// <5=> 4096 us 
+// <6=> 8192 us 
+// <7=> 16384 us 
+
+#ifndef QDEC_CONFIG_SAMPLEPER
+#define QDEC_CONFIG_SAMPLEPER 7
+#endif
+
+// <o> QDEC_CONFIG_PIO_A - A pin  <0-31> 
+
+
+#ifndef QDEC_CONFIG_PIO_A
+#define QDEC_CONFIG_PIO_A 31
+#endif
+
+// <o> QDEC_CONFIG_PIO_B - B pin  <0-31> 
+
+
+#ifndef QDEC_CONFIG_PIO_B
+#define QDEC_CONFIG_PIO_B 31
+#endif
+
+// <o> QDEC_CONFIG_PIO_LED - LED pin  <0-31> 
+
+
+#ifndef QDEC_CONFIG_PIO_LED
+#define QDEC_CONFIG_PIO_LED 31
+#endif
+
+// <o> QDEC_CONFIG_LEDPRE - LED pre 
+#ifndef QDEC_CONFIG_LEDPRE
+#define QDEC_CONFIG_LEDPRE 511
+#endif
+
+// <o> QDEC_CONFIG_LEDPOL  - LED polarity
+ 
+// <0=> Active low 
+// <1=> Active high 
+
+#ifndef QDEC_CONFIG_LEDPOL
+#define QDEC_CONFIG_LEDPOL 1
+#endif
+
+// <q> QDEC_CONFIG_DBFEN  - Debouncing enable
+ 
+
+#ifndef QDEC_CONFIG_DBFEN
+#define QDEC_CONFIG_DBFEN 0
+#endif
+
+// <q> QDEC_CONFIG_SAMPLE_INTEN  - Sample ready interrupt enable
+ 
+
+#ifndef QDEC_CONFIG_SAMPLE_INTEN
+#define QDEC_CONFIG_SAMPLE_INTEN 0
+#endif
+
+// <o> QDEC_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef QDEC_CONFIG_IRQ_PRIORITY
+#define QDEC_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// </e>
+
+// <e> RNG_ENABLED - nrf_drv_rng - RNG peripheral driver - legacy layer
+//==========================================================
+#ifndef RNG_ENABLED
+#define RNG_ENABLED 0
+#endif
+// <q> RNG_CONFIG_ERROR_CORRECTION  - Error correction
+ 
+
+#ifndef RNG_CONFIG_ERROR_CORRECTION
+#define RNG_CONFIG_ERROR_CORRECTION 1
+#endif
+
+// <o> RNG_CONFIG_POOL_SIZE - Pool size 
+#ifndef RNG_CONFIG_POOL_SIZE
+#define RNG_CONFIG_POOL_SIZE 64
+#endif
+
+// <o> RNG_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef RNG_CONFIG_IRQ_PRIORITY
+#define RNG_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// </e>
+
+// <e> RTC_ENABLED - nrf_drv_rtc - RTC peripheral driver - legacy layer
+//==========================================================
+#ifndef RTC_ENABLED
+#define RTC_ENABLED 0
+#endif
+// <o> RTC_DEFAULT_CONFIG_FREQUENCY - Frequency  <16-32768> 
+
+
+#ifndef RTC_DEFAULT_CONFIG_FREQUENCY
+#define RTC_DEFAULT_CONFIG_FREQUENCY 32768
+#endif
+
+// <q> RTC_DEFAULT_CONFIG_RELIABLE  - Ensures safe compare event triggering
+ 
+
+#ifndef RTC_DEFAULT_CONFIG_RELIABLE
+#define RTC_DEFAULT_CONFIG_RELIABLE 0
+#endif
+
+// <o> RTC_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef RTC_DEFAULT_CONFIG_IRQ_PRIORITY
+#define RTC_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <q> RTC0_ENABLED  - Enable RTC0 instance
+ 
+
+#ifndef RTC0_ENABLED
+#define RTC0_ENABLED 0
+#endif
+
+// <q> RTC1_ENABLED  - Enable RTC1 instance
+ 
+
+#ifndef RTC1_ENABLED
+#define RTC1_ENABLED 0
+#endif
+
+
+// <o> NRF_MAXIMUM_LATENCY_US - Maximum possible time[us] in highest priority interrupt 
+#ifndef NRF_MAXIMUM_LATENCY_US
+#define NRF_MAXIMUM_LATENCY_US 2000
+#endif
+
+// </e>
+
+// <e> SPIS_ENABLED - nrf_drv_spis - SPIS peripheral driver - legacy layer
+//==========================================================
+#ifndef SPIS_ENABLED
+#define SPIS_ENABLED 0
+#endif
+// <o> SPIS_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3
+
+#ifndef SPIS_DEFAULT_CONFIG_IRQ_PRIORITY
+#define SPIS_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <o> SPIS_DEFAULT_MODE  - Mode
+ 
+// <0=> MODE_0 
+// <1=> MODE_1 
+// <2=> MODE_2 
+// <3=> MODE_3 
+
+#ifndef SPIS_DEFAULT_MODE
+#define SPIS_DEFAULT_MODE 0
+#endif
+
+// <o> SPIS_DEFAULT_BIT_ORDER  - SPIS default bit order
+ 
+// <0=> MSB first 
+// <1=> LSB first 
+
+#ifndef SPIS_DEFAULT_BIT_ORDER
+#define SPIS_DEFAULT_BIT_ORDER 0
+#endif
+
+// <o> SPIS_DEFAULT_DEF - SPIS default DEF character  <0-255> 
+
+
+#ifndef SPIS_DEFAULT_DEF
+#define SPIS_DEFAULT_DEF 255
+#endif
+
+// <o> SPIS_DEFAULT_ORC - SPIS default ORC character  <0-255> 
+
+
+#ifndef SPIS_DEFAULT_ORC
+#define SPIS_DEFAULT_ORC 255
+#endif
+
+// <q> SPIS0_ENABLED  - Enable SPIS0 instance
+ 
+
+#ifndef SPIS0_ENABLED
+#define SPIS0_ENABLED 0
+#endif
+
+// </e>
+
+// <e> SPI_ENABLED - nrf_drv_spi - SPI/SPIM peripheral driver - legacy layer
+//==========================================================
+#ifndef SPI_ENABLED
+#define SPI_ENABLED 1
+#endif
+// <o> SPI_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef SPI_DEFAULT_CONFIG_IRQ_PRIORITY
+#define SPI_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <o> NRF_SPI_DRV_MISO_PULLUP_CFG  - MISO PIN pull-up configuration.
+ 
+// <0=> NRF_GPIO_PIN_NOPULL 
+// <1=> NRF_GPIO_PIN_PULLDOWN 
+// <3=> NRF_GPIO_PIN_PULLUP 
+
+#ifndef NRF_SPI_DRV_MISO_PULLUP_CFG
+#define NRF_SPI_DRV_MISO_PULLUP_CFG 0
+#endif
+
+// <e> SPI0_ENABLED - Enable SPI0 instance
+//==========================================================
+#ifndef SPI0_ENABLED
+#define SPI0_ENABLED 1
+#endif
+// <q> SPI0_USE_EASY_DMA  - Use EasyDMA
+ 
+
+#ifndef SPI0_USE_EASY_DMA
+#define SPI0_USE_EASY_DMA 0
+#endif
+
+// </e>
+
+// <e> SPI1_ENABLED - Enable SPI1 instance
+//==========================================================
+#ifndef SPI1_ENABLED
+#define SPI1_ENABLED 0
+#endif
+// <q> SPI1_USE_EASY_DMA  - Use EasyDMA
+ 
+
+#ifndef SPI1_USE_EASY_DMA
+#define SPI1_USE_EASY_DMA 0
+#endif
+
+// </e>
+
+// </e>
+
+// <e> TIMER_ENABLED - nrf_drv_timer - TIMER periperal driver - legacy layer
+//==========================================================
+#ifndef TIMER_ENABLED
+#define TIMER_ENABLED 0
+#endif
+// <o> TIMER_DEFAULT_CONFIG_FREQUENCY  - Timer frequency if in Timer mode
+ 
+// <0=> 16 MHz 
+// <1=> 8 MHz 
+// <2=> 4 MHz 
+// <3=> 2 MHz 
+// <4=> 1 MHz 
+// <5=> 500 kHz 
+// <6=> 250 kHz 
+// <7=> 125 kHz 
+// <8=> 62.5 kHz 
+// <9=> 31.25 kHz 
+
+#ifndef TIMER_DEFAULT_CONFIG_FREQUENCY
+#define TIMER_DEFAULT_CONFIG_FREQUENCY 0
+#endif
+
+// <o> TIMER_DEFAULT_CONFIG_MODE  - Timer mode or operation
+ 
+// <0=> Timer 
+// <1=> Counter 
+
+#ifndef TIMER_DEFAULT_CONFIG_MODE
+#define TIMER_DEFAULT_CONFIG_MODE 0
+#endif
+
+// <o> TIMER_DEFAULT_CONFIG_BIT_WIDTH  - Timer counter bit width
+ 
+// <0=> 16 bit 
+// <1=> 8 bit 
+// <2=> 24 bit 
+// <3=> 32 bit 
+
+#ifndef TIMER_DEFAULT_CONFIG_BIT_WIDTH
+#define TIMER_DEFAULT_CONFIG_BIT_WIDTH 0
+#endif
+
+// <o> TIMER_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3
+
+#ifndef TIMER_DEFAULT_CONFIG_IRQ_PRIORITY
+#define TIMER_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <q> TIMER0_ENABLED  - Enable TIMER0 instance
+ 
+
+#ifndef TIMER0_ENABLED
+#define TIMER0_ENABLED 0
+#endif
+
+// <q> TIMER1_ENABLED  - Enable TIMER1 instance
+ 
+
+#ifndef TIMER1_ENABLED
+#define TIMER1_ENABLED 0
+#endif
+
+// <q> TIMER2_ENABLED  - Enable TIMER2 instance
+ 
+
+#ifndef TIMER2_ENABLED
+#define TIMER2_ENABLED 0
+#endif
+
+// </e>
+
+// <e> TWI_ENABLED - nrf_drv_twi - TWI/TWIM peripheral driver - legacy layer
+//==========================================================
+#ifndef TWI_ENABLED
+#define TWI_ENABLED 0
+#endif
+// <o> TWI_DEFAULT_CONFIG_FREQUENCY  - Frequency
+ 
+// <26738688=> 100k 
+// <67108864=> 250k 
+// <104857600=> 400k 
+
+#ifndef TWI_DEFAULT_CONFIG_FREQUENCY
+#define TWI_DEFAULT_CONFIG_FREQUENCY 26738688
+#endif
+
+// <q> TWI_DEFAULT_CONFIG_CLR_BUS_INIT  - Enables bus clearing procedure during init
+ 
+
+#ifndef TWI_DEFAULT_CONFIG_CLR_BUS_INIT
+#define TWI_DEFAULT_CONFIG_CLR_BUS_INIT 0
+#endif
+
+// <q> TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT  - Enables bus holding after uninit
+ 
+
+#ifndef TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT
+#define TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT 0
+#endif
+
+// <o> TWI_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3
+
+#ifndef TWI_DEFAULT_CONFIG_IRQ_PRIORITY
+#define TWI_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <e> TWI0_ENABLED - Enable TWI0 instance
+//==========================================================
+#ifndef TWI0_ENABLED
+#define TWI0_ENABLED 0
+#endif
+// <q> TWI0_USE_EASY_DMA  - Use EasyDMA (if present)
+ 
+
+#ifndef TWI0_USE_EASY_DMA
+#define TWI0_USE_EASY_DMA 0
+#endif
+
+// </e>
+
+// <e> TWI1_ENABLED - Enable TWI1 instance
+//==========================================================
+#ifndef TWI1_ENABLED
+#define TWI1_ENABLED 0
+#endif
+// <q> TWI1_USE_EASY_DMA  - Use EasyDMA (if present)
+ 
+
+#ifndef TWI1_USE_EASY_DMA
+#define TWI1_USE_EASY_DMA 0
+#endif
+
+// </e>
+
+// </e>
+
+// <e> UART_ENABLED - nrf_drv_uart - UART/UARTE peripheral driver - legacy layer
+//==========================================================
+#ifndef UART_ENABLED
+#define UART_ENABLED 1
+#endif
+// <o> UART_DEFAULT_CONFIG_HWFC  - Hardware Flow Control
+ 
+// <0=> Disabled 
+// <1=> Enabled 
+
+#ifndef UART_DEFAULT_CONFIG_HWFC
+#define UART_DEFAULT_CONFIG_HWFC 0
+#endif
+
+// <o> UART_DEFAULT_CONFIG_PARITY  - Parity
+ 
+// <0=> Excluded 
+// <14=> Included 
+
+#ifndef UART_DEFAULT_CONFIG_PARITY
+#define UART_DEFAULT_CONFIG_PARITY 0
+#endif
+
+// <o> UART_DEFAULT_CONFIG_BAUDRATE  - Default Baudrate
+ 
+// <323584=> 1200 baud 
+// <643072=> 2400 baud 
+// <1290240=> 4800 baud 
+// <2576384=> 9600 baud 
+// <3862528=> 14400 baud 
+// <5152768=> 19200 baud 
+// <7716864=> 28800 baud 
+// <10289152=> 38400 baud 
+// <15400960=> 57600 baud 
+// <20615168=> 76800 baud 
+// <30801920=> 115200 baud 
+// <61865984=> 230400 baud 
+// <67108864=> 250000 baud 
+// <121634816=> 460800 baud 
+// <251658240=> 921600 baud 
+// <268435456=> 1000000 baud 
+
+#ifndef UART_DEFAULT_CONFIG_BAUDRATE
+#define UART_DEFAULT_CONFIG_BAUDRATE 30801920
+#endif
+
+// <o> UART_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef UART_DEFAULT_CONFIG_IRQ_PRIORITY
+#define UART_DEFAULT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// <q> UART_EASY_DMA_SUPPORT  - Driver supporting EasyDMA
+ 
+
+#ifndef UART_EASY_DMA_SUPPORT
+#define UART_EASY_DMA_SUPPORT 0
+#endif
+
+// <q> UART_LEGACY_SUPPORT  - Driver supporting Legacy mode
+ 
+
+#ifndef UART_LEGACY_SUPPORT
+#define UART_LEGACY_SUPPORT 1
+#endif
+
+// <e> UART0_ENABLED - Enable UART0 instance
+//==========================================================
+#ifndef UART0_ENABLED
+#define UART0_ENABLED 1
+#endif
+// <q> UART0_CONFIG_USE_EASY_DMA  - Default setting for using EasyDMA
+ 
+
+#ifndef UART0_CONFIG_USE_EASY_DMA
+#define UART0_CONFIG_USE_EASY_DMA 0
+#endif
+
+// </e>
+
+// </e>
+
+// <e> WDT_ENABLED - nrf_drv_wdt - WDT peripheral driver - legacy layer
+//==========================================================
+#ifndef WDT_ENABLED
+#define WDT_ENABLED 0
+#endif
+// <o> WDT_CONFIG_BEHAVIOUR  - WDT behavior in CPU SLEEP or HALT mode
+ 
+// <1=> Run in SLEEP, Pause in HALT 
+// <8=> Pause in SLEEP, Run in HALT 
+// <9=> Run in SLEEP and HALT 
+// <0=> Pause in SLEEP and HALT 
+
+#ifndef WDT_CONFIG_BEHAVIOUR
+#define WDT_CONFIG_BEHAVIOUR 1
+#endif
+
+// <o> WDT_CONFIG_RELOAD_VALUE - Reload value  <15-4294967295> 
+
+
+#ifndef WDT_CONFIG_RELOAD_VALUE
+#define WDT_CONFIG_RELOAD_VALUE 2000
+#endif
+
+// <o> WDT_CONFIG_IRQ_PRIORITY  - Interrupt priority
+ 
+
+// <i> Priorities 0,2 (nRF51) and 0,1,4,5 (nRF52) are reserved for SoftDevice
+// <0=> 0 (highest) 
+// <1=> 1 
+// <2=> 2 
+// <3=> 3 
+
+#ifndef WDT_CONFIG_IRQ_PRIORITY
+#define WDT_CONFIG_IRQ_PRIORITY 3
+#endif
+
+// </e>
+
+
+// </h>
 //==========================================================
 
 // <h> nRF_Libraries 
@@ -3183,7 +3637,7 @@
 // <0=> 0 (highest) 
 // <1=> 1 
 // <2=> 2 
-// <3=> 3
+// <3=> 3 
 
 #ifndef APP_TIMER_CONFIG_IRQ_PRIORITY
 #define APP_TIMER_CONFIG_IRQ_PRIORITY 3
@@ -3248,7 +3702,6 @@
 //==========================================================
 
 // </e>
-
 
 // <q> CRC16_ENABLED  - crc16 - CRC16 calculation routines
  
@@ -3456,22 +3909,22 @@
 
 // <o> HCI_UART_RX_PIN - UART RX pin 
 #ifndef HCI_UART_RX_PIN
-#define HCI_UART_RX_PIN 8
+#define HCI_UART_RX_PIN 31
 #endif
 
 // <o> HCI_UART_TX_PIN - UART TX pin 
 #ifndef HCI_UART_TX_PIN
-#define HCI_UART_TX_PIN 6
+#define HCI_UART_TX_PIN 31
 #endif
 
 // <o> HCI_UART_RTS_PIN - UART RTS pin 
 #ifndef HCI_UART_RTS_PIN
-#define HCI_UART_RTS_PIN 5
+#define HCI_UART_RTS_PIN 31
 #endif
 
 // <o> HCI_UART_CTS_PIN - UART CTS pin 
 #ifndef HCI_UART_CTS_PIN
-#define HCI_UART_CTS_PIN 7
+#define HCI_UART_CTS_PIN 31
 #endif
 
 // </e>
@@ -3668,7 +4121,7 @@
 // <e> NRF_BALLOC_ENABLED - nrf_balloc - Block allocator module
 //==========================================================
 #ifndef NRF_BALLOC_ENABLED
-#define NRF_BALLOC_ENABLED 0
+#define NRF_BALLOC_ENABLED 1
 #endif
 // <e> NRF_BALLOC_CONFIG_DEBUG_ENABLED - Enables debug mode in the module.
 //==========================================================
@@ -3715,6 +4168,80 @@
 
 #ifndef NRF_BALLOC_CLI_CMDS
 #define NRF_BALLOC_CLI_CMDS 0
+#endif
+
+// </e>
+
+// </e>
+
+// <e> NRF_CSENSE_ENABLED - nrf_csense - Capacitive sensor module
+//==========================================================
+#ifndef NRF_CSENSE_ENABLED
+#define NRF_CSENSE_ENABLED 0
+#endif
+// <o> NRF_CSENSE_PAD_HYSTERESIS - Minimum value of change required to determine that a pad was touched. 
+#ifndef NRF_CSENSE_PAD_HYSTERESIS
+#define NRF_CSENSE_PAD_HYSTERESIS 15
+#endif
+
+// <o> NRF_CSENSE_PAD_DEVIATION - Minimum value measured on a pad required to take it into account while calculating the step. 
+#ifndef NRF_CSENSE_PAD_DEVIATION
+#define NRF_CSENSE_PAD_DEVIATION 70
+#endif
+
+// <o> NRF_CSENSE_MIN_PAD_VALUE - Minimum normalized value on a pad required to take its value into account. 
+#ifndef NRF_CSENSE_MIN_PAD_VALUE
+#define NRF_CSENSE_MIN_PAD_VALUE 20
+#endif
+
+// <o> NRF_CSENSE_MAX_PADS_NUMBER - Maximum number of pads used for one instance. 
+#ifndef NRF_CSENSE_MAX_PADS_NUMBER
+#define NRF_CSENSE_MAX_PADS_NUMBER 20
+#endif
+
+// <o> NRF_CSENSE_MAX_VALUE - Maximum normalized value obtained from measurement. 
+#ifndef NRF_CSENSE_MAX_VALUE
+#define NRF_CSENSE_MAX_VALUE 1000
+#endif
+
+// <o> NRF_CSENSE_OUTPUT_PIN - Output pin used by the low-level module. 
+// <i> This is used when capacitive sensor does not use COMP.
+
+#ifndef NRF_CSENSE_OUTPUT_PIN
+#define NRF_CSENSE_OUTPUT_PIN 26
+#endif
+
+// </e>
+
+// <e> NRF_DRV_CSENSE_ENABLED - nrf_drv_csense - Capacitive sensor low-level module
+//==========================================================
+#ifndef NRF_DRV_CSENSE_ENABLED
+#define NRF_DRV_CSENSE_ENABLED 0
+#endif
+// <e> USE_COMP - Use the comparator to implement the capacitive sensor driver.
+
+// <i> Due to Anomaly 84, COMP I_SOURCE is not functional. It has too high a varation.
+//==========================================================
+#ifndef USE_COMP
+#define USE_COMP 0
+#endif
+// <o> TIMER0_FOR_CSENSE - First TIMER instance used by the driver (not used on nRF51). 
+#ifndef TIMER0_FOR_CSENSE
+#define TIMER0_FOR_CSENSE 1
+#endif
+
+// <o> TIMER1_FOR_CSENSE - Second TIMER instance used by the driver (not used on nRF51). 
+#ifndef TIMER1_FOR_CSENSE
+#define TIMER1_FOR_CSENSE 2
+#endif
+
+// <o> MEASUREMENT_PERIOD - Single measurement period. 
+// <i> Time of a single measurement can be calculated as
+// <i> T = (1/2)*MEASUREMENT_PERIOD*(1/f_OSC) where f_OSC = I_SOURCE / (2C*(VUP-VDOWN) ).
+// <i> I_SOURCE, VUP, and VDOWN are values used to initialize COMP and C is the capacitance of the used pad.
+
+#ifndef MEASUREMENT_PERIOD
+#define MEASUREMENT_PERIOD 20
 #endif
 
 // </e>
@@ -3789,7 +4316,7 @@
  
 
 #ifndef NRF_MEMOBJ_ENABLED
-#define NRF_MEMOBJ_ENABLED 0
+#define NRF_MEMOBJ_ENABLED 1
 #endif
 
 // <e> NRF_PWR_MGMT_ENABLED - nrf_pwr_mgmt - Power management module
@@ -3838,22 +4365,6 @@
 // <29=> 29 (P0.29) 
 // <30=> 30 (P0.30) 
 // <31=> 31 (P0.31) 
-// <32=> 32 (P1.0) 
-// <33=> 33 (P1.1) 
-// <34=> 34 (P1.2) 
-// <35=> 35 (P1.3) 
-// <36=> 36 (P1.4) 
-// <37=> 37 (P1.5) 
-// <38=> 38 (P1.6) 
-// <39=> 39 (P1.7) 
-// <40=> 40 (P1.8) 
-// <41=> 41 (P1.9) 
-// <42=> 42 (P1.10) 
-// <43=> 43 (P1.11) 
-// <44=> 44 (P1.12) 
-// <45=> 45 (P1.13) 
-// <46=> 46 (P1.14) 
-// <47=> 47 (P1.15) 
 // <4294967295=> Not connected 
 
 #ifndef NRF_PWR_MGMT_SLEEP_DEBUG_PIN
@@ -3889,7 +4400,7 @@
  
 
 #ifndef NRF_PWR_MGMT_CONFIG_FPU_SUPPORT_ENABLED
-#define NRF_PWR_MGMT_CONFIG_FPU_SUPPORT_ENABLED 1
+#define NRF_PWR_MGMT_CONFIG_FPU_SUPPORT_ENABLED 0
 #endif
 
 // <q> NRF_PWR_MGMT_CONFIG_AUTO_SHUTDOWN_RETRY  - Blocked shutdown procedure will be retried every second.
@@ -3933,7 +4444,7 @@
  
 
 #ifndef NRF_SECTION_ITER_ENABLED
-#define NRF_SECTION_ITER_ENABLED 0
+#define NRF_SECTION_ITER_ENABLED 1
 #endif
 
 // <q> NRF_SORTLIST_ENABLED  - nrf_sortlist - Sorted list
@@ -3954,7 +4465,7 @@
  
 
 #ifndef NRF_STRERROR_ENABLED
-#define NRF_STRERROR_ENABLED 0
+#define NRF_STRERROR_ENABLED 1
 #endif
 
 // <q> NRF_TWI_MNGR_ENABLED  - nrf_twi_mngr - TWI transaction manager
@@ -4013,8 +4524,28 @@
 #define TASK_MANAGER_CONFIG_STACK_GUARD 7
 #endif
 
+// </e>
+
+// <h> app_button - buttons handling module
+
+//==========================================================
+// <q> BUTTON_ENABLED  - Enables Button module
+ 
+
+#ifndef BUTTON_ENABLED
+#define BUTTON_ENABLED 0
+#endif
+
+// <q> BUTTON_HIGH_ACCURACY_ENABLED  - Enables GPIOTE high accuracy for buttons
+ 
+
+#ifndef BUTTON_HIGH_ACCURACY_ENABLED
+#define BUTTON_HIGH_ACCURACY_ENABLED 0
+#endif
+
 // </h> 
 //==========================================================
+
 
 // <h> nrf_cli - Command line interface
 
@@ -4124,7 +4655,7 @@
  
 
 #ifndef NRF_FPRINTF_ENABLED
-#define NRF_FPRINTF_ENABLED 0
+#define NRF_FPRINTF_ENABLED 1
 #endif
 
 // <q> NRF_FPRINTF_FLAG_AUTOMATIC_CR_ON_LF_ENABLED  - For each printed LF, function will add CR.
@@ -4143,84 +4674,6 @@
 // <h> nRF_Log 
 
 //==========================================================
-// <e> NRF_LOG_BACKEND_RTT_ENABLED - nrf_log_backend_rtt - Log RTT backend
-//==========================================================
-#ifndef NRF_LOG_BACKEND_RTT_ENABLED
-#define NRF_LOG_BACKEND_RTT_ENABLED 0
-#endif
-// <o> NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE - Size of buffer for partially processed strings. 
-// <i> Size of the buffer is a trade-off between RAM usage and processing.
-// <i> if buffer is smaller then strings will often be fragmented.
-// <i> It is recommended to use size which will fit typical log and only the
-// <i> longer one will be fragmented.
-
-#ifndef NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE
-#define NRF_LOG_BACKEND_RTT_TEMP_BUFFER_SIZE 64
-#endif
-
-// <o> NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS - Period before retrying writing to RTT 
-#ifndef NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS
-#define NRF_LOG_BACKEND_RTT_TX_RETRY_DELAY_MS 1
-#endif
-
-// <o> NRF_LOG_BACKEND_RTT_TX_RETRY_CNT - Writing to RTT retries. 
-// <i> If RTT fails to accept any new data after retries
-// <i> module assumes that host is not active and on next
-// <i> request it will perform only one write attempt.
-// <i> On successful writing, module assumes that host is active
-// <i> and scheme with retry is applied again.
-
-#ifndef NRF_LOG_BACKEND_RTT_TX_RETRY_CNT
-#define NRF_LOG_BACKEND_RTT_TX_RETRY_CNT 3
-#endif
-
-// </e>
-
-// <e> NRF_LOG_BACKEND_UART_ENABLED - nrf_log_backend_uart - Log UART backend
-//==========================================================
-#ifndef NRF_LOG_BACKEND_UART_ENABLED
-#define NRF_LOG_BACKEND_UART_ENABLED 0
-#endif
-// <o> NRF_LOG_BACKEND_UART_TX_PIN - UART TX pin 
-#ifndef NRF_LOG_BACKEND_UART_TX_PIN
-#define NRF_LOG_BACKEND_UART_TX_PIN 6
-#endif
-
-// <o> NRF_LOG_BACKEND_UART_BAUDRATE  - Default Baudrate
- 
-// <323584=> 1200 baud 
-// <643072=> 2400 baud 
-// <1290240=> 4800 baud 
-// <2576384=> 9600 baud 
-// <3862528=> 14400 baud 
-// <5152768=> 19200 baud 
-// <7716864=> 28800 baud 
-// <10289152=> 38400 baud 
-// <15400960=> 57600 baud 
-// <20615168=> 76800 baud 
-// <30801920=> 115200 baud 
-// <61865984=> 230400 baud 
-// <67108864=> 250000 baud 
-// <121634816=> 460800 baud 
-// <251658240=> 921600 baud 
-// <268435456=> 1000000 baud 
-
-#ifndef NRF_LOG_BACKEND_UART_BAUDRATE
-#define NRF_LOG_BACKEND_UART_BAUDRATE 30801920
-#endif
-
-// <o> NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE - Size of buffer for partially processed strings. 
-// <i> Size of the buffer is a trade-off between RAM usage and processing.
-// <i> if buffer is smaller then strings will often be fragmented.
-// <i> It is recommended to use size which will fit typical log and only the
-// <i> longer one will be fragmented.
-
-#ifndef NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE
-#define NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE 64
-#endif
-
-// </e>
-
 // <e> NRF_LOG_ENABLED - nrf_log - Logger
 //==========================================================
 #ifndef NRF_LOG_ENABLED
@@ -6674,7 +7127,7 @@
 // <e> NRF_SDH_ANT_LOG_ENABLED - Enable logging in SoftDevice handler (ANT) module.
 //==========================================================
 #ifndef NRF_SDH_ANT_LOG_ENABLED
-#define NRF_SDH_ANT_LOG_ENABLED 0
+#define NRF_SDH_ANT_LOG_ENABLED 1
 #endif
 // <o> NRF_SDH_ANT_LOG_LEVEL  - Default Severity level
  
@@ -7097,7 +7550,7 @@
  
 
 #ifndef NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED
-#define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 0
+#define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 1
 #endif
 
 // </h> 
@@ -7688,6 +8141,7 @@
 // <h> nRF_SoftDevice 
 
 //==========================================================
+
 // <e> NRF_SDH_BLE_ENABLED - nrf_sdh_ble - SoftDevice BLE event handler
 //==========================================================
 #ifndef NRF_SDH_BLE_ENABLED
@@ -7704,7 +8158,7 @@
 // <i> Requested BLE GAP data length to be negotiated.
 
 #ifndef NRF_SDH_BLE_GAP_DATA_LENGTH
-#define NRF_SDH_BLE_GAP_DATA_LENGTH 251
+#define NRF_SDH_BLE_GAP_DATA_LENGTH 27
 #endif
 
 // <o> NRF_SDH_BLE_PERIPHERAL_LINK_COUNT - Maximum number of peripheral links. 
@@ -7714,7 +8168,7 @@
 
 // <o> NRF_SDH_BLE_CENTRAL_LINK_COUNT - Maximum number of central links. 
 #ifndef NRF_SDH_BLE_CENTRAL_LINK_COUNT
-#define NRF_SDH_BLE_CENTRAL_LINK_COUNT 1
+#define NRF_SDH_BLE_CENTRAL_LINK_COUNT 0
 #endif
 
 // <o> NRF_SDH_BLE_TOTAL_LINK_COUNT - Total link count. 
@@ -7728,12 +8182,12 @@
 // <i> The time set aside for this connection on every connection interval in 1.25 ms units.
 
 #ifndef NRF_SDH_BLE_GAP_EVENT_LENGTH
-#define NRF_SDH_BLE_GAP_EVENT_LENGTH 320
+#define NRF_SDH_BLE_GAP_EVENT_LENGTH 6
 #endif
 
 // <o> NRF_SDH_BLE_GATT_MAX_MTU_SIZE - Static maximum MTU size. 
 #ifndef NRF_SDH_BLE_GATT_MAX_MTU_SIZE
-#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 247
+#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 23
 #endif
 
 // <o> NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE - Attribute Table size in bytes. The size must be a multiple of 4. 

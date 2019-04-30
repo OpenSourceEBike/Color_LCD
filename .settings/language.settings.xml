@@ -113,6 +113,113 @@
 						<entry kind="macro" name="SOFTDEVICE_PRESENT" value="1"/>
 						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
 					</resource>
+					<resource project-relative-path="nRF5_SDK_12.3.0/components/libraries/util/app_error.c">
+						<entry kind="includePath" name="./include"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/boards"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/device"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/common/softdevice_handler"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers/nrf51"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/adc"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ble_flash"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/clock"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/common"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/delay"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/gpiote"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/hal"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/lpcomp"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/nrf_soc_nosd"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/pdm"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/power"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ppi"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/qdec"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/radio_config"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rng"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rtc"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/sdio"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_master"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_slave"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/swi"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/timer"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twi_master"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twis_slave"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/uart"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/wdt"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_advertising"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ancs_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ans_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cscs"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cts_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dfu"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dis"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_gls"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hids"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hts"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lls"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs_c"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_tps"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_dtm"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_racp"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/common"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/nrf_ble_qwr"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/peer_manager"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/ble_dfu"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/dfu"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bsp"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/button"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc16"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc32"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crypto"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense_drv"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/experimental_section_vars"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fds"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fifo"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fstorage"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/gpiote"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hardfault"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hci"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/led_softblink"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log/src"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/low_power_pwm"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/mem_manager"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwm"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwr_mgmt"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/queue"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/scheduler"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/sensorsim"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/slip"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/timer"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/twi"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/uart"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/util"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/cmsis/include"/>
+						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/gcc"/>
+						<entry kind="macro" name="BLE_STACK_SUPPORT_REQD" value="1"/>
+						<entry kind="macro" name="BOARD_CUSTOM" value="1"/>
+						<entry kind="macro" name="NRF51" value="1"/>
+						<entry kind="macro" name="NRF51822" value="1"/>
+						<entry kind="macro" name="NRF_DFU_SETTINGS_VERSION" value="1"/>
+						<entry kind="macro" name="NRF_SD_BLE_API_VERSION" value="2"/>
+						<entry kind="macro" name="S130" value="1"/>
+						<entry kind="macro" name="SOFTDEVICE_PRESENT" value="1"/>
+						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
+					</resource>
 					<resource project-relative-path="nRF5_SDK_12.3.0/components/ble/peer_manager/peer_id.c">
 						<entry kind="includePath" name="./include"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components"/>
@@ -3430,113 +3537,6 @@
 						<entry kind="macro" name="SOFTDEVICE_PRESENT" value="1"/>
 						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
 					</resource>
-					<resource project-relative-path="nRF5_SDK_12.3.0/components/ble/peer_manager/security_manager.c">
-						<entry kind="includePath" name="./include"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/boards"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/device"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/common/softdevice_handler"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers/nrf51"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/adc"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ble_flash"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/clock"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/common"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/delay"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/gpiote"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/hal"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/lpcomp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/nrf_soc_nosd"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/pdm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/power"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ppi"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/qdec"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/radio_config"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rng"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rtc"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/sdio"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_master"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_slave"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/swi"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/timer"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twi_master"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twis_slave"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/uart"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/wdt"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_advertising"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ancs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ans_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cscs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cts_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dis"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_gls"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hids"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hts"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lls"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_tps"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_dtm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_racp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/common"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/nrf_ble_qwr"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/peer_manager"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/ble_dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bsp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/button"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc16"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc32"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crypto"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense_drv"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/experimental_section_vars"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fds"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fifo"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fstorage"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/gpiote"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hardfault"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hci"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/led_softblink"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log/src"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/low_power_pwm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/mem_manager"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwr_mgmt"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/queue"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/scheduler"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/sensorsim"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/slip"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/timer"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/twi"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/uart"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/util"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/cmsis/include"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/gcc"/>
-						<entry kind="macro" name="BLE_STACK_SUPPORT_REQD" value="1"/>
-						<entry kind="macro" name="BOARD_CUSTOM" value="1"/>
-						<entry kind="macro" name="NRF51" value="1"/>
-						<entry kind="macro" name="NRF51822" value="1"/>
-						<entry kind="macro" name="NRF_DFU_SETTINGS_VERSION" value="1"/>
-						<entry kind="macro" name="NRF_SD_BLE_API_VERSION" value="2"/>
-						<entry kind="macro" name="S130" value="1"/>
-						<entry kind="macro" name="SOFTDEVICE_PRESENT" value="1"/>
-						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
-					</resource>
 					<resource project-relative-path="nRF5_SDK_12.3.0/components/ble/peer_manager/pm_mutex.c">
 						<entry kind="includePath" name="./include"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components"/>
@@ -3645,92 +3645,6 @@
 						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
 					</resource>
 					<resource project-relative-path="src/lcd.c">
-						<entry kind="includePath" name="./include"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/boards"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/device"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/common/softdevice_handler"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/softdevice/s130/headers/nrf51"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/adc"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ble_flash"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/clock"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/common"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/delay"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/gpiote"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/hal"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/lpcomp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/nrf_soc_nosd"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/pdm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/power"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/ppi"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/qdec"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/radio_config"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rng"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/rtc"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/sdio"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_master"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/spi_slave"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/swi"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/timer"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twi_master"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/twis_slave"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/uart"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/drivers_nrf/wdt"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_advertising"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ancs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ans_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_bas_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cscs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_cts_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_dis"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_gls"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hids"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hrs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_hts"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_ias_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lbs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_lls"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_nus_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_rscs_c"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_services/ble_tps"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_dtm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/ble_racp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/common"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/nrf_ble_qwr"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/ble/peer_manager"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/ble_dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bootloader/dfu"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/bsp"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/button"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc16"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crc32"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/crypto"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/csense_drv"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/experimental_section_vars"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fds"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fifo"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/fstorage"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/gpiote"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hardfault"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/hci"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/led_softblink"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/log/src"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/low_power_pwm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/mem_manager"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwm"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/pwr_mgmt"/>
-						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/queue"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/scheduler"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/sensorsim"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/libraries/slip"/>
@@ -3741,15 +3655,6 @@
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/cmsis/include"/>
 						<entry kind="includePath" name="./nRF5_SDK_12.3.0/components/toolchain/gcc"/>
-						<entry kind="macro" name="BLE_STACK_SUPPORT_REQD" value="1"/>
-						<entry kind="macro" name="BOARD_CUSTOM" value="1"/>
-						<entry kind="macro" name="NRF51" value="1"/>
-						<entry kind="macro" name="NRF51822" value="1"/>
-						<entry kind="macro" name="NRF_DFU_SETTINGS_VERSION" value="1"/>
-						<entry kind="macro" name="NRF_SD_BLE_API_VERSION" value="2"/>
-						<entry kind="macro" name="S130" value="1"/>
-						<entry kind="macro" name="SOFTDEVICE_PRESENT" value="1"/>
-						<entry kind="macro" name="SWI_DISABLE0" value="1"/>
 					</resource>
 					<resource project-relative-path="nRF5_SDK_12.3.0/components/libraries/util/nrf_assert.c">
 						<entry kind="includePath" name="./include"/>

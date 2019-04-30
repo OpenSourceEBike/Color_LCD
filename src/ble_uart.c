@@ -48,7 +48,7 @@ static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, 
  * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of
  *          the device. It also sets the permissions and appearance.
  */
-void gap_params_init(void)
+static void gap_params_init(void)
 {
     ble_gap_conn_params_t   gap_conn_params;
     ble_gap_conn_sec_mode_t sec_mode;
@@ -82,7 +82,7 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
 
 /**@brief Function for initializing services that will be used by the application.
  */
-void services_init(void)
+static void services_init(void)
 {
     ble_nus_init_t nus_init;
 
@@ -126,7 +126,7 @@ static void conn_params_error_handler(uint32_t nrf_error)
 
 /**@brief Function for initializing the Connection Parameters module.
  */
-void conn_params_init(void)
+static void conn_params_init(void)
 {
     ble_conn_params_init_t cp_init;
 
@@ -280,7 +280,7 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
  *
  * @details This function initializes the SoftDevice and the BLE event interrupt.
  */
-void ble_stack_init(void)
+static void ble_stack_init(void)
 {
     //APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
 
@@ -307,7 +307,7 @@ void ble_stack_init(void)
 
 /**@brief Function for initializing the Advertising functionality.
  */
-void advertising_init(void)
+static void advertising_init(void)
 {
     ble_advdata_t          advdata;
     ble_advdata_t          scanrsp;
@@ -329,4 +329,13 @@ void advertising_init(void)
     options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
 
     ble_advertising_init(&advdata, &scanrsp, &options, on_adv_evt, NULL);
+}
+
+void ble_init(void)
+{
+  ble_stack_init();
+  gap_params_init();
+  services_init();
+  advertising_init();
+  conn_params_init();
 }

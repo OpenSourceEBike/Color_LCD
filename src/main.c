@@ -29,6 +29,7 @@ int main(void)
   gpio_init();
   lcd_init();
   uart_init();
+  ble_init();
   system_power(true);
 
   UG_ConsoleSetArea(0, 0, 63, 127);
@@ -40,17 +41,11 @@ int main(void)
   UG_ConsolePutString("3\n");
   UG_ConsolePutString("2\n");
   UG_ConsolePutString("1\n");
-  //UG_ConsolePutString("0\n");
+  UG_ConsolePutString("0\n");
 
   UG_FontSelect(&MY_FONT_8X12);
   static const char degC[] = { 31, 'C', 0 };
   UG_ConsolePutString(degC);
-
-  ble_stack_init();
-  gap_params_init();
-  services_init();
-  advertising_init();
-  conn_params_init();
 
   // Enter main loop.
   while (1)
@@ -103,8 +98,7 @@ static void uart_init(void)
 /* Event handler */
 static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
 {
-  if (p_event->type == NRF_DRV_UART_EVT_TX_DONE)
-    while (1);
+  //if (p_event->type == NRF_DRV_UART_EVT_TX_DONE)
 }
 
 /**@brief       Callback function for errors, asserts, and faults.

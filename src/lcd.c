@@ -17,7 +17,8 @@
 #include "pins.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
-#include "nrfx_spi.h"
+#include "nrf_drv_spi.h"
+
 
 /* Function prototype */
 static void set_cmd(void);
@@ -27,7 +28,6 @@ static void send_byte(uint8_t byte);
 static void spi_init(void);
 static void lcd_refresh(void);
 static void pset(UG_S16 x, UG_S16 y, UG_COLOR col);
-
 
 
 /* Variable definition */
@@ -42,9 +42,8 @@ uint8_t frameBuffer[16][64];
 const uint8_t init_array[] = { 0xAE, 0xA8, 0x3F, 0xD5, 0x50, 0xC0, 0xD3, 0x60, 0xDC, 0x00, 0x20, 0x81, 0xBF, 0xA0, 0xA4, 0xA6, 0xAD, 0x8A, 0xD9, 0x1F, 0xDB, 0x30, 0xAF };
 
 /* SPI instance */
-const nrfx_spi_t spi = NRFX_SPI_INSTANCE(LCD_SPI_INSTANCE);
+const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(LCD_SPI_INSTANCE);
 
-const nrfx_spi_xfer_desc_t xfer_desc_init = {init_array, ARRAY_SIZE(init_array), NULL, 0};
 
 /**
  * @brief LCD initialization including hardware layer.
@@ -63,7 +62,7 @@ void lcd_init(void)
 
   // Set up initialization sequence
   set_cmd();
-  nrfx_spi_xfer(&spi, &xfer_desc_init, 0);
+  nrf_drv_spi_transfer(&spi, init_array, ARRAY_SIZE(init_array), NULL, 0);
 
   // Clear internal RAM
   lcd_refresh(); // Is already initialized to zero in bss segment.
@@ -97,8 +96,7 @@ static void set_data(void)
 static void send_cmd(uint8_t cmd)
 {
   set_cmd();
-  nrfx_spi_xfer_desc_t xfer_desc_byte_tx = {&cmd, 1, NULL, 0};
-  nrfx_spi_xfer(&spi, &xfer_desc_byte_tx, 0);
+  nrf_drv_spi_transfer(&spi, &cmd, 1, NULL, 0);
 }
 
 /**
@@ -107,8 +105,7 @@ static void send_cmd(uint8_t cmd)
 static void send_byte(uint8_t byte)
 {
   set_data();
-  nrfx_spi_xfer_desc_t xfer_desc_byte_tx = {&byte, 1, NULL, 0};
-  nrfx_spi_xfer(&spi, &xfer_desc_byte_tx, 0);
+  nrf_drv_spi_transfer(&spi, &byte, 1, NULL, 0);
 }
 
 /**
@@ -126,8 +123,7 @@ static void lcd_refresh(void)
     send_cmd(0x10);
     // send page data
     set_data();
-    nrfx_spi_xfer_desc_t xfer_desc_frameBuffer = {&frameBuffer[i][0], 64, NULL, 0};
-    nrfx_spi_xfer(&spi, &xfer_desc_frameBuffer, 0);
+    nrf_drv_spi_transfer(&spi, &frameBuffer[i][0], 64, NULL, 0);
   }
 }
 
@@ -136,7 +132,7 @@ static void lcd_refresh(void)
  */
 static void spi_init(void)
 {
-  nrfx_spi_config_t spi_config = NRFX_SPI_DEFAULT_CONFIG;
+  nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
   spi_config.ss_pin = LCD_CHIP_SELECT__PIN;
   spi_config.mosi_pin = LCD_DATA__PIN;
   spi_config.sck_pin = LCD_CLOCK__PIN;
@@ -145,7 +141,7 @@ static void spi_init(void)
   spi_config.mode = NRF_SPI_MODE_0;
   spi_config.bit_order = NRF_SPI_BIT_ORDER_MSB_FIRST;
 
-  nrfx_spi_init(&spi, &spi_config, NULL, NULL);
+  nrf_drv_spi_init(&spi, &spi_config, NULL);
 }
 
 /**

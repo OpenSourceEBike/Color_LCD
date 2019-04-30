@@ -59,6 +59,12 @@ extern "C" {
 #define RTS_PIN_NUMBER  NRF_UART_PSEL_DISCONNECTED
 #define HWFC            false
 
+// Low frequency clock source to be used by the SoftDevice
+#define NRF_CLOCK_LFCLKSRC      {.source        = NRF_CLOCK_LF_SRC_RC,  \
+                                 .rc_ctiv       = 16, /* Check temperature every 4 seconds */ \
+                                 .rc_temp_ctiv  = 2,  /* Calibrate at least every 8 seconds even if the temperature hasn't changed */ \
+                                 .xtal_accuracy = 0   /* For the NRF_CLOCK_LF_SRC_RC clock source this parameter is ignored. */}
+
 #ifdef __cplusplus
 }
 #endif

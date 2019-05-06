@@ -234,6 +234,12 @@ erase:
 	@echo Erasing all
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; shutdown"
 
+# Generate DFU package
+NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
+KEYFILE := $(PROJ_DIR)/private.key
+generate_dfu_package:
+	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version 1 --hw-version 51 --sd-req 0x87 update_firmware.zip
+
 # Start CMSIS_Configuration_Wizard
 SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar

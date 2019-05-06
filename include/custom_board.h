@@ -48,13 +48,31 @@ extern "C" {
 
 #define BUTTONS_NUMBER  0
 
-#define SPIM0_SCK_PIN   6
-#define SPIM0_MOSI_PIN  7
-#define SPIM0_MISO_PIN  NRF_DRV_SPI_PIN_NOT_USED
-#define SPIM0_SS_PIN    4
+#define SYSTEM_POWER_HOLD__PIN    9
 
-#define RX_PIN_NUMBER   11
-#define TX_PIN_NUMBER   12
+#define LCD_RES__PIN              5
+#define LCD_COMMAND_DATA__PIN     30
+#define LCD_CHIP_SELECT__PIN      4
+#define LCD_CLOCK__PIN            6
+#define LCD_DATA__PIN             7
+
+#define BUTTON_UP__PIN            2
+#define BUTTON_PWR__PIN           10
+#define BUTTON_DOWN__PIN          19
+#define BUTTON_M__PIN             14
+
+#define UART_TX__PIN              12
+#define UART_RX__PIN              11
+
+#define TEST__PIN                 28
+
+#define SPIM0_SCK_PIN   LCD_CLOCK__PIN
+#define SPIM0_MOSI_PIN  LCD_DATA__PIN
+#define SPIM0_MISO_PIN  NRF_DRV_SPI_PIN_NOT_USED
+#define SPIM0_SS_PIN    LCD_CHIP_SELECT__PIN
+
+#define RX_PIN_NUMBER   UART_RX__PIN
+#define TX_PIN_NUMBER   UART_TX__PIN
 #define CTS_PIN_NUMBER  NRF_UART_PSEL_DISCONNECTED
 #define RTS_PIN_NUMBER  NRF_UART_PSEL_DISCONNECTED
 #define HWFC            false

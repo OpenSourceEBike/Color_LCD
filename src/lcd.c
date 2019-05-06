@@ -14,7 +14,6 @@
  */
 
 #include "lcd.h"
-#include "pins.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "nrf_drv_spi.h"

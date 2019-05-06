@@ -2,7 +2,6 @@
 #include "ble_uart.h"
 #include "nrf_delay.h"
 #include "main.h"
-#include "pins.h"
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"

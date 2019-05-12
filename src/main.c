@@ -2,6 +2,7 @@
 #include "ble_uart.h"
 #include "nrf_delay.h"
 #include "main.h"
+#include "button.h"
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"
@@ -13,6 +14,8 @@ UG_GUI gui;
 
 nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
 uint8_t uart_byte_rx;
+
+Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 /* Function prototype */
 static void system_power(bool state);
@@ -80,6 +83,12 @@ static void gpio_init(void)
   nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
   nrf_gpio_cfg_output(LCD_RES__PIN);
   nrf_gpio_pin_clear(LCD_RES__PIN); // Hold LCD in reset until initialization
+
+  /* Buttons */
+  InitButton(&buttonPWR, BUTTON_PWR__PIN, NRF_GPIO_PIN_NOPULL, BUTTON_ACTIVE_HIGH);
+  InitButton(&buttonM, BUTTON_M__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
+  InitButton(&buttonUP, BUTTON_UP__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
+  InitButton(&buttonDWN, BUTTON_DOWN__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
 }
 
 static void uart_init(void)

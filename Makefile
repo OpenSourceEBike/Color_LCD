@@ -10,13 +10,14 @@ $(OUTPUT_DIRECTORY)/nrf51822_sw102.out: \
 
 # OpenOCD configuration. Change OPENOCD_PATH to your system setting.
 OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
-OPENOCD := $(OPENOCD_PATH)/openocd.exe -f ../scripts/interface/stlink.cfg -f ../scripts/target/nrf51.cfg
+OPENOCD := '$(OPENOCD_PATH)/openocd.exe' -f ../scripts/interface/stlink.cfg -f ../scripts/target/nrf51.cfg
 
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/src/main.c \
   $(PROJ_DIR)/src/lcd.c \
   $(PROJ_DIR)/src/ugui.c \
+  $(PROJ_DIR)/src/button.c \
   $(PROJ_DIR)/src/ble_uart.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \

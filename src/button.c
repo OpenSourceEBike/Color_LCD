@@ -73,13 +73,13 @@ bool ButtonClicked(Button* button)
 }
 
 /**
- * @brief Check if Button is long clicked & return true (once if LONGCLICKED_SIGNAL_ONCE > 0)
+ * @brief Check if Button is long clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
  */
 bool ButtonLongClicked(Button* button)
 {
   if ((button->State & BTTN_LONGCLICK) && !(button->State & BTTN_LC_PROCESSED))
   {
-#if (LONGCLICKED_SIGNAL_ONCE > 0)
+#if (CLICKED_SIGNAL_ONCE > 0)
     button->State |= BTTN_LC_PROCESSED;
 #endif
     return true;
@@ -89,13 +89,13 @@ bool ButtonLongClicked(Button* button)
 }
 
 /**
- * @brief Check if Button is double clicked & return true (once if DOUBLECLICKED_SIGNAL_ONCE > 0)
+ * @brief Check if Button is double clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
  */
 bool ButtonDoubleClicked(Button* button)
 {
   if ((button->State & BTTN_DBLCLICK) && !(button->State & BTTN_DC_PROCESSED))
   {
-#if (DOUBLECLICKED_SIGNAL_ONCE > 0)
+#if (CLICKED_SIGNAL_ONCE > 0)
     button->State |= BTTN_DC_PROCESSED;
 #endif
     return true;

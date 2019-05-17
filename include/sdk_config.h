@@ -1778,7 +1778,7 @@
  
 
 #ifndef RTC_DEFAULT_CONFIG_RELIABLE
-#define RTC_DEFAULT_CONFIG_RELIABLE 0
+#define RTC_DEFAULT_CONFIG_RELIABLE 1
 #endif
 
 // <o> RTC_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority
@@ -1798,7 +1798,7 @@
  
 
 #ifndef RTC0_ENABLED
-#define RTC0_ENABLED 0
+#define RTC0_ENABLED 1
 #endif
 
 // <q> RTC1_ENABLED  - Enable RTC1 instance
@@ -1812,7 +1812,7 @@
 
 
 #ifndef RTC2_ENABLED
-#define RTC2_ENABLED 0
+#define RTC2_ENABLED 1
 #endif
 
 // <o> NRF_MAXIMUM_LATENCY_US - Maximum possible time[us] in highest priority interrupt
@@ -2732,7 +2732,7 @@
 // <268435456=> 57600 baud
 
 #ifndef UART_DEFAULT_CONFIG_BAUDRATE
-#define UART_DEFAULT_CONFIG_BAUDRATE 30924800
+#define UART_DEFAULT_CONFIG_BAUDRATE 2576384
 #endif
 
 // <o> UART_DEFAULT_CONFIG_IRQ_PRIORITY  - Interrupt priority

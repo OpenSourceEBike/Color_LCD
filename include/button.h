@@ -5,15 +5,9 @@
 #include "nrf_gpio.h"
 #include "stdbool.h"
 
-/* Default defines if ButtonClicked / ButtonLongclicked returns true once (1) or every time it is called (0) */
+/* Default defines if ButtonClicked / LongClicked / DoubleClicked returns true once (1) or every time it is called (0) */
 #ifndef CLICKED_SIGNAL_ONCE
 #define CLICKED_SIGNAL_ONCE       (1)
-#endif
-#ifndef LONGCLICKED_SIGNAL_ONCE
-#define LONGCLICKED_SIGNAL_ONCE   (1)
-#endif
-#ifndef DOUBLECLICKED_SIGNAL_ONCE
-#define DOUBLECLICKED_SIGNAL_ONCE (1)
 #endif
 
 typedef enum

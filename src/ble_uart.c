@@ -147,17 +147,6 @@ static void conn_params_init(void)
 }
 
 
-/**@brief Function for putting the chip into sleep mode.
- *
- * @note This function will not return.
- */
-static void sleep_mode_enter(void)
-{
-    // Go to system-off mode (this function will not return; wakeup will cause a reset).
-    sd_power_system_off();
-}
-
-
 /**@brief Function for handling advertising events.
  *
  * @details This function will be called for advertising events which are passed to the application.
@@ -171,7 +160,6 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
         case BLE_ADV_EVT_FAST:
             break;
         case BLE_ADV_EVT_IDLE:
-            sleep_mode_enter();
             break;
         default:
             break;

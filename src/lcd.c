@@ -14,9 +14,10 @@
  */
 
 #include "lcd.h"
-#include "nrf_gpio.h"
+#include "common.h"
 #include "nrf_delay.h"
 #include "nrf_drv_spi.h"
+#include "ugui.h"
 
 
 /* Function prototype */

@@ -54,6 +54,7 @@
 //
 /* -------------------------------------------------------------------------------- */
 #include "ugui.h"
+#include "common.h"
 
 /* SW102 Extensions */
 static void (*p_refresh)( void ) = (void *)0;

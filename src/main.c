@@ -1,44 +1,42 @@
-
+/*
+ * Bafang LCD SW102 Bluetooth firmware
+ *
+ * Copyright (C) lowPerformer, 2019.
+ *
+ * Released under the GPL License, Version 3
+ */
 #include "ble_uart.h"
-#include "nrf_delay.h"
 #include "app_timer.h"
 #include "main.h"
 #include "button.h"
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"
+#include "uart.h"
 
-#include "nrf_drv_uart.h"
+#include "utils.h"
 
 /* Variable definition */
 UG_GUI gui;
-
-nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
-uint8_t uart_buffer_rx[26];
-volatile bool uart_rx_new_package;
 
 /* Buttons */
 Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 /* App Timer */
-#define OP_QUEUES_SIZE      4
-#define APP_TIMER_PRESCALER 0
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
 #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
 volatile uint32_t seconds_since_startup, seconds_since_reset;
-const uint8_t test_ping[] = {'P', 'i', 'n', 'g', '\n' };
 
 /* Function prototype */
 static void system_power(bool state);
 static void gpio_init(void);
-static void uart_init(void);
 static void init_app_timers(void);
-static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
 static void button_poll_timer_timeout(void * p_context);
 static void seconds_timer_timeout(void * p_context);
 
+bool decode_rx_stream(uint8_t* p_rx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables);
 
 
 /**
@@ -83,7 +81,100 @@ int main(void)
 
     if (ButtonReleased(&buttonDWN))
       UG_ConsolePutString("Release\n");
+
+    /* New RX packet to decode? */
+    uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
+    if (p_rx_buffer != NULL)
+    {
+      struct_motor_controller_data motor_controller_data;
+      struct_configuration_variables configuration_variables;
+      decode_rx_stream(p_rx_buffer, &motor_controller_data, &configuration_variables);
+    }
   }
+}
+
+/**
+ * @brief Try to deserialize RX stream. Returns false on error.
+ */
+bool decode_rx_stream(uint8_t* p_rx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables)
+{
+  static uint32_t ui32_wss_tick_temp;
+
+  /* Check CRC */
+  uint16_t stream_crc = ((uint16_t) p_rx_buffer[25] << 8) | p_rx_buffer[24];
+  uint16_t crc = 0xffff;
+  for (uint8_t i = 0; i < 24; i++)
+    crc16(p_rx_buffer[i], &crc);
+
+  if (stream_crc != crc)
+    return false;
+
+  /* Decode */
+#define VARIABLE_ID_MAX_NUMBER 10
+  if ((p_rx_buffer[1]) == p_motor_controller_data->master_comm_package_id) // last package data ID was receipt, so send the next one
+  {
+    p_motor_controller_data->master_comm_package_id = (p_motor_controller_data->master_comm_package_id + 1) % VARIABLE_ID_MAX_NUMBER;
+  }
+  p_motor_controller_data->slave_comm_package_id = p_rx_buffer[2];
+  p_motor_controller_data->adc_battery_voltage = p_rx_buffer[3];
+  p_motor_controller_data->adc_battery_voltage |= ((uint16_t) (p_rx_buffer[4] & 0x30)) << 4;
+  p_motor_controller_data->battery_current_x5 = p_rx_buffer[5];
+  p_motor_controller_data->wheel_speed_x10 = (((uint16_t) p_rx_buffer[7]) << 8) + ((uint16_t) p_rx_buffer[6]);
+  p_motor_controller_data->motor_controller_state_2 = p_rx_buffer[8];
+  p_motor_controller_data->braking = p_motor_controller_data->motor_controller_state_2 & 1;
+
+  if (p_configuration_variables->temperature_limit_feature_enabled == 1)
+  {
+    p_motor_controller_data->adc_throttle = p_rx_buffer[9];
+    p_motor_controller_data->motor_temperature = p_rx_buffer[10];
+  }
+  else
+  {
+    p_motor_controller_data->adc_throttle = p_rx_buffer[9];
+    p_motor_controller_data->throttle = p_rx_buffer[10];
+  }
+
+  p_motor_controller_data->adc_pedal_torque_sensor = p_rx_buffer[11];
+  p_motor_controller_data->pedal_torque_sensor = p_rx_buffer[12];
+  p_motor_controller_data->pedal_cadence = p_rx_buffer[13];
+  p_motor_controller_data->pedal_human_power = p_rx_buffer[14];
+  p_motor_controller_data->duty_cycle = p_rx_buffer[15];
+  p_motor_controller_data->motor_speed_erps = (((uint16_t) p_rx_buffer[17]) << 8) + ((uint16_t) p_rx_buffer[16]);
+  p_motor_controller_data->foc_angle = p_rx_buffer[18];
+
+  switch (p_motor_controller_data->slave_comm_package_id)
+  {
+  case 0:
+    // error states
+    p_motor_controller_data->error_states = p_rx_buffer[19];
+    break;
+
+  case 1:
+    // temperature actual limiting value
+    p_motor_controller_data->temperature_current_limiting_value = p_rx_buffer[19];
+    break;
+
+  case 2:
+    // wheel_speed_sensor_tick_counter
+    ui32_wss_tick_temp = ((uint32_t) p_rx_buffer[19]);
+    break;
+
+  case 3:
+    // wheel_speed_sensor_tick_counter
+    ui32_wss_tick_temp |= (((uint32_t) p_rx_buffer[19]) << 8);
+    break;
+
+  case 4:
+    // wheel_speed_sensor_tick_counter
+    ui32_wss_tick_temp |= (((uint32_t) p_rx_buffer[19]) << 16);
+    p_motor_controller_data->wheel_speed_sensor_tick_counter = ui32_wss_tick_temp;
+    break;
+  }
+
+  p_motor_controller_data->pedal_torque_x10 = (((uint16_t) p_rx_buffer[21]) << 8) + ((uint16_t) p_rx_buffer[20]);
+  p_motor_controller_data->pedal_power_x10 = (((uint16_t) p_rx_buffer[23]) << 8) + ((uint16_t) p_rx_buffer[22]);
+
+  return true;
 }
 
 /**
@@ -119,21 +210,10 @@ static void gpio_init(void)
   InitButton(&buttonDWN, BUTTON_DOWN__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
 }
 
-static void uart_init(void)
-{
-  nrf_drv_uart_config_t uart_config = NRF_DRV_UART_DEFAULT_CONFIG;
-  uart_config.pselrxd = UART_RX__PIN;
-  uart_config.pseltxd = UART_TX__PIN;
-  nrf_drv_uart_init(&uart0, &uart_config, uart_event_handler);
-  /* Enable & start RX */
-  nrf_drv_uart_rx_enable(&uart0);
-  nrf_drv_uart_rx(&uart0, &uart_buffer_rx[0], 1);
-}
-
 static void init_app_timers(void)
 {
   // Start APP_TIMER to generate timeouts.
-  APP_TIMER_INIT(APP_TIMER_PRESCALER, OP_QUEUES_SIZE, NULL);
+  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
 
   // Create&Start button_poll_timer
   app_timer_create(&button_poll_timer_id, APP_TIMER_MODE_REPEATED, button_poll_timer_timeout);
@@ -147,37 +227,6 @@ static void init_app_timers(void)
 
 
 /* Event handler */
-
-static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
-{
-  static uint8_t uart_rx_state_machine;
-
-  if (p_event->type == NRF_DRV_UART_EVT_RX_DONE)
-  {
-    switch (uart_rx_state_machine)
-    {
-    case 0:
-      if (uart_buffer_rx[0] == 0x43) // see if we get start package byte
-      {
-        nrf_drv_uart_rx(&uart0, &uart_buffer_rx[1], 25);  // Start RX of the remaining stream
-        uart_rx_state_machine = 1;
-      }
-      else
-        nrf_drv_uart_rx(&uart0, &uart_buffer_rx[0], 1);  // Next byte-wise RX to check for start byte
-      break;
-
-    case 1:
-      /* Start byte-wise RX again after the package has been processed */
-      uart_rx_state_machine = 0;
-      uart_rx_new_package = true; // signal that we have a full package to be processed
-      break;
-
-    default:
-      uart_rx_state_machine = 0;
-      break;
-    }
-  }
-}
 
 static void button_poll_timer_timeout(void *p_context)
 {
@@ -195,8 +244,6 @@ static void seconds_timer_timeout(void *p_context)
 
     seconds_since_startup++;
     seconds_since_reset++;
-
-    nrf_drv_uart_tx(&uart0, test_ping, 5);
 }
 
 /**@brief       Callback function for errors, asserts, and faults.

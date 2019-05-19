@@ -2,8 +2,9 @@
 #ifndef BUTTON_H_
 #define BUTTON_H_
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "nrf_gpio.h"
-#include "stdbool.h"
 
 /* Default defines if ButtonClicked / LongClicked / DoubleClicked returns true once (1) or every time it is called (0) */
 #ifndef CLICKED_SIGNAL_ONCE

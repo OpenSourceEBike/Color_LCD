@@ -37,7 +37,7 @@ void uart_init(void)
 /**
  * @brief Returns pointer to RX buffer ready for parsing or NULL
  */
-uint8_t* uart_get_rx_buffer_rdy(void)
+const uint8_t* uart_get_rx_buffer_rdy(void)
 {
   if (uart_rx_new_package)
   {
@@ -46,6 +46,24 @@ uint8_t* uart_get_rx_buffer_rdy(void)
   }
 
   return NULL;
+}
+
+/**
+ * @brief Returns pointer to TX buffer
+ */
+uint8_t* uart_get_tx_buffer(void)
+{
+  return uart_buffer0_tx;
+}
+
+/**
+ * @brief Send TX buffer over UART. Returns false on error
+ */
+bool uart_send_tx_buffer(void)
+{
+  ret_code_t err_code = nrf_drv_uart_tx(&uart0, uart_buffer0_tx, 11);
+
+  return (err_code == NRF_SUCCESS) ? true : false;
 }
 
 

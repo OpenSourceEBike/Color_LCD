@@ -188,3 +188,48 @@ void usart1_reset_received_package(void)
   ui8_received_package_flag = 0;
 }
 
+void usart1_simulation_clock(void)
+{
+  uint8_t ui8_rx[26];
+  static uint8_t ui8_counter_clock = 0;
+  static uint8_t ui8_virtual_adc_motor_current = 0;
+
+  // set to 0 all values
+  memset(ui8_rx, 0, 26);
+
+  // start package
+  ui8_rx[0] = 67;
+
+  // battery voltage 48V
+  ui8_rx[3] = 43;
+  ui8_rx[4] = 32;
+
+  // keep incrementing current: 0.125 amps every 1 second
+  ui8_counter_clock++;
+  if(ui8_counter_clock >= 16)
+  {
+    ui8_counter_clock = 0;
+
+    ui8_virtual_adc_motor_current++;
+
+    // limit to 20 amps
+    if(ui8_virtual_adc_motor_current >= (20 * 5))
+    {
+      ui8_virtual_adc_motor_current = 0;
+    }
+  }
+
+  // battery current x5
+  ui8_rx[5] = ui8_virtual_adc_motor_current;
+
+  // store the received data to rx_buffer
+  memcpy(ui8_rx_buffer, ui8_rx, 24);
+  // signal a new package
+q  ui8_received_package_flag = 1;
+}
+
+
+
+
+
+

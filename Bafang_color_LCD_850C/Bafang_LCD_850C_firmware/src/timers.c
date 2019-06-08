@@ -112,7 +112,11 @@ void timer4_init(void)
   /* Time base configuration */
   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
   TIM_TimeBaseStructure.TIM_Period = (10000 - 1);
-  TIM_TimeBaseStructure.TIM_Prescaler = (1280 - 1); // 128MHz clock (PCLK1), 128MHz/12800000 = 10Hz --> 1ms each increment of the counter/timer
+#ifndef SIMULATION
+  TIM_TimeBaseStructure.TIM_Prescaler = (1280 - 1); // 128MHz clock (PCLK1), 128MHz/12800000 = 10Hz --> 100ms each increment of the counter/timer
+#else
+  TIM_TimeBaseStructure.TIM_Prescaler = (128 - 1); // 128MHz clock (PCLK1), 128MHz/1280000 = 100Hz --> 10ms each increment of the counter/timer
+#endif
   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit (TIM4, &TIM_TimeBaseStructure);

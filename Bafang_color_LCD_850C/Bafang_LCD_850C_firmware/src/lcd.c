@@ -129,8 +129,8 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-//  if (first_time_management())
-//    return;
+  if (first_time_management())
+    return;
 
   update_menu_flashing_state();
 

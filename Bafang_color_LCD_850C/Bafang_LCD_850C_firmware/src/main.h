@@ -9,6 +9,8 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+//#define SIMULATION
+
 // INTERRUPTS PRIORITIES
 // Define for the NVIC IRQChannel Preemption Priority
 // lower number has higher priority
@@ -44,25 +46,25 @@
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_0             134 // 48v battery, LVC = 39.0 (3.0 * 13): (134 + (1 << 8))
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_1             1
 #define DEFAULT_VALUE_CONFIG_0                                      0 // ui8_motor_type = 0; ui8_motor_assistance_startup_config = 0
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         5 // 0.5
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         10
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         15
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         20
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         25
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         35
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         40
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         45
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         50
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         4
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         6
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         9
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         14
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         21
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         32
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         48
 #define DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED                   1
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    5
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    7
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_3                    9
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_4                    11
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_5                    13
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_6                    15
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7                    17
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    19
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    21
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    6
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_3                    8
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_4                    10
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_5                    12
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_6                    14
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7                    16
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    18
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    20
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED     0
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE               1
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      4
@@ -81,8 +83,8 @@
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_0        30 // 48v battery, 54.2 volts fully charged = 54.2: (30 + (2 << 8))
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_1        2
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
-#define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   16 // 16 = 80%
-#define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  1 // 1 = 5%
+#define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   20 // 16 = 80%
+#define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  20 // 1 = 5%
 #define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE_0                     130 // 48v battery, 13S5P measured 130 milli ohms
 #define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE_1                     0
 #define DEFAULT_VALUE_OFFROAD_FEATURE_ENABLED                       0

@@ -12,6 +12,7 @@
 #include "system_stm32f10x.h"
 #include "stdio.h"
 
+#include "main.h"
 #include "pins.h"
 #include "lcd.h"
 #include "buttons.h"
@@ -31,7 +32,10 @@ void SetSysClockTo128Mhz(void);
 int main(void)
 {
   volatile uint32_t ui32_timer_base_counter_1ms;
-  volatile uint32_t ui32_10ms_loop_counter;
+  volatile uint32_t ui32_ms_loop_counter_1;
+#ifdef SIMULATION
+  volatile uint32_t ui32_ms_loop_counter_2;
+#endif
   static buttons_events_t events = 0;
   static buttons_events_t last_events = 0;
 
@@ -41,7 +45,9 @@ int main(void)
   pins_init();
   system_power(1);
   systick_init();
+#ifndef SIMULATION
   usart1_init();
+#endif
   eeprom_init();
   rtc_init();
   timer3_init(); // drives LCD backlight
@@ -59,15 +65,25 @@ int main(void)
     // because of continue; at the end of each if code block that will stop the while (1) loop there,
     // the first if block code will have the higher priority over any others
     ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
-    if((ui32_timer_base_counter_1ms - ui32_10ms_loop_counter) > 20) // every 20ms
+    if((ui32_timer_base_counter_1ms - ui32_ms_loop_counter_1) > 20) // every 20ms
     {
-      ui32_10ms_loop_counter = ui32_timer_base_counter_1ms;
+      ui32_ms_loop_counter_1 = ui32_timer_base_counter_1ms;
 
       // next 2 lines takes about 11ms to execute (main menu). Measured on 2019.03.04.
       buttons_clock();
       lcd_clock();
       continue;
     }
+
+#ifdef SIMULATION
+    ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
+    if((ui32_timer_base_counter_1ms - ui32_ms_loop_counter_2) > 10) // every 100ms
+    {
+      ui32_ms_loop_counter_2 = ui32_timer_base_counter_1ms;
+
+      usart1_simulation_clock();
+    }
+#endif
   }
 }
 

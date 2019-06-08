@@ -310,7 +310,7 @@ void graphs_draw(void)
   uint32_t number_lines_to_draw;
   uint32_t y_amplitude;
   uint32_t graph_next_start_x;
-  uint32_t x_index;
+  static uint32_t x_index;
   uint32_t temp;
 
   static print_number_t graph_max_value =
@@ -343,6 +343,9 @@ void graphs_draw(void)
     .ui8_left_zero_paddig = 0,
   };
 
+  // store the new value on the data array
+  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
+
   // see if we should increase both index
   if(m_graphs_data_array_over_255)
   {
@@ -353,9 +356,6 @@ void graphs_draw(void)
   {
     graphs[0].ui32_data_last_index = (graphs[0].ui32_data_last_index + 1) % 256;
   }
-
-  // store the new value on the data array
-  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
 
   // calc new min and max values
   graphs_measurements_calc_min_max_y();
@@ -388,7 +388,7 @@ void graphs_draw(void)
   }
   else if(m_new_max_min)
   {
-    number_lines_to_draw = (graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index) + 1;
+    number_lines_to_draw = graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index;
     x_index = 0;
 
     // clean all lines on the LCD
@@ -402,7 +402,6 @@ void graphs_draw(void)
   else
   {
     number_lines_to_draw = 1;
-
     x_index = graphs[0].ui32_draw_x_last_index;
   }
 
@@ -427,12 +426,13 @@ void graphs_draw(void)
                 graph_next_start_x,           // X2
                 GRAPH_START_Y - y_amplitude,  // Y2
                 C_WHITE);
-  }
 
-  x_index++;
-  if(x_index >= 256)
-  {
-    x_index = 0;
+    x_index++;
+
+    if(x_index >= 256)
+    {
+      x_index = 0;
+    }
   }
 
   // save last x index for next time
@@ -488,7 +488,7 @@ void graphs_measurements_calc_min_max_y(void)
       m_new_max_min = 1;
     }
 
-    // equal to maxUG_FillFrame(GRAPH_START_X, GRAPH_START_Y - 100, 315, GRAPH_START_Y, C_BLACK);
+    // equal to max
     if(graphs[0].ui32_data_y_last_value == graphs[0].ui32_graph_data_y_max)
     {
       graphs[0].ui32_graph_data_y_max_counter++;
@@ -667,8 +667,7 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
 
 void graphs_init(void)
 {
-//  memcpy(graphs[0].ui32_data, ui32_array_data, (255 * 4) * 4);
-
+  graphs[0].ui32_draw_x_last_index = 0;
   graphs[0].ui32_data_y_last_value = 0;
   graphs[0].ui32_data_last_index = 0;
   graphs[0].ui32_data_start_index = 0;

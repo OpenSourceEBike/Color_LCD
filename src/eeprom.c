@@ -169,7 +169,7 @@ void eeprom_init(void)
   if (ee_key != KEY)
   {
     /* Write default config to eeprom */
-    eeprom_write_configuration((struct_configuration_variables *) &default_configuration_variables);
+    eeprom_write_configuration(&default_configuration_variables);
     uint32_t cnt = 0;
     while (last_fs_ret == 0xFF && cnt++ < 10)
       nrf_delay_us(100);
@@ -265,7 +265,7 @@ void eeprom_read_configuration(struct_configuration_variables *p_configuration_v
 /**
  * @brief Write struct_configuration_variables to eeprom
  */
-void eeprom_write_configuration(struct_configuration_variables *p_configuration_variables)
+void eeprom_write_configuration(const struct_configuration_variables *p_configuration_variables)
 {
   static uint32_t ee_data[(EEPROM_WORDS_STORED - 1)];
 

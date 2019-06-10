@@ -1,5 +1,10 @@
-
+/*
+ * Bafang LCD SW102 Bluetooth firmware
+ *
+ * Released under the GPL License, Version 3
+ */
 #include "common.h"
+#include "fstorage.h"
 #include "ble_uart.h"
 #include "ble_hci.h"
 #include "ble_advdata.h"
@@ -261,6 +266,26 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 }
 
 
+/**@brief Function for dispatching a system event to interested modules.
+ *
+ * @details This function is called from the System event interrupt handler after a system
+ *          event has been received.
+ *
+ * @param[in] sys_evt  System stack event.
+ */
+static void sys_evt_dispatch(uint32_t sys_evt)
+{
+    // Dispatch the system event to the fstorage module, where it will be
+    // dispatched to the Flash Data Storage (FDS) module.
+    fs_sys_event_handler(sys_evt);
+
+    // Dispatch to the Advertising module last, since it will check if there are any
+    // pending flash operations in fstorage. Let fstorage process system events first,
+    // so that it can report correctly to the Advertising module.
+    ble_advertising_on_sys_evt(sys_evt);
+}
+
+
 /**@brief Function for the SoftDevice initialization.
  *
  * @details This function initializes the SoftDevice and the BLE event interrupt.
@@ -288,6 +313,10 @@ static void ble_stack_init(void)
 
     // Subscribe for BLE events.
     softdevice_ble_evt_handler_set(ble_evt_dispatch);
+
+    // Register with the SoftDevice handler module for system events.
+    // Important for FDS and fstorage or event handler doesn't fire!
+    softdevice_sys_evt_handler_set(sys_evt_dispatch);
 }
 
 /**@brief Function for initializing the Advertising functionality.

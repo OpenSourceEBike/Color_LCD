@@ -21,6 +21,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/ble_uart.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
+  $(PROJ_DIR)/src/eeprom.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \

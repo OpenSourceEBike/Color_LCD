@@ -3,11 +3,26 @@
 
 #include "common.h"
 
+/* Typedef of unions for handy access of single bytes */
+/* Access bytewise: U16 var; var.byte[x] = z; */
+/* Access value: U32 var; var.u32 = 0xFFFFFFFF; */
+typedef union
+{
+  uint16_t u16;
+  uint8_t byte[2];
+} U16;
+
+typedef union
+{
+  uint32_t u32;
+  uint8_t byte[4];
+} U32;
+
 typedef struct
 {
   uint8_t master_comm_package_id;
   uint8_t slave_comm_package_id;
-  uint16_t adc_battery_voltage;
+  U16 adc_battery_voltage;
   uint8_t battery_current_x5;
   uint8_t motor_controller_state_1;
   uint8_t motor_controller_state_2;
@@ -18,20 +33,20 @@ typedef struct
   uint8_t pedal_human_power;
   uint8_t duty_cycle;
   uint8_t error_states;
-  uint16_t wheel_speed_x10;
+  U16 wheel_speed_x10;
   uint8_t braking;
   uint8_t pedal_cadence;
   uint8_t lights;
   uint8_t walk_assist_level;
   uint8_t offroad_mode;
-  uint16_t motor_speed_erps;
+  U16 motor_speed_erps;
   uint8_t foc_angle;
   uint8_t temperature_current_limiting_value;
   uint8_t motor_temperature;
-  uint32_t wheel_speed_sensor_tick_counter;
-  uint32_t wheel_speed_sensor_tick_counter_offset;
-  uint16_t pedal_torque_x10;
-  uint16_t pedal_power_x10;
+  U32 wheel_speed_sensor_tick_counter;
+  U32 wheel_speed_sensor_tick_counter_offset;
+  U16 pedal_torque_x10;
+  U16 pedal_power_x10;
 } struct_motor_controller_data;
 
 typedef struct
@@ -78,8 +93,6 @@ typedef struct
   uint8_t motor_temperature_max_value_to_limit;
   uint8_t temperature_field_state;
   uint8_t lcd_power_off_time_minutes;
-  uint8_t lcd_backlight_on_brightness;
-  uint8_t lcd_backlight_off_brightness;
   uint8_t offroad_feature_enabled;
   uint8_t offroad_enabled_on_startup;
   uint8_t offroad_speed_limit;
@@ -107,5 +120,8 @@ typedef struct
   uint8_t show_battery_SOC_odometer_field;
   uint8_t main_screen_power_menu_enabled;
 } struct_configuration_variables;
+
+struct_configuration_variables* get_configuration_variables(void);
+struct_motor_controller_data* get_motor_controller_data(void);
 
 #endif /* INCLUDE_MAIN_H_ */

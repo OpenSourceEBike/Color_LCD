@@ -59,9 +59,9 @@ uint8_t* uart_get_tx_buffer(void)
 /**
  * @brief Send TX buffer over UART. Returns false on error
  */
-bool uart_send_tx_buffer(void)
+bool uart_send_tx_buffer(uint8_t* tx_buffer)
 {
-  ret_code_t err_code = nrf_drv_uart_tx(&uart0, uart_buffer0_tx, 11);
+  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer, 11);
 
   return (err_code == NRF_SUCCESS) ? true : false;
 }

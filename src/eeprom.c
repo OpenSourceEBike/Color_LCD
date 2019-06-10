@@ -168,17 +168,15 @@ void eeprom_init(void)
   /* Init eeprom to default if KEY is not valid */
   if (ee_key != KEY)
   {
-    /* Write new KEY */
-    ee_key = KEY;
-    last_fs_ret = 0xFF;
-    flash_write_words(ADDRESS_KEY, &ee_key, 1);
+    /* Write default config to eeprom */
+    eeprom_write_configuration((struct_configuration_variables *) &default_configuration_variables);
     uint32_t cnt = 0;
     while (last_fs_ret == 0xFF && cnt++ < 10)
       nrf_delay_us(100);
 
-    /* Write default config to eeprom */
-    last_fs_ret = 0xFF;
-    eeprom_write_configuration((struct_configuration_variables *)&default_configuration_variables);
+    /* Write new KEY */
+    ee_key = KEY;
+    flash_write_words(ADDRESS_KEY, &ee_key, 1);
     cnt = 0;
     while (last_fs_ret == 0xFF && cnt++ < 10)
       nrf_delay_us(100);

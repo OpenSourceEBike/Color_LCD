@@ -129,7 +129,7 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-  if (first_time_management())
+  if(first_time_management())
     return;
 
   update_menu_flashing_state();
@@ -226,7 +226,6 @@ void layer_2(void)
   static uint8_t ui8_master_comm_package_id = 0;
   static uint8_t ui8_slave_comm_package_id = 0;
   static uint8_t ui8_state_machine = 0;
-  static uint8_t ui8_received_package_flag = 0;
 
   /************************************************************************************************/
   // process rx package
@@ -710,6 +709,25 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
   {
     l2_vars.ui16_pedal_power_filtered = 0; // no point to show less than 10W
   }
+
+#ifdef SIMULATION
+  static uint16_t ui16_virtual_pedal_power = 0;
+  static uint8_t ui8_counter = 0;
+
+  ui8_counter++;
+  if(ui8_counter >= 2)
+  {
+    ui8_counter = 0;
+
+    l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
+
+    ui16_virtual_pedal_power++;
+    if(ui16_virtual_pedal_power > 256)
+    {
+      ui16_virtual_pedal_power = 0;
+    }
+  }
+#endif
 }
 
 static void l2_low_pass_filter_pedal_cadence(void)
@@ -1906,6 +1924,7 @@ void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
 
+#ifndef SIMULATION
   // sum the value
   m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
 
@@ -1930,6 +1949,19 @@ void graphs_measurements_update(void)
     // signal to draw graphs on main loop
     ui32_m_draw_graphs = 1;
   }
+#else
+  // every 0.5 second
+  counter++;
+  if(counter >= 2)
+  {
+    m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_pedal_power_filtered;
+
+    // signal to draw graphs on main loop
+    ui32_m_draw_graphs = 1;
+
+    counter = 0;
+  }
+#endif
 }
 
 void walk_assist_state(void)

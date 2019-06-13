@@ -310,7 +310,8 @@ void graphs_draw(void)
   uint32_t number_lines_to_draw;
   uint32_t y_amplitude;
   uint32_t graph_next_start_x;
-  static uint32_t x_index;
+  static uint32_t graph_x_index;
+  static uint32_t data_x_index;
   uint32_t temp;
 
   static print_number_t graph_max_value =
@@ -343,8 +344,10 @@ void graphs_draw(void)
     .ui8_left_zero_paddig = 0,
   };
 
+  data_x_index = graphs[0].ui32_data_last_index;
+
   // store the new value on the data array
-  graphs[0].ui32_data[graphs[0].ui32_data_last_index] = graphs[0].ui32_data_y_last_value;
+  graphs[0].ui32_data[data_x_index] = graphs[0].ui32_data_y_last_value;
 
   // see if we should increase both index
   if(m_graphs_data_array_over_255)
@@ -377,7 +380,8 @@ void graphs_draw(void)
   if(m_graphs_data_array_over_255)
   {
     number_lines_to_draw = 256;
-    x_index = 254;
+    data_x_index = graphs[0].ui32_data_start_index;
+    graph_x_index = 0;
 
     // clean all lines on the LCD
     UG_FillFrame(GRAPH_START_X,
@@ -389,7 +393,8 @@ void graphs_draw(void)
   else if(m_new_max_min)
   {
     number_lines_to_draw = graphs[0].ui32_data_last_index - graphs[0].ui32_data_start_index;
-    x_index = 0;
+    data_x_index = 0;
+    graph_x_index = 0;
 
     // clean all lines on the LCD
     UG_FillFrame(GRAPH_START_X,
@@ -402,13 +407,13 @@ void graphs_draw(void)
   else
   {
     number_lines_to_draw = 1;
-    x_index = graphs[0].ui32_draw_x_last_index;
+    graph_x_index = graphs[0].ui32_draw_x_last_index;
   }
 
   // draw the lines
   for(i = 0; i < number_lines_to_draw; i++)
   {
-    y_amplitude = graphs[0].ui32_data[x_index] - graphs[0].ui32_graph_data_y_min;
+    y_amplitude = graphs[0].ui32_data[data_x_index] - graphs[0].ui32_graph_data_y_min;
     y_amplitude *= graphs[0].ui32_data_y_rate_per_pixel_x100;
     if(y_amplitude)
     {
@@ -419,7 +424,7 @@ void graphs_draw(void)
       y_amplitude = 0;
     }
 
-    graph_next_start_x = GRAPH_START_X + x_index;
+    graph_next_start_x = GRAPH_START_X + graph_x_index;
 
     UG_DrawLine(graph_next_start_x,           // X1
                 GRAPH_START_Y,                // Y1
@@ -427,16 +432,21 @@ void graphs_draw(void)
                 GRAPH_START_Y - y_amplitude,  // Y2
                 C_WHITE);
 
-    x_index++;
-
-    if(x_index >= 256)
+    data_x_index++;
+    if(data_x_index >= 256)
     {
-      x_index = 0;
+      data_x_index = 0;
+    }
+
+    graph_x_index++;
+    if(graph_x_index >= 256)
+    {
+      graph_x_index = 0;
     }
   }
 
   // save last x index for next time
-  graphs[0].ui32_draw_x_last_index = x_index;
+  graphs[0].ui32_draw_x_last_index = graph_x_index;
 
   // find if we are yet drawing the first 255 points
   if(m_graphs_data_array_over_255 == 0 &&
@@ -619,6 +629,10 @@ static void graphs_measurements_search_min_y(uint32_t graph_nr)
     }
 
     index++;
+    if(index >= 256)
+    {
+      index = 0;
+    }
   }
 }
 
@@ -662,6 +676,10 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
     }
 
     index++;
+    if(index >= 256)
+    {
+      index = 0;
+    }
   }
 }
 
@@ -673,8 +691,8 @@ void graphs_init(void)
   graphs[0].ui32_data_start_index = 0;
   graphs[0].ui32_graph_data_y_max = 0;
   graphs[0].ui32_graph_data_y_max_counter = 0;
-  graphs[0].ui32_graph_data_y_min = 0xffffffff;
-  graphs[0].ui32_graph_data_y_min_counter = 0;
+  graphs[0].ui32_graph_data_y_min = 0;
+  graphs[0].ui32_graph_data_y_min_counter = 1;
 }
 
 graphs_t *get_graphs(void)

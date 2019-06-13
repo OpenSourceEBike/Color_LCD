@@ -33,9 +33,6 @@ int main(void)
 {
   volatile uint32_t ui32_timer_base_counter_1ms;
   volatile uint32_t ui32_ms_loop_counter_1;
-#ifdef SIMULATION
-  volatile uint32_t ui32_ms_loop_counter_2;
-#endif
   static buttons_events_t events = 0;
   static buttons_events_t last_events = 0;
 
@@ -74,16 +71,6 @@ int main(void)
       lcd_clock();
       continue;
     }
-
-#ifdef SIMULATION
-    ui32_timer_base_counter_1ms = get_time_base_counter_1ms();
-    if((ui32_timer_base_counter_1ms - ui32_ms_loop_counter_2) > 10) // every 100ms
-    {
-      ui32_ms_loop_counter_2 = ui32_timer_base_counter_1ms;
-
-      usart1_simulation_clock();
-    }
-#endif
   }
 }
 

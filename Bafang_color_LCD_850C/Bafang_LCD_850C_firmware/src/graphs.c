@@ -448,9 +448,9 @@ void graphs_draw(void)
   // save last x index for next time
   graphs[0].ui32_draw_x_last_index = graph_x_index;
 
-  // find if we are yet drawing the first 255 points
+  // find if we are now drawing over the first 256 points
   if(m_graphs_data_array_over_255 == 0 &&
-      graphs[0].ui32_data_last_index >= 255)
+      graphs[0].ui32_data_last_index == 0)
   {
     m_graphs_data_array_over_255 = 1;
   }
@@ -547,7 +547,7 @@ void graphs_measurements_calc_min_max_y(void)
     // point to remove
     //
 
-    // our start_index is a previous number
+    // our start_index is a previous number because we incremented once
     start_index = graphs[0].ui32_data_start_index;
     if(start_index == 0)
     {
@@ -573,7 +573,7 @@ void graphs_measurements_calc_min_max_y(void)
     }
 
     // equal to max
-    if(graphs[0].ui32_data[start_index] == graphs[0].ui32_graph_data_y_max)
+    if(graphs[0].ui32_data[start_index] <= graphs[0].ui32_graph_data_y_max)
     {
       if(graphs[0].ui32_graph_data_y_max_counter > 1)
       {
@@ -591,11 +591,10 @@ void graphs_measurements_calc_min_max_y(void)
 static void graphs_measurements_search_min_y(uint32_t graph_nr)
 {
   uint32_t i;
-  uint32_t min = 0xffff;
   uint32_t search_nr_points;
   uint32_t index;
 
-  graphs[graph_nr].ui32_graph_data_y_min = min;
+  graphs[graph_nr].ui32_graph_data_y_min = 0xffff;
 
   // calc number of search points
   // -1 to consider that we will remove 1
@@ -617,13 +616,13 @@ static void graphs_measurements_search_min_y(uint32_t graph_nr)
   for(i = 0; i < search_nr_points; ++i)
   {
     // new min point
-    if(graphs[graph_nr].ui32_data[index] < min)
+    if(graphs[graph_nr].ui32_data[index] < graphs[graph_nr].ui32_graph_data_y_min)
     {
       graphs[graph_nr].ui32_graph_data_y_min = graphs[0].ui32_data[index];
       graphs[graph_nr].ui32_graph_data_y_min_counter = 1;
     }
     // equal to min point
-    else if(graphs[graph_nr].ui32_data[index] == min)
+    else if(graphs[graph_nr].ui32_data[index] == graphs[graph_nr].ui32_graph_data_y_min)
     {
       graphs[graph_nr].ui32_graph_data_y_min_counter++;
     }
@@ -639,11 +638,10 @@ static void graphs_measurements_search_min_y(uint32_t graph_nr)
 static void graphs_measurements_search_max_y(uint32_t graph_nr)
 {
   uint32_t i;
-  uint32_t max = 0;
   uint32_t search_nr_points;
   uint32_t index;
 
-  graphs[graph_nr].ui32_graph_data_y_max = max;
+  graphs[graph_nr].ui32_graph_data_y_max = 0;
 
   // calc number of search points
   if(graphs[graph_nr].ui32_data_last_index > graphs[graph_nr].ui32_data_start_index)
@@ -664,13 +662,13 @@ static void graphs_measurements_search_max_y(uint32_t graph_nr)
   for(i = 0; i < search_nr_points; ++i)
   {
     // new max point
-    if(graphs[graph_nr].ui32_data[index] > max)
+    if(graphs[graph_nr].ui32_data[index] > graphs[graph_nr].ui32_graph_data_y_max)
     {
       graphs[graph_nr].ui32_graph_data_y_max = graphs[0].ui32_data[index];
       graphs[graph_nr].ui32_graph_data_y_max_counter = 1;
     }
     // equal to max point
-    else if(graphs[graph_nr].ui32_data[index] == max)
+    else if(graphs[graph_nr].ui32_data[index] == graphs[graph_nr].ui32_graph_data_y_max)
     {
       graphs[graph_nr].ui32_graph_data_y_max_counter++;
     }

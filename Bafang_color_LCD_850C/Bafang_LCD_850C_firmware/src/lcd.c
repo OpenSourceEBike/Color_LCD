@@ -713,19 +713,47 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 #ifdef SIMULATION
   static uint16_t ui16_virtual_pedal_power = 0;
   static uint8_t ui8_counter = 0;
+  static uint16_t ui16_index = 0;
 
   ui8_counter++;
   if(ui8_counter >= 2)
   {
     ui8_counter = 0;
 
-    l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
-
-    ui16_virtual_pedal_power++;
-    if(ui16_virtual_pedal_power > 256)
+    if(ui16_index == 0)
     {
       ui16_virtual_pedal_power = 0;
     }
+    else if(ui16_index > 0 && ui16_index <= 150)
+    {
+      ui16_virtual_pedal_power++;
+    }
+    else if(ui16_index == 151)
+    {
+      ui16_virtual_pedal_power = 50;
+    }
+    else if(ui16_index > 151 && ui16_index <= 200)
+    {
+      ui16_virtual_pedal_power++;
+    }
+    else if(ui16_index == 201)
+    {
+      ui16_virtual_pedal_power = 20;
+      ui16_index = 201;
+    }
+//    else if(ui16_index > 201 && ui16_index <= 254)
+//    {
+//      ui16_virtual_pedal_power++;
+//    }
+//    else if(ui16_index == 255)
+//    {
+//      ui16_virtual_pedal_power = 0;
+//      ui16_index = 0;
+//    }
+
+    l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
+
+    ui16_index++;
   }
 #endif
 }
@@ -1924,9 +1952,19 @@ void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
 
+  static uint8_t ui8_first_time = 1;
+
 #ifndef SIMULATION
   // sum the value
-  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
+  //m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
+  if(ui8_first_time)
+  {
+    m_p_graphs[0].measurement.ui32_sum_value = 0;
+  }
+  else
+  {
+    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_wheel_speed_x10 / 10;
+  }
 
   // every 3.5 seconds, update the graph array values
   if(++counter >= 35)
@@ -1948,6 +1986,8 @@ void graphs_measurements_update(void)
 
     // signal to draw graphs on main loop
     ui32_m_draw_graphs = 1;
+
+    ui8_first_time = 0;
   }
 #else
   // every 0.5 second

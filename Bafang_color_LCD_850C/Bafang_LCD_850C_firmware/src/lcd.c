@@ -1951,43 +1951,43 @@ lcd_vars_t* get_lcd_vars(void)
 void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
-
   static uint8_t ui8_first_time = 1;
 
 #ifndef SIMULATION
-  // sum the value
-  //m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
-  if(ui8_first_time)
+  if(ui8_first_time &&
+      l2_vars.ui8_motor_temperature != 0)
   {
-    m_p_graphs[0].measurement.ui32_sum_value = 0;
-  }
-  else
-  {
-    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_wheel_speed_x10 / 10;
-  }
-
-  // every 3.5 seconds, update the graph array values
-  if(++counter >= 35)
-  {
-    if(m_p_graphs[0].measurement.ui32_sum_value)
-    {
-      /*store the average value on the 3.5 seconds*/
-      m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-      m_p_graphs[0].measurement.ui32_sum_value = 0;
-    }
-    else
-    {
-      /*store the average value on the 3.5 seconds*/
-      m_p_graphs[0].ui32_data_y_last_value = 0;
-      m_p_graphs[0].measurement.ui32_sum_value = 0;
-    }
-
-    counter = 0;
-
-    // signal to draw graphs on main loop
-    ui32_m_draw_graphs = 1;
-
     ui8_first_time = 0;
+  }
+
+  if(ui8_first_time == 0)
+  {
+    // sum the value
+    //  m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
+
+    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui8_motor_temperature;
+
+    // every 3.5 seconds, update the graph array values
+    if(++counter >= 35)
+    {
+      if(m_p_graphs[0].measurement.ui32_sum_value)
+      {
+        /*store the average value on the 3.5 seconds*/
+        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
+        m_p_graphs[0].measurement.ui32_sum_value = 0;
+      }
+      else
+      {
+        /*store the average value on the 3.5 seconds*/
+        m_p_graphs[0].ui32_data_y_last_value = 0;
+        m_p_graphs[0].measurement.ui32_sum_value = 0;
+      }
+
+      counter = 0;
+
+      // signal to draw graphs on main loop
+      ui32_m_draw_graphs = 1;
+    }
   }
 #else
   // every 0.5 second

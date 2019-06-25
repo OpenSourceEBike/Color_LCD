@@ -9,7 +9,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define SIMULATION
+//#define SIMULATION
 
 // INTERRUPTS PRIORITIES
 // Define for the NVIC IRQChannel Preemption Priority

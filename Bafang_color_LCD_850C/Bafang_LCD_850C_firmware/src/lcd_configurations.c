@@ -46,6 +46,7 @@ typedef struct _var_number
   uint32_t ui32_max_value;
   uint32_t ui32_min_value;
   uint32_t ui32_increment_step;
+  uint8_t ui8_need_update;
 } var_number_t;
 
 volatile static l3_vars_t *p_l3_vars;
@@ -1796,9 +1797,9 @@ void technical_data_title(struct_menu_data *p_menu_data)
 
 void technical_data_adc_throttle(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_adc_throttle,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1806,16 +1807,30 @@ void technical_data_adc_throttle(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("ADC throttle", "(read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_adc_throttle != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_adc_throttle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_throttle(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_throttle,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1823,33 +1838,63 @@ void technical_data_throttle(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Throttle", "(read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_throttle != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_throttle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_adc_torque_sensor(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
+  static uint32_t ui32_var = 0;
+  static var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_adc_pedal_torque_sensor,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
     .ui32_max_value = 255,
     .ui32_min_value = 0,
-    .ui32_increment_step = 0 // 0 so user can't change the value
+    .ui32_increment_step = 0, // 0 so user can't change the value
+    .ui8_need_update = 1
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("ADC torque sensor", "(read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_adc_pedal_torque_sensor != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_adc_pedal_torque_sensor;
+  // draw the value
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_torque_sensor(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_pedal_torque_sensor,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1857,16 +1902,30 @@ void technical_data_torque_sensor(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Torque sensor", "(read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_pedal_torque_sensor != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_pedal_torque_sensor;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_pedal_cadence(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_pedal_cadence,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1874,16 +1933,30 @@ void technical_data_pedal_cadence(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Pedal cadence", "(RPM) (read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_pedal_cadence != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_pedal_cadence;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_pedal_human_power,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1891,16 +1964,30 @@ void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Pedal human", "power (read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui16_pedal_power_x10 != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui16_pedal_power_x10 / 10;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_duty_cycle,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1908,16 +1995,30 @@ void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("PWM duty-cycle", "0 - 255 (read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_duty_cycle != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_duty_cycle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_motor_speed_erps(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_motor_speed_erps,
     .ui8_size = 16,
     .ui8_number_digits = 4,
     .ui8_decimal_digit = 0,
@@ -1925,16 +2026,30 @@ void technical_data_motor_speed_erps(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Motor speed", "(ERPs) (read only)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui16_motor_speed_erps != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui16_motor_speed_erps;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void technical_data_foc_angle(struct_menu_data *p_menu_data)
 {
+  static uint32_t ui32_var = 0;
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_foc_angle,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1942,8 +2057,22 @@ void technical_data_foc_angle(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
+  lcd_var_number.p_var_number = &ui32_var;
 
   item_set_strings("Motor FOC angle", "(multiply by 1.4)", p_menu_data);
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_l3_vars->ui8_foc_angle != ui32_var)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
+
+  // set the new value
+  ui32_var = p_l3_vars->ui8_foc_angle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -2154,7 +2283,9 @@ void item_var_set_number(var_number_t *p_lcd_var_number, struct_menu_data *p_men
     ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
   }
 
-  if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
+  if((lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number) ||
+     (lcd_configurations_vars.ui8_refresh_full_menu_1) ||
+     (p_lcd_var_number->ui8_need_update))
   {
     ui8_draw_var_value = 1;
   }

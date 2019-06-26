@@ -243,26 +243,21 @@ void layer_2(void)
       l2_vars.ui16_adc_battery_voltage |= ((uint16_t) (*p_rx_buffer & 0x30)) << 4;
       p_rx_buffer++;
 
-      // 3
       l2_vars.ui8_battery_current_x5 = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 4 e 5
       l2_vars.ui16_wheel_speed_x10 = (uint16_t) *p_rx_buffer;
       p_rx_buffer++;
       l2_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
       p_rx_buffer++;
 
-      // 6
       ui8_temp = *p_rx_buffer;
       l2_vars.ui8_braking = ui8_temp & 1;
       p_rx_buffer++;
 
-      // 7
       l2_vars.ui8_adc_throttle = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 8
       if(l2_vars.ui8_temperature_limit_feature_enabled)
       {
         l2_vars.ui8_motor_temperature = *p_rx_buffer;
@@ -273,47 +268,37 @@ void layer_2(void)
       }
       p_rx_buffer++;
 
-      // 9
       l2_vars.ui8_adc_pedal_torque_sensor = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 10
       l2_vars.ui8_pedal_torque_sensor = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 11
       l2_vars.ui8_pedal_cadence = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 12
       l2_vars.ui8_pedal_human_power = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 13
       l2_vars.ui8_duty_cycle = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 14 e 15
       l2_vars.ui16_motor_speed_erps = (uint16_t) *p_rx_buffer;
       p_rx_buffer++;
       l2_vars.ui16_motor_speed_erps += ((uint16_t) *p_rx_buffer << 8);
       p_rx_buffer++;
 
-      // 16
       l2_vars.ui8_foc_angle = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 17
       // error states
       l2_vars.ui8_error_states = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 18
       // temperature actual limiting value
       l2_vars.ui8_temperature_current_limiting_value = *p_rx_buffer;
       p_rx_buffer++;
 
-      // 19, 20 e 21
       // wheel_speed_sensor_tick_counter
       ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
       p_rx_buffer++;
@@ -323,14 +308,12 @@ void layer_2(void)
       l2_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
       p_rx_buffer++;
 
-      // 22 e 23
       // ui16_pedal_torque_x10
       l2_vars.ui16_pedal_torque_x10 = (uint16_t) *p_rx_buffer;
       p_rx_buffer++;
       l2_vars.ui16_pedal_torque_x10 += ((uint16_t) *p_rx_buffer << 8);
       p_rx_buffer++;
 
-      // 24 e 25
       // ui16_pedal_power_x10
       l2_vars.ui16_pedal_power_x10 = (uint16_t) *p_rx_buffer;
       p_rx_buffer++;
@@ -672,7 +655,7 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 
   // low pass filter
   ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10;
   l2_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
 
   if(l2_vars.ui16_pedal_torque_filtered > 200)

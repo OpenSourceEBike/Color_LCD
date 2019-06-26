@@ -1960,7 +1960,7 @@ void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
-    .ui32_max_value = 255,
+    .ui32_max_value = 999,
     .ui32_min_value = 0,
     .ui32_increment_step = 0 // 0 so user can't change the value
   };
@@ -2125,6 +2125,7 @@ void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_men
   }
 }
 
+//TODO BUG can't show numbers higher than 99
 void item_var_set_number(var_number_t *p_lcd_var_number, struct_menu_data *p_menu_data)
 {
   uint32_t ui32_x_position;

@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include "ugui/ugui.h"
+#include "usart1.h"
 
 #define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 
@@ -212,7 +213,7 @@ typedef struct _print_number
 
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 extern volatile uint32_t ui32_g_layer_2_delayed_execute;
-extern volatile uint8_t ui8_g_usart1_tx_buffer[11];
+extern volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 extern volatile uint32_t ui32_g_graphs_data_array_over_255;
 
 void lcd_init(void);

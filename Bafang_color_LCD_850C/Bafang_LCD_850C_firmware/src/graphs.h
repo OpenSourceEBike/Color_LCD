@@ -10,6 +10,7 @@
 #define GRAPHS_H_
 
 #include "stdio.h"
+#include "lcd.h"
 
 #define GRAPH_START_X 56
 #define GRAPH_START_Y (480 - 5)
@@ -30,14 +31,16 @@ typedef struct graphs_struct
   uint32_t ui32_graph_data_y_max_counter;
   uint32_t ui32_data_y_rate_per_pixel_x100;
   uint32_t ui32_data_y_last_value;
-  uint32_t ui32_draw_x_last_index;
   uint32_t ui32_data_end_index;
   uint32_t ui32_data_start_index;
+  uint32_t ui32_data_array_over_255;
   graphs_measurement_t measurement;
 } graphs_t;
 
-void graphs_draw(void);
+void graphs_draw(lcd_vars_t *p_lcd_vars);
 void graphs_init(void);
+void graphs_clock_1(void);
+void graphs_clock_2(void);
 graphs_t *get_graphs(void);
 
 #endif /* GRAPH_H_ */

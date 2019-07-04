@@ -822,7 +822,6 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
   p_l3_vars->ui32_wh_x10 = 0;
 
   // change offset value as it is the one that is saved on EEPROM, etc
-//  __disable_irq();
   var_number_t lcd_var_number =
   {
     .p_var_number = &p_l3_vars->ui32_wh_x10_offset,
@@ -833,12 +832,9 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
     .ui32_min_value = 0,
     .ui32_increment_step = 100
   };
-//  __enable_irq();
 
   item_set_strings("Watts/hour used", "(watts)", p_menu_data);
-//  __disable_irq();
   item_var_set_number(&lcd_var_number, p_menu_data);
-//  __enable_irq();
 }
 
 void assist_level_title(struct_menu_data *p_menu_data)

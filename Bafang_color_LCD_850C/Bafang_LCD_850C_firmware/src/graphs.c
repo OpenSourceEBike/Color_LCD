@@ -702,11 +702,11 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   graph_min_value.ui8_refresh_all_digits = 1;
   lcd_print_number(&graph_min_value);
 
-  graph_last_value.ui32_x_position = 225;
-  graph_last_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 30;
-  graph_last_value.ui32_number = graphs[graph_nr].ui32_data_y_last_value;
-  graph_last_value.ui8_refresh_all_digits = 1;
-  lcd_print_number(&graph_last_value);
+//  graph_last_value.ui32_x_position = 225;
+//  graph_last_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 30;
+//  graph_last_value.ui32_number = graphs[graph_nr].ui32_data_y_last_value;
+//  graph_last_value.ui8_refresh_all_digits = 1;
+//  lcd_print_number(&graph_last_value);
 }
 
 void graphs_measurements_calc_min_max_y(uint32_t graph_nr)

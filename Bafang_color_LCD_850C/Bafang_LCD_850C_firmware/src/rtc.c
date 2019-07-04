@@ -15,6 +15,8 @@
 #define CONFIGURATION_DONE 0xAAAA
 #define CONFIGURATION_RESET 0x0000
 
+uint32_t ui32_seconds_since_startup = 0;
+
 void RTC_IRQHandler(void)
 {
   NVIC_ClearPendingIRQ(RTC_IRQn);
@@ -27,6 +29,8 @@ void RTC_IRQHandler(void)
     RTC_SetCounter(RTC_GetCounter() % SECONDS_IN_DAY);
     RTC_WaitForLastTask();
   }
+
+  ui32_seconds_since_startup++;
 }
 
 void rtc_init()
@@ -128,6 +132,18 @@ struct_rtc_time_t* rtc_get_time(void)
   static struct_rtc_time_t rtc_time;
 
   ui32_temp = RTC_GetCounter() % SECONDS_IN_DAY;
+  rtc_time.ui8_hours = ui32_temp / 3600;
+  rtc_time.ui8_minutes = (ui32_temp % 3600) / 60;
+
+  return &rtc_time;
+}
+
+struct_rtc_time_t* rtc_get_time_since_startup(void)
+{
+  uint32_t ui32_temp;
+  static struct_rtc_time_t rtc_time;
+
+  ui32_temp = ui32_seconds_since_startup % SECONDS_IN_DAY;
   rtc_time.ui8_hours = ui32_temp / 3600;
   rtc_time.ui8_minutes = (ui32_temp % 3600) / 60;
 

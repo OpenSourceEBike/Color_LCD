@@ -21,5 +21,6 @@ typedef struct _rtc_time
 void rtc_init(void);
 void rtc_set_time(struct_rtc_time_t *rtc_time);
 struct_rtc_time_t* rtc_get_time(void);
+struct_rtc_time_t* rtc_get_time_since_startup(void);
 
 #endif /* _RTC_H_ */

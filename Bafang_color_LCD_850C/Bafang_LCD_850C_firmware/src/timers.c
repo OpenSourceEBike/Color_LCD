@@ -85,10 +85,6 @@ void TIM4_IRQHandler(void)
     {
       layer_2();
     }
-    else
-    {
-      ui32_g_layer_2_delayed_execute = 1;
-    }
   }
 }
 

@@ -114,6 +114,7 @@ typedef struct l3_vars_struct
   uint8_t ui8_temperature_current_limiting_value;
   uint8_t ui8_motor_temperature;
   uint32_t ui32_wheel_speed_sensor_tick_counter;
+  uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
   uint16_t ui16_pedal_torque_x10;
   uint16_t ui16_pedal_power_x10;
   uint16_t ui16_battery_voltage_filtered_x10;
@@ -170,6 +171,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_offroad_power_limit_div25;
   uint16_t ui16_odometer_distance_x10;
   uint32_t ui32_odometer_x10;
+  uint16_t ui16_distance_since_power_on_x10;
+  uint32_t ui32_trip_x10;
 
   uint8_t ui8_lights;
   uint8_t ui8_braking;
@@ -212,13 +215,11 @@ typedef struct _print_number
 } print_number_t;
 
 extern volatile uint32_t ui32_g_layer_2_can_execute;
-extern volatile uint32_t ui32_g_layer_2_delayed_execute;
 extern volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 extern volatile uint32_t ui32_g_graphs_data_array_over_255;
 
 void lcd_init(void);
 void lcd_clock(void);
-void l2_calc_wh(void);
 void layer_2(void);
 volatile l3_vars_t* get_l3_vars (void);
 lcd_vars_t* get_lcd_vars(void);

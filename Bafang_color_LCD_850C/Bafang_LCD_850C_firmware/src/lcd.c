@@ -1316,6 +1316,7 @@ void battery_soc(void)
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
     .ui8_field_number_of_digits = 3,
     .ui8_left_zero_paddig = 0,
+    .ui8_left_paddig = 1
   };
 
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
@@ -1481,11 +1482,20 @@ void battery_soc(void)
     if((ui16_m_battery_soc_watts_hour != ui16_battery_soc_watts_hour_previous) ||
         (m_lcd_vars.ui32_main_screen_draw_static_info))
     {
+      soc.ui32_x_position = BATTERY_SOC_START_X + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 10) + (BATTERY_SOC_CONTOUR * 2) + 10;
+      soc.ui32_y_position = 6;
+
+      // clean full area because it lcd_print_number() with left padding can't deal with that
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_WHITE);
+      UG_FontSelect(&REGULAR_TEXT_FONT);
+      UG_PutString(soc.ui32_x_position, soc.ui32_y_position, "    ");
+
       ui16_battery_soc_watts_hour_previous = ui16_m_battery_soc_watts_hour;
       soc.ui32_x_position = BATTERY_SOC_START_X + ((BATTERY_SOC_BAR_WITH + BATTERY_SOC_CONTOUR + 1) * 10) + (BATTERY_SOC_CONTOUR * 2) + 10;
       soc.ui32_y_position = 6;
       soc.ui32_number = ui16_m_battery_soc_watts_hour;
-      soc.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
+      soc.ui8_refresh_all_digits = 1;
       lcd_print_number(&soc);
 
       ui32_x1 = soc.ui32_x_final_position + 2;
@@ -1921,15 +1931,18 @@ void lcd_print_number(print_number_t* number)
   uint32_t ui32_number = number->ui32_number;
   uint8_t ui8_i;
   uint32_t ui32_x_position_1 = number->ui32_x_position;
-  uint32_t ui32_x_position_2 = number->ui32_x_position;
+  uint32_t ui32_x_position_2 = ui32_x_position_1;
+  uint32_t ui32_x_position_3;
   uint32_t ui32_y_position = number->ui32_y_position;
   uint8_t ui8_decimal_digits = number->ui8_decimal_digits;
   uint8_t ui8_decimal_digits_inverse_1;
   uint8_t ui8_decimal_digits_inverse_2;
   uint8_t ui8_decimal_digits_printed_1;
   uint8_t ui8_decimal_digits_printed_2;
-  // save digit number where number start
   uint8_t ui8_digit_number_start = 0;
+  uint8_t ui8_left_padding_digit = 0;
+  uint8_t ui8_left_padding_first_digit = 0;
+  uint8_t ui8_left_padding_digit_total = 0;
 
   // can't process over MAX_NUMBER_DIGITS
   if(number->ui8_field_number_of_digits > MAX_NUMBER_DIGITS)
@@ -1960,6 +1973,7 @@ void lcd_print_number(print_number_t* number)
   ui8_digit_inverse_counter_1 = number->ui8_field_number_of_digits - 1;
   ui8_digit_inverse_counter_2 = ui8_digit_inverse_counter_1;
 
+  // print first the "."
   // invert the decimal digits
   if(ui8_decimal_digits)
   {
@@ -2004,6 +2018,14 @@ void lcd_print_number(print_number_t* number)
         (!number->ui8_clean_area_all_digits))
     {
       if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
+          (number->ui8_left_paddig) && // left padding
+          (ui8_digit_inverse_counter_1 > 0) && // digits that not be printed
+          (ui8_left_padding_first_digit == 0)) // if first digit was printed, do not skip next zeros
+      {
+        // print nothing
+        ui8_left_padding_digit = 1;
+      }
+      else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
           (ui8_decimal_digits_printed_1 == 0) && // decimal digit not printed yet
           (ui8_decimal_digits_inverse_1 == 0))
       {
@@ -2028,7 +2050,19 @@ void lcd_print_number(print_number_t* number)
       {
         // print the digit
         UG_PutChar((ui8_digits_array[ui8_digit_inverse_counter_1] + 48), ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
+
+        if(number->ui8_left_paddig)
+        {
+          ui8_left_padding_first_digit = 1;
+        }
       }
+    }
+    else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
+        (number->ui8_left_paddig) && // left padding
+        (ui8_digit_inverse_counter_1 > 0) && // digits that not be printed
+        (ui8_left_padding_first_digit == 0)) // if first digit was printed, do not skip next zeros
+    {
+      // print nothing
     }
     else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
         (ui8_decimal_digits_printed_1 == 0) && // decimal digit not printed yet
@@ -2066,8 +2100,17 @@ void lcd_print_number(print_number_t* number)
       // do not change the field, keep with previous value
     }
 
-    // increase X position for next char
-    ui32_x_position_1 += number->font->char_width + 1;
+    if(ui8_left_padding_digit == 0)
+    {
+      // increase X position for next char
+      ui32_x_position_1 += number->font->char_width + 1;
+    }
+    // do not increment for next char position
+    else
+    {
+      ui8_left_padding_digit = 0;
+      ui8_left_padding_digit_total++;
+    }
 
     ui8_digit_inverse_counter_1--;
 
@@ -2078,7 +2121,7 @@ void lcd_print_number(print_number_t* number)
       ui8_decimal_digits_printed_1 = 1;
 
       // increase X position for next char
-      ui32_x_position_1 += (number->font->char_width / 2) + 1;
+      ui32_x_position_1 += ((number->font->char_width / 2) + 1);
     }
 
     // decrement only if positive
@@ -2086,6 +2129,19 @@ void lcd_print_number(print_number_t* number)
     {
       ui8_decimal_digits_inverse_1--;
     }
+  }
+
+  // clean empty
+  ui32_x_position_3 = ui32_x_position_1;
+  while(ui8_left_padding_digit_total > 0)
+  {
+    ui8_left_padding_digit_total--;
+
+    // print a " "
+    UG_PutChar(32, ui32_x_position_3, ui32_y_position, number->fore_color, number->back_color);
+
+    // increase X position for next char
+    ui32_x_position_3 += number->font->char_width + 1;
   }
 
   // save the digits
@@ -2131,6 +2187,7 @@ void copy_layer_2_layer_3_vars(void)
   l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
   l3_vars.ui8_braking = l2_vars.ui8_braking;
 
+  l2_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10_offset;
   l2_vars.ui16_battery_pack_resistance_x1000 = l3_vars.ui16_battery_pack_resistance_x1000;
   l2_vars.ui8_assist_level = l3_vars.ui8_assist_level;
   l2_vars.ui8_assist_level_factor[0] = l3_vars.ui8_assist_level_factor[0];

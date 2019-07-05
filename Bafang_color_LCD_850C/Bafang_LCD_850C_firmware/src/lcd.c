@@ -476,7 +476,6 @@ void layer_2(void)
   /************************************************************************************************/
   // now do all the calculations that must be done every 100ms
 
-
   l2_low_pass_filter_battery_voltage_current_power();
   l2_low_pass_filter_pedal_torque_and_power();
 //  l2_low_pass_filter_pedal_cadence();
@@ -679,7 +678,8 @@ void trip_distance(void)
     .ui8_field_number_of_digits = 4,
     .ui8_left_zero_paddig = 0,
     .ui32_number = 0,
-    .ui8_refresh_all_digits = 1
+    .ui8_refresh_all_digits = 1,
+    .ui8_decimal_digits = 1
   };
 
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
@@ -705,8 +705,7 @@ void trip_distance(void)
     l3_vars.ui32_wheel_speed_sensor_tick_counter_offset = l3_vars.ui32_wheel_speed_sensor_tick_counter;
   }
 
-  ui32_trip_distance = l3_vars.ui16_distance_since_power_on_x10 / 10;
-
+  ui32_trip_distance = l3_vars.ui16_distance_since_power_on_x10;
   if((ui32_trip_distance != ui32_trip_distance_previous) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -1112,16 +1111,16 @@ void brake(void)
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
       UG_FontSelect(&SMALL_TEXT_FONT);
-      ui32_x1 = 178;
-      ui32_y1 = 10;
+      ui32_x1 = 190;
+      ui32_y1 = 12;
       UG_PutString(ui32_x1, ui32_y1, "B");
     }
     else
     {
       // clear area
       // 1 leters
-      ui32_x1 = 178;
-      ui32_y1 = 10;
+      ui32_x1 = 190;
+      ui32_y1 = 12;
       ui32_x2 = ui32_x1 + ((1 * 10) + (1 * 1) + 1);
       ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
@@ -1145,29 +1144,61 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 
 void lights_state(void)
 {
-  static uint8_t ui8_lights_state = 0;
-  static uint8_t lcd_lights_symbol = 0;
+  static uint8_t ui8_lights_previous;
+  uint32_t ui32_x1;
+  uint32_t ui32_y1;
+  uint32_t ui32_x2;
+  uint32_t ui32_y2;
 
   if (buttons_get_up_long_click_event())
   {
     buttons_clear_up_long_click_event();
 
-    if (ui8_lights_state == 0)
+    if(l3_vars.ui8_lights == 0)
     {
-      ui8_lights_state = 1;
-      lcd_lights_symbol = 1;
       l3_vars.ui8_lights = 1;
     }
     else
     {
-      ui8_lights_state = 0;
-      lcd_lights_symbol = 0;
       l3_vars.ui8_lights = 0;
     }
   }
 
-  if(ui8_lights_state == 0) { lcd_set_backlight_intensity (l3_vars.ui8_lcd_backlight_off_brightness); }
-  else { lcd_set_backlight_intensity (l3_vars.ui8_lcd_backlight_on_brightness); }
+  if(l3_vars.ui8_lights == 0)
+  {
+    lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_off_brightness);
+  }
+  else
+  {
+    lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_on_brightness);
+  }
+
+  // if previous state was disable, draw
+  if((l3_vars.ui8_lights != ui8_lights_previous) ||
+      (m_lcd_vars.ui32_main_screen_draw_static_info))
+  {
+    ui8_lights_previous = l3_vars.ui8_lights;
+
+    if(l3_vars.ui8_lights)
+    {
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(C_WHITE);
+      UG_FontSelect(&SMALL_TEXT_FONT);
+      ui32_x1 = 205;
+      ui32_y1 = 12;
+      UG_PutString(ui32_x1, ui32_y1, "L");
+    }
+    else
+    {
+      // clear area
+      // 1 leters
+      ui32_x1 = 205;
+      ui32_y1 = 12;
+      ui32_x2 = ui32_x1 + ((1 * 10) + (1 * 1) + 1);
+      ui32_y2 = ui32_y1 + 16;
+      UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
+    }
+  }
 }
 
 void l2_calc_battery_voltage_soc(void)
@@ -1458,10 +1489,10 @@ void battery_soc(void)
       lcd_print_number(&soc);
 
       ui32_x1 = soc.ui32_x_final_position + 2;
-      ui32_y1 = soc.ui32_y_final_position;
+      ui32_y1 = soc.ui32_y_final_position + 7;
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(C_WHITE);
-      UG_FontSelect(&REGULAR_TEXT_FONT);
+      UG_FontSelect(&SMALL_TEXT_FONT);
       UG_PutString(ui32_x1, ui32_y1, "%");
     }
   }
@@ -1883,13 +1914,20 @@ void calc_battery_soc_watts_hour(void)
 void lcd_print_number(print_number_t* number)
 {
   uint32_t ui32_number_temp;
-  uint8_t ui8_digit_inverse_counter;
+  uint8_t ui8_digit_inverse_counter_1;
+  uint8_t ui8_digit_inverse_counter_2;
   uint8_t ui8_digits_array[MAX_NUMBER_DIGITS];
   static uint32_t ui32_power_array[MAX_NUMBER_DIGITS] = {1, 10, 100, 1000, 10000};
   uint32_t ui32_number = number->ui32_number;
   uint8_t ui8_i;
-  uint32_t ui32_x_position = number->ui32_x_position;
+  uint32_t ui32_x_position_1 = number->ui32_x_position;
+  uint32_t ui32_x_position_2 = number->ui32_x_position;
   uint32_t ui32_y_position = number->ui32_y_position;
+  uint8_t ui8_decimal_digits = number->ui8_decimal_digits;
+  uint8_t ui8_decimal_digits_inverse_1;
+  uint8_t ui8_decimal_digits_inverse_2;
+  uint8_t ui8_decimal_digits_printed_1;
+  uint8_t ui8_decimal_digits_printed_2;
   // save digit number where number start
   uint8_t ui8_digit_number_start = 0;
 
@@ -1901,6 +1939,9 @@ void lcd_print_number(print_number_t* number)
 
   // set the font that will be used
   UG_FontSelect(number->font);
+
+  ui8_decimal_digits_printed_1 = number->ui8_decimal_digits ? 0: 1;
+  ui8_decimal_digits_printed_2 = ui8_decimal_digits_printed_1;
 
   // get all digits from the number
   ui32_number_temp = ui32_number;
@@ -1916,60 +1957,135 @@ void lcd_print_number(print_number_t* number)
     }
   }
 
+  ui8_digit_inverse_counter_1 = number->ui8_field_number_of_digits - 1;
+  ui8_digit_inverse_counter_2 = ui8_digit_inverse_counter_1;
+
+  // invert the decimal digits
+  if(ui8_decimal_digits)
+  {
+    ui8_decimal_digits_inverse_1 = ui8_digit_inverse_counter_2 - ui8_decimal_digits;
+    ui8_decimal_digits_inverse_2 = ui8_decimal_digits_inverse_1;
+
+    // print first the "."
+    // loop over all digits
+    for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
+    {
+      // increase X position for next char
+      ui32_x_position_2 += number->font->char_width + 1;
+
+      ui8_digit_inverse_counter_2--;
+
+      // print only 1 time the "."
+      if(ui8_decimal_digits_printed_2 == 0 &&
+          ui8_decimal_digits_inverse_2 == 0)
+      {
+        ui8_decimal_digits_printed_2 = 1;
+
+        // print a "."
+        UG_PutChar(46, ui32_x_position_2 - (number->font->char_width / 4), ui32_y_position, number->fore_color, number->back_color);
+
+        break;
+      }
+
+      // decrement only if positive
+      if(ui8_decimal_digits_inverse_2)
+      {
+        ui8_decimal_digits_inverse_2--;
+      }
+    }
+  }
+
   // loop over all digits
-  ui8_digit_inverse_counter = number->ui8_field_number_of_digits - 1;
   for(ui8_i = 0; ui8_i < number->ui8_field_number_of_digits; ui8_i++)
   {
     // only digits that changed
-    if(((ui8_digits_array[ui8_digit_inverse_counter] != number->ui8_previous_digits_array[ui8_digit_inverse_counter]) ||
+    if(((ui8_digits_array[ui8_digit_inverse_counter_1] != number->ui8_previous_digits_array[ui8_digit_inverse_counter_1]) ||
         (number->ui8_refresh_all_digits)) &&
         (!number->ui8_clean_area_all_digits))
     {
-      if((ui8_digits_array[ui8_digit_inverse_counter] == 0) && // if is a 0
-          (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+      if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
+          (ui8_decimal_digits_printed_1 == 0) && // decimal digit not printed yet
+          (ui8_decimal_digits_inverse_1 == 0))
+      {
+        // print a "0"
+        UG_PutChar(48, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
+      }
+      else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
+          (ui8_digit_inverse_counter_1 > ui8_digit_number_start) && // if is a digit at left from the first digit
           (number->ui8_left_zero_paddig)) // if we want to print a 0 at left
       {
         // print a "0"
-        UG_PutChar(48, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+        UG_PutChar(48, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
       }
-      else if((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
-          (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+      else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) &&  // if is a 0
+          (ui8_digit_inverse_counter_1 > ui8_digit_number_start) && // if is a digit at left from the first digit
           (!number->ui8_left_zero_paddig)) // if we NOT want to print a 0 at left
       {
         // print a " "
-        UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+        UG_PutChar(32, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
       }
       else
       {
         // print the digit
-        UG_PutChar((ui8_digits_array[ui8_digit_inverse_counter] + 48), ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+        UG_PutChar((ui8_digits_array[ui8_digit_inverse_counter_1] + 48), ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
       }
     }
+    else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) && // if is a 0
+        (ui8_decimal_digits_printed_1 == 0) && // decimal digit not printed yet
+        (ui8_decimal_digits_inverse_1 == 0))
+    {
+      // print a "0"
+      UG_PutChar(48, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
+    }
     // the case where there was a 0 but we want to remove it
-    else if(((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
-        (ui8_digit_inverse_counter > ui8_digit_number_start) && // if is a digit at left from the first digit
+    else if(((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) &&  // if is a 0
+        (ui8_digit_inverse_counter_1 > ui8_digit_number_start) && // if is a digit at left from the first digit
         (!number->ui8_left_zero_paddig)) || // if we NOT want to print a 0 at left
         (number->ui8_clean_area_all_digits)) // we want to clean, so print a " "
     {
       // print a " "
-      UG_PutChar(32, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      UG_PutChar(32, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
     }
     // the case where there was a " " but we need to write a 0
-    else if((ui8_digits_array[ui8_digit_inverse_counter] == 0) &&  // if is a 0
+    else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) &&  // if is a 0
         (ui8_digit_number_start > number->ui8_digit_number_start_previous)) // if is a digit at left from the first digit
     {
       // print a "0"
-      UG_PutChar(48, ui32_x_position, ui32_y_position, number->fore_color, number->back_color);
+      UG_PutChar(48, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
+    }
+    // the case where there was a " " (decimal number) but we need to write a 0
+    else if((ui8_digits_array[ui8_digit_inverse_counter_1] == 0) &&  // if is a 0
+        (ui8_decimal_digits_printed_1 == 0) && // decimal digits were not printed yet
+        (ui8_decimal_digits_inverse_1 == 1)) // first unit digit
+    {
+      // print a "0"
+      UG_PutChar(48, ui32_x_position_1, ui32_y_position, number->fore_color, number->back_color);
     }
     else
     {
       // do not change the field, keep with previous value
     }
 
-    ui8_digit_inverse_counter--;
-
     // increase X position for next char
-    ui32_x_position += number->font->char_width + 1;
+    ui32_x_position_1 += number->font->char_width + 1;
+
+    ui8_digit_inverse_counter_1--;
+
+    // print only 1 time the "."
+    if(ui8_decimal_digits_printed_1 == 0 &&
+        ui8_decimal_digits_inverse_1 == 0)
+    {
+      ui8_decimal_digits_printed_1 = 1;
+
+      // increase X position for next char
+      ui32_x_position_1 += (number->font->char_width / 2) + 1;
+    }
+
+    // decrement only if positive
+    if(ui8_decimal_digits_inverse_1)
+    {
+      ui8_decimal_digits_inverse_1--;
+    }
   }
 
   // save the digits
@@ -1981,7 +2097,7 @@ void lcd_print_number(print_number_t* number)
   number->ui8_digit_number_start_previous = ui8_digit_number_start;
 
   // store final position
-  number->ui32_x_final_position = ui32_x_position;
+  number->ui32_x_final_position = ui32_x_position_1;
   number->ui32_y_final_position = ui32_y_position;
 }
 

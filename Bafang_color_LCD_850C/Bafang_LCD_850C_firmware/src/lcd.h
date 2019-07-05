@@ -212,6 +212,7 @@ typedef struct _print_number
   uint32_t ui32_number;
   uint8_t ui8_digit_number_start_previous;
   uint8_t ui8_clean_area_all_digits;
+  uint8_t ui8_decimal_digits;
 } print_number_t;
 
 extern volatile uint32_t ui32_g_layer_2_can_execute;

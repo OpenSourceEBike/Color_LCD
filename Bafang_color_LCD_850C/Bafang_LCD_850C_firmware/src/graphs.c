@@ -555,11 +555,14 @@ void graphs_draw(uint32_t *p_draw_graphs, lcd_vars_t *p_lcd_vars)
 void graphs_draw(lcd_vars_t *p_lcd_vars)
 {
   uint32_t number_lines_to_draw;
-  uint32_t y_amplitude;
+  uint32_t y_amplitude_1;
+  uint32_t y_amplitude_2;
   uint32_t graph_next_start_x;
   uint32_t graph_x_index = 0;
   static uint32_t data_x_start_index = 0;
-  uint32_t color;
+  uint32_t is_max;
+  uint32_t color_1;
+  uint32_t color_2;
   uint32_t graph_nr = 0;
   uint32_t temp;
   uint32_t i;
@@ -608,6 +611,9 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     UG_PutString(ui32_x_position,
                  ui32_y_position,
                  "human power");
+
+    // vertical line
+    UG_DrawLine(GRAPH_START_X - 1, GRAPH_START_Y, GRAPH_START_X - 1, GRAPH_START_Y - GRAPH_Y_LENGHT, C_WHITE);
   }
 
   // calc new min and max values
@@ -648,15 +654,28 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   // draw the lines
   for(i = 0; i < number_lines_to_draw; i++)
   {
-    y_amplitude = graphs[graph_nr].ui32_data[data_x_start_index] - graphs[graph_nr].ui32_graph_data_y_min;
-    y_amplitude *= graphs[graph_nr].ui32_data_y_rate_per_pixel_x100;
-    if(y_amplitude)
+    y_amplitude_1 = graphs[graph_nr].ui32_data[data_x_start_index] - graphs[graph_nr].ui32_graph_data_y_min;
+    y_amplitude_1 *= graphs[graph_nr].ui32_data_y_rate_per_pixel_x100;
+    if(y_amplitude_1)
     {
-      y_amplitude /= 100;
+      y_amplitude_1 /= 100;
     }
     else
     {
-      y_amplitude = 0;
+      y_amplitude_1 = 0;
+    }
+
+    // remove the 2 units/pixels for the white line
+    if(y_amplitude_1 >= 2)
+    {
+      y_amplitude_1 = y_amplitude_1 - 2;
+      y_amplitude_2 = 2;
+    }
+    // y_amplitude_1 has already the number of white pixels
+    else
+    {
+      y_amplitude_2 = y_amplitude_1;
+      y_amplitude_1 = 0;
     }
 
     graph_next_start_x = GRAPH_START_X + graph_x_index;
@@ -665,18 +684,40 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     if((graphs[graph_nr].ui32_data[data_x_start_index] > graphs[graph_nr].ui32_graph_data_y_min) &&
         (graphs[graph_nr].ui32_data[data_x_start_index] >= graphs[graph_nr].ui32_graph_data_y_max))
     {
-      color = C_GREEN;
+      is_max = 1;
+      color_1 = C_GREEN;
+      color_2 = C_GREEN;
     }
     else
     {
-      color = C_WHITE;
+      is_max = 0;
+      color_1 = C_BLUE;
+      color_2 = C_WHITE;
     }
 
-    UG_DrawLine(graph_next_start_x,           // X1
-                GRAPH_START_Y,                // Y1
-                graph_next_start_x,           // X2
-                GRAPH_START_Y - y_amplitude,  // Y2
-                color);
+    // draw or the line with 2 colors or with only 1 color (amplitude <= 2)
+    if(y_amplitude_1)
+    {
+      UG_DrawLine(graph_next_start_x,           // X1
+                  GRAPH_START_Y,                // Y1
+                  graph_next_start_x,           // X2
+                  GRAPH_START_Y - y_amplitude_1,// Y2
+                  color_1);
+
+      UG_DrawLine(graph_next_start_x,           // X1
+                  GRAPH_START_Y - y_amplitude_1,// Y1
+                  graph_next_start_x,           // X2
+                  GRAPH_START_Y - y_amplitude_1 - 2,// Y2
+                  color_2);
+    }
+    else
+    {
+      UG_DrawLine(graph_next_start_x,           // X1
+                  GRAPH_START_Y,                // Y1
+                  graph_next_start_x,           // X2
+                  GRAPH_START_Y - y_amplitude_2,  // Y2
+                  color_2);
+    }
 
     // increment and verify roll over
     data_x_start_index++;
@@ -690,13 +731,13 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   }
 
   // draw max and min values as also last value
-  graph_max_value.ui32_x_position = 2;
-  graph_max_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 18;
+  graph_max_value.ui32_x_position = 7;
+  graph_max_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT;
   graph_max_value.ui32_number = graphs[graph_nr].ui32_graph_data_y_max;
   graph_max_value.ui8_refresh_all_digits = 1;
   lcd_print_number(&graph_max_value);
 
-  graph_min_value.ui32_x_position = 2;
+  graph_min_value.ui32_x_position = 7;
   graph_min_value.ui32_y_position = GRAPH_START_Y - 18;
   graph_min_value.ui32_number = graphs[graph_nr].ui32_graph_data_y_min;
   graph_min_value.ui8_refresh_all_digits = 1;

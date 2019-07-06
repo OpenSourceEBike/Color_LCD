@@ -199,7 +199,7 @@ void lcd_draw_main_menu_mask(void)
   UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   // vertical line
-  UG_DrawLine(159, 159, 159, 319, C_DIM_GRAY);
+  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 }
 
 void lcd_main_screen(void)

@@ -193,10 +193,10 @@ void lcd_clock(void)
 
 void lcd_draw_main_menu_mask(void)
 {
-  UG_DrawLine(0, 39, 319, 39, C_DIM_GRAY);
-  UG_DrawLine(0, 159, 319, 159, C_DIM_GRAY);
-  UG_DrawLine(0, 239, 319, 239, C_DIM_GRAY);
-  UG_DrawLine(0, 319, 319, 319, C_DIM_GRAY);
+  UG_DrawLine(0, 39, 319, 39, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 159, 319, 159, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 239, 319, 239, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   // vertical line
   UG_DrawLine(159, 159, 159, 319, C_DIM_GRAY);
@@ -525,7 +525,7 @@ void assist_level_state(void)
 {
   static print_number_t assist_level =
   {
-    .font = &FONT_32X53,
+    .font = &FONT_45X72,
     .fore_color = C_WHITE,
     .back_color = C_BLACK,
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
@@ -538,7 +538,7 @@ void assist_level_state(void)
   if (m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(12, 50, "ASSIST");
   }
@@ -578,8 +578,8 @@ void assist_level_state(void)
   {
     ui8_assist_level_previous = l3_vars.ui8_assist_level;
 
-    assist_level.ui32_x_position = 25;
-    assist_level.ui32_y_position = 84;
+    assist_level.ui32_x_position = 20;
+    assist_level.ui32_y_position = 81;
     assist_level.ui32_number = (uint32_t) l3_vars.ui8_assist_level;
     assist_level.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&assist_level);
@@ -626,7 +626,7 @@ void trip_time(void)
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(28, 244, "trip time");
   }
@@ -685,7 +685,7 @@ void trip_distance(void)
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(8, 164, "trip distance");
   }
@@ -1662,7 +1662,7 @@ void power(void)
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(183, 164, "motor power");
   }
@@ -1801,7 +1801,7 @@ void pedal_human_power(void)
   if(m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(178, 244, "human power");
   }
@@ -1850,9 +1850,9 @@ void wheel_speed(void)
     .ui8_left_zero_paddig = 0,
   };
 
-  const uint32_t ui32_x_position_integer = 100;
-  const uint32_t ui32_x_position_dot = 228;
-  const uint32_t ui32_x_position_decimal = 236;
+  const uint32_t ui32_x_position_integer = 110;
+  const uint32_t ui32_x_position_dot = 238;
+  const uint32_t ui32_x_position_decimal = 246;
   const uint32_t ui32_y_position_integer = 60;
   const uint32_t ui32_y_position_dot = 134;
   const uint32_t ui32_y_position_decimal = 81;
@@ -1860,7 +1860,7 @@ void wheel_speed(void)
   if (m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
     UG_PutString(257, 50 , "KM/H");
 

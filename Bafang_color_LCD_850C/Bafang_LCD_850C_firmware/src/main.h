@@ -28,6 +28,9 @@
 
 #define  CONFIGURATIONS_TEXT_FONT     FONT_12X20
 
+
+#define  MAIN_SCREEN_FIELD_LABELS_COLOR C_SILVER
+
 // *************************************************************************** //
 // EEPROM memory variables default values
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3

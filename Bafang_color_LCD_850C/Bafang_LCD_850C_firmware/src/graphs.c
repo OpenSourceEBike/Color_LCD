@@ -601,7 +601,7 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     uint32_t ui32_y_position;
 
     UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(C_WHITE);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&SMALL_TEXT_FONT);
     ui32_x_position = 100;
     ui32_y_position = 326;

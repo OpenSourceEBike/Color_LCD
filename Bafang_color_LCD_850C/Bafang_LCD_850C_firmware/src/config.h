@@ -22,7 +22,7 @@
 #define LI_ION_CELL_VOLTS_30    3.542
 #define LI_ION_CELL_VOLTS_20    3.463
 #define LI_ION_CELL_VOLTS_10    3.384
-#define LI_ION_CELL_VOLTS_0    3.305
+#define LI_ION_CELL_VOLTS_0     3.305
 
 // Battery voltage (readed on motor controller):
 #define ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000 866

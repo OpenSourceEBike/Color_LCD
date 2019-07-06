@@ -1828,15 +1828,11 @@ void pedal_human_power(void)
 
 void wheel_speed(void)
 {
-  uint32_t ui32_x_position;
-  uint32_t ui32_y_position;
   static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
-
-//l3_vars.ui16_wheel_speed_x10 = 375;
 
   static print_number_t wheel_speed_integer =
   {
-    .font = &BIG_NUMBERS_TEXT_FONT,
+    .font = &FONT_61X99,
     .fore_color = C_WHITE,
     .back_color = C_BLACK,
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
@@ -1846,13 +1842,20 @@ void wheel_speed(void)
 
   static print_number_t wheel_speed_decimal =
   {
-    .font = &MEDIUM_NUMBERS_TEXT_FONT,
+    .font = &FONT_45X72,
     .fore_color = C_WHITE,
     .back_color = C_BLACK,
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
     .ui8_field_number_of_digits = 1,
     .ui8_left_zero_paddig = 0,
   };
+
+  const uint32_t ui32_x_position_integer = 100;
+  const uint32_t ui32_x_position_dot = 228;
+  const uint32_t ui32_x_position_decimal = 236;
+  const uint32_t ui32_y_position_integer = 60;
+  const uint32_t ui32_y_position_dot = 134;
+  const uint32_t ui32_y_position_decimal = 81;
 
   if (m_lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -1862,7 +1865,7 @@ void wheel_speed(void)
     UG_PutString(257, 50 , "KM/H");
 
     // print dot
-    UG_FillCircle(196, 123, 2, C_WHITE);
+    UG_FillCircle(ui32_x_position_dot, ui32_y_position_dot, 3, C_WHITE);
   }
 
   if ((l3_vars.ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous) ||
@@ -1870,22 +1873,14 @@ void wheel_speed(void)
   {
     ui16_wheel_x10_speed_previous = l3_vars.ui16_wheel_speed_x10;
 
-    ui32_x_position = 126;
-    ui32_y_position = 84;
-
-    wheel_speed_integer.ui32_x_position = ui32_x_position;
-    wheel_speed_integer.ui32_y_position = ui32_y_position;
+    wheel_speed_integer.ui32_x_position = ui32_x_position_integer;
+    wheel_speed_integer.ui32_y_position = ui32_y_position_integer;
     wheel_speed_integer.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 / 10);
     wheel_speed_integer.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_integer);
 
-    // accounting for dot: 10 px
-    ui32_x_position = wheel_speed_integer.ui32_x_final_position + 10;
-
-    ui32_y_position = ui32_y_position + 10;
-
-    wheel_speed_decimal.ui32_x_position = ui32_x_position;
-    wheel_speed_decimal.ui32_y_position = ui32_y_position;
+    wheel_speed_decimal.ui32_x_position = ui32_x_position_decimal;
+    wheel_speed_decimal.ui32_y_position = ui32_y_position_decimal;
     wheel_speed_decimal.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 % 10);
     wheel_speed_decimal.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_decimal);

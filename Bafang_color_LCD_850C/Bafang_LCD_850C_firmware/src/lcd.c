@@ -19,7 +19,7 @@
 #include "buttons.h"
 #include "eeprom.h"
 #include "usart1.h"
-#include "ugui_driver/ugui_bafang_500c.h"
+#include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui/ugui.h"
 #include "rtc.h"
 #include "graphs.h"

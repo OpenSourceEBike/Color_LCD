@@ -14,7 +14,7 @@
 #include "stdio.h"
 #include "main.h"
 #include "config.h"
-#include "ugui_driver/ugui_bafang_500c.h"
+#include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui/ugui.h"
 #include "lcd.h"
 

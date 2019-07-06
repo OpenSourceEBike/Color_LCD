@@ -22,7 +22,7 @@
 #include "eeprom.h"
 #include "graphs.h"
 #include "ugui/ugui.h"
-#include "ugui_driver/ugui_bafang_500c.h"
+#include "ugui_driver/ugui_bafang_850c.h"
 #include "utils.h"
 #include "rtc.h"
 #include "stm32f10x_usart.h"

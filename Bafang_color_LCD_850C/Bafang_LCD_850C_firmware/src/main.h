@@ -9,7 +9,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define SIMULATION
+//#define SIMULATION
 
 // INTERRUPTS PRIORITIES
 // Define for the NVIC IRQChannel Preemption Priority
@@ -29,7 +29,7 @@
 #define  CONFIGURATIONS_TEXT_FONT     FONT_12X20
 
 
-#define  MAIN_SCREEN_FIELD_LABELS_COLOR C_SILVER
+#define  MAIN_SCREEN_FIELD_LABELS_COLOR C_DARK_GRAY
 
 // *************************************************************************** //
 // EEPROM memory variables default values

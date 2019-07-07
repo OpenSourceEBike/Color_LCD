@@ -2260,9 +2260,9 @@ void graphs_measurements_update(void)
   if(ui8_first_time == 0)
   {
     // sum the value
-    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
-
 //    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui8_motor_temperature;
+//    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
+    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
 
     // every 3.5 seconds, update the graph array values
     if(++counter >= 35)
@@ -2279,6 +2279,14 @@ void graphs_measurements_update(void)
         m_p_graphs[0].ui32_data_y_last_value = 0;
         m_p_graphs[0].measurement.ui32_sum_value = 0;
       }
+
+      // low pass filter
+      m_p_graphs[0].ui32_data_y_last_value =
+          ((m_p_graphs[0].ui32_data_y_last_value * 50) +
+          (m_p_graphs[0].ui32_data_y_last_value_previous * 50))
+          / 100;
+
+      m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
 
       counter = 0;
 

@@ -31,6 +31,7 @@ typedef struct graphs_struct
   uint32_t ui32_graph_data_y_max_counter;
   uint32_t ui32_data_y_rate_per_pixel_x100;
   uint32_t ui32_data_y_last_value;
+  uint32_t ui32_data_y_last_value_previous;
   uint32_t ui32_data_end_index;
   uint32_t ui32_data_start_index;
   uint32_t ui32_data_array_over_255;

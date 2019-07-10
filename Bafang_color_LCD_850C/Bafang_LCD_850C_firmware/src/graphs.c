@@ -336,16 +336,15 @@ void graphs_clock_2(void)
 void graphs_draw(lcd_vars_t *p_lcd_vars)
 {
   uint32_t number_lines_to_draw;
-  uint32_t y_amplitude_1;
-  uint32_t y_amplitude_2;
+  uint32_t temp;
+  uint32_t y_amplitude;
+  uint32_t y_amplitude_previous = 0;
+  uint32_t y_amplitude_base_color;
+  uint32_t y_amplitude_contour_color;
   uint32_t graph_next_start_x;
   uint32_t graph_x_index = 0;
   static uint32_t data_x_start_index = 0;
-  uint32_t is_max;
-  uint32_t color_1;
-  uint32_t color_2;
   uint32_t graph_nr = 0;
-  uint32_t temp;
   uint32_t i;
 
   static print_number_t graph_max_value =
@@ -389,13 +388,13 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     UG_FontSelect(&SMALL_TEXT_FONT);
     ui32_x_position = 100;
     ui32_y_position = 326;
-//    UG_PutString(ui32_x_position,
-//                 ui32_y_position,
-//                 "human power");
-
     UG_PutString(ui32_x_position,
                  ui32_y_position,
-                 "motor power");
+                 "human power");
+
+//    UG_PutString(ui32_x_position,
+//                 ui32_y_position,
+//                 "motor power");
 
     // vertical line
     UG_DrawLine(GRAPH_START_X - 1, GRAPH_START_Y, GRAPH_START_X - 1, GRAPH_START_Y - GRAPH_Y_LENGHT, C_WHITE);
@@ -439,87 +438,62 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   // draw the lines
   for(i = 0; i < number_lines_to_draw; i++)
   {
-    y_amplitude_1 = graphs[graph_nr].ui32_data[data_x_start_index] - graphs[graph_nr].ui32_graph_data_y_min;
-    y_amplitude_1 *= graphs[graph_nr].ui32_data_y_rate_per_pixel_x100;
-    if(y_amplitude_1)
+    y_amplitude = graphs[graph_nr].ui32_data[data_x_start_index] - graphs[graph_nr].ui32_graph_data_y_min;
+    y_amplitude *= graphs[graph_nr].ui32_data_y_rate_per_pixel_x100;
+    if(y_amplitude)
     {
-      y_amplitude_1 /= 100;
+      y_amplitude /= 100;
     }
     else
     {
-      y_amplitude_1 = 0;
+      y_amplitude = 0;
     }
 
-    // remove the 2 units/pixels for the white line
-    if(y_amplitude_1 >= 2)
+    // contour
+    if(y_amplitude >= y_amplitude_previous)
     {
-      y_amplitude_1 = y_amplitude_1 - 2;
-      y_amplitude_2 = 2;
+      y_amplitude_base_color =  y_amplitude_previous;
+      y_amplitude_contour_color = y_amplitude - y_amplitude_base_color;
     }
-    // y_amplitude_1 has already the number of white pixels
     else
     {
-      y_amplitude_2 = y_amplitude_1;
-      y_amplitude_1 = 0;
+      y_amplitude_base_color =  y_amplitude;
+      y_amplitude_contour_color = y_amplitude_previous - y_amplitude;
+    }
+
+    // add the 2 units/pixels to the contour
+    if(y_amplitude_base_color > 0)
+    {
+      y_amplitude_base_color = y_amplitude_base_color - 1;
+      y_amplitude_contour_color = y_amplitude_contour_color + 1;
     }
 
     graph_next_start_x = GRAPH_START_X + graph_x_index;
 
-//    // if max, use a specific color
-//    if((graphs[graph_nr].ui32_data[data_x_start_index] > graphs[graph_nr].ui32_graph_data_y_min) &&
-//        (graphs[graph_nr].ui32_data[data_x_start_index] >= graphs[graph_nr].ui32_graph_data_y_max))
-//    {
-//      is_max = 1;
-//      color_1 = C_GREEN;
-//      color_2 = C_GREEN;
-//    }
-//    else
-//    {
-//      is_max = 0;
-//      color_1 = C_BLUE;
-//      color_2 = C_WHITE;
-//    }
-
-    color_1 = C_BLUE;
-    color_2 = C_WHITE;
-
-    // draw or the line with 2 colors or with only 1 color (amplitude <= 2)
-    if(y_amplitude_1)
+    // draw lines: amplitude > 2
+    if(y_amplitude_base_color)
     {
       UG_DrawLine(graph_next_start_x,           // X1
                   GRAPH_START_Y,                // Y1
                   graph_next_start_x,           // X2
-                  GRAPH_START_Y - y_amplitude_1,// Y2
-                  color_1);
+                  GRAPH_START_Y - y_amplitude_base_color,// Y2
+                  C_BLUE);
 
+      temp = GRAPH_START_Y - y_amplitude_base_color;
       UG_DrawLine(graph_next_start_x,           // X1
-                  GRAPH_START_Y - y_amplitude_1,// Y1
+                  temp,// Y1
                   graph_next_start_x,           // X2
-                  GRAPH_START_Y - y_amplitude_1 - 2,// Y2
-                  color_2);
+                  temp - y_amplitude_contour_color,// Y2
+                  C_WHITE);
     }
-    if(y_amplitude_2 == 1)
-    {
-        UG_DrawLine(graph_next_start_x,           // X1
-                    GRAPH_START_Y,                // Y1
-                    graph_next_start_x,           // X2
-                    GRAPH_START_Y - 1,            // Y2
-                    color_1);
-
-        UG_DrawLine(graph_next_start_x,           // X1
-                    GRAPH_START_Y - 1,            // Y1
-                    graph_next_start_x,           // X2
-                    GRAPH_START_Y - 2,            // Y2
-                    color_2);
-    }
-    // draw 0 value
+    // draw lines: amplitude < 2
     else
     {
-        UG_DrawLine(graph_next_start_x,           // X1
-                    GRAPH_START_Y,                // Y1
-                    graph_next_start_x,           // X2
-                    GRAPH_START_Y,                // Y2
-                    color_1);
+      UG_DrawLine(graph_next_start_x,           // X1
+                  GRAPH_START_Y,                // Y1
+                  graph_next_start_x,           // X2
+                  GRAPH_START_Y - y_amplitude_contour_color,// Y2
+                  C_WHITE);
     }
 
     // increment and verify roll over
@@ -531,6 +505,8 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
 
     // no chance to roll over so just increment
     graph_x_index++;
+
+    y_amplitude_previous = y_amplitude;
   }
 
   // draw max and min values as also last value

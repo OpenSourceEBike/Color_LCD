@@ -2261,8 +2261,8 @@ void graphs_measurements_update(void)
   {
     // sum the value
 //    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui8_motor_temperature;
-//    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
-    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
+    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
+//    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
 
     // every 3.5 seconds, update the graph array values
     if(++counter >= 35)

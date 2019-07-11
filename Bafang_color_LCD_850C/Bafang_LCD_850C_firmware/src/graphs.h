@@ -42,6 +42,6 @@ void graphs_draw(lcd_vars_t *p_lcd_vars);
 void graphs_init(void);
 void graphs_clock_1(void);
 void graphs_clock_2(void);
-graphs_t *get_graphs(void);
+volatile graphs_t *get_graphs(void);
 
 #endif /* GRAPH_H_ */

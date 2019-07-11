@@ -64,8 +64,9 @@ static uint8_t ui8_m_usart1_received_first_package = 0;
 
 volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
-static graphs_t *m_p_graphs;
-static uint32_t ui32_m_draw_graphs = 0;
+static volatile graphs_t *m_p_graphs;
+static volatile uint32_t ui32_m_draw_graphs_1 = 0;
+static volatile uint32_t ui32_m_draw_graphs_2 = 0;
 
 void lcd_main_screen(void);
 uint8_t first_time_management(void);
@@ -160,10 +161,11 @@ void lcd_clock(void)
     m_lcd_vars.ui8_lcd_menu_max_power = 1;
   }
 
-  // ui32_m_draw_graphs == 1 every 3.5 seconds, set on timer interrupt
+  // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run before lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs)
+  if(ui32_m_draw_graphs_1)
   {
+    ui32_m_draw_graphs_2 = 1;
     graphs_clock_1();
   }
 
@@ -178,9 +180,9 @@ void lcd_clock(void)
     break;
   }
 
-  // ui32_m_draw_graphs == 1 every 3.5 seconds, set on timer interrupt
+  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs)
+  if(ui32_m_draw_graphs_2)
   {
     graphs_clock_2();
   }
@@ -188,7 +190,8 @@ void lcd_clock(void)
   power_off_management();
 
   // must be reset after a full cycle of lcd_clock()
-  ui32_m_draw_graphs = 0;
+  ui32_m_draw_graphs_1 = 0;
+  ui32_m_draw_graphs_2 = 0;
 }
 
 void lcd_draw_main_menu_mask(void)
@@ -224,8 +227,8 @@ void lcd_main_screen(void)
   trip_time();
   trip_distance();
 
-  // ui32_m_draw_graphs == 1 every 3.5 seconds, set on timer interrupt
-  if(ui32_m_draw_graphs ||
+  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
+  if(ui32_m_draw_graphs_2 ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     graphs_draw(&m_lcd_vars);
@@ -834,10 +837,6 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
     l2_vars.ui16_pedal_power_filtered /= 10;
     l2_vars.ui16_pedal_power_filtered *= 10;
   }
-  else
-  {
-    l2_vars.ui16_pedal_power_filtered = 0; // no point to show less than 10W
-  }
 
 #ifdef SIMULATION
   static uint16_t ui16_virtual_pedal_power = 0;
@@ -880,10 +879,10 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 //      ui16_index = 0;
 //    }
 
-    l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
-
     ui16_index++;
   }
+
+  l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
 #endif
 }
 
@@ -1808,6 +1807,15 @@ void pedal_human_power(void)
 
   ui16_pedal_power = l3_vars.ui16_pedal_power_filtered;
 
+  if(ui16_pedal_power == 0)
+  {
+    ui16_pedal_power++;
+  }
+  if(ui16_pedal_power == 150)
+  {
+    ui16_pedal_power++;
+  }
+
   if((ui16_pedal_power != ui16_pedal_power_previous) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -2263,6 +2271,7 @@ void graphs_measurements_update(void)
 //    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui8_motor_temperature;
     m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
 //    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
+//      m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_adc_battery_voltage;
 
     // every 3.5 seconds, update the graph array values
     if(++counter >= 35)
@@ -2286,12 +2295,14 @@ void graphs_measurements_update(void)
           (m_p_graphs[0].ui32_data_y_last_value_previous * 50))
           / 100;
 
+//m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_adc_battery_voltage;
+
       m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
 
       counter = 0;
 
       // signal to draw graphs on main loop
-      ui32_m_draw_graphs = 1;
+      ui32_m_draw_graphs_1 = 1;
     }
   }
 #else
@@ -2301,8 +2312,13 @@ void graphs_measurements_update(void)
   {
     m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_pedal_power_filtered;
 
+    if(l2_vars.ui16_pedal_power_filtered == 0)
+    {
+      m_p_graphs[0].ui32_data_y_last_value++;
+    }
+
     // signal to draw graphs on main loop
-    ui32_m_draw_graphs = 1;
+    ui32_m_draw_graphs_1 = 1;
 
     counter = 0;
   }

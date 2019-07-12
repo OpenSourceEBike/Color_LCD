@@ -716,7 +716,8 @@ void trip_distance(void)
 
     // print the number
     trip_distance.ui32_number = ui32_trip_distance;
-    trip_distance.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
+//    trip_distance.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
+    trip_distance.ui8_refresh_all_digits = 1; // seems that decimal number needs always refresh other way there is an issue with print the "."
     lcd_print_number(&trip_distance);
     trip_distance.ui8_refresh_all_digits = 0;
   }
@@ -804,7 +805,7 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 
   // low pass filter
   ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10;
+  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
   l2_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
 
   if(l2_vars.ui16_pedal_torque_filtered > 200)
@@ -1807,21 +1808,10 @@ void pedal_human_power(void)
 
   ui16_pedal_power = l3_vars.ui16_pedal_power_filtered;
 
-  if(ui16_pedal_power == 0)
-  {
-    ui16_pedal_power++;
-  }
-  if(ui16_pedal_power == 150)
-  {
-    ui16_pedal_power++;
-  }
-
   if((ui16_pedal_power != ui16_pedal_power_previous) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     ui16_pedal_power_previous = ui16_pedal_power;
-
-    if (ui16_pedal_power > 999) { ui16_pedal_power = 999; }
 
     power_number.ui32_number = ui16_pedal_power;
     power_number.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
@@ -2257,6 +2247,7 @@ void graphs_measurements_update(void)
   static uint32_t counter = 0;
 //  static uint8_t ui8_first_time = 1;
   static uint8_t ui8_first_time = 0;
+  static uint32_t ui32_pedal_power_accumulated = 0;
 
 #ifndef SIMULATION
   if(ui8_first_time &&
@@ -2267,11 +2258,12 @@ void graphs_measurements_update(void)
 
   if(ui8_first_time == 0)
   {
+    // apply the same low pass filter as for the value show to user
+    ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+    ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+
     // sum the value
-//    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui8_motor_temperature;
-    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_pedal_power_filtered;
-//    m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_battery_power_filtered;
-//      m_p_graphs[0].measurement.ui32_sum_value += l2_vars.ui16_adc_battery_voltage;
+    m_p_graphs[0].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
 
     // every 3.5 seconds, update the graph array values
     if(++counter >= 35)
@@ -2288,14 +2280,6 @@ void graphs_measurements_update(void)
         m_p_graphs[0].ui32_data_y_last_value = 0;
         m_p_graphs[0].measurement.ui32_sum_value = 0;
       }
-
-      // low pass filter
-      m_p_graphs[0].ui32_data_y_last_value =
-          ((m_p_graphs[0].ui32_data_y_last_value * 50) +
-          (m_p_graphs[0].ui32_data_y_last_value_previous * 50))
-          / 100;
-
-//m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_adc_battery_voltage;
 
       m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
 

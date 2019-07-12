@@ -156,7 +156,7 @@ void USART1_IRQHandler()
             ui8_received_package_flag = 1;
 
             // store the received data to rx_buffer
-            memcpy(ui8_rx_buffer, ui8_rx, UART_NUMBER_DATA_BYTES_TO_RECEIVE);
+            memcpy(ui8_rx_buffer, ui8_rx, UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1);
           }
         }
       }

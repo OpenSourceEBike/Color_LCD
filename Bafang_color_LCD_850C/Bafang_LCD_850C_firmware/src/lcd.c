@@ -42,9 +42,9 @@ lcd_vars_t m_lcd_vars =
 };
 
 volatile l2_vars_t l2_vars;
-volatile l3_vars_t l3_vars;
+l3_vars_t l3_vars;
 
-static struct_lcd_configurations_vars *p_lcd_configurations_vars;
+static lcd_configurations_menu_t *p_lcd_configurations_vars;
 
 static uint8_t ui8_lcd_menu_counter_100ms_state = 0;
 
@@ -108,10 +108,10 @@ void lcd_init(void)
   UG_FillScreen(C_BLACK);
 
   lcd_configurations_screen_init();
-  p_lcd_configurations_vars = get_lcd_configurations_vars();
+  p_lcd_configurations_vars = get_lcd_configurations_menu();
 
   // init variables with the stored value on EEPROM
-  eeprom_init_variables ();
+  eeprom_init_variables();
 
   m_p_graphs = get_graphs();
 }
@@ -132,8 +132,8 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-  if(first_time_management())
-    return;
+//  if(first_time_management())
+//    return;
 
   update_menu_flashing_state();
 
@@ -143,7 +143,7 @@ void lcd_clock(void)
   if(buttons_get_up_down_click_event() &&
       m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
   {
-    buttons_clear_up_down_click_event();
+    buttons_clear_all_events();
 
     // reset needed variables of configurations screen
     p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
@@ -549,12 +549,13 @@ void assist_level_state(void)
   if (buttons_get_up_click_event() &&
       m_lcd_vars.ui8_lcd_menu_max_power == 0)
   {
-    buttons_clear_up_click_event ();
-    buttons_clear_up_click_long_click_event ();
-    buttons_clear_up_long_click_event ();
-    buttons_clear_down_click_event ();
-    buttons_clear_down_click_long_click_event ();
-    buttons_clear_down_long_click_event ();
+//    buttons_clear_up_click_event ();
+//    buttons_clear_up_click_long_click_event ();
+//    buttons_clear_up_long_click_event ();
+//    buttons_clear_down_click_event ();
+//    buttons_clear_down_click_long_click_event ();
+//    buttons_clear_down_long_click_event ();
+      buttons_clear_all_events();
 
     l3_vars.ui8_assist_level++;
 
@@ -565,12 +566,13 @@ void assist_level_state(void)
   if (buttons_get_down_click_event() &&
       m_lcd_vars.ui8_lcd_menu_max_power == 0)
   {
-    buttons_clear_up_click_event ();
-    buttons_clear_up_click_long_click_event ();
-    buttons_clear_up_long_click_event ();
-    buttons_clear_down_click_event ();
-    buttons_clear_down_click_long_click_event ();
-    buttons_clear_down_long_click_event ();
+//    buttons_clear_up_click_event ();
+//    buttons_clear_up_click_long_click_event ();
+//    buttons_clear_up_long_click_event ();
+//    buttons_clear_down_click_event ();
+//    buttons_clear_down_click_long_click_event ();
+//    buttons_clear_down_long_click_event ();
+      buttons_clear_all_events();
 
     if (l3_vars.ui8_assist_level > 0)
       l3_vars.ui8_assist_level--;
@@ -589,7 +591,7 @@ void assist_level_state(void)
   }
 }
 
-volatile l3_vars_t* get_l3_vars(void)
+l3_vars_t* get_l3_vars(void)
 {
   return &l3_vars;
 }
@@ -1150,7 +1152,7 @@ void lights_state(void)
   uint32_t ui32_x2;
   uint32_t ui32_y2;
 
-  if (buttons_get_up_long_click_event())
+  if(buttons_get_up_long_click_event())
   {
     buttons_clear_up_long_click_event();
 

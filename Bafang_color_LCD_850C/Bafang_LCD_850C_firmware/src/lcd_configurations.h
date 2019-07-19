@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include "lcd.h"
 
-typedef struct lcd_configurations
+typedef struct _lcd_configurations
 {
   uint8_t ui8_item_number;
   uint8_t ui8_previous_item_number;
@@ -21,10 +21,10 @@ typedef struct lcd_configurations
   uint8_t ui8_refresh_full_menu_1;
   uint8_t ui8_refresh_full_menu_2;
   uint8_t ui8_battery_soc_power_used_state;
-} lcd_configurations_menu_t;
+} struct_lcd_configurations_vars;
 
 void lcd_configurations_screen_init(void);
 void lcd_configurations_screen(void);
-lcd_configurations_menu_t* get_lcd_configurations_menu(void);
+struct_lcd_configurations_vars* get_lcd_configurations_vars(void);
 
 #endif /* LCD_CONFIGURATIONS_H_ */

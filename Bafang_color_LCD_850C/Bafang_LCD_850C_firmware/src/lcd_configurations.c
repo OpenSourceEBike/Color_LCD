@@ -23,9 +23,6 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
-// to make structures use only bytes and have no paddings
-#pragma pack(1)
-
 #define MAX_ITEMS                 (82 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
@@ -54,7 +51,7 @@ typedef struct _var_number
 
 volatile static l3_vars_t *p_l3_vars;
 
-lcd_configurations_menu_t lcd_configurations_menu =
+static struct_lcd_configurations_vars lcd_configurations_vars =
 {
   .ui8_item_number = 1,
   .ui8_previous_item_number = 0xff,
@@ -357,7 +354,7 @@ void lcd_configurations_screen(void)
   // leave config menu with a button_onoff_long_click
   if(buttons_get_onoff_long_click_event())
   {
-    buttons_clear_all_events();
+    buttons_clear_onoff_long_click_event();
 
     p_lcd_vars->ui32_main_screen_draw_static_info = 1;
     p_lcd_vars->lcd_screen_state = LCD_SCREEN_MAIN;
@@ -393,7 +390,7 @@ void lcd_configurations_screen(void)
     item_visible_manage(&menu_data);
 
     // see if next item is a tittle
-    if(items_array_is_title[lcd_configurations_menu.ui8_item_number] == 1)
+    if(items_array_is_title[lcd_configurations_vars.ui8_item_number] == 1)
     {
       menu_data.ui8_item_increment = 1;
       item_visible_manage(&menu_data);
@@ -413,7 +410,7 @@ void lcd_configurations_screen(void)
     item_visible_manage(&menu_data);
 
     // see if next item is a tittle
-    if(items_array_is_title[lcd_configurations_menu.ui8_item_number] == 1)
+    if(items_array_is_title[lcd_configurations_vars.ui8_item_number] == 1)
     {
       menu_data.ui8_item_increment = 0;
       item_visible_manage(&menu_data);
@@ -421,8 +418,8 @@ void lcd_configurations_screen(void)
   }
 
   // to draw static info
-  if(lcd_configurations_menu.ui8_refresh_full_menu_1 == 1 ||
-      lcd_configurations_menu.ui8_refresh_full_menu_2 == 1 )
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1 == 1 ||
+      lcd_configurations_vars.ui8_refresh_full_menu_2 == 1 )
   {
     UG_FillScreen(C_BLACK);
     draw_configurations_screen_mask();
@@ -431,28 +428,28 @@ void lcd_configurations_screen(void)
     menu_data.ui8_edit_state = 0;
 
     // let's start at ui8_item_number higher than 0 at first time
-    lcd_configurations_menu.ui8_previous_item_number = 0xff;
-    if(lcd_configurations_menu.ui8_item_number == 0)
+    lcd_configurations_vars.ui8_previous_item_number = 0xff;
+    if(lcd_configurations_vars.ui8_item_number == 0)
     {
-      lcd_configurations_menu.ui8_item_number = 0;
-      lcd_configurations_menu.ui8_item_visible_start_index = 0;
-      lcd_configurations_menu.ui8_item_visible_index = 0;
+      lcd_configurations_vars.ui8_item_number = 0;
+      lcd_configurations_vars.ui8_item_visible_start_index = 0;
+      lcd_configurations_vars.ui8_item_visible_index = 0;
       menu_data.ui8_item_increment = 1;
       item_visible_manage(&menu_data);
     }
 
     // for the ase we want to reset to defaults
-    if(lcd_configurations_menu.ui8_refresh_full_menu_2 == 1)
+    if(lcd_configurations_vars.ui8_refresh_full_menu_2 == 1)
     {
-      lcd_configurations_menu.ui8_refresh_full_menu_2 = 0;
-      lcd_configurations_menu.ui8_refresh_full_menu_1 = 1;
+      lcd_configurations_vars.ui8_refresh_full_menu_2 = 0;
+      lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
     }
   }
 
   for(ui8_i = 0; ui8_i < MAX_ITEMS_PER_SCREEN; ui8_i++)
   {
     // find which item we are pointing to/editing
-    if(lcd_configurations_menu.ui8_item_visible_index == ui8_i)
+    if(lcd_configurations_vars.ui8_item_visible_index == ui8_i)
     {
       menu_data.ui8_edit_state = 1;
       menu_data.ui8_visible_item_edit = ui8_i;
@@ -464,18 +461,18 @@ void lcd_configurations_screen(void)
 
     menu_data.ui8_visible_item = ui8_i;
     // call each function on the array
-    (*p_items_array[lcd_configurations_menu.ui8_item_visible_start_index + ui8_i])(&menu_data);
+    (*p_items_array[lcd_configurations_vars.ui8_item_visible_start_index + ui8_i])(&menu_data);
 
     draw_item_cursor(&menu_data);
   }
 
   // track state for item number change
-  if(lcd_configurations_menu.ui8_item_number != lcd_configurations_menu.ui8_previous_item_number)
+  if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
   {
-    lcd_configurations_menu.ui8_previous_item_number = lcd_configurations_menu.ui8_item_number;
+    lcd_configurations_vars.ui8_previous_item_number = lcd_configurations_vars.ui8_item_number;
   }
 
-  lcd_configurations_menu.ui8_refresh_full_menu_1 = 0;
+  lcd_configurations_vars.ui8_refresh_full_menu_1 = 0;
 }
 
 void item_visible_manage(struct_menu_data *p_menu_data)
@@ -486,24 +483,24 @@ void item_visible_manage(struct_menu_data *p_menu_data)
     if(!p_menu_data->ui8_screen_set_values)
     {
       // increment to next item
-      if(lcd_configurations_menu.ui8_item_number < MAX_ITEMS)
+      if(lcd_configurations_vars.ui8_item_number < MAX_ITEMS)
       {
-        lcd_configurations_menu.ui8_item_number++;
+        lcd_configurations_vars.ui8_item_number++;
       }
 
       // increment to next visible item
-      if(lcd_configurations_menu.ui8_item_visible_index < (MAX_ITEMS_PER_SCREEN - 1))
+      if(lcd_configurations_vars.ui8_item_visible_index < (MAX_ITEMS_PER_SCREEN - 1))
       {
-        lcd_configurations_menu.ui8_item_visible_index++;
+        lcd_configurations_vars.ui8_item_visible_index++;
       }
       // visible item limit, so increment the start index of visible item
       else
       {
         // do not increment more over the last item
-        if(lcd_configurations_menu.ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
+        if(lcd_configurations_vars.ui8_item_visible_start_index < MAX_ITEMS_VISIBLE_INDEX)
         {
-          lcd_configurations_menu.ui8_item_visible_start_index++;
-          lcd_configurations_menu.ui8_refresh_full_menu_1 = 1;
+          lcd_configurations_vars.ui8_item_visible_start_index++;
+          lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
         }
       }
     }
@@ -513,35 +510,35 @@ void item_visible_manage(struct_menu_data *p_menu_data)
     if(!menu_data.ui8_screen_set_values)
     {
       // decrement to next item
-      if(lcd_configurations_menu.ui8_item_number > 0)
+      if(lcd_configurations_vars.ui8_item_number > 0)
       {
-        lcd_configurations_menu.ui8_item_number--;
+        lcd_configurations_vars.ui8_item_number--;
       }
 
       // decrement to next visible item
-      if(lcd_configurations_menu.ui8_item_visible_index > 1)
+      if(lcd_configurations_vars.ui8_item_visible_index > 1)
       {
-        lcd_configurations_menu.ui8_item_visible_index--;
+        lcd_configurations_vars.ui8_item_visible_index--;
       }
       // visible item limit, so decrement the start index of visible item
       else
       {
         // do not decrement more over the last item
-        if(lcd_configurations_menu.ui8_item_visible_start_index > 0)
+        if(lcd_configurations_vars.ui8_item_visible_start_index > 0)
         {
-          lcd_configurations_menu.ui8_item_visible_start_index--;
-          lcd_configurations_menu.ui8_refresh_full_menu_1 = 1;
+          lcd_configurations_vars.ui8_item_visible_start_index--;
+          lcd_configurations_vars.ui8_refresh_full_menu_1 = 1;
         }
       }
     }
   }
 
   // exception: force first item to never stay on title
-  if(lcd_configurations_menu.ui8_item_visible_start_index == 0 &&
-      lcd_configurations_menu.ui8_item_number == 0)
+  if(lcd_configurations_vars.ui8_item_visible_start_index == 0 &&
+      lcd_configurations_vars.ui8_item_number == 0)
   {
-    lcd_configurations_menu.ui8_item_number = 1;
-    lcd_configurations_menu.ui8_refresh_full_menu_1 = 0;
+    lcd_configurations_vars.ui8_item_number = 1;
+    lcd_configurations_vars.ui8_refresh_full_menu_1 = 0;
   }
 }
 
@@ -811,9 +808,9 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 void battery_soc_power_used(struct_menu_data *p_menu_data)
 {
   // run only once when start configurations
-  if(lcd_configurations_menu.ui8_battery_soc_power_used_state)
+  if(lcd_configurations_vars.ui8_battery_soc_power_used_state)
   {
-    lcd_configurations_menu.ui8_battery_soc_power_used_state = 0;
+    lcd_configurations_vars.ui8_battery_soc_power_used_state = 0;
 
     // update offset with the total value
     p_l3_vars->ui32_wh_x10_offset = p_l3_vars->ui32_wh_x10;
@@ -1648,11 +1645,11 @@ void display_reset_to_defaults(struct_menu_data *p_menu_data)
   if (ui8_reset_to_defaults_counter > 9)
   {
     ui8_reset_to_defaults_counter = 0;
-
-    eeprom_init_defaults();
+    eeprom_erase_key_value();
+    eeprom_init(); // after erasing the key, eeprom_init() will read the default values
 
     // this will force refresh of all LCD configuration fields
-    lcd_configurations_menu.ui8_refresh_full_menu_2 = 1;
+    lcd_configurations_vars.ui8_refresh_full_menu_2 = 1;
   }
 }
 
@@ -2081,7 +2078,7 @@ void configurations_screen_item_title_set_strings(uint8_t *ui8_p_string, struct_
   uint32_t ui32_y_position;
 
   // update only when item number changes
-  if(lcd_configurations_menu.ui8_refresh_full_menu_1)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     ui32_x_position = 0;
     ui32_y_position = ui16_conf_screen_first_item_y_offset +
@@ -2106,7 +2103,7 @@ void item_set_strings(uint8_t *ui8_p_string1, uint8_t *ui8_p_string2, struct_men
   uint32_t ui32_y_position;
 
   // update only when item number changes
-  if(lcd_configurations_menu.ui8_refresh_full_menu_1)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(C_WHITE);
@@ -2283,14 +2280,14 @@ void item_var_set_number(var_number_t *p_lcd_var_number, struct_menu_data *p_men
     ui32_p_var = ((uint32_t *) p_lcd_var_number->p_var_number);
   }
 
-  if((lcd_configurations_menu.ui8_item_number != lcd_configurations_menu.ui8_previous_item_number) ||
-     (lcd_configurations_menu.ui8_refresh_full_menu_1) ||
+  if((lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number) ||
+     (lcd_configurations_vars.ui8_refresh_full_menu_1) ||
      (p_lcd_var_number->ui8_need_update))
   {
     ui8_draw_var_value = 1;
   }
 
-  if(lcd_configurations_menu.ui8_refresh_full_menu_1)
+  if(lcd_configurations_vars.ui8_refresh_full_menu_1)
   {
     ui8_draw_var_value = 1;
   }
@@ -2435,7 +2432,7 @@ void item_var_set_strings(var_number_t *p_lcd_var_number, struct_menu_data *p_me
     ui8_draw_var_value = 1;
   }
 
-  if(lcd_configurations_menu.ui8_item_number != lcd_configurations_menu.ui8_previous_item_number)
+  if(lcd_configurations_vars.ui8_item_number != lcd_configurations_vars.ui8_previous_item_number)
   {
     ui8_draw_var_value = 1;
   }
@@ -2493,7 +2490,7 @@ void draw_item_cursor(struct_menu_data *p_menu_data)
   uint8_t ui8_cursor_index;
   static uint8_t ui8_cursor_index_previous = 1;
 
-  ui8_cursor_index = lcd_configurations_menu.ui8_item_number - lcd_configurations_menu.ui8_item_visible_start_index;
+  ui8_cursor_index = lcd_configurations_vars.ui8_item_number - lcd_configurations_vars.ui8_item_visible_start_index;
 
   // cursor changed, so delete from the current location before draw on the new one
   if(ui8_cursor_index != ui8_cursor_index_previous)
@@ -2546,7 +2543,7 @@ void draw_item_cursor(struct_menu_data *p_menu_data)
   }
 }
 
-lcd_configurations_menu_t* get_lcd_configurations_menu(void)
+struct_lcd_configurations_vars* get_lcd_configurations_vars(void)
 {
-  return &lcd_configurations_menu;
+  return &lcd_configurations_vars;
 }

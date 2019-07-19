@@ -56,9 +56,6 @@ typedef struct l2_vars_struct
   uint32_t ui32_wh_x10_100_percent;
   uint8_t ui8_battery_soc_enable;
   uint8_t ui8_battery_soc_increment_decrement;
-  uint8_t ui8_odometer_field_state;
-  uint8_t ui8_odometer_sub_field_state;
-  uint8_t ui8_odometer_show_field_number;
   uint8_t ui8_target_max_battery_power;
   uint8_t ui8_battery_cells_number;
   uint8_t ui8_battery_max_current;
@@ -138,9 +135,6 @@ typedef struct l3_vars_struct
   uint32_t ui32_wh_x10_100_percent;
   uint8_t ui8_battery_soc_enable;
   uint8_t ui8_battery_soc_increment_decrement;
-  uint8_t ui8_odometer_field_state;
-  uint8_t ui8_odometer_sub_field_state;
-  uint8_t ui8_odometer_show_field_number;
   uint8_t ui8_target_max_battery_power;
   uint8_t ui8_battery_cells_number;
   uint8_t ui8_battery_max_current;
@@ -222,7 +216,7 @@ extern volatile uint32_t ui32_g_graphs_data_array_over_255;
 void lcd_init(void);
 void lcd_clock(void);
 void layer_2(void);
-volatile l3_vars_t* get_l3_vars (void);
+l3_vars_t* get_l3_vars(void);
 lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
 void lcd_draw_main_menu_mask(void);

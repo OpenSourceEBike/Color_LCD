@@ -35,20 +35,20 @@
 // EEPROM memory variables default values
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3
 #define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       5
-#define DEFAULT_VALUE_WHEEL_PERIMETER_0                             2 // 26'' wheel: 2050mm perimeter (2 + (8 << 8))
-#define DEFAULT_VALUE_WHEEL_PERIMETER_1                             8
+#define DEFAULT_VALUE_WHEEL_PERIMETER                               2050 // 26'' wheel: 2050mm perimeter
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
-#define DEFAULT_VALUE_WH_OFFSET                                     0
+#define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      0
-#define DEFAULT_VALUE_ODOMETER_FIELD_STATE                          0
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
 #define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          13 // 13 --> 48V
-#define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_0             134 // 48v battery, LVC = 39.0 (3.0 * 13): (134 + (1 << 8))
-#define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10_1             1
-#define DEFAULT_VALUE_CONFIG_0                                      0 // ui8_motor_type = 0; ui8_motor_assistance_startup_config = 0
+#define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               390 // 48v battery, LVC = 39.0 (3.0 * 13)
+#define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
+#define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
+#define DEFAULT_VALUE_TEMPERATURE_LIMITE                            0 // 0 to keep this feature disable
+#define DEFAULT_VALUE_TEMPERATURE_FIELD_CONFIG                      0
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         4
@@ -83,13 +83,11 @@
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85
-#define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_0        30 // 48v battery, 54.2 volts fully charged = 54.2: (30 + (2 << 8))
-#define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10_1        2
+#define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   20 // 16 = 80%
 #define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  20 // 1 = 5%
-#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE_0                     130 // 48v battery, 13S5P measured 130 milli ohms
-#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE_1                     0
+#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       130 // 48v battery, 13S5P measured 130 milli ohms
 #define DEFAULT_VALUE_OFFROAD_FEATURE_ENABLED                       0
 #define DEFAULT_VALUE_OFFROAD_MODE_ENABLED_ON_STARTUP               0
 #define DEFAULT_VALUE_OFFROAD_SPEED_LIMIT                           25

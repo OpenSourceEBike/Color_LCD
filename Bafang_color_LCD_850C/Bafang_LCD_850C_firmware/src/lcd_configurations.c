@@ -23,9 +23,6 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
-// to make structures use only bytes and have no paddings
-#pragma pack(1)
-
 #define MAX_ITEMS                 (82 - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
@@ -368,10 +365,7 @@ void lcd_configurations_screen(void)
   // enter/leave screen set values
   if(buttons_get_onoff_click_event())
   {
-    buttons_clear_onoff_click_event();
-    buttons_clear_onoff_long_click_event();
-    buttons_clear_up_click_event();
-    buttons_clear_down_click_event();
+    buttons_clear_all_events();
     menu_data.menu_buttons_events = 0;
 
     if(menu_data.ui8_screen_set_values) { menu_data.ui8_screen_set_values = 0; }
@@ -2386,6 +2380,16 @@ void item_var_set_strings(var_number_t *p_lcd_var_number, struct_menu_data *p_me
   uint8_t *p_temp;
   uint8_t ui8_counter;
   uint8_t *ui8_p_value;
+
+//  // force min and max values
+//  if(((uint8_t *) p_lcd_var_number->p_var_number) > ((uint8_t *) p_lcd_var_number->ui32_max_value))
+//  {
+//    p_lcd_var_number->p_var_number = ((uint8_t *) p_lcd_var_number->ui32_max_value);
+//  }
+//  else if (((uint8_t *) p_lcd_var_number->p_var_number) < ((uint8_t *) p_lcd_var_number->ui32_min_value))
+//  {
+//    p_lcd_var_number->p_var_number = ((uint8_t *) p_lcd_var_number->ui32_min_value);
+//  }
 
   ui8_p_value = ((uint8_t *) p_lcd_var_number->p_var_number);
 

@@ -44,9 +44,6 @@ eeprom_data_t m_eeprom_data_defaults =
   .ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
   .ui8_motor_type = DEFAULT_VALUE_MOTOR_TYPE,
   .ui8_motor_assistance_startup_without_pedal_rotation = DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION,
-  .ui8_temperature_limit_feature_enabled = DEFAULT_VALUE_TEMPERATURE_LIMITE,
-  .ui8_temperature_field_config = DEFAULT_VALUE_TEMPERATURE_FIELD_CONFIG,
-  .ui8_temperature_field_config = DEFAULT_VALUE_TEMPERATURE_FIELD_CONFIG,
   .ui8_assist_level_factor = {
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,
@@ -74,6 +71,7 @@ eeprom_data_t m_eeprom_data_defaults =
   },
   .ui8_startup_motor_power_boost_time = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_TIME,
   .ui8_startup_motor_power_boost_fade_time = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME,
+  .ui8_temperature_limit_feature_enabled = DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE,
   .ui8_motor_temperature_min_value_to_limit = DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT,
   .ui8_motor_temperature_max_value_to_limit = DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT,
   .ui16_battery_voltage_reset_wh_counter_x10 = DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10,
@@ -174,20 +172,17 @@ void eeprom_init()
     // write on the new page
     eeprom_write_defaults();
     // write EEPROM_MAGIC_KEY and EEPROM_PAGE WRITE_ID
+    eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
     if(ui32_m_eeprom_page == 0)
     {
-      eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
       ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 1);
-      ui32_eeprom_write_id++;
-      eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
     }
     else
     {
-      eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
       ui32_eeprom_write_id = eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 0);
-      ui32_eeprom_write_id++;
-      eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
     }
+    ui32_eeprom_write_id++;
+    eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, ui32_eeprom_write_id); // write new ID
   }
 
   // finally initialize the variables
@@ -229,7 +224,6 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui8_motor_type = m_eeprom_data.ui8_motor_type;
   p_l3_output_vars->ui8_motor_assistance_startup_without_pedal_rotation = m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation;
   p_l3_output_vars->ui8_temperature_limit_feature_enabled = m_eeprom_data.ui8_temperature_limit_feature_enabled;
-  p_l3_output_vars->ui8_temperature_field_config = m_eeprom_data.ui8_temperature_field_config;
   p_l3_output_vars->ui8_assist_level_factor[0] = m_eeprom_data.ui8_assist_level_factor[0];
   p_l3_output_vars->ui8_assist_level_factor[1] = m_eeprom_data.ui8_assist_level_factor[1];
   p_l3_output_vars->ui8_assist_level_factor[2] = m_eeprom_data.ui8_assist_level_factor[2];
@@ -294,6 +288,7 @@ void eeprom_write_variables(void)
   volatile l3_vars_t *p_l3_output_vars;
   volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
+  p_lcd_configurations_menu = get_lcd_configurations_menu();
   uint32_t ui32_eeprom_write_id;
 
   // write vars to eeprom struct
@@ -311,7 +306,6 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui8_motor_type = p_l3_output_vars->ui8_motor_type;
   m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation = p_l3_output_vars->ui8_motor_assistance_startup_without_pedal_rotation;
   m_eeprom_data.ui8_temperature_limit_feature_enabled = p_l3_output_vars->ui8_temperature_limit_feature_enabled;
-  m_eeprom_data.ui8_temperature_field_config = p_l3_output_vars->ui8_temperature_field_config;
   m_eeprom_data.ui8_assist_level_factor[0] = p_l3_output_vars->ui8_assist_level_factor[0];
   m_eeprom_data.ui8_assist_level_factor[1] = p_l3_output_vars->ui8_assist_level_factor[1];
   m_eeprom_data.ui8_assist_level_factor[2] = p_l3_output_vars->ui8_assist_level_factor[2];
@@ -401,11 +395,11 @@ static void eeprom_write_array(uint8_t *p_array, uint32_t ui32_len)
   uint8_t *p_array_data;
 
   // write the full array
-  // start at 1 since 0 address is for KEY
   p_array_data = p_array;
-  for(ui32_i = 1; ui32_i < (ui32_len + 1); ui32_i++)
+  for(ui32_i = 0; ui32_i < ui32_len; ui32_i++)
   {
-    eeprom_write(ui32_i, *p_array_data++);
+    // start at 1 since 0 address is for KEY
+    eeprom_write(1 + ui32_i, *p_array_data++);
   }
 }
 
@@ -485,6 +479,7 @@ void eeprom_write_defaults(void)
   p_array_data = ui8_array;
   for(ui32_i = 0; ui32_i < sizeof(m_eeprom_data_defaults); ui32_i++)
   {
-    eeprom_write(ui32_i, *p_array_data++);
+    // start at 1 since 0 address is for KEY
+    eeprom_write(1 + ui32_i, *p_array_data++);
   }
 }

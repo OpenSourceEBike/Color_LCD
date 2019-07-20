@@ -18,6 +18,7 @@ uint32_t ui32_down_button_state = 0;
 uint32_t ui32_down_button_state_counter = 0;
 uint32_t ui32_up_button_state = 0;
 uint32_t ui32_up_button_state_counter = 0;
+uint32_t ui32_m_clear_event = 0;
 
 buttons_events_t buttons_events = 0;
 
@@ -148,6 +149,7 @@ void buttons_set_events (buttons_events_t events)
 
 void buttons_clear_all_events (void)
 {
+  ui32_m_clear_event = 1;
   buttons_events = 0;
   ui32_onoff_button_state = 0;
   ui32_up_button_state = 0;
@@ -158,6 +160,19 @@ void buttons_clock (void)
 {
   // needed if the event is not cleared anywhere else
   buttons_clear_onoff_click_long_click_event();
+
+  // exit if any button is pressed after clear event
+  if((ui32_m_clear_event) &&
+      (buttons_get_up_state() ||
+      buttons_get_down_state() ||
+      buttons_get_onoff_state()))
+  {
+    return;
+  }
+  else
+  {
+    ui32_m_clear_event = 0;
+  }
 
   switch (ui32_onoff_button_state)
   {

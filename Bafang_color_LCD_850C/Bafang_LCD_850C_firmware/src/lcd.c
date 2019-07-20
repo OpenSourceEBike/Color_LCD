@@ -1130,18 +1130,20 @@ void brake(void)
   }
 }
 
-
 void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 {
-  if (ui8_intensity == 0)
+  // force to be min of 20% and max of 100%
+  if(ui8_intensity < 4)
   {
-    TIM_CtrlPWMOutputs(TIM3, DISABLE);
+    ui8_intensity = 4;
   }
-  else if (ui8_intensity <= 20)
+  else if(ui8_intensity > 20)
   {
-    TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-    TIM_CtrlPWMOutputs(TIM3, ENABLE);
+    ui8_intensity = 20;
   }
+
+  TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
+  TIM_CtrlPWMOutputs(TIM3, ENABLE);
 }
 
 void lights_state(void)

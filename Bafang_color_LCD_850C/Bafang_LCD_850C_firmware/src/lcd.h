@@ -19,6 +19,7 @@ typedef struct l2_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
   uint8_t ui8_battery_current_x5;
+  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint8_t ui8_adc_throttle;
   uint8_t ui8_throttle;
   uint8_t ui8_adc_pedal_torque_sensor;
@@ -96,6 +97,7 @@ typedef struct l3_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
   uint8_t ui8_battery_current_x5;
+  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint8_t ui8_adc_throttle;
   uint8_t ui8_throttle;
   uint8_t ui8_adc_pedal_torque_sensor;

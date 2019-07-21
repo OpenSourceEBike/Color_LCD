@@ -42,6 +42,7 @@
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      0
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
+#define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   50 // 5.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
 #define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          13 // 13 --> 48V
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               390 // 48v battery, LVC = 39.0 (3.0 * 13)

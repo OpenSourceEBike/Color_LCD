@@ -23,7 +23,7 @@
 #include "ugui/ugui.h"
 #include "rtc.h"
 
-#define MAX_ITEMS                 (82 - 1)
+#define MAX_ITEMS                 (sizeof(items_array_is_title) - 1)
 #define MAX_ITEMS_PER_SCREEN      8
 #define MAX_ITEMS_VISIBLE_INDEX   ((MAX_ITEMS + 1) - MAX_ITEMS_PER_SCREEN)
 
@@ -90,6 +90,7 @@ void wheel_perimeter(struct_menu_data *p_menu_data);
 void wheel_speed_units(struct_menu_data *p_menu_data);
 void battery_title(struct_menu_data *p_menu_data);
 void battery_max_current(struct_menu_data *p_menu_data);
+void battery_current_ramp(struct_menu_data *p_menu_data);
 void battery_low_cut_off_voltage(struct_menu_data *p_menu_data);
 void battery_number_cells(struct_menu_data *p_menu_data);
 void battery_resistance(struct_menu_data *p_menu_data);
@@ -176,6 +177,7 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   wheel_speed_units,
   battery_title,
   battery_max_current,
+  battery_current_ramp,
   battery_low_cut_off_voltage,
   battery_number_cells,
   battery_resistance,
@@ -261,6 +263,7 @@ uint8_t items_array_is_title[] =
   0,
   0,
   1, // battery_title
+  0,
   0,
   0,
   0,
@@ -654,6 +657,23 @@ void battery_max_current(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Max current", "(amps)", p_menu_data);
+  item_var_set_number(&lcd_var_number, p_menu_data);
+}
+
+void battery_current_ramp(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_l3_vars->ui8_ramp_up_amps_per_second_x10,
+    .ui8_size = 8,
+    .ui8_number_digits = 3,
+    .ui8_decimal_digit = 1,
+    .ui32_max_value = 255,
+    .ui32_min_value = 4,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Current ramp", "(amps)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 

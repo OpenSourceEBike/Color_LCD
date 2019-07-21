@@ -25,7 +25,8 @@ typedef struct eeprom_data
   uint32_t ui32_wh_x10_offset;
   uint32_t ui32_wh_x10_100_percent;
   uint8_t ui8_battery_soc_enable;
-  uint8_t ui8_battery_max_current;
+  uint8_t ui8_ramp_up_amps_per_second_x10;
+  uint8_t ui8_battery_current_ramp;
   uint8_t ui8_battery_cells_number;
   uint16_t ui16_battery_low_voltage_cut_off_x10;
   uint8_t ui8_motor_type;

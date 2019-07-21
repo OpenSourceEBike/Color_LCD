@@ -430,9 +430,7 @@ void layer_2(void)
     break;
 
     case 7:
-      // TODO
-      // ui8_ramp_up_amps_per_second_x10
-      ui8_g_usart1_tx_buffer[5] = 0;
+      ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_ramp_up_amps_per_second_x10;
 
       // TODO
       // target speed for cruise
@@ -2210,6 +2208,7 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_walk_assist = l3_vars.ui8_walk_assist;
   l2_vars.ui8_offroad_mode = l3_vars.ui8_offroad_mode;
   l2_vars.ui8_battery_max_current = l3_vars.ui8_battery_max_current;
+  l2_vars.ui8_ramp_up_amps_per_second_x10 = l3_vars.ui8_ramp_up_amps_per_second_x10;
   l2_vars.ui8_target_max_battery_power = l3_vars.ui8_target_max_battery_power;
   l2_vars.ui16_battery_low_voltage_cut_off_x10 = l3_vars.ui16_battery_low_voltage_cut_off_x10;
   l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
@@ -2237,8 +2236,6 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_offroad_speed_limit = l3_vars.ui8_offroad_speed_limit;
   l2_vars.ui8_offroad_power_limit_enabled = l3_vars.ui8_offroad_power_limit_enabled;
   l2_vars.ui8_offroad_power_limit_div25 = l3_vars.ui8_offroad_power_limit_div25;
-
-  l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
 }
 
 lcd_vars_t* get_lcd_vars(void)

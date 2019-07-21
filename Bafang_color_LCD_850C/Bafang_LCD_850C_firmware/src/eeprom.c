@@ -12,6 +12,7 @@
 #include "eeprom.h"
 #include "main.h"
 #include "lcd_configurations.h"
+#include "lcd.h"
 
 // to make structures use only bytes and have no paddings
 #pragma pack(1)

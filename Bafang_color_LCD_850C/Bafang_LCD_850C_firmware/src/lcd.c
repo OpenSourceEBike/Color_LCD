@@ -838,53 +838,6 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
     l2_vars.ui16_pedal_power_filtered /= 10;
     l2_vars.ui16_pedal_power_filtered *= 10;
   }
-
-#ifdef SIMULATION
-  static uint16_t ui16_virtual_pedal_power = 0;
-  static uint8_t ui8_counter = 0;
-  static uint16_t ui16_index = 0;
-
-  ui8_counter++;
-  if(ui8_counter >= 2)
-  {
-    ui8_counter = 0;
-
-    if(ui16_index == 0)
-    {
-      ui16_virtual_pedal_power = 0;
-    }
-    else if(ui16_index > 0 && ui16_index <= 150)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 151)
-    {
-      ui16_virtual_pedal_power = 50;
-    }
-    else if(ui16_index > 151 && ui16_index <= 200)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 201)
-    {
-      ui16_virtual_pedal_power = 20;
-      ui16_index = 201;
-    }
-//    else if(ui16_index > 201 && ui16_index <= 254)
-//    {
-//      ui16_virtual_pedal_power++;
-//    }
-//    else if(ui16_index == 255)
-//    {
-//      ui16_virtual_pedal_power = 0;
-//      ui16_index = 0;
-//    }
-
-    ui16_index++;
-  }
-
-  l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
-#endif
 }
 
 static void l2_low_pass_filter_pedal_cadence(void)
@@ -2246,68 +2199,103 @@ lcd_vars_t* get_lcd_vars(void)
 void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
-//  static uint8_t ui8_first_time = 1;
-  static uint8_t ui8_first_time = 0;
   static uint32_t ui32_pedal_power_accumulated = 0;
+  graphs_id_t graph_id = 0;
 
-#ifndef SIMULATION
-  if(ui8_first_time &&
-      l2_vars.ui8_motor_temperature != 0)
+  for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
   {
-    ui8_first_time = 0;
+    switch(graph_id)
+    {
+      case GRAPH_WHEEL_SPEED:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_wheel_speed_x10;
+      break;
+
+      case GRAPH_PEDAL_HUMAN_POWER:
+        // apply the same low pass filter as for the value show to user
+        ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+        ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+
+        // sum the value
+        m_p_graphs[graph_id].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+      break;
+
+      case GRAPH_PEDAL_CADENCE:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui8_pedal_cadence_filtered;
+      break;
+
+      case GRAPH_BATTERY_VOLTAGE:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_battery_voltage_filtered_x10;
+      break;
+
+      case GRAPH_BATTERY_CURRENT:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_battery_current_filtered_x5;
+      break;
+
+      case GRAPH_BATTERY_SOC:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_battery_voltage_soc_x10;
+      break;
+
+      case GRAPH_MOTOR_POWER:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_battery_power_filtered;
+      break;
+
+      case GRAPH_MOTOR_TEMPERATURE:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui8_motor_temperature;
+      break;
+
+      case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui8_duty_cycle;
+      break;
+
+      case GRAPH_MOTOR_ERPS:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui16_motor_speed_erps;
+      break;
+
+      case GRAPH_MOTOR_FOC_ANGLE:
+        m_p_graphs[graph_id].measurement.ui32_sum_value +=
+            l3_vars.ui8_foc_angle;
+      break;
+
+      default:
+      break;
+    }
   }
 
-  if(ui8_first_time == 0)
+  // every 3.5 seconds, update the graph array values
+  if(++counter >= 35)
   {
-    // apply the same low pass filter as for the value show to user
-    ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-    ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
-
-    // sum the value
-    m_p_graphs[0].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-
-    // every 3.5 seconds, update the graph array values
-    if(++counter >= 35)
+    for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
     {
-      if(m_p_graphs[0].measurement.ui32_sum_value)
+      if(m_p_graphs[graph_id].measurement.ui32_sum_value)
       {
         /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
+        m_p_graphs[graph_id].ui32_data_y_last_value = m_p_graphs[graph_id].measurement.ui32_sum_value / counter;
+        m_p_graphs[graph_id].measurement.ui32_sum_value = 0;
       }
       else
       {
         /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = 0;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
+        m_p_graphs[graph_id].ui32_data_y_last_value = 0;
+        m_p_graphs[graph_id].measurement.ui32_sum_value = 0;
       }
 
-      m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
-
-      counter = 0;
-
-      // signal to draw graphs on main loop
-      ui32_m_draw_graphs_1 = 1;
+      m_p_graphs[graph_id].ui32_data_y_last_value_previous = m_p_graphs[graph_id].ui32_data_y_last_value;
     }
-  }
-#else
-  // every 0.5 second
-  counter++;
-  if(counter >= 2)
-  {
-    m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_pedal_power_filtered;
 
-    if(l2_vars.ui16_pedal_power_filtered == 0)
-    {
-      m_p_graphs[0].ui32_data_y_last_value++;
-    }
+    counter = 0;
 
     // signal to draw graphs on main loop
     ui32_m_draw_graphs_1 = 1;
-
-    counter = 0;
   }
-#endif
 }
 
 void walk_assist_state(void)

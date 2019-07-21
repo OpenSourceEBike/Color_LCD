@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "ugui/ugui.h"
 #include "usart1.h"
+#include "graphs.h"
 
 #define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 
@@ -172,6 +173,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
+
+  graphs_id_t graph_id;
 } l3_vars_t;
 
 typedef enum

@@ -42,9 +42,7 @@ int main(void)
   pins_init();
   system_power(1);
   systick_init();
-#ifndef SIMULATION
   usart1_init();
-#endif
   eeprom_init();
   rtc_init();
   timer3_init(); // drives LCD backlight

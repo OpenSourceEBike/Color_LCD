@@ -9,9 +9,7 @@
 #ifndef _EEPROM_H_
 #define _EEPROM_H_
 
-#include "lcd.h"
 #include "lcd_configurations.h"
-#include "main.h"
 
 #define ADDRESS_KEY 0
 #define KEY 1

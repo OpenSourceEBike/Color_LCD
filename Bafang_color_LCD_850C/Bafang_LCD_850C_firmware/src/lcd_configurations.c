@@ -49,7 +49,7 @@ typedef struct _var_number
   uint8_t ui8_need_update;
 } var_number_t;
 
-volatile static l3_vars_t *p_l3_vars;
+static l3_vars_t *p_m_l3_vars;
 
 lcd_configurations_menu_t lcd_configurations_menu =
 {
@@ -346,7 +346,7 @@ uint8_t items_array_is_title[] =
 void lcd_configurations_screen_init(void)
 {
   p_lcd_vars = get_lcd_vars();
-  p_l3_vars = get_l3_vars();
+  p_m_l3_vars = get_l3_vars();
 }
 
 void lcd_configurations_screen(void)
@@ -591,7 +591,7 @@ void wheel_max_speed(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_wheel_max_speed,
+    .p_var_number = &p_m_l3_vars->ui8_wheel_max_speed,
     .ui8_size = 8,
     .ui8_number_digits = 2,
     .ui8_decimal_digit = 0,
@@ -608,7 +608,7 @@ void wheel_perimeter(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_wheel_perimeter,
+    .p_var_number = &p_m_l3_vars->ui16_wheel_perimeter,
     .ui8_size = 16,
     .ui8_number_digits = 4,
     .ui8_decimal_digit = 0,
@@ -625,7 +625,7 @@ void wheel_speed_units(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_units_type,
+    .p_var_number = &p_m_l3_vars->ui8_units_type,
     .ui8_size = 0,
     .ui8_number_digits = 0,
     .ui8_decimal_digit = 0,
@@ -647,7 +647,7 @@ void battery_max_current(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_battery_max_current,
+    .p_var_number = &p_m_l3_vars->ui8_battery_max_current,
     .ui8_size = 8,
     .ui8_number_digits = 2,
     .ui8_decimal_digit = 0,
@@ -664,7 +664,7 @@ void battery_current_ramp(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_ramp_up_amps_per_second_x10,
+    .p_var_number = &p_m_l3_vars->ui8_ramp_up_amps_per_second_x10,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -681,7 +681,7 @@ void battery_low_cut_off_voltage(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_battery_low_voltage_cut_off_x10,
+    .p_var_number = &p_m_l3_vars->ui16_battery_low_voltage_cut_off_x10,
     .ui8_size = 16,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -698,7 +698,7 @@ void battery_number_cells(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_battery_cells_number,
+    .p_var_number = &p_m_l3_vars->ui8_battery_cells_number,
     .ui8_size = 8,
     .ui8_number_digits = 2,
     .ui8_decimal_digit = 0,
@@ -715,7 +715,7 @@ void battery_resistance(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_battery_pack_resistance_x1000,
+    .p_var_number = &p_m_l3_vars->ui16_battery_pack_resistance_x1000,
     .ui8_size = 16,
     .ui8_number_digits = 4,
     .ui8_decimal_digit = 0,
@@ -732,7 +732,7 @@ void battery_voltage(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_battery_voltage_soc_x10,
+    .p_var_number = &p_m_l3_vars->ui16_battery_voltage_soc_x10,
     .ui8_size = 16,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -754,7 +754,7 @@ void battery_soc_enable(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_battery_soc_enable,
+    .p_var_number = &p_m_l3_vars->ui8_battery_soc_enable,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -771,7 +771,7 @@ void battery_soc_increment_decrement(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_battery_soc_increment_decrement,
+    .p_var_number = &p_m_l3_vars->ui8_battery_soc_increment_decrement,
     .ui8_size = 0,
     .ui8_number_digits = 0,
     .ui8_decimal_digit = 0,
@@ -788,7 +788,7 @@ void battery_soc_voltage_to_reset(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui16_battery_voltage_reset_wh_counter_x10,
+    .p_var_number = &p_m_l3_vars->ui16_battery_voltage_reset_wh_counter_x10,
     .ui8_size = 16,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -805,7 +805,7 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 {
   uint32_t ui32_value;
 
-  ui32_value = p_l3_vars->ui32_wh_x10_100_percent / 10;
+  ui32_value = p_m_l3_vars->ui32_wh_x10_100_percent / 10;
   var_number_t lcd_var_number =
   {
     .p_var_number = &ui32_value,
@@ -819,7 +819,7 @@ void battery_soc_total_watt_hour(struct_menu_data *p_menu_data)
 
   item_set_strings("Battery total", "watts/hour (watts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
-  p_l3_vars->ui32_wh_x10_100_percent = ui32_value * 10;
+  p_m_l3_vars->ui32_wh_x10_100_percent = ui32_value * 10;
 }
 
 void battery_soc_power_used(struct_menu_data *p_menu_data)
@@ -830,18 +830,18 @@ void battery_soc_power_used(struct_menu_data *p_menu_data)
     lcd_configurations_menu.ui8_battery_soc_power_used_state = 0;
 
     // update offset with the total value
-    p_l3_vars->ui32_wh_x10_offset = p_l3_vars->ui32_wh_x10;
+    p_m_l3_vars->ui32_wh_x10_offset = p_m_l3_vars->ui32_wh_x10;
   }
   // keep reseting this values, as it is not suposed to run the bicycle on configurations menu
   // we need to reset them because we are here to manage (increment/decrement ui32_wh_x10_offset)
-  p_l3_vars->ui32_wh_sum_x5 = 0;
-  p_l3_vars->ui32_wh_sum_counter = 0;
-  p_l3_vars->ui32_wh_x10 = 0;
+  p_m_l3_vars->ui32_wh_sum_x5 = 0;
+  p_m_l3_vars->ui32_wh_sum_counter = 0;
+  p_m_l3_vars->ui32_wh_x10 = 0;
 
   // change offset value as it is the one that is saved on EEPROM, etc
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui32_wh_x10_offset,
+    .p_var_number = &p_m_l3_vars->ui32_wh_x10_offset,
     .ui8_size = 32,
     .ui8_number_digits = 5,
     .ui8_decimal_digit = 1,
@@ -863,7 +863,7 @@ void assist_level_number(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_number_of_assist_levels,
+    .p_var_number = &p_m_l3_vars->ui8_number_of_assist_levels,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -880,7 +880,7 @@ void assist_level_number_1(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[0],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[0],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -897,7 +897,7 @@ void assist_level_number_2(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[1],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[1],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -914,7 +914,7 @@ void assist_level_number_3(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[2],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[2],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -931,7 +931,7 @@ void assist_level_number_4(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[3],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[3],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -948,7 +948,7 @@ void assist_level_number_5(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[4],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[4],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -965,7 +965,7 @@ void assist_level_number_6(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[5],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[5],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -982,7 +982,7 @@ void assist_level_number_7(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[6],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[6],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -999,7 +999,7 @@ void assist_level_number_8(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[7],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[7],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1016,7 +1016,7 @@ void assist_level_number_9(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_assist_level_factor[8],
+    .p_var_number = &p_m_l3_vars->ui8_assist_level_factor[8],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1038,7 +1038,7 @@ void walk_assist_level_enable(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_feature_enabled,
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_feature_enabled,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1055,7 +1055,7 @@ void walk_assist_level_number_1(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[0],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[0],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1072,7 +1072,7 @@ void walk_assist_level_number_2(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[1],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[1],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1089,7 +1089,7 @@ void walk_assist_level_number_3(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[2],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[2],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1106,7 +1106,7 @@ void walk_assist_level_number_4(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[3],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[3],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1123,7 +1123,7 @@ void walk_assist_level_number_5(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[4],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[4],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1140,7 +1140,7 @@ void walk_assist_level_number_6(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[5],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[5],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1157,7 +1157,7 @@ void walk_assist_level_number_7(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[6],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[6],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1174,7 +1174,7 @@ void walk_assist_level_number_8(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[7],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[7],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1191,7 +1191,7 @@ void walk_assist_level_number_9(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_walk_assist_level_factor[8],
+    .p_var_number = &p_m_l3_vars->ui8_walk_assist_level_factor[8],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1213,7 +1213,7 @@ void startup_power_boost_enable(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_feature_enabled,
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_feature_enabled,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1228,7 +1228,7 @@ void startup_power_boost_enable(struct_menu_data *p_menu_data)
 
 void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_temp = (p_l3_vars->ui8_startup_motor_power_boost_state & 1);
+  uint8_t ui8_temp = (p_m_l3_vars->ui8_startup_motor_power_boost_state & 1);
 
   var_number_t lcd_var_number =
   {
@@ -1244,13 +1244,13 @@ void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
   item_set_strings("Active on", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "startup\nalways");
 
-  if(ui8_temp) { p_l3_vars->ui8_startup_motor_power_boost_state |= 1; }
-  else { p_l3_vars->ui8_startup_motor_power_boost_state &= ~1; }
+  if(ui8_temp) { p_m_l3_vars->ui8_startup_motor_power_boost_state |= 1; }
+  else { p_m_l3_vars->ui8_startup_motor_power_boost_state &= ~1; }
 }
 
 void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_temp = (p_l3_vars->ui8_startup_motor_power_boost_state & 2) >> 1;
+  uint8_t ui8_temp = (p_m_l3_vars->ui8_startup_motor_power_boost_state & 2) >> 1;
 
   var_number_t lcd_var_number =
   {
@@ -1266,15 +1266,15 @@ void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data)
   item_set_strings("Limit to max", "power", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "no\nyes");
 
-  if(ui8_temp) { p_l3_vars->ui8_startup_motor_power_boost_state |= 2; }
-  else { p_l3_vars->ui8_startup_motor_power_boost_state &= ~2; }
+  if(ui8_temp) { p_m_l3_vars->ui8_startup_motor_power_boost_state |= 2; }
+  else { p_m_l3_vars->ui8_startup_motor_power_boost_state &= ~2; }
 }
 
 void startup_power_boost_duration(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_time,
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_time,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1291,7 +1291,7 @@ void startup_power_boost_fadeout_duration(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_fade_time,
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_fade_time,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1308,7 +1308,7 @@ void startup_power_boost_factor_1(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[0],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[0],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1325,7 +1325,7 @@ void startup_power_boost_factor_2(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[1],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[1],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1342,7 +1342,7 @@ void startup_power_boost_factor_3(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[2],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[2],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1359,7 +1359,7 @@ void startup_power_boost_factor_4(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[3],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[3],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1376,7 +1376,7 @@ void startup_power_boost_factor_5(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[4],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[4],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1393,7 +1393,7 @@ void startup_power_boost_factor_6(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[5],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[5],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1410,7 +1410,7 @@ void startup_power_boost_factor_7(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[6],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[6],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1427,7 +1427,7 @@ void startup_power_boost_factor_8(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[7],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[7],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1444,7 +1444,7 @@ void startup_power_boost_factor_9(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_startup_motor_power_boost_factor[8],
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_factor[8],
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 1,
@@ -1466,7 +1466,7 @@ void motor_temperature_enable(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_temperature_limit_feature_enabled,
+    .p_var_number = &p_m_l3_vars->ui8_temperature_limit_feature_enabled,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1483,7 +1483,7 @@ void motor_temperature_min_limit(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_motor_temperature_min_value_to_limit,
+    .p_var_number = &p_m_l3_vars->ui8_motor_temperature_min_value_to_limit,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1500,7 +1500,7 @@ void motor_temperature_max_limit(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_motor_temperature_max_value_to_limit,
+    .p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1584,7 +1584,7 @@ void display_time_minutes(struct_menu_data *p_menu_data)
 
 void display_brightness_backlight_off(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_value = p_l3_vars->ui8_lcd_backlight_off_brightness * 5;
+  uint8_t ui8_value = p_m_l3_vars->ui8_lcd_backlight_off_brightness * 5;
 
   var_number_t lcd_var_number =
   {
@@ -1600,12 +1600,12 @@ void display_brightness_backlight_off(struct_menu_data *p_menu_data)
   item_set_strings("Brightness", "backlight off state (%)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
 
-  p_l3_vars->ui8_lcd_backlight_off_brightness = ui8_value / 5;
+  p_m_l3_vars->ui8_lcd_backlight_off_brightness = ui8_value / 5;
 }
 
 void display_brightness_backlight_on(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_value = p_l3_vars->ui8_lcd_backlight_on_brightness * 5;
+  uint8_t ui8_value = p_m_l3_vars->ui8_lcd_backlight_on_brightness * 5;
 
   var_number_t lcd_var_number =
   {
@@ -1621,14 +1621,14 @@ void display_brightness_backlight_on(struct_menu_data *p_menu_data)
   item_set_strings("Brightness", "backlight on state (%)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
 
-  p_l3_vars->ui8_lcd_backlight_on_brightness = ui8_value / 5;
+  p_m_l3_vars->ui8_lcd_backlight_on_brightness = ui8_value / 5;
 }
 
 void display_auto_power_off(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_lcd_power_off_time_minutes,
+    .p_var_number = &p_m_l3_vars->ui8_lcd_power_off_time_minutes,
     .ui8_size = 8,
     .ui8_number_digits = 3,
     .ui8_decimal_digit = 0,
@@ -1679,7 +1679,7 @@ void offroad_enable(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_offroad_feature_enabled,
+    .p_var_number = &p_m_l3_vars->ui8_offroad_feature_enabled,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1696,7 +1696,7 @@ void offroad_active_on_startup(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_offroad_enabled_on_startup,
+    .p_var_number = &p_m_l3_vars->ui8_offroad_enabled_on_startup,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1713,7 +1713,7 @@ void offroad_speed_limit(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_offroad_speed_limit,
+    .p_var_number = &p_m_l3_vars->ui8_offroad_speed_limit,
     .ui8_size = 8,
     .ui8_number_digits = 2,
     .ui8_decimal_digit = 0,
@@ -1730,7 +1730,7 @@ void offroad_limit_power(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_offroad_power_limit_enabled,
+    .p_var_number = &p_m_l3_vars->ui8_offroad_power_limit_enabled,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1745,7 +1745,7 @@ void offroad_limit_power(struct_menu_data *p_menu_data)
 
 void offroad_power_limit(struct_menu_data *p_menu_data)
 {
-  uint16_t ui16_offroad_power_limit = ((uint16_t) p_l3_vars->ui8_offroad_power_limit_div25) * 25;
+  uint16_t ui16_offroad_power_limit = ((uint16_t) p_m_l3_vars->ui8_offroad_power_limit_div25) * 25;
 
   var_number_t lcd_var_number =
   {
@@ -1761,7 +1761,7 @@ void offroad_power_limit(struct_menu_data *p_menu_data)
   item_set_strings("Power limit", "(watts)", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
 
-  p_l3_vars->ui8_offroad_power_limit_div25 = ((uint8_t) ui16_offroad_power_limit / 25);
+  p_m_l3_vars->ui8_offroad_power_limit_div25 = ((uint8_t) ui16_offroad_power_limit / 25);
 }
 
 void various_title(struct_menu_data *p_menu_data)
@@ -1773,7 +1773,7 @@ void various_motor_voltage(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_motor_type,
+    .p_var_number = &p_m_l3_vars->ui8_motor_type,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1790,7 +1790,7 @@ void various_motor_assistance_startup_without_pedaling(struct_menu_data *p_menu_
 {
   var_number_t lcd_var_number =
   {
-    .p_var_number = &p_l3_vars->ui8_motor_assistance_startup_without_pedal_rotation,
+    .p_var_number = &p_m_l3_vars->ui8_motor_assistance_startup_without_pedal_rotation,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1825,7 +1825,7 @@ void technical_data_adc_throttle(struct_menu_data *p_menu_data)
   item_set_strings("ADC throttle", "(read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_adc_throttle != ui32_var)
+  if(p_m_l3_vars->ui8_adc_throttle != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1835,7 +1835,7 @@ void technical_data_adc_throttle(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_adc_throttle;
+  ui32_var = p_m_l3_vars->ui8_adc_throttle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -1856,7 +1856,7 @@ void technical_data_throttle(struct_menu_data *p_menu_data)
   item_set_strings("Throttle", "(read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_throttle != ui32_var)
+  if(p_m_l3_vars->ui8_throttle != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1866,7 +1866,7 @@ void technical_data_throttle(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_throttle;
+  ui32_var = p_m_l3_vars->ui8_throttle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -1888,7 +1888,7 @@ void technical_data_adc_torque_sensor(struct_menu_data *p_menu_data)
   item_set_strings("ADC torque sensor", "(read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_adc_pedal_torque_sensor != ui32_var)
+  if(p_m_l3_vars->ui8_adc_pedal_torque_sensor != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1898,7 +1898,7 @@ void technical_data_adc_torque_sensor(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_adc_pedal_torque_sensor;
+  ui32_var = p_m_l3_vars->ui8_adc_pedal_torque_sensor;
   // draw the value
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
@@ -1920,7 +1920,7 @@ void technical_data_torque_sensor(struct_menu_data *p_menu_data)
   item_set_strings("Torque sensor", "(read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_pedal_torque_sensor != ui32_var)
+  if(p_m_l3_vars->ui8_pedal_torque_sensor != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1930,7 +1930,7 @@ void technical_data_torque_sensor(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_pedal_torque_sensor;
+  ui32_var = p_m_l3_vars->ui8_pedal_torque_sensor;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -1951,7 +1951,7 @@ void technical_data_pedal_cadence(struct_menu_data *p_menu_data)
   item_set_strings("Pedal cadence", "(RPM) (read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_pedal_cadence != ui32_var)
+  if(p_m_l3_vars->ui8_pedal_cadence != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1961,7 +1961,7 @@ void technical_data_pedal_cadence(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_pedal_cadence;
+  ui32_var = p_m_l3_vars->ui8_pedal_cadence;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -1982,7 +1982,7 @@ void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
   item_set_strings("Pedal human", "power (read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui16_pedal_power_x10 != ui32_var)
+  if(p_m_l3_vars->ui16_pedal_power_x10 != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -1992,7 +1992,7 @@ void technical_data_pedal_human_power(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui16_pedal_power_x10 / 10;
+  ui32_var = p_m_l3_vars->ui16_pedal_power_x10 / 10;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -2013,7 +2013,7 @@ void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data)
   item_set_strings("PWM duty-cycle", "0 - 255 (read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_duty_cycle != ui32_var)
+  if(p_m_l3_vars->ui8_duty_cycle != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -2023,7 +2023,7 @@ void technical_data_pwm_duty_cycle(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_duty_cycle;
+  ui32_var = p_m_l3_vars->ui8_duty_cycle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -2044,7 +2044,7 @@ void technical_data_motor_speed_erps(struct_menu_data *p_menu_data)
   item_set_strings("Motor speed", "(ERPs) (read only)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui16_motor_speed_erps != ui32_var)
+  if(p_m_l3_vars->ui16_motor_speed_erps != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -2054,7 +2054,7 @@ void technical_data_motor_speed_erps(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui16_motor_speed_erps;
+  ui32_var = p_m_l3_vars->ui16_motor_speed_erps;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -2075,7 +2075,7 @@ void technical_data_foc_angle(struct_menu_data *p_menu_data)
   item_set_strings("Motor FOC angle", "(multiply by 1.4)", p_menu_data);
 
   // see if value is different from previous one and if it is, force draw
-  if(p_l3_vars->ui8_foc_angle != ui32_var)
+  if(p_m_l3_vars->ui8_foc_angle != ui32_var)
   {
     lcd_var_number.ui8_need_update = 1;
   }
@@ -2085,7 +2085,7 @@ void technical_data_foc_angle(struct_menu_data *p_menu_data)
   }
 
   // set the new value
-  ui32_var = p_l3_vars->ui8_foc_angle;
+  ui32_var = p_m_l3_vars->ui8_foc_angle;
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 

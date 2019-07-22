@@ -42,7 +42,7 @@ lcd_vars_t m_lcd_vars =
 };
 
 volatile l2_vars_t l2_vars;
-l3_vars_t l3_vars;
+static l3_vars_t l3_vars;
 
 static lcd_configurations_menu_t *p_lcd_configurations_vars;
 
@@ -109,9 +109,6 @@ void lcd_init(void)
 
   lcd_configurations_screen_init();
   p_lcd_configurations_vars = get_lcd_configurations_menu();
-
-  // init variables with the stored value on EEPROM
-  eeprom_init_variables();
 
   m_p_graphs = get_graphs();
 }
@@ -1519,7 +1516,7 @@ void temperature(void)
   uint32_t ui32_y2;
   uint8_t ui8_ascii_degree = 176;
 
-  if (l3_vars.ui8_temperature_limit_feature_enabled)
+  if(l3_vars.ui8_temperature_limit_feature_enabled)
   {
     if((l3_vars.ui8_motor_temperature != ui8_motor_temperature_previous) ||
         (m_lcd_vars.ui32_main_screen_draw_static_info))

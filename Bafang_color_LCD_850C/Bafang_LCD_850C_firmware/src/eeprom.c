@@ -39,8 +39,8 @@ eeprom_data_t m_eeprom_data_defaults =
   .ui32_wh_x10_offset = DEFAULT_VALUE_WH_X10_OFFSET,
   .ui32_wh_x10_100_percent = DEFAULT_VALUE_HW_X10_100_PERCENT,
   .ui8_battery_soc_enable = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC,
-  .ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
-  .ui8_battery_current_ramp = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
+  .ui8_battery_max_current = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
+  .ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
   .ui8_battery_cells_number = DEFAULT_VALUE_BATTERY_CELLS_NUMBER,
   .ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
   .ui8_motor_type = DEFAULT_VALUE_MOTOR_TYPE,
@@ -219,6 +219,7 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui32_wh_x10_offset = m_eeprom_data.ui32_wh_x10_offset;
   p_l3_output_vars->ui32_wh_x10_100_percent = m_eeprom_data.ui32_wh_x10_100_percent;
   p_l3_output_vars->ui8_battery_soc_enable = m_eeprom_data.ui8_battery_soc_enable;
+  p_l3_output_vars->ui8_battery_max_current = m_eeprom_data.ui8_battery_max_current;
   p_l3_output_vars->ui8_ramp_up_amps_per_second_x10 = m_eeprom_data.ui8_ramp_up_amps_per_second_x10;
   p_l3_output_vars->ui8_battery_cells_number = m_eeprom_data.ui8_battery_cells_number;
   p_l3_output_vars->ui16_battery_low_voltage_cut_off_x10 = m_eeprom_data.ui16_battery_low_voltage_cut_off_x10;
@@ -286,7 +287,7 @@ void eeprom_write_variables(void)
 {
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
-  volatile l3_vars_t *p_l3_output_vars;
+  l3_vars_t *p_l3_output_vars;
   volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
   p_lcd_configurations_menu = get_lcd_configurations_menu();
@@ -301,7 +302,8 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui32_wh_x10_offset = p_l3_output_vars->ui32_wh_x10_offset;
   m_eeprom_data.ui32_wh_x10_100_percent = p_l3_output_vars->ui32_wh_x10_100_percent;
   m_eeprom_data.ui8_battery_soc_enable = p_l3_output_vars->ui8_battery_soc_enable;
-  m_eeprom_data.ui8_ramp_up_amps_per_second_x10 = p_l3_output_vars->ui8_battery_max_current;
+  m_eeprom_data.ui8_battery_max_current = p_l3_output_vars->ui8_battery_max_current;
+  m_eeprom_data.ui8_ramp_up_amps_per_second_x10 = p_l3_output_vars->ui8_ramp_up_amps_per_second_x10;
   m_eeprom_data.ui8_battery_cells_number = p_l3_output_vars->ui8_battery_cells_number;
   m_eeprom_data.ui16_battery_low_voltage_cut_off_x10 = p_l3_output_vars->ui16_battery_low_voltage_cut_off_x10;
   m_eeprom_data.ui8_motor_type = p_l3_output_vars->ui8_motor_type;

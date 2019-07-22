@@ -20,7 +20,6 @@ typedef struct l2_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
   uint8_t ui8_battery_current_x5;
-  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint8_t ui8_adc_throttle;
   uint8_t ui8_throttle;
   uint8_t ui8_adc_pedal_torque_sensor;
@@ -61,19 +60,20 @@ typedef struct l2_vars_struct
   uint8_t ui8_target_max_battery_power;
   uint8_t ui8_battery_cells_number;
   uint8_t ui8_battery_max_current;
+  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint16_t ui16_battery_low_voltage_cut_off_x10;
   uint16_t ui16_battery_voltage_reset_wh_counter_x10;
   uint16_t ui16_battery_pack_resistance_x1000;
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-  uint8_t ui8_assist_level_factor[9];
+  uint8_t ui8_assist_level_factor[10];
   uint8_t ui8_walk_assist_feature_enabled;
-  uint8_t ui8_walk_assist_level_factor[9];
+  uint8_t ui8_walk_assist_level_factor[10];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
-  uint8_t ui8_startup_motor_power_boost_factor[9];
+  uint8_t ui8_startup_motor_power_boost_factor[10];
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
   uint8_t ui8_motor_temperature_max_value_to_limit;
@@ -98,7 +98,6 @@ typedef struct l3_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
   uint8_t ui8_battery_current_x5;
-  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint8_t ui8_adc_throttle;
   uint8_t ui8_throttle;
   uint8_t ui8_adc_pedal_torque_sensor;
@@ -140,19 +139,20 @@ typedef struct l3_vars_struct
   uint8_t ui8_target_max_battery_power;
   uint8_t ui8_battery_cells_number;
   uint8_t ui8_battery_max_current;
+  uint8_t ui8_ramp_up_amps_per_second_x10;
   uint16_t ui16_battery_low_voltage_cut_off_x10;
   uint16_t ui16_battery_voltage_reset_wh_counter_x10;
   uint16_t ui16_battery_pack_resistance_x1000;
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-  uint8_t ui8_assist_level_factor[9];
+  uint8_t ui8_assist_level_factor[10];
   uint8_t ui8_walk_assist_feature_enabled;
-  uint8_t ui8_walk_assist_level_factor[9];
+  uint8_t ui8_walk_assist_level_factor[10];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
-  uint8_t ui8_startup_motor_power_boost_factor[9];
+  uint8_t ui8_startup_motor_power_boost_factor[10];
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
   uint8_t ui8_motor_temperature_max_value_to_limit;

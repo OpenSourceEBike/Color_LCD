@@ -7,8 +7,6 @@
  */
 
 //#include <math.h>
-#include "graphs.h"
-
 #include <string.h>
 #include "stm32f10x.h"
 #include "stdio.h"
@@ -17,6 +15,7 @@
 #include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui/ugui.h"
 #include "lcd.h"
+#include "graphs.h"
 
 // 255 pixels for data points
 // 255 points of each graph
@@ -82,7 +81,8 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   uint32_t graph_next_start_x;
   uint32_t graph_x_index = 0;
   static uint32_t data_x_start_index = 0;
-  uint32_t graph_id = 0;
+  graphs_id_t graph_id = p_m_l3_vars->graph_id;
+  graphs_id_t graph_id_previous = 0;
   uint32_t i;
 
   static print_number_t graph_max_value =
@@ -115,6 +115,15 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     .ui8_left_zero_paddig = 0,
   };
 
+  // keep track to see if graph_id changed and if so, reset staticvariables
+  if(graph_id_previous != graph_id)
+  {
+    graph_id_previous = graph_id;
+
+    y_amplitude_previous = 0;
+    data_x_start_index = 0;
+  }
+
   // draw tittle
   if(p_lcd_vars->ui32_main_screen_draw_static_info)
   {
@@ -127,7 +136,7 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     ui32_x_position = 100;
     ui32_y_position = 326;
 
-    switch(p_m_l3_vars->graph_id)
+    switch(graph_id)
     {
       case GRAPH_WHEEL_SPEED:
         UG_PutString(ui32_x_position,
@@ -145,12 +154,6 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
         UG_PutString(ui32_x_position,
                      ui32_y_position,
                      "cadence");
-      break;
-
-      case GRAPH_PEDAL_TORQUE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "pedal torque");
       break;
 
       case GRAPH_BATTERY_VOLTAGE:

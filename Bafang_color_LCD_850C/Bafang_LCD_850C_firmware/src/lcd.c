@@ -111,6 +111,8 @@ void lcd_init(void)
   p_lcd_configurations_vars = get_lcd_configurations_menu();
 
   m_p_graphs = get_graphs();
+
+  l3_vars.graph_id = GRAPH_MOTOR_TEMPERATURE;
 }
 
 void lcd_clock(void)

@@ -38,7 +38,7 @@ lcd_vars_t m_lcd_vars =
   .ui32_main_screen_draw_static_info = 1,
   .lcd_screen_state = LCD_SCREEN_MAIN,
   .ui8_lcd_menu_counter_1000ms_state = 0,
-  .ui8_lcd_menu_max_power = 0,
+  .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
 volatile l2_vars_t l2_vars;
@@ -59,6 +59,7 @@ static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 volatile uint32_t ui32_g_layer_2_can_execute = 0;
 
 static uint16_t ui16_m_battery_soc_watts_hour = 0;
+static uint16_t ui16_m_battery_soc_watts_hour_fixed = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
@@ -100,6 +101,7 @@ void copy_layer_2_layer_3_vars(void);
 void graphs_measurements_update(void);
 void trip_distance(void);
 void trip_time(void);
+void change_graph(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -157,7 +159,7 @@ void lcd_clock(void)
   if(buttons_get_onoff_state() && buttons_get_up_state())
   {
     buttons_clear_all_events();
-    m_lcd_vars.ui8_lcd_menu_max_power = 1;
+    m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_POWER;
   }
 
   // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
@@ -181,7 +183,8 @@ void lcd_clock(void)
 
   // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs_2)
+  if(ui32_m_draw_graphs_1 &&
+      ui32_m_draw_graphs_2)
   {
     graphs_clock_2();
   }
@@ -226,12 +229,17 @@ void lcd_main_screen(void)
   trip_time();
   trip_distance();
 
+  change_graph();
+
   // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   if(ui32_m_draw_graphs_2 ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     graphs_draw(&m_lcd_vars);
   }
+
+  // this event is not used so we must clear it
+  buttons_get_onoff_click_long_click_event();
 
   m_lcd_vars.ui32_main_screen_draw_static_info = 0;
 }
@@ -544,14 +552,8 @@ void assist_level_state(void)
   }
 
   if (buttons_get_up_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
       buttons_clear_all_events();
 
     l3_vars.ui8_assist_level++;
@@ -561,14 +563,8 @@ void assist_level_state(void)
   }
 
   if (buttons_get_down_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
       buttons_clear_all_events();
 
     if (l3_vars.ui8_assist_level > 0)
@@ -952,12 +948,12 @@ void update_menu_flashing_state(void)
   static uint8_t ui8_lcd_menu_counter_1000ms = 0;
 
   // ***************************************************************************************************
-  // For flashing on menus, 0.5 seconds flash
-  if (ui8_lcd_menu_flash_counter++ > 25)
+  // For flashing on menus, 0.2 seconds flash
+  if (ui8_lcd_menu_flash_counter++ > 20)
   {
     ui8_lcd_menu_flash_counter = 0;
 
-    if (ui8_lcd_menu_flash_state)
+    if(ui8_lcd_menu_flash_state)
       ui8_lcd_menu_flash_state = 0;
     else
       ui8_lcd_menu_flash_state = 1;
@@ -1621,7 +1617,7 @@ void power(void)
     UG_PutString(183, 164, "motor power");
   }
 
-  if(!m_lcd_vars.ui8_lcd_menu_max_power)
+  if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
     _ui16_battery_power_filtered = l3_vars.ui16_battery_power_filtered;
 
@@ -1644,7 +1640,7 @@ void power(void)
 
     }
   }
-  else
+  else if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_POWER)
   {
     // because this click envent can happens and will block the detection of button_onoff_long_click_event
     buttons_clear_onoff_click_event();
@@ -1653,7 +1649,7 @@ void power(void)
     if(buttons_get_onoff_long_click_event())
     {
       buttons_clear_all_events();
-      m_lcd_vars.ui8_lcd_menu_max_power = 0;
+      m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_MAIN;
       ui8_target_max_battery_power_state = 0;
       power_number.ui8_refresh_all_digits = 1;
 
@@ -1861,11 +1857,19 @@ void calc_battery_soc_watts_hour(void)
       ui32_temp = 100;
 
     ui16_m_battery_soc_watts_hour = 100 - ui32_temp;
+    ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
   }
   else
   {
     ui16_m_battery_soc_watts_hour = ui32_temp;
   }
+
+  // fixed range
+  if (ui32_temp > 100)
+  {
+    ui32_temp = 100;
+  }
+  ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
 }
 
 void lcd_print_number(print_number_t* number)
@@ -2236,7 +2240,7 @@ void graphs_measurements_update(void)
 
       case GRAPH_BATTERY_SOC:
         m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_battery_voltage_soc_x10;
+            ui16_m_battery_soc_watts_hour_fixed;
       break;
 
       case GRAPH_MOTOR_POWER:
@@ -2359,5 +2363,93 @@ void walk_assist_state(void)
       ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
+  }
+}
+
+void change_graph(void)
+{
+  // see if we should enter the MAIN_SCREEN_STATE_CHANGE_GRAPH
+  if(buttons_get_onoff_click_event() &&
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
+  {
+    buttons_clear_all_events();
+    m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_CHANGE_GRAPH;
+  }
+
+  // enter the MAIN_SCREEN_STATE_CHANGE_GRAPH
+  if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_CHANGE_GRAPH)
+  {
+    // change the graph_id with UP and DOWN buttons
+    if(buttons_get_up_click_event())
+    {
+      buttons_clear_all_events();
+
+      l3_vars.graph_id++;
+      if(l3_vars.graph_id >= NUMBER_OF_GRAPHS_ID)
+      {
+        l3_vars.graph_id = 0;
+      }
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+    }
+
+    if(buttons_get_down_click_event())
+    {
+      buttons_clear_all_events();
+
+      if(l3_vars.graph_id > 0)
+      {
+        l3_vars.graph_id--;
+      }
+      else
+      {
+        l3_vars.graph_id = NUMBER_OF_GRAPHS_ID - 1;
+      }
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+    }
+
+    // draw or clean the title
+    if(ui8_lcd_menu_flash_state)
+    {
+      graphs_draw_title(&m_lcd_vars, 2);
+    }
+    else
+    {
+      graphs_draw_title(&m_lcd_vars, 1);
+    }
+
+    // leave this menu with a button_onoff_long_click
+    if(buttons_get_onoff_long_click_event())
+    {
+      buttons_clear_all_events();
+      m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_MAIN;
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+    }
+
+    // clear the events that should not happen but can block the one we want to catch
+    buttons_get_onoff_click_event();
+    buttons_get_onoff_click_long_click_event();
+  }
+  // keep drawing tittle in default mode
+  else
+  {
+    graphs_draw_title(&m_lcd_vars, 0);
   }
 }

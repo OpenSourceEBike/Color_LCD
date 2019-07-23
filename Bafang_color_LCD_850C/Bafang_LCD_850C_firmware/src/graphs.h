@@ -42,5 +42,6 @@ void graphs_init(void);
 void graphs_clock_1(void);
 void graphs_clock_2(void);
 volatile graphs_t *get_graphs(void);
+void graphs_draw_title(lcd_vars_t *p_lcd_vars, uint32_t ui32_state);
 
 #endif /* GRAPH_H_ */

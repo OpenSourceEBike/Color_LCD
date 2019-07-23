@@ -124,94 +124,6 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     data_x_start_index = 0;
   }
 
-  // draw tittle
-  if(p_lcd_vars->ui32_main_screen_draw_static_info)
-  {
-    uint32_t ui32_x_position;
-    uint32_t ui32_y_position;
-
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
-    UG_FontSelect(&SMALL_TEXT_FONT);
-    ui32_x_position = 100;
-    ui32_y_position = 326;
-
-    switch(graph_id)
-    {
-      case GRAPH_WHEEL_SPEED:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "wheel speed");
-      break;
-
-      case GRAPH_PEDAL_HUMAN_POWER:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "human power");
-      break;
-
-      case GRAPH_PEDAL_CADENCE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "cadence");
-      break;
-
-      case GRAPH_BATTERY_VOLTAGE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "battery voltage");
-      break;
-
-      case GRAPH_BATTERY_CURRENT:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "battery current");
-      break;
-
-      case GRAPH_BATTERY_SOC:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "battery SOC");
-      break;
-
-      case GRAPH_MOTOR_POWER:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "motor power");
-      break;
-
-      case GRAPH_MOTOR_TEMPERATURE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "motor temperature");
-      break;
-
-      case GRAPH_MOTOR_PWM_DUTY_CYCLE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "motor duty-cycle");
-      break;
-
-      case GRAPH_MOTOR_ERPS:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "motor ers");
-      break;
-
-      case GRAPH_MOTOR_FOC_ANGLE:
-        UG_PutString(ui32_x_position,
-                     ui32_y_position,
-                     "motor foc angle");
-      break;
-
-      default:
-      break;
-    }
-
-    // vertical line
-    UG_DrawLine(GRAPH_START_X - 1, GRAPH_START_Y, GRAPH_START_X - 1, GRAPH_START_Y - GRAPH_Y_LENGHT, C_WHITE);
-  }
-
   // calc new min and max values
   graphs_measurements_calc_min_max_y(graph_id);
 
@@ -259,6 +171,12 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     else
     {
       y_amplitude = 0;
+    }
+
+    // force first line to not be full white
+    if(i == 0)
+    {
+      y_amplitude_previous = y_amplitude;
     }
 
     // contour
@@ -322,17 +240,154 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   }
 
   // draw max and min values as also last value
-  graph_max_value.ui32_x_position = 7;
+
+  // first erase the area
+  UG_FillFrame(0,
+              GRAPH_START_Y - GRAPH_Y_LENGHT - 1,
+              GRAPH_START_X - 2,
+              GRAPH_START_Y - GRAPH_Y_LENGHT - 1 + graph_max_value.font->char_height,
+              C_BLACK);
+
+  UG_FillFrame(0,
+              GRAPH_START_Y - 14,
+              GRAPH_START_X - 2,
+              GRAPH_START_Y - 14 + graph_max_value.font->char_height,
+              C_BLACK);
+
+
   graph_max_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 1;
   graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
   graph_max_value.ui8_refresh_all_digits = 1;
-  lcd_print_number(&graph_max_value);
-
-  graph_min_value.ui32_x_position = 7;
   graph_min_value.ui32_y_position = GRAPH_START_Y - 14;
   graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
   graph_min_value.ui8_refresh_all_digits = 1;
-  lcd_print_number(&graph_min_value);
+
+  switch(graph_id)
+  {
+    case GRAPH_WHEEL_SPEED:
+      graph_max_value.ui32_x_position = 3;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 1;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 3;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 1;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_PEDAL_HUMAN_POWER:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_PEDAL_CADENCE:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_BATTERY_VOLTAGE:
+      graph_max_value.ui32_x_position = 3;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 1;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 3;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 1;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_BATTERY_CURRENT:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max / 5;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min / 5;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_BATTERY_SOC:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_POWER:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_TEMPERATURE:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_ERPS:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_FOC_ANGLE:
+      graph_max_value.ui32_x_position = 9;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 9;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    default:
+    break;
+  }
 
 //  graph_last_value.ui32_x_position = 225;
 //  graph_last_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 30;
@@ -498,4 +553,117 @@ void graphs_clear_area(void)
                315,
                GRAPH_START_Y,
                C_BLACK);
+}
+
+void graphs_draw_title(lcd_vars_t *p_lcd_vars, uint32_t ui32_state)
+{
+  graphs_id_t graph_id = p_m_l3_vars->graph_id;
+  uint32_t ui32_x_position;
+  uint32_t ui32_y_position;
+
+  // first clean the area
+  if(ui32_state == 1)
+  {
+    UG_FillFrame(0,
+                 326,
+                 DISPLAY_WIDTH - 1,
+                 326 + SMALL_TEXT_FONT.char_height,
+                 C_BLACK);
+  }
+
+  // draw tittle
+  if(p_lcd_vars->ui32_main_screen_draw_static_info ||
+      ui32_state == 2)
+  {
+    UG_SetBackcolor(C_BLACK);
+    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
+    UG_FontSelect(&SMALL_TEXT_FONT);
+    ui32_y_position = 326;
+
+    switch(graph_id)
+    {
+      case GRAPH_WHEEL_SPEED:
+        ui32_x_position = 100;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "wheel speed");
+      break;
+
+      case GRAPH_PEDAL_HUMAN_POWER:
+        ui32_x_position = 100;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "human power");
+      break;
+
+      case GRAPH_PEDAL_CADENCE:
+        ui32_x_position = 120;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "cadence");
+      break;
+
+      case GRAPH_BATTERY_VOLTAGE:
+        ui32_x_position = 80;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "battery voltage");
+      break;
+
+      case GRAPH_BATTERY_CURRENT:
+        ui32_x_position = 80;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "battery current");
+      break;
+
+      case GRAPH_BATTERY_SOC:
+        ui32_x_position = 100;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "battery SOC");
+      break;
+
+      case GRAPH_MOTOR_POWER:
+        ui32_x_position = 100;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "motor power");
+      break;
+
+      case GRAPH_MOTOR_TEMPERATURE:
+        ui32_x_position = 70;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "motor temperature");
+      break;
+
+      case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+        ui32_x_position = 70;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "motor duty-cycle");
+      break;
+
+      case GRAPH_MOTOR_ERPS:
+        ui32_x_position = 110;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "motor ers");
+      break;
+
+      case GRAPH_MOTOR_FOC_ANGLE:
+        ui32_x_position = 80;
+        UG_PutString(ui32_x_position,
+                     ui32_y_position,
+                     "motor foc angle");
+      break;
+
+      default:
+      break;
+    }
+
+    // vertical line
+    UG_DrawLine(GRAPH_START_X - 1, GRAPH_START_Y, GRAPH_START_X - 1, GRAPH_START_Y - GRAPH_Y_LENGHT, C_WHITE);
+  }
 }

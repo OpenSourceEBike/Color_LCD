@@ -183,13 +183,20 @@ typedef enum
   LCD_SCREEN_CONFIGURATIONS = 2
 } lcd_screen_states_t;
 
+typedef enum
+{
+  MAIN_SCREEN_STATE_MAIN = 0,
+  MAIN_SCREEN_STATE_POWER,
+  MAIN_SCREEN_STATE_CHANGE_GRAPH
+} lcd_main_screen_states_t;
+
 typedef struct lcd_vars_struct
 {
   uint32_t ui32_main_screen_draw_static_info;
   lcd_screen_states_t lcd_screen_state;
   uint8_t ui8_lcd_menu_counter_1000ms_state;
   uint8_t ui8_lcd_menu_counter_1000ms_trigger;
-  uint8_t ui8_lcd_menu_max_power;
+  lcd_main_screen_states_t main_screen_state;
 } lcd_vars_t;
 
 typedef struct _print_number

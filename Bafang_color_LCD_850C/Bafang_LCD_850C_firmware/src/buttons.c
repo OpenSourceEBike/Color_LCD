@@ -159,7 +159,7 @@ void buttons_clear_all_events (void)
 void buttons_clock (void)
 {
   // needed if the event is not cleared anywhere else
-  buttons_clear_onoff_click_long_click_event();
+//  buttons_clear_onoff_click_long_click_event();
 
   // exit if any button is pressed after clear event
   if((ui32_m_clear_event) &&

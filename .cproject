@@ -90,7 +90,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other.871776039" name="Other debugging flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.showDevicesTab.1849754428" name="showDevicesTab" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.showDevicesTab"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1955738740" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder arguments="VERBOSE=1" command="${cross_make}" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2067213324" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder arguments="VERBOSE=1 flash_program" command="${cross_make}" id="ilg.gnuarmeclipse.managedbuild.cross.builder.2067213324" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1756128302" name="GNU ARM Cross Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1459030916" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1062368858" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
@@ -123,11 +123,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.2042057097.1496884587" name="main.c" rcbsApplicability="disable" resourcePath="src/main.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1357570150.960408336">
-						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1357570150.960408336" name="GNU ARM Cross C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1357570150">
-							<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1448119596" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
-						</tool>
-					</fileInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>

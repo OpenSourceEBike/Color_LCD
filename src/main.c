@@ -45,7 +45,66 @@ static void seconds_timer_timeout(void * p_context);
 bool decode_rx_stream(const uint8_t* p_rx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables);
 void prepare_tx_stream(uint8_t* tx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables);
 
+/**
+ * Main screen notes
+ *
+ * General approach:
+ *
+ * Make it look approximately like https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/blob/master/design/Bafang_SW102_Bluetooth_LCD-design-proposal_1.jpg
+ *
+ * Split UX logic from display layout with a small screen layer - to allow refactoring and sharing much of the 850C behavior/code
+ * with the SW102.  Screen redraw time should go down dramatically because only change fields will need to be drawn.
+ *
+ * initially just show power remaining in pack, SOC, time, amount of assist
+ * make assist go up/down with button press. (initially copy 850C button code, but _real soon_ to allow sharing the C source for button/packet/UX handling between both
+ * modern displays)
+ *
+ *
+ * define a screen as:
+ *
+ * an array of ptrs to 'ScreenFields'.  each ScreenField is a struct:
+ * xpos, ypos, width, height, colorOpt, opcode, isDirty, datavariant
+ * colorOpt is an enum of ColorNormal, ColorInvert
+ * eventually: ColorCritical, ColorBlink (for use in menu selections) -for color
+ * LCDs these enums could map to the theme picked for the UX, for black and white LCDs they map to black or white
+ *
+ * end of screen is a null ScreenField ptr
+ *
+ * isDirty is true if the field needs to be redrawn in the gui (because data has changed)
+ * datavariant is a union that depends on the opcode:
+ *
+ * drawText: font ptr, char msg[MAXSTRLEN]
+ * fillBox: nothing - just fills box based on fore/back color
+ * drawBat: soc - draw a bat icon with SOC
+ * drawPlot: maxval - max value seen, points - an array of 64 previous data values, to be drawn as a plot, one per column
 
+ *
+ * helper functions:
+ * fieldPrintf(fieldptr, "str %d", 5) - sets the string for the specified fields, marks the field as dirty if the string changed
+ * fieldSetSOC(fieldptr, 32) - sets state of charge and marks field as dirty if the soc changed
+ * fieldAddPlot(fieldptr, value) - add a new data point to a plot field
+ *
+ * When new state is received from the controller, fieldX...() will be called to mark the various fields as dirty.  These functions
+ * are cheap and can be called when each rx packet is parsed.  If any field changed in a user visible way the field will be internally
+ * marked as dirty and later updateScreen() will show that new value
+ *
+ * screenShow(screenptr) - set the current screen
+ * screenUpdate() - redraw the minimum set of dirty fields (or the whole screen if the screen has changed).
+ *   if any fields are blinking the blink animation will be serviced here as well.
+ *
+ * NOTE: this approach could be extended to include nice support for showing vertically scrolling menus.  Initial version
+ * won't do this but should make the config screen fairly easy to code up.
+ *
+ * add a datavariant for
+ * drawMenu: curSelection, const char **menuOptions, const char **menuValues, onChange(tbd) - properly handle showing a scrolling menu
+ *   that might be logically longer than our screen. onChange callback will be called when the user changes menu entries
+ *
+ * bool screenHandlePress(buttonEnum)
+ * if a screen is showing a menu field, it might need to intercept and handle button presses. Call this function from
+ * the main loop when a press occurs.  This function will return true if it has handled this press event (and therefore
+ * you should not do anything else with it).
+ *
+ */
 
 /**
  * @brief Application main entry.
@@ -440,12 +499,12 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   UG_ConsolePutString(buf);
 
   UG_ConsolePutString("PC\n");
-  UG_FontSelect(&FONT_5X8);
+  UG_FontSelect(&FONT_5X12);
   sprintf(buf, "0x%x\n", pc);
   UG_ConsolePutString(buf);
   UG_FontSelect(&MY_FONT_8X12);
   UG_ConsolePutString("INFO\n");
-  UG_FontSelect(&FONT_5X8);
+  UG_FontSelect(&FONT_5X12);
   sprintf(buf, "0x%x\n", info);
   UG_ConsolePutString(buf);
 

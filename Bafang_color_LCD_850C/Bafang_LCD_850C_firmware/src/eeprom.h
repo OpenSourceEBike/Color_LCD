@@ -9,6 +9,7 @@
 #ifndef _EEPROM_H_
 #define _EEPROM_H_
 
+#include "main.h"
 #include "lcd_configurations.h"
 
 #define ADDRESS_KEY 0
@@ -53,6 +54,7 @@ typedef struct eeprom_data
   uint8_t ui8_walk_assist_feature_enabled;
   uint8_t ui8_walk_assist_level_factor[9];
   lcd_configurations_menu_t lcd_configurations_menu;
+  graphs_id_t graph_id;
 } eeprom_data_t;
 
 void eeprom_init(void);

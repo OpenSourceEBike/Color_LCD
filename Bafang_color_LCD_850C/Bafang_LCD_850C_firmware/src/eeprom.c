@@ -108,6 +108,7 @@ eeprom_data_t m_eeprom_data_defaults =
     .ui8_refresh_full_menu_2 = 0,
     .ui8_battery_soc_power_used_state = 0,
   },
+  .graph_id = GRAPH_PEDAL_HUMAN_POWER,
 };
 
 static void eeprom_erase_page(uint32_t ui32_eeprom_page);
@@ -282,6 +283,7 @@ void eeprom_init_variables(void)
   p_lcd_configurations_menu->ui8_refresh_full_menu_1 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1;
   p_lcd_configurations_menu->ui8_refresh_full_menu_2 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2;
   p_lcd_configurations_menu->ui8_battery_soc_power_used_state = m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state;
+  p_l3_output_vars->graph_id = m_eeprom_data.graph_id;
 }
 
 void eeprom_write_variables(void)
@@ -365,6 +367,7 @@ void eeprom_write_variables(void)
   m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1 = p_lcd_configurations_menu->ui8_refresh_full_menu_1;
   m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2 = p_lcd_configurations_menu->ui8_refresh_full_menu_2;
   m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state = p_lcd_configurations_menu->ui8_battery_soc_power_used_state;
+  m_eeprom_data.graph_id = p_l3_output_vars->graph_id;
 
   // eeprom structure to array
   memset(ui8_array, 0, sizeof(m_eeprom_data));

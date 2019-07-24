@@ -222,6 +222,7 @@ typedef struct _print_number
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 extern volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 extern volatile uint32_t ui32_g_graphs_data_array_over_255;
+extern volatile uint32_t ui32_g_first_time;
 
 void lcd_init(void);
 void lcd_clock(void);

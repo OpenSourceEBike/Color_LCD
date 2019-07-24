@@ -69,6 +69,8 @@ static volatile graphs_t *m_p_graphs;
 static volatile uint32_t ui32_m_draw_graphs_1 = 0;
 static volatile uint32_t ui32_m_draw_graphs_2 = 0;
 
+volatile uint32_t ui32_g_first_time = 1;
+
 void lcd_main_screen(void);
 uint8_t first_time_management(void);
 void assist_level_state(void);
@@ -113,8 +115,6 @@ void lcd_init(void)
   p_lcd_configurations_vars = get_lcd_configurations_menu();
 
   m_p_graphs = get_graphs();
-
-  l3_vars.graph_id = GRAPH_MOTOR_TEMPERATURE;
 }
 
 void lcd_clock(void)
@@ -133,8 +133,10 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-//  if(first_time_management())
-//    return;
+  if(first_time_management())
+  {
+    return;
+  }
 
   update_menu_flashing_state();
 
@@ -492,18 +494,30 @@ void layer_2(void)
   l2_calc_wh();
 //  automatic_power_off_management();
 
-  graphs_measurements_update();
+  // start update graphs only after a startup delay to avoid wrong values of the variables
+  if(ui32_g_first_time == 0)
+  {
+    graphs_measurements_update();
+  }
   /************************************************************************************************/
 }
 
 uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
+  static uint32_t ui32_counter = 0;
   uint8_t ui8_status = 0;
+
+  ui32_counter++;
+  if(ui32_counter > 500 &&
+      ui32_g_first_time == 1)
+  {
+    ui32_g_first_time = 0;
+  }
 
   // don't update LCD up to we get first communication package from the motor controller
   if(ui8_motor_controller_init &&
-      (ui8_m_usart1_received_first_package < 10))
+      ui8_m_usart1_received_first_package < 10)
   {
     ui8_status = 1;
   }

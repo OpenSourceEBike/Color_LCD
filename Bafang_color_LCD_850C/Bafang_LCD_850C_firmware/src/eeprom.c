@@ -196,7 +196,7 @@ void eeprom_init_variables(void)
 {
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
-  l3_vars_t *p_l3_output_vars;
+  volatile l3_vars_t *p_l3_output_vars;
   lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
   p_lcd_configurations_menu = get_lcd_configurations_menu();
@@ -290,7 +290,7 @@ void eeprom_write_variables(void)
 {
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
-  l3_vars_t *p_l3_output_vars;
+  volatile l3_vars_t *p_l3_output_vars;
   volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
   p_lcd_configurations_menu = get_lcd_configurations_menu();

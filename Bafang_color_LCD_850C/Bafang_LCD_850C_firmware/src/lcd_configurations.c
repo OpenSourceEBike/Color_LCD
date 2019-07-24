@@ -49,7 +49,7 @@ typedef struct _var_number
   uint8_t ui8_need_update;
 } var_number_t;
 
-static l3_vars_t *p_m_l3_vars;
+static volatile l3_vars_t *p_m_l3_vars;
 
 lcd_configurations_menu_t lcd_configurations_menu =
 {
@@ -72,7 +72,7 @@ static struct_menu_data menu_data =
   .ui8_item_increment = 1,
 };
 
-lcd_vars_t *p_lcd_vars;
+volatile lcd_vars_t *p_lcd_vars;
 
 static uint16_t ui16_conf_screen_first_item_y_offset = 61;
 

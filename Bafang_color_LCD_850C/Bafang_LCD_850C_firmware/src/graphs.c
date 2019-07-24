@@ -25,7 +25,7 @@
 
 volatile graphs_t graphs[NUMBER_OF_GRAPHS_ID];
 
-l3_vars_t *p_m_l3_vars;
+volatile l3_vars_t *p_m_l3_vars;
 
 void graphs_measurements_calc_min_max_y(graphs_id_t graph_id);
 static void graphs_measurements_search_max_y(graphs_id_t graph_id);
@@ -70,20 +70,20 @@ void graphs_clock_2(void)
   }
 }
 
-void graphs_draw(lcd_vars_t *p_lcd_vars)
+void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
 {
-  uint32_t number_lines_to_draw;
-  uint32_t temp;
-  uint32_t y_amplitude;
-  static uint32_t y_amplitude_previous = 0;
-  uint32_t y_amplitude_base_color;
-  uint32_t y_amplitude_contour_color = 0;
-  uint32_t graph_next_start_x;
-  uint32_t graph_x_index = 0;
-  static uint32_t data_x_start_index = 0;
+  uint32_t ui32_number_lines_to_draw;
+  uint32_t ui32_temp;
+  uint32_t ui32_y_amplitude;
+  uint32_t ui32_y_amplitude_previous = 0;
+  uint32_t ui32_y_amplitude_base_color;
+  uint32_t ui32_y_amplitude_contour_color = 0;
+  uint32_t ui32_graph_next_start_x;
+  uint32_t ui32_graph_x_index = 0;
+  uint32_t ui32_data_x_start_index = 0;
   graphs_id_t graph_id = p_m_l3_vars->graph_id;
-  graphs_id_t graph_id_previous = 0;
-  uint32_t i;
+  uint32_t ui32_i;
+  uint32_t ui32_force_amplitude_max = 0;
 
   static print_number_t graph_max_value =
   {
@@ -115,29 +115,27 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
     .ui8_left_zero_paddig = 0,
   };
 
-  // keep track to see if graph_id changed and if so, reset staticvariables
-  if(graph_id_previous != graph_id)
-  {
-    graph_id_previous = graph_id;
-
-    y_amplitude_previous = 0;
-    data_x_start_index = 0;
-  }
-
   // calc new min and max values
   graphs_measurements_calc_min_max_y(graph_id);
 
   // calc new pixel ratio
-  temp = 0;
+  ui32_temp = 0;
   if(graphs[graph_id].ui32_graph_data_y_max > graphs[graph_id].ui32_graph_data_y_min)
   {
-    temp = graphs[graph_id].ui32_graph_data_y_max - graphs[graph_id].ui32_graph_data_y_min;
+    ui32_temp = graphs[graph_id].ui32_graph_data_y_max - graphs[graph_id].ui32_graph_data_y_min;
   }
 
   graphs[graph_id].ui32_data_y_rate_per_pixel_x100 = 0;
-  if(temp)
+  if(ui32_temp)
   {
-    graphs[graph_id].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) / temp;
+    graphs[graph_id].ui32_data_y_rate_per_pixel_x100 = (GRAPH_Y_LENGHT * 100) / ui32_temp;
+  }
+
+  // force full amplitude when
+  if(graphs[graph_id].ui32_graph_data_y_max == graphs[graph_id].ui32_graph_data_y_min &&
+      graphs[graph_id].ui32_graph_data_y_min > 0)
+  {
+    ui32_force_amplitude_max = 1;
   }
 
   // graphic is full, move data 1 line to left,
@@ -146,100 +144,219 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
   {
     graphs_clear_area();
 
-    number_lines_to_draw = 256;
-    data_x_start_index = graphs[graph_id].ui32_data_start_index;
+    ui32_number_lines_to_draw = 256;
+    ui32_data_x_start_index = graphs[graph_id].ui32_data_start_index;
   }
   // draw only needed lines
   else
   {
     graphs_clear_area();
 
-    number_lines_to_draw = graphs[graph_id].ui32_data_end_index + 1 -
+    ui32_number_lines_to_draw = graphs[graph_id].ui32_data_end_index + 1 -
         graphs[graph_id].ui32_data_start_index;
-    data_x_start_index = 0;
+    ui32_data_x_start_index = 0;
   }
 
   // draw the lines
-  for(i = 0; i < number_lines_to_draw; i++)
+  for(ui32_i = 0; ui32_i < ui32_number_lines_to_draw; ui32_i++)
   {
-    y_amplitude = graphs[graph_id].ui32_data[data_x_start_index] - graphs[graph_id].ui32_graph_data_y_min;
-    y_amplitude *= graphs[graph_id].ui32_data_y_rate_per_pixel_x100;
-    if(y_amplitude)
+    ui32_y_amplitude = graphs[graph_id].ui32_data[ui32_data_x_start_index] - graphs[graph_id].ui32_graph_data_y_min;
+    ui32_y_amplitude *= graphs[graph_id].ui32_data_y_rate_per_pixel_x100;
+    if(ui32_y_amplitude)
     {
-      y_amplitude /= 100;
+      ui32_y_amplitude /= 100;
     }
     else
     {
-      y_amplitude = 0;
+      ui32_y_amplitude = 0;
+    }
+
+    if(ui32_force_amplitude_max)
+    {
+      ui32_y_amplitude = GRAPH_Y_LENGHT;
     }
 
     // force first line to not be full white
-    if(i == 0)
+    if(ui32_i == 0)
     {
-      y_amplitude_previous = y_amplitude;
+      ui32_y_amplitude_previous = ui32_y_amplitude;
     }
 
     // contour
-    if(y_amplitude >= y_amplitude_previous)
+    if(ui32_y_amplitude >= ui32_y_amplitude_previous)
     {
-      y_amplitude_base_color =  y_amplitude_previous;
-      y_amplitude_contour_color = y_amplitude - y_amplitude_base_color;
+      ui32_y_amplitude_base_color =  ui32_y_amplitude_previous;
+      ui32_y_amplitude_contour_color = ui32_y_amplitude - ui32_y_amplitude_base_color;
     }
     else
     {
-      y_amplitude_base_color =  y_amplitude;
-      y_amplitude_contour_color = y_amplitude_previous - y_amplitude;
+      ui32_y_amplitude_base_color =  ui32_y_amplitude;
+      ui32_y_amplitude_contour_color = ui32_y_amplitude_previous - ui32_y_amplitude;
     }
 
     // add the 2 units/pixels to the contour
-    if(y_amplitude_base_color > 0)
+    if(ui32_y_amplitude_base_color > 0)
     {
 //      y_amplitude_base_color = y_amplitude_base_color - 1;
 //      y_amplitude_contour_color = y_amplitude_contour_color + 1;
     }
 
-    graph_next_start_x = GRAPH_START_X + graph_x_index;
+    ui32_graph_next_start_x = GRAPH_START_X + ui32_graph_x_index;
 
     // draw lines: amplitude > 2
-    if(y_amplitude_base_color)
+    if(ui32_y_amplitude_base_color)
     {
-      UG_DrawLine(graph_next_start_x,           // X1
+      UG_DrawLine(ui32_graph_next_start_x,           // X1
                   GRAPH_START_Y,                // Y1
-                  graph_next_start_x,           // X2
-                  GRAPH_START_Y - y_amplitude_base_color,// Y2
+                  ui32_graph_next_start_x,           // X2
+                  GRAPH_START_Y - ui32_y_amplitude_base_color,// Y2
                   C_BLUE);
 
-      temp = GRAPH_START_Y - y_amplitude_base_color;
-      UG_DrawLine(graph_next_start_x,           // X1
-                  temp,// Y1
-                  graph_next_start_x,           // X2
-                  temp - y_amplitude_contour_color,// Y2
+      ui32_temp = GRAPH_START_Y - ui32_y_amplitude_base_color;
+      UG_DrawLine(ui32_graph_next_start_x,           // X1
+                  ui32_temp,// Y1
+                  ui32_graph_next_start_x,           // X2
+                  ui32_temp - ui32_y_amplitude_contour_color,// Y2
                   C_WHITE);
     }
     // draw lines: amplitude < 2
     else
     {
-      UG_DrawLine(graph_next_start_x,           // X1
+      UG_DrawLine(ui32_graph_next_start_x,           // X1
                   GRAPH_START_Y,                // Y1
-                  graph_next_start_x,           // X2
-                  GRAPH_START_Y - y_amplitude_contour_color,// Y2
+                  ui32_graph_next_start_x,           // X2
+                  GRAPH_START_Y - ui32_y_amplitude_contour_color,// Y2
                   C_WHITE);
     }
 
     // increment and verify roll over
-    data_x_start_index++;
-    if(data_x_start_index >= 256)
+    ui32_data_x_start_index++;
+    if(ui32_data_x_start_index >= 256)
     {
-      data_x_start_index = 0;
+      ui32_data_x_start_index = 0;
     }
 
     // no chance to roll over so just increment
-    graph_x_index++;
+    ui32_graph_x_index++;
 
-    y_amplitude_previous = y_amplitude;
+    ui32_y_amplitude_previous = ui32_y_amplitude;
   }
 
-  // draw max and min values as also last value
+  // draw max and min values
+  graph_max_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 1;
+  graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+  graph_max_value.ui8_refresh_all_digits = 1;
+  graph_min_value.ui32_y_position = GRAPH_START_Y - 14;
+  graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+  graph_min_value.ui8_refresh_all_digits = 1;
+
+  switch(graph_id)
+  {
+    case GRAPH_WHEEL_SPEED:
+      graph_max_value.ui32_x_position = 1;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 1;
+      graph_min_value.ui32_x_position = 1;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 1;
+    break;
+
+    case GRAPH_PEDAL_HUMAN_POWER:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_PEDAL_CADENCE:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_BATTERY_VOLTAGE:
+      graph_max_value.ui32_x_position = 1;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 1;
+      graph_min_value.ui32_x_position = 1;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 1;
+    break;
+
+    case GRAPH_BATTERY_CURRENT:
+      graph_max_value.ui32_x_position = 1;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 1;
+      graph_min_value.ui32_x_position = 1;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 1;
+    break;
+
+    case GRAPH_BATTERY_SOC:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_MOTOR_POWER:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_max_value);
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+      lcd_print_number(&graph_min_value);
+    break;
+
+    case GRAPH_MOTOR_TEMPERATURE:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_MOTOR_ERPS:
+      graph_max_value.ui32_x_position = 7;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui8_decimal_digits = 0;
+      graph_min_value.ui32_x_position = 7;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui8_decimal_digits = 0;
+    break;
+
+    case GRAPH_MOTOR_FOC_ANGLE:
+      graph_max_value.ui32_x_position = 1;
+      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max / 10;
+      graph_max_value.ui8_decimal_digits = 1;
+      graph_min_value.ui32_x_position = 1;
+      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min / 10;
+      graph_min_value.ui8_decimal_digits = 1;
+
+    break;
+
+    default:
+    break;
+  }
 
   // first erase the area
   UG_FillFrame(0,
@@ -254,139 +371,17 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
               GRAPH_START_Y - 14 + graph_max_value.font->char_height,
               C_BLACK);
 
-
-  graph_max_value.ui32_y_position = GRAPH_START_Y - GRAPH_Y_LENGHT - 1;
-  graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-  graph_max_value.ui8_refresh_all_digits = 1;
-  graph_min_value.ui32_y_position = GRAPH_START_Y - 14;
-  graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-  graph_min_value.ui8_refresh_all_digits = 1;
-
-  switch(graph_id)
+  // print the max only on specific conditions
+  if(graphs[graph_id].ui32_graph_data_y_max != 0)
   {
-    case GRAPH_WHEEL_SPEED:
-      graph_max_value.ui32_x_position = 3;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 1;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 3;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 1;
-      lcd_print_number(&graph_min_value);
-    break;
+    lcd_print_number(&graph_max_value);
+  }
 
-    case GRAPH_PEDAL_HUMAN_POWER:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_PEDAL_CADENCE:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_BATTERY_VOLTAGE:
-      graph_max_value.ui32_x_position = 3;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 1;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 3;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 1;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_BATTERY_CURRENT:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max / 5;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min / 5;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_BATTERY_SOC:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_MOTOR_POWER:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_MOTOR_TEMPERATURE:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_MOTOR_PWM_DUTY_CYCLE:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_MOTOR_ERPS:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    case GRAPH_MOTOR_FOC_ANGLE:
-      graph_max_value.ui32_x_position = 9;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
-      graph_max_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_max_value);
-      graph_min_value.ui32_x_position = 9;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
-      graph_min_value.ui8_decimal_digits = 0;
-      lcd_print_number(&graph_min_value);
-    break;
-
-    default:
-    break;
+  // print the min only on specific conditions
+  if(graphs[graph_id].ui32_graph_data_y_max != graphs[graph_id].ui32_graph_data_y_min ||
+      graphs[graph_id].ui32_graph_data_y_min == 0)
+  {
+    lcd_print_number(&graph_min_value);
   }
 
 //  graph_last_value.ui32_x_position = 225;
@@ -398,42 +393,40 @@ void graphs_draw(lcd_vars_t *p_lcd_vars)
 
 void graphs_measurements_calc_min_max_y(graphs_id_t graph_id)
 {
-  uint32_t start_index;
-
-  // we are only yet adding a new point to graph
-  if(graphs[graph_id].ui32_data_array_over_255 == 0)
-  {
-    // equal to min
-    if(graphs[graph_id].ui32_data_y_last_value == graphs[graph_id].ui32_graph_data_y_min)
-    {
-      graphs[graph_id].ui32_graph_data_y_min_counter++;
-    }
-    // less than min
-    else if(graphs[graph_id].ui32_data_y_last_value < graphs[graph_id].ui32_graph_data_y_min)
-    {
-      graphs[graph_id].ui32_graph_data_y_min = graphs[graph_id].ui32_data_y_last_value;
-      graphs[graph_id].ui32_graph_data_y_min_counter = 1;
-    }
-
-    // equal to max
-    if(graphs[graph_id].ui32_data_y_last_value == graphs[graph_id].ui32_graph_data_y_max)
-    {
-      graphs[graph_id].ui32_graph_data_y_max_counter++;
-    }
-    // higher than max
-    else if(graphs[graph_id].ui32_data_y_last_value > graphs[graph_id].ui32_graph_data_y_max)
-    {
-      graphs[graph_id].ui32_graph_data_y_max = graphs[graph_id].ui32_data_y_last_value;
-      graphs[graph_id].ui32_graph_data_y_max_counter = 1;
-    }
-  }
-
-  // we will be adding and removing points to graph
-  else
-  {
+//  // we are only yet adding a new point to graph
+//  if(graphs[graph_id].ui32_data_array_over_255 == 0)
+//  {
+//    // new min point
+//    if(graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index] < graphs[graph_id].ui32_graph_data_y_min)
+//    {
+//      graphs[graph_id].ui32_graph_data_y_min = graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index];
+//      graphs[graph_id].ui32_graph_data_y_min_counter = 1;
+//    }
+//    // equal to min point
+//    else if(graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index] == graphs[graph_id].ui32_graph_data_y_min)
+//    {
+//      graphs[graph_id].ui32_graph_data_y_min_counter++;
+//    }
+//
+//    // new max point
+//    if(graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index] > graphs[graph_id].ui32_graph_data_y_max)
+//    {
+//      graphs[graph_id].ui32_graph_data_y_max = graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index];
+//      graphs[graph_id].ui32_graph_data_y_max_counter = 1;
+//    }
+//    // equal to max point
+//    else if(graphs[graph_id].ui32_data[graphs[graph_id].ui32_data_end_index] == graphs[graph_id].ui32_graph_data_y_max)
+//    {
+//      graphs[graph_id].ui32_graph_data_y_max_counter++;
+//    }
+//  }
+//
+//  // we will be adding and removing points to graph
+//  else
+//  {
     graphs_measurements_search_min_y(graph_id);
     graphs_measurements_search_max_y(graph_id);
-  }
+//  }
 }
 
 static void graphs_measurements_search_min_y(graphs_id_t graph_id)
@@ -555,7 +548,7 @@ void graphs_clear_area(void)
                C_BLACK);
 }
 
-void graphs_draw_title(lcd_vars_t *p_lcd_vars, uint32_t ui32_state)
+void graphs_draw_title(volatile lcd_vars_t *p_lcd_vars, uint32_t ui32_state)
 {
   graphs_id_t graph_id = p_m_l3_vars->graph_id;
   uint32_t ui32_x_position;

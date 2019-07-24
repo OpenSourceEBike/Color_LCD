@@ -227,8 +227,8 @@ extern volatile uint32_t ui32_g_first_time;
 void lcd_init(void);
 void lcd_clock(void);
 void layer_2(void);
-l3_vars_t* get_l3_vars(void);
-lcd_vars_t* get_lcd_vars(void);
+volatile l3_vars_t* get_l3_vars(void);
+volatile lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
 void lcd_draw_main_menu_mask(void);
 

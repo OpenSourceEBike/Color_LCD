@@ -37,11 +37,11 @@ typedef struct graphs_struct
   graphs_measurement_t measurement;
 } graphs_t;
 
-void graphs_draw(lcd_vars_t *p_lcd_vars);
+void graphs_draw(volatile lcd_vars_t *p_lcd_vars);
 void graphs_init(void);
 void graphs_clock_1(void);
 void graphs_clock_2(void);
 volatile graphs_t *get_graphs(void);
-void graphs_draw_title(lcd_vars_t *p_lcd_vars, uint32_t ui32_state);
+void graphs_draw_title(volatile lcd_vars_t *p_lcd_vars, uint32_t ui32_state);
 
 #endif /* GRAPH_H_ */

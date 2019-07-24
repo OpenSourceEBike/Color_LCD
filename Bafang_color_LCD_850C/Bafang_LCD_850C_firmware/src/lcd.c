@@ -33,7 +33,7 @@
 #define BATTERY_SOC_BAR_HEIGHT 24
 #define BATTERY_SOC_CONTOUR 1
 
-lcd_vars_t m_lcd_vars =
+volatile lcd_vars_t m_lcd_vars =
 {
   .ui32_main_screen_draw_static_info = 1,
   .lcd_screen_state = LCD_SCREEN_MAIN,
@@ -41,8 +41,8 @@ lcd_vars_t m_lcd_vars =
   .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
-volatile l2_vars_t l2_vars;
-static l3_vars_t l3_vars;
+static volatile l2_vars_t l2_vars;
+static volatile l3_vars_t l3_vars;
 
 static lcd_configurations_menu_t *p_lcd_configurations_vars;
 
@@ -488,7 +488,7 @@ void layer_2(void)
 
   l2_low_pass_filter_battery_voltage_current_power();
   l2_low_pass_filter_pedal_torque_and_power();
-//  l2_low_pass_filter_pedal_cadence();
+  l2_low_pass_filter_pedal_cadence();
   l2_calc_battery_voltage_soc();
 //  l2_calc_odometer();
   l2_calc_wh();
@@ -598,7 +598,7 @@ void assist_level_state(void)
   }
 }
 
-l3_vars_t* get_l3_vars(void)
+volatile l3_vars_t* get_l3_vars(void)
 {
   return &l3_vars;
 }
@@ -2151,6 +2151,7 @@ void copy_layer_2_layer_3_vars(void)
   l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
   l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
   l3_vars.ui8_braking = l2_vars.ui8_braking;
+  l3_vars.ui8_foc_angle = l2_vars.ui8_foc_angle;
 
   l2_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10_offset;
   l2_vars.ui16_battery_pack_resistance_x1000 = l3_vars.ui16_battery_pack_resistance_x1000;
@@ -2208,7 +2209,7 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_offroad_power_limit_div25 = l3_vars.ui8_offroad_power_limit_div25;
 }
 
-lcd_vars_t* get_lcd_vars(void)
+volatile lcd_vars_t* get_lcd_vars(void)
 {
   return &m_lcd_vars;
 }
@@ -2218,6 +2219,7 @@ void graphs_measurements_update(void)
   static uint32_t counter = 0;
   static uint32_t ui32_pedal_power_accumulated = 0;
   graphs_id_t graph_id = 0;
+  uint32_t ui32_temp;
 
   for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
   {
@@ -2249,7 +2251,7 @@ void graphs_measurements_update(void)
 
       case GRAPH_BATTERY_CURRENT:
         m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_battery_current_filtered_x5;
+            l3_vars.ui16_battery_current_filtered_x5 * 2; // x10
       break;
 
       case GRAPH_BATTERY_SOC:
@@ -2278,8 +2280,9 @@ void graphs_measurements_update(void)
       break;
 
       case GRAPH_MOTOR_FOC_ANGLE:
+        ui32_temp = l3_vars.ui8_foc_angle * 140; // each 1 unit equals to 1.4 degrees
         m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui8_foc_angle;
+            ui32_temp;
       break;
 
       default:

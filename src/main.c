@@ -57,7 +57,7 @@ int main(void)
   uart_init();
 
   // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  // ble_init();
+  ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
@@ -68,6 +68,7 @@ int main(void)
   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
+  /*
   UG_FontSelect(&MY_FONT_BATTERY);
   UG_ConsolePutString("5\n");
   UG_ConsolePutString("4\n");
@@ -75,12 +76,18 @@ int main(void)
   UG_ConsolePutString("2\n");
   UG_ConsolePutString("1\n");
   UG_ConsolePutString("0\n");
+  */
 
+  /*
   UG_FontSelect(&MY_FONT_8X12);
   static const char degC[] = { 31, 'C', 0 };
   UG_ConsolePutString(degC);
+  */
 
   UG_FontSelect(&MY_FONT_8X12);
+  UG_ConsolePutString("boot\n");
+
+  // APP_ERROR_HANDLER(5);
 
   // Enter main loop.
   while (1)
@@ -427,5 +434,21 @@ static void seconds_timer_timeout(void *p_context)
  */
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
+  UG_FontSelect(&MY_FONT_8X12);
+  char buf[32];
+  sprintf(buf, "ERR 0x%x\n", id);
+  UG_ConsolePutString(buf);
+
+  UG_ConsolePutString("PC\n");
+  UG_FontSelect(&FONT_5X8);
+  sprintf(buf, "0x%x\n", pc);
+  UG_ConsolePutString(buf);
+  UG_FontSelect(&MY_FONT_8X12);
+  UG_ConsolePutString("INFO\n");
+  UG_FontSelect(&FONT_5X8);
+  sprintf(buf, "0x%x\n", info);
+  UG_ConsolePutString(buf);
+
+  // FIXME - instead we should wait a few seconds and then reboot
   while (1);
 }

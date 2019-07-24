@@ -9,8 +9,13 @@ $(OUTPUT_DIRECTORY)/nrf51822_sw102.out: \
   LINKER_SCRIPT  := gcc_nrf51.ld
 
 # OpenOCD configuration. Change OPENOCD_PATH to your system setting.
-OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
-OPENOCD := '$(OPENOCD_PATH)/openocd.exe' -f ../scripts/interface/stlink.cfg -f ../scripts/target/nrf51.cfg
+# OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
+# OPENOCD_BIN := openocd.exe
+
+OPENOCD_PATH := /usr/local/share/openocd/bin
+OPENOCD_BIN := openocd
+
+OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
 
 # Source files common to all targets
 SRC_FILES += \
@@ -227,6 +232,10 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 flash_program: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	@echo Flashing: $<
 	$(OPENOCD) -c "init; reset init; flash write_image erase $<; verify_image $<; reset halt; resume; shutdown"
+
+openocd:
+	@echo Starting OPENOCD shell
+	$(OPENOCD) -c "init; reset init;"
 
 # Flash softdevice
 flash_softdevice:

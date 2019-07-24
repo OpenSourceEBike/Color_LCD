@@ -210,6 +210,7 @@ LDFLAGS += -mcpu=cortex-m0
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs -lc -lnosys
+LDFLAGS += -Xlinker -Map=$(OUTPUT_DIRECTORY)/nrf51822_sw102.map
 
 
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice
@@ -231,7 +232,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 # Flash the program
 flash_program: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	@echo Flashing: $<
-	$(OPENOCD) -c "init; reset init; flash write_image erase $<; verify_image $<; reset halt; resume; shutdown"
+	$(OPENOCD) -c "init; reset init; flash write_image erase $<; verify_image $<; echo FLASHED; reset halt; resume; shutdown"
 
 openocd:
 	@echo Starting OPENOCD shell

@@ -16,7 +16,7 @@
 
 /* Variable definition */
 
-/* µGUI */
+/* ï¿½GUI */
 UG_GUI gui;
 
 /* Buttons */
@@ -55,14 +55,16 @@ int main(void)
   gpio_init();
   lcd_init();
   uart_init();
-  ble_init();
+
+  // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
+  // ble_init();
+
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
   eeprom_read_configuration(get_configuration_variables());
   init_app_timers();
   system_power(true);
 
-/*
   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
@@ -79,7 +81,6 @@ int main(void)
   UG_ConsolePutString(degC);
 
   UG_FontSelect(&MY_FONT_8X12);
-*/
 
   // Enter main loop.
   while (1)

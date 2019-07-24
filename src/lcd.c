@@ -24,15 +24,14 @@
 static void set_cmd(void);
 static void set_data(void);
 static void send_cmd(uint8_t cmd);
-static void send_byte(uint8_t byte);
+// static void send_byte(uint8_t byte);
 static void spi_init(void);
-static void lcd_refresh(void);
 static void pset(UG_S16 x, UG_S16 y, UG_COLOR col);
 
 
 /* Variable definition */
 
-/* µGUI instance from main */
+/* ï¿½GUI instance from main */
 extern UG_GUI gui;
 
 /* Frame buffer in RAM with same structure as LCD memory --> 16 pages a 64 columns (1 kB) */
@@ -73,9 +72,11 @@ void lcd_init(void)
   // Wait 100 ms
   nrf_delay_ms(100);  // Doesn't have to be exact this delay.
 
-  // Setup µGUI library
+  // Setup ï¿½GUI library
   UG_Init(&gui, pset, 64, 128); // Pixel set function
-  UG_SetRefresh(lcd_refresh); // LCD refresh function
+
+  // kevinh - I've moved this to be an explicit call, because calling lcd_refresh on each operation is super expensive
+  // UG_SetRefresh(lcd_refresh); // LCD refresh function
 }
 
 static void set_cmd(void)
@@ -101,17 +102,18 @@ static void send_cmd(uint8_t cmd)
 
 /**
  * @brief Sends single data byte
- */
+
 static void send_byte(uint8_t byte)
 {
   set_data();
   nrf_drv_spi_transfer(&spi, &byte, 1, NULL, 0);
 }
+*/
 
 /**
  * @brief Start transfer of frameBuffer to LCD
  */
-static void lcd_refresh(void)
+void lcd_refresh(void)
 {
   uint8_t addr = 0xB0;
 
@@ -145,7 +147,7 @@ static void spi_init(void)
 }
 
 /**
- * @brief µGUI pset function. This writes to a frameBuffer in SRAM.
+ * @brief ï¿½GUI pset function. This writes to a frameBuffer in SRAM.
  */
 static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
 {

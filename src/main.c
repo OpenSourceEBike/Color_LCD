@@ -39,7 +39,7 @@ struct_configuration_variables configuration_variables;
 //
 Field socField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 Field timeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field mysteryField = { .variant = FieldDrawText, .drawText = { .font = &FONT_16X26 } };
+Field speedField = { .variant = FieldDrawText, .drawText = { .font = &FONT_16X26 } };
 Field assistLevelField = { .variant = FieldDrawText, .drawText = { .font = &FONT_12X20 } };
 Field maxPowerField = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12 } };
 Field curPowerField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
@@ -72,9 +72,9 @@ Screen mainScreen = {
     },
     {
         .x = 19, .y = 16,
-        .width = 1, .height = -1,
+        .width = 2, .height = -1,
         .color = ColorInvert,
-        .field = &mysteryField
+        .field = &speedField
     },
     {
         .x = 0, .y = 48,
@@ -227,7 +227,7 @@ int main(void)
   fieldPrintf(&assistLevelField, "%d", 3);
   fieldPrintf(&socField, "%d", 40);
   fieldPrintf(&timeField, "17:25");
-  fieldPrintf(&mysteryField, "%d", 32);
+  fieldPrintf(&speedField, "%d", 32);
   fieldPrintf(&maxPowerField, "%4d w", 1250);
   fieldPrintf(&curPowerField, "%4d w", 650);
   fieldPrintf(&brakeField, "BRK");

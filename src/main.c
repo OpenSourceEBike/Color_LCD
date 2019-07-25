@@ -34,88 +34,6 @@ volatile uint32_t seconds_since_startup, seconds_since_reset;
 struct_motor_controller_data motor_controller_data;
 struct_configuration_variables configuration_variables;
 
-//
-// Fields - these might be shared my multiple screens
-//
-Field socField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field timeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field speedField = { .variant = FieldDrawText, .drawText = { .font = &FONT_16X26 } };
-Field assistLevelField = { .variant = FieldDrawText, .drawText = { .font = &FONT_12X20 } };
-Field maxPowerField = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12 } };
-Field curPowerField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field whiteFillField = { .variant = FieldFill };
-Field meshFillField = { .variant = FieldMesh };
-Field brakeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field lightField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-
-//
-// Screens
-//
-Screen mainScreen = {
-    {
-        .x = 0, .y = 0,
-        .width = 2, .height = -1,
-        .color = ColorNormal,
-        .field = &socField
-    },
-    {
-        .x = 32, .y = 0,
-        .width = 5, .height = -1,
-        .color = ColorNormal,
-        .field = &timeField
-    },
-    {
-        .x = 0, .y = 16,
-        .width = 1, .height = -1,
-        .color = ColorInvert,
-        .field = &assistLevelField
-    },
-    {
-        .x = 19, .y = 16,
-        .width = 2, .height = -1,
-        .color = ColorInvert,
-        .field = &speedField
-    },
-    {
-        .x = 0, .y = 48,
-        .width = 6, .height = -1,
-        .color = ColorNormal,
-        .field = &maxPowerField
-    },
-    {
-        .x = 0, .y = 68,
-        .width = 64, .height = 1,
-        .color = ColorNormal,
-        .field = &whiteFillField
-    },
-    {
-        .x = 24, .y = 69,
-        .width = 6, .height = -1,
-        .color = ColorNormal,
-        .field = &curPowerField
-    },
-    {
-        .x = 0, .y = 69 + 12,
-        .width = 64, .height = 32,
-        .color = ColorNormal,
-        .field = &meshFillField
-    },
-    {
-        .x = 4, .y = 114,
-        .width = 3, .height = -1,
-        .color = ColorNormal,
-        .field = &brakeField
-    },
-    {
-        .x = 34, .y = 114,
-        .width = 4, .height = -1,
-        .color = ColorNormal,
-        .field = &lightField
-    },
-    {
-        .field = NULL
-    }
-};
 
 
 
@@ -223,18 +141,9 @@ int main(void)
   UG_ConsolePutString("boot\n");
   lcd_refresh();
 
-  // FIXME - update this data in comm rx
-  fieldPrintf(&assistLevelField, "%d", 3);
-  fieldPrintf(&socField, "%d", 40);
-  fieldPrintf(&timeField, "17:25");
-  fieldPrintf(&speedField, "%d", 32);
-  fieldPrintf(&maxPowerField, "%4d w", 1250);
-  fieldPrintf(&curPowerField, "%4d w", 650);
-  fieldPrintf(&brakeField, "BRK");
-  fieldPrintf(&lightField, "LIGH");
 
-  screenShow(&mainScreen);
-  screenUpdate(); // FIXME - move into main loop
+  //screenShow(&mainScreen);
+  //screenUpdate(); // FIXME - move into main loop
 
   // APP_ERROR_HANDLER(5);
 

@@ -1,0 +1,100 @@
+/* Place your initialization/startup code here (e.g. MyInst_Start()) */
+void lcd_init(void)
+{
+  bafang_500C_lcd_init();
+  UG_FillScreen(C_BLACK);
+
+  lcd_configurations_screen_init();
+  p_lcd_configurations_vars = get_lcd_configurations_menu();
+
+  m_p_graphs = get_graphs();
+}
+
+void lcd_clock(void)
+{
+  static uint8_t ui8_counter_100ms = 0;
+
+  // every 100ms
+  if(ui8_counter_100ms++ >= 4)
+  {
+    ui8_counter_100ms = 0;
+
+    // receive data from layer 2 to layer 3
+    // send data from layer 3 to layer 2
+    ui32_g_layer_2_can_execute = 0;
+    copy_layer_2_layer_3_vars();
+    ui32_g_layer_2_can_execute = 1;
+  }
+
+//  if(first_time_management())
+//    return;
+
+  update_menu_flashing_state();
+
+  calc_battery_soc_watts_hour();
+
+  // enter menu configurations: UP + DOWN click event
+  if(buttons_get_up_down_click_event() &&
+      m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+  {
+    buttons_clear_all_events();
+
+    // reset needed variables of configurations screen
+    p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
+
+    // need to track start configuration
+    p_lcd_configurations_vars->ui8_battery_soc_power_used_state = 1;
+
+    m_lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
+  }
+
+  // enter in menu set power: ONOFF + UP click event
+  if(buttons_get_onoff_state() && buttons_get_up_state())
+  {
+    buttons_clear_all_events();
+    m_lcd_vars.ui8_lcd_menu_max_power = 1;
+  }
+
+  // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
+  // note: this piece of code must run before lcd_main_screen() -> graphs_draw()
+  if(ui32_m_draw_graphs_1)
+  {
+    ui32_m_draw_graphs_2 = 1;
+    graphs_clock_1();
+  }
+
+  switch(m_lcd_vars.lcd_screen_state)
+  {
+    case LCD_SCREEN_MAIN:
+      lcd_main_screen();
+    break;
+
+    case LCD_SCREEN_CONFIGURATIONS:
+      lcd_configurations_screen();
+    break;
+  }
+
+  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
+  // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
+  if(ui32_m_draw_graphs_2)
+  {
+    graphs_clock_2();
+  }
+
+  power_off_management();
+
+  // must be reset after a full cycle of lcd_clock()
+  ui32_m_draw_graphs_1 = 0;
+  ui32_m_draw_graphs_2 = 0;
+}
+
+void lcd_draw_main_menu_mask(void)
+{
+  UG_DrawLine(0, 39, 319, 39, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 159, 319, 159, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 239, 319, 239, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
+
+  // vertical line
+  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
+}

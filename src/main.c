@@ -601,9 +601,9 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   lcd_refresh();
   */
 
-  fieldPrintf(&faultCode, "0x%x", id);
-  fieldPrintf(&addrCode, "0x%06x", pc);
-  fieldPrintf(&infoCode, "%08x", info);
+  fieldPrintf(&faultCode, "0x%lx", id);
+  fieldPrintf(&addrCode, "0x%06lx", pc);
+  fieldPrintf(&infoCode, "%08lx", info);
 
   screenShow(&faultScreen);
 

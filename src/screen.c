@@ -52,25 +52,46 @@ static UG_COLOR getForeColor(const FieldLayout *layout) {
 
 
 static void renderDrawText(const FieldLayout *layout) {
-  assert(layout->width >= 1);
+  assert(layout->width >= -1);
   assert(layout->height == -1);
 
   Field *field = layout->field;
-  // UG_S16 width = layout->width * field->drawText.font->char_width;
-  // UG_S16 height = field->drawText.font->char_height;
+  UG_S16 width = (layout->width == -1 ? strlen(field->drawText.msg) : layout->width) * field->drawText.font->char_width;
+  UG_S16 height = field->drawText.font->char_height;
 
   // FIXME, draw/clear background and set colors
   UG_FontSelect(field->drawText.font);
-  UG_SetBackcolor(getBackColor(layout));
+  UG_COLOR back = getBackColor(layout);
+  UG_SetBackcolor(back);
   UG_SetForecolor(getForeColor(layout));
-  UG_PutString(layout->x, layout->y, field->drawText.msg);
+
+  // ug fonts include no blank space at the beginning, so we always include one col of padding
+  UG_FillFrame(layout->x, layout->y, layout->x + width -1, layout->y + height -1, back);
+  UG_PutString(layout->x + 1, layout->y, field->drawText.msg);
+}
+
+static void renderFill(const FieldLayout *layout) {
+  assert(layout->width >= 1);
+  assert(layout->height >= 1);
+
+  UG_FillFrame(layout->x, layout->y, layout->x + layout->width -1, layout->y + layout->height -1, getForeColor(layout));
+}
+
+
+static void renderMesh(const FieldLayout *layout) {
+  assert(layout->width >= 1);
+  assert(layout->height >= 1);
+
+  UG_DrawMesh(layout->x, layout->y, layout->x + layout->width -1, layout->y + layout->height -1, getForeColor(layout));
 }
 
 /**
  * Used to map from FieldVariant enums to rendering functions
  */
 const FieldRenderFn renderers[] = {
-    renderDrawText
+    renderDrawText,
+    renderFill,
+    renderMesh
 };
 
 static const Screen *curScreen;
@@ -79,6 +100,7 @@ static bool screenDirty;
 void screenShow(const Screen *screen) {
   curScreen = screen;
   screenDirty = true;
+  screenUpdate(); // Force a draw immediately
 }
 
 

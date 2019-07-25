@@ -84,7 +84,9 @@ typedef enum {
  * Note: might change someday to instead just be a pointer to a constant vtable like thing
  */
 typedef enum {
-  FieldDrawText = 0
+  FieldDrawText = 0,
+  FieldFill, // Fill with a solid color
+  FieldMesh, // Fill with a mesh color
 } FieldVariant;
 
 /**
@@ -109,7 +111,7 @@ typedef int8_t Coord; // Change to int16_t for screens wider/longer than 128
  */
 typedef struct {
   const Coord x, y;
-  const Coord width; // for text fields width is in # of characters
+  const Coord width; // for text fields width is in # of characters, or -1 to determine length based on strlen
   const Coord height; // for text fields use height = -1 to determine height based on font size
 
   const ColorOp color;

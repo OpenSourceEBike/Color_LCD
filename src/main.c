@@ -37,23 +37,133 @@ struct_configuration_variables configuration_variables;
 //
 // Fields - these might be shared my multiple screens
 //
-Field assistLevelField = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12 } };
+Field socField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field timeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field mysteryField = { .variant = FieldDrawText, .drawText = { .font = &FONT_16X26 } };
+Field assistLevelField = { .variant = FieldDrawText, .drawText = { .font = &FONT_12X20 } };
+Field maxPowerField = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12 } };
+Field curPowerField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field whiteFillField = { .variant = FieldFill };
+Field meshFillField = { .variant = FieldMesh };
+Field brakeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field lightField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 
 //
 // Screens
 //
 Screen mainScreen = {
     {
-        .x = 1, .y = 16,
-        .width = 1, .height = -1,
+        .x = 0, .y = 0,
+        .width = 2, .height = -1,
         .color = ColorNormal,
-        .field = &assistLevelField
+        .field = &socField
     },
     {
-        .x = 1, .y = 32,
+        .x = 32, .y = 0,
+        .width = 5, .height = -1,
+        .color = ColorNormal,
+        .field = &timeField
+    },
+    {
+        .x = 0, .y = 16,
         .width = 1, .height = -1,
         .color = ColorInvert,
         .field = &assistLevelField
+    },
+    {
+        .x = 19, .y = 16,
+        .width = 1, .height = -1,
+        .color = ColorInvert,
+        .field = &mysteryField
+    },
+    {
+        .x = 0, .y = 48,
+        .width = 6, .height = -1,
+        .color = ColorNormal,
+        .field = &maxPowerField
+    },
+    {
+        .x = 0, .y = 68,
+        .width = 64, .height = 1,
+        .color = ColorNormal,
+        .field = &whiteFillField
+    },
+    {
+        .x = 24, .y = 69,
+        .width = 6, .height = -1,
+        .color = ColorNormal,
+        .field = &curPowerField
+    },
+    {
+        .x = 0, .y = 69 + 12,
+        .width = 64, .height = 32,
+        .color = ColorNormal,
+        .field = &meshFillField
+    },
+    {
+        .x = 4, .y = 114,
+        .width = 3, .height = -1,
+        .color = ColorNormal,
+        .field = &brakeField
+    },
+    {
+        .x = 34, .y = 114,
+        .width = 4, .height = -1,
+        .color = ColorNormal,
+        .field = &lightField
+    },
+    {
+        .field = NULL
+    }
+};
+
+
+
+#define FONT12_Y 14 // we want a little bit of extra space
+
+Field faultHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "FAULT" }};
+Field faultCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field addrHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "PC" } };
+Field addrCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field infoHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "Info" }};
+Field infoCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+
+Screen faultScreen = {
+    {
+        .x = 0, .y = 0,
+        .width = -1, .height = -1,
+        .color = ColorInvert,
+        .field = &faultHeading
+    },
+    {
+        .x = 0, .y = FONT12_Y,
+        .width = -1, .height = -1,
+        .color = ColorNormal,
+        .field = &faultCode
+    },
+    {
+        .x = 0, .y = 2 * FONT12_Y,
+        .width = -1, .height = -1,
+        .color = ColorNormal,
+        .field = &addrHeading
+    },
+    {
+        .x = 0, .y = 3 * FONT12_Y,
+        .width = -1, .height = -1,
+        .color = ColorNormal,
+        .field = &addrCode
+    },
+    {
+        .x = 0, .y = 4 * FONT12_Y,
+        .width = -1, .height = -1,
+        .color = ColorNormal,
+        .field = &infoHeading
+    },
+    {
+        .x = 0, .y = 5 * FONT12_Y,
+        .width = -1, .height = -1,
+        .color = ColorNormal,
+        .field = &infoCode
     },
     {
         .field = NULL
@@ -113,9 +223,18 @@ int main(void)
   UG_ConsolePutString("boot\n");
   lcd_refresh();
 
+  // FIXME - update this data in comm rx
   fieldPrintf(&assistLevelField, "%d", 3);
+  fieldPrintf(&socField, "%d", 40);
+  fieldPrintf(&timeField, "17:25");
+  fieldPrintf(&mysteryField, "%d", 32);
+  fieldPrintf(&maxPowerField, "%4d w", 1250);
+  fieldPrintf(&curPowerField, "%4d w", 650);
+  fieldPrintf(&brakeField, "BRK");
+  fieldPrintf(&lightField, "LIGH");
+
   screenShow(&mainScreen);
-  screenUpdate();
+  screenUpdate(); // FIXME - move into main loop
 
   // APP_ERROR_HANDLER(5);
 
@@ -464,6 +583,7 @@ static void seconds_timer_timeout(void *p_context)
  */
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
+  /*
   UG_FontSelect(&MY_FONT_8X12);
   char buf[32];
   sprintf(buf, "ERR 0x%lx\n", id);
@@ -479,6 +599,13 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   sprintf(buf, "0x%lx\n", info);
   UG_ConsolePutString(buf);
   lcd_refresh();
+  */
+
+  fieldPrintf(&faultCode, "0x%x", id);
+  fieldPrintf(&addrCode, "0x%06x", pc);
+  fieldPrintf(&infoCode, "%08x", info);
+
+  screenShow(&faultScreen);
 
   // FIXME - instead we should wait a few seconds and then reboot
   while (1);

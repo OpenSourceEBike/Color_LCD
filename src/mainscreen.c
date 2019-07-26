@@ -13,6 +13,8 @@
 #include "eeprom.h"
 #include "screen.h"
 #include "rtc.h"
+#include "fonts.h"
+#include "config.h"
 
 typedef struct l2_vars_struct
 {
@@ -191,6 +193,10 @@ static uint16_t ui16_m_battery_soc_watts_hour = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
+#define UART_NUMBER_DATA_BYTES_TO_RECEIVE   25  // change this value depending on how many data bytes there is to receive ( Package = one start byte + data bytes + two bytes 16 bit CRC )
+#define UART_NUMBER_DATA_BYTES_TO_SEND      6   // change this value depending on how many data bytes there is to send ( Package = one start byte + data bytes + two bytes 16 bit CRC )
+#define UART_MAX_NUMBER_MESSAGE_ID          8   // change this value depending on how many different packages there is to send
+
 volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
 
@@ -202,7 +208,7 @@ void lcd_power_off(uint8_t updateDistanceOdo);
 void l2_low_pass_filter_battery_voltage_current_power(void);
 void calc_battery_soc_watts_hour(void);
 void l2_calc_odometer(void);
-static void l2_automatic_power_off_management(void);
+//static void l2_automatic_power_off_management(void);
 void brake(void);
 void walk_assist_state(void);
 void wheel_speed(void);
@@ -215,7 +221,7 @@ void battery_soc(void);
 void l2_calc_battery_voltage_soc(void);
 void l2_calc_wh(void);
 void l2_low_pass_filter_pedal_torque_and_power(void);
-static void l2_low_pass_filter_pedal_cadence(void);
+//static void l2_low_pass_filter_pedal_cadence(void);
 void lights_state(void);
 void copy_layer_2_layer_3_vars(void);
 void graphs_measurements_update(void);
@@ -253,13 +259,10 @@ void lcd_main_screen(void)
 
 void process_rx(void)
 {
+#if 0 // FIXME
   uint8_t *p_rx_buffer = 0;
   static uint32_t ui32_wheel_speed_sensor_tick_temp;
-  static uint8_t ui8_i;
   uint8_t ui8_temp;
-  uint16_t ui16_crc_tx;
-  static uint8_t ui8_message_id = 0;
-  static uint8_t ui8_state_machine = 0;
 
   /************************************************************************************************/
   // process rx package
@@ -358,6 +361,7 @@ void process_rx(void)
       usart1_reset_received_package();
     }
   }
+#endif
 
   // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
   ui8_m_usart1_received_first_package++;
@@ -369,13 +373,7 @@ void process_rx(void)
 
 void send_tx_package(void)
 {
-  static uint32_t ui32_wheel_speed_sensor_tick_temp;
-  static uint8_t ui8_i;
-  uint8_t ui8_temp;
-  uint16_t ui16_crc_tx;
   static uint8_t ui8_message_id = 0;
-  static uint8_t ui8_state_machine = 0;
-
 
   /************************************************************************************************/
   // send tx package
@@ -481,9 +479,10 @@ void send_tx_package(void)
     break;
   }
 
+#if 0 // FIXME
   // prepare crc of the package
-  ui16_crc_tx = 0xffff;
-  for (ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++)
+  uint16_t ui16_crc_tx = 0xffff;
+  for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++)
   {
     crc16 (ui8_g_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
   }
@@ -499,6 +498,7 @@ void send_tx_package(void)
   {
     ui8_message_id = 0;
   }
+#endif
 }
 
 
@@ -573,6 +573,7 @@ Field meshFillField = { .variant = FieldMesh };
 Field brakeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 Field lightField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 
+Field tripTimeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 Field tripDistanceField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 Field motorTempField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 
@@ -724,7 +725,6 @@ l3_vars_t* get_l3_vars(void)
 void trip_time(void)
 {
   struct_rtc_time_t *p_time;
-  static struct_rtc_time_t trip_time_previous;
 
   p_time = rtc_get_time_since_startup();
 
@@ -849,15 +849,18 @@ void trip_distance(void)
 
 void power_off_management(void)
 {
+#if 0 // FIXME
   if(buttons_get_onoff_long_click_event() &&
     m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
   {
     lcd_power_off(1);
   }
+#endif
 }
 
 void lcd_power_off(uint8_t updateDistanceOdo)
 {
+#if 0 // FIXME
 //  if (updateDistanceOdo)
 //  {
     l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
@@ -873,6 +876,7 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
   // now disable the power to all the system
   system_power(0);
+#endif
 
   // block here
   while(1) ;
@@ -1011,6 +1015,7 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 #endif
 }
 
+#if 0
 static void l2_low_pass_filter_pedal_cadence(void)
 {
   static uint16_t ui16_pedal_cadence_accumulated = 0;
@@ -1029,6 +1034,7 @@ static void l2_low_pass_filter_pedal_cadence(void)
     l2_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence;
   }
 }
+#endif
 
 void l2_calc_wh(void)
 {
@@ -1079,6 +1085,7 @@ void l2_calc_odometer(void)
 //  }
 }
 
+#if 0
 static void l2_automatic_power_off_management(void)
 {
 //  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
@@ -1117,6 +1124,7 @@ static void l2_automatic_power_off_management(void)
 //    ui8_lcd_power_off_time_counter_minutes = 0;
 //  }
 }
+#endif
 
 #if 0
 void update_menu_flashing_state(void)
@@ -1782,7 +1790,7 @@ void time(void)
     lcd_print_number(&minutes);
   }
 #endif
-  fieldPrintf(&timeField, "%02d:%02d",  p_time->ui8_hours,  p_time->ui8_minutes);
+  fieldPrintf(&timeField, "%02d:%02d",  p_rtc_time->ui8_hours,  p_rtc_time->ui8_minutes);
 
 }
 

@@ -62,7 +62,7 @@ uint8_t* uart_get_tx_buffer(void)
  */
 bool uart_send_tx_buffer(uint8_t* tx_buffer)
 {
-  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer, 11);
+  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer, UART_NUMBER_DATA_BYTES_TO_SEND + 3);
 
   return (err_code == NRF_SUCCESS) ? true : false;
 }

@@ -194,7 +194,8 @@ static uint16_t ui16_m_battery_soc_watts_hour = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
-volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
+// kevinh: removed volatile because I don't think it is needed
+uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
 
 void lcd_main_screen(void);
@@ -474,7 +475,6 @@ void send_tx_package(void)
     break;
   }
 
-#if 0 // FIXME
   // prepare crc of the package
   uint16_t ui16_crc_tx = 0xffff;
   for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++)
@@ -486,14 +486,13 @@ void send_tx_package(void)
 
   // send the full package to UART
   // start DMA UART transfer
-  usart1_start_dma_transfer();
+  uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
 
   // increment message_id for next package
   if(++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID)
   {
     ui8_message_id = 0;
   }
-#endif
 }
 
 

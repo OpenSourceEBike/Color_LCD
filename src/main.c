@@ -30,13 +30,6 @@ APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
 #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
 volatile uint32_t seconds_since_startup, seconds_since_reset;
 
-/* Main config/data structs */
-struct_motor_controller_data motor_controller_data;
-struct_configuration_variables configuration_variables;
-
-
-
-
 #define FONT12_Y 14 // we want a little bit of extra space
 
 Field faultHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "FAULT" }};
@@ -95,8 +88,6 @@ static void init_app_timers(void);
 static void button_poll_timer_timeout(void * p_context);
 static void seconds_timer_timeout(void * p_context);
 /* UART RX/TX */
-bool decode_rx_stream(const uint8_t* p_rx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables);
-void prepare_tx_stream(uint8_t* tx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables);
 
 
 
@@ -114,7 +105,8 @@ int main(void)
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
-  eeprom_read_configuration(get_configuration_variables());
+  // FIXME
+  // eeprom_read_configuration(get_configuration_variables());
   init_app_timers();
   system_power(true);
 
@@ -155,14 +147,16 @@ int main(void)
     if (p_rx_buffer != NULL)
     {
       /* RX */
-      bool ok = decode_rx_stream(p_rx_buffer, get_motor_controller_data(), get_configuration_variables());
+      // bool ok = decode_rx_stream(p_rx_buffer, get_motor_controller_data(), get_configuration_variables());
       /* TX */
+#if 0
       if (ok)
       {
         uint8_t* tx_buffer = uart_get_tx_buffer();
         prepare_tx_stream(tx_buffer, get_motor_controller_data(), get_configuration_variables());
         uart_send_tx_buffer(tx_buffer);
       }
+#endif
     }
   }
 
@@ -179,124 +173,9 @@ static void system_power(bool state)
     nrf_gpio_pin_clear(SYSTEM_POWER_HOLD__PIN);
 }
 
-/**
- * @brief Returns configuration variables
- */
-struct_configuration_variables* get_configuration_variables(void)
-{
-  return &configuration_variables;
-}
 
-/**
- * @brief Returns motor controller data
- */
-struct_motor_controller_data* get_motor_controller_data(void)
-{
-  return &motor_controller_data;
-}
 
-/**
- * @brief Deserialize RX stream. Returns false on error
- */
-bool decode_rx_stream(const uint8_t* p_rx_buffer, struct_motor_controller_data* p_motor_controller_data, struct_configuration_variables* p_configuration_variables)
-{
-  static U32 wss_tick_temp;
-
-  /* Check CRC */
-  U16 stream_crc;
-  /* data stream is LSB first and CPU has little-endian format */
-  stream_crc.byte[0] = p_rx_buffer[24]; // lsbyte goes to lower memory address
-  stream_crc.byte[1] = p_rx_buffer[25]; // msbyte goes to higher memory address
-  uint16_t crc = 0xffff;
-  for (uint8_t i = 0; i < 24; i++)
-    crc16(p_rx_buffer[i], &crc);
-
-  if (stream_crc.u16 != crc)
-    return false;
-
-  /* Decode */
-#define VARIABLE_ID_MAX_NUMBER 10
-  if ((p_rx_buffer[1]) == p_motor_controller_data->master_comm_package_id) // last package data ID was receipt, so send the next one
-  {
-    p_motor_controller_data->master_comm_package_id = (p_motor_controller_data->master_comm_package_id + 1) % VARIABLE_ID_MAX_NUMBER;
-  }
-  p_motor_controller_data->slave_comm_package_id = p_rx_buffer[2];
-
-  //p_motor_controller_data->adc_battery_voltage = p_rx_buffer[3];
-  //p_motor_controller_data->adc_battery_voltage |= ((uint16_t) (p_rx_buffer[4] & 0x30)) << 4;
-  p_motor_controller_data->adc_battery_voltage.byte[0] = p_rx_buffer[3];
-  p_motor_controller_data->adc_battery_voltage.byte[1] = p_rx_buffer[4] >> 4; // Quite strange conversion of msbyte on motor side. So this is correct!
-  p_motor_controller_data->battery_current_x5 = p_rx_buffer[5];
-  //p_motor_controller_data->wheel_speed_x10 = (((uint16_t) p_rx_buffer[7]) << 8) + ((uint16_t) p_rx_buffer[6]);
-  p_motor_controller_data->wheel_speed_x10.byte[0] = p_rx_buffer[6];
-  p_motor_controller_data->wheel_speed_x10.byte[1] = p_rx_buffer[7];
-  p_motor_controller_data->motor_controller_state_2 = p_rx_buffer[8];
-  p_motor_controller_data->braking = p_motor_controller_data->motor_controller_state_2 & 1;
-
-  if (p_configuration_variables->temperature_limit_feature_enabled == 1)
-  {
-    p_motor_controller_data->adc_throttle = p_rx_buffer[9];
-    p_motor_controller_data->motor_temperature = p_rx_buffer[10];
-  }
-  else
-  {
-    p_motor_controller_data->adc_throttle = p_rx_buffer[9];
-    p_motor_controller_data->throttle = p_rx_buffer[10];
-  }
-
-  p_motor_controller_data->adc_pedal_torque_sensor = p_rx_buffer[11];
-  p_motor_controller_data->pedal_torque_sensor = p_rx_buffer[12];
-  p_motor_controller_data->pedal_cadence = p_rx_buffer[13];
-  p_motor_controller_data->pedal_human_power = p_rx_buffer[14];
-  p_motor_controller_data->duty_cycle = p_rx_buffer[15];
-  //p_motor_controller_data->motor_speed_erps = (((uint16_t) p_rx_buffer[17]) << 8) + ((uint16_t) p_rx_buffer[16]);
-  p_motor_controller_data->motor_speed_erps.byte[0] = p_rx_buffer[16];
-  p_motor_controller_data->motor_speed_erps.byte[1] = p_rx_buffer[17];
-  p_motor_controller_data->foc_angle = p_rx_buffer[18];
-
-  switch (p_motor_controller_data->slave_comm_package_id)
-  {
-  case 0:
-    // error states
-    p_motor_controller_data->error_states = p_rx_buffer[19];
-    break;
-
-  case 1:
-    // temperature actual limiting value
-    p_motor_controller_data->temperature_current_limiting_value = p_rx_buffer[19];
-    break;
-
-  case 2:
-    // wheel_speed_sensor_tick_counter
-    //wss_tick_temp = ((uint32_t) p_rx_buffer[19]);
-    wss_tick_temp.byte[0] = p_rx_buffer[19];
-    break;
-
-  case 3:
-    // wheel_speed_sensor_tick_counter
-    //wss_tick_temp |= (((uint32_t) p_rx_buffer[19]) << 8);
-    wss_tick_temp.byte[1] = p_rx_buffer[19];
-    break;
-
-  case 4:
-    // wheel_speed_sensor_tick_counter
-    //wss_tick_temp |= (((uint32_t) p_rx_buffer[19]) << 16);
-    //p_motor_controller_data->wheel_speed_sensor_tick_counter = ui32_wss_tick_temp;
-    wss_tick_temp.byte[2] = p_rx_buffer[19];
-    p_motor_controller_data->wheel_speed_sensor_tick_counter.u32 = wss_tick_temp.u32;
-    break;
-  }
-
-  //p_motor_controller_data->pedal_torque_x10 = (((uint16_t) p_rx_buffer[21]) << 8) + ((uint16_t) p_rx_buffer[20]);
-  p_motor_controller_data->pedal_torque_x10.byte[0] = p_rx_buffer[20];
-  p_motor_controller_data->pedal_torque_x10.byte[1] = p_rx_buffer[21];
-  //p_motor_controller_data->pedal_power_x10 = (((uint16_t) p_rx_buffer[23]) << 8) + ((uint16_t) p_rx_buffer[22]);
-  p_motor_controller_data->pedal_power_x10.byte[0] = p_rx_buffer[22];
-  p_motor_controller_data->pedal_power_x10.byte[1] = p_rx_buffer[23];
-
-  return true;
-}
-
+#if 0
 /**
  * @brief Serialize structs & write to tx_buffer
  */
@@ -423,7 +302,7 @@ void prepare_tx_stream(uint8_t* tx_buffer, struct_motor_controller_data* p_motor
   tx_buffer[9] = (crc_tx.u16 & 0xff);
   tx_buffer[10] = (crc_tx.u16 >> 8) & 0xff;
 }
-
+#endif
 
 
 /* Hardware Initialization */

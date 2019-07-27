@@ -5,8 +5,8 @@
 #include "fstorage.h"
 
 void eeprom_init(void);
-void eeprom_read_configuration(struct_configuration_variables *p_configuration_variables);
-void eeprom_write_configuration(const struct_configuration_variables *p_configuration_variables);
+//void eeprom_read_configuration(struct_configuration_variables *p_configuration_variables);
+//void eeprom_write_configuration(const struct_configuration_variables *p_configuration_variables);
 uint32_t eeprom_read_value(uint8_t address);
 bool eeprom_write_value(uint8_t address, uint32_t* value);
 fs_ret_t eeprom_get_last_result(void);

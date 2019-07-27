@@ -11,6 +11,7 @@
 #include "common.h"
 #include "nrf_delay.h"
 
+#if 0
 const struct_configuration_variables default_configuration_variables =
 {
     .assist_level = DEFAULT_VALUE_ASSIST_LEVEL,
@@ -113,6 +114,7 @@ const struct_configuration_variables default_configuration_variables =
     .show_battery_SOC_odometer_field = DEFAULT_VALUE_SHOW_BATTERY_SOC_ODOMETER_FIELD,
     .main_screen_power_menu_enabled = DEFAULT_VALUE_MAIN_SCREEN_POWER_MENU_ENABLED
 };
+#endif
 
 volatile fs_ret_t last_fs_ret;
 
@@ -169,7 +171,8 @@ void eeprom_init(void)
   if (ee_key != KEY)
   {
     /* Write default config to eeprom */
-    eeprom_write_configuration(&default_configuration_variables);
+    // FIXME - init eeprom contents
+    // eeprom_write_configuration(&default_configuration_variables);
     uint32_t cnt = 0;
     while (last_fs_ret == 0xFF && cnt++ < 10)
       nrf_delay_us(100);
@@ -183,6 +186,7 @@ void eeprom_init(void)
   }
 }
 
+#if 0
 /**
  * @brief Read struct_configuration_variables to memory
  */
@@ -346,6 +350,7 @@ void eeprom_write_configuration(const struct_configuration_variables *p_configur
   /* Write to flash without ADDRESS_KEY */
   flash_write_words(0, ee_data, (EEPROM_WORDS_STORED - 1));
 }
+#endif
 
 /**
  * @brief Read value from eeprom

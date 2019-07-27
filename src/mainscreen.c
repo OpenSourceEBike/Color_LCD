@@ -15,6 +15,7 @@
 #include "rtc.h"
 #include "fonts.h"
 #include "config.h"
+#include "uart.h"
 
 typedef struct l2_vars_struct
 {
@@ -193,10 +194,6 @@ static uint16_t ui16_m_battery_soc_watts_hour = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
-#define UART_NUMBER_DATA_BYTES_TO_RECEIVE   25  // change this value depending on how many data bytes there is to receive ( Package = one start byte + data bytes + two bytes 16 bit CRC )
-#define UART_NUMBER_DATA_BYTES_TO_SEND      6   // change this value depending on how many data bytes there is to send ( Package = one start byte + data bytes + two bytes 16 bit CRC )
-#define UART_MAX_NUMBER_MESSAGE_ID          8   // change this value depending on how many different packages there is to send
-
 volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
 
@@ -259,17 +256,15 @@ void lcd_main_screen(void)
 
 void process_rx(void)
 {
-#if 0 // FIXME
-  uint8_t *p_rx_buffer = 0;
   static uint32_t ui32_wheel_speed_sensor_tick_temp;
   uint8_t ui8_temp;
 
+  const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
+
   /************************************************************************************************/
   // process rx package
-  if(usart1_received_package())
+  if(p_rx_buffer)
   {
-    p_rx_buffer = usart1_get_rx_buffer();
-
     // now process rx data
     // only if first byte is equal to package start byte
     if(*p_rx_buffer == 67)
@@ -358,10 +353,10 @@ void process_rx(void)
       p_rx_buffer++;
       l2_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
 
-      usart1_reset_received_package();
+      // not needed with this implementation (and with ptr flipflop not needed eitehr)
+      // usart1_reset_received_package();
     }
   }
-#endif
 
   // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
   ui8_m_usart1_received_first_package++;

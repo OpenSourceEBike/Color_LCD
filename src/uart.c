@@ -8,9 +8,10 @@
 #include "common.h"
 #include "nrf_drv_uart.h"
 #include "uart.h"
+#include "utils.h"
 
 nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
-uint8_t uart_buffer0_rx[26];
+uint8_t uart_buffer0_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
 uint8_t uart_buffer0_tx[11];
 volatile bool uart_rx_new_package;
 
@@ -83,7 +84,7 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       uart_rx_new_package = false;  // RX ongoing. Invalidate flag.
       if (uart_buffer0_rx[0] == 0x43) // see if we get start package byte
       {
-        nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[1], 25);  // Start RX of the remaining stream at once
+        nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[1], UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2);  // Start RX of the remaining stream at once
         uart_rx_state_machine = 1;
       }
       else
@@ -92,12 +93,34 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
 
     /* End of stream RX */
     case 1:
+    {
+      // validation of the package data
+      // last byte is the checksum
+      uint16_t ui16_crc_rx = 0xffff;
+      for(uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_RECEIVE; ui8_i++)
+      {
+        crc16(uart_buffer0_rx[ui8_i], &ui16_crc_rx);
+      }
+
+      if(((((uint16_t) uart_buffer0_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2]) << 8) +
+          ((uint16_t) uart_buffer0_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1])) ==
+              ui16_crc_rx)
+      // {
+        // copy to the other buffer only if we processed already the last package
+        // FIXME - this flipflop between buffers can be done with just changing a pointer, no need for an expensive memcpy
+        // if(!ui8_received_package_flag)
+        //{
+        uart_rx_new_package = true; // signal that we have a full package to be processed
+
+          // store the received data to rx_buffer
+          // memcpy(ui8_rx_buffer, ui8_rx, UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1);
+        //}
+
       /* Start bytewise RX again */
       nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1);
       uart_rx_state_machine = 0;
-
-      uart_rx_new_package = true; // signal that we have a full package to be processed
       break;
+      }
     }
   }
 }

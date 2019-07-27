@@ -2,6 +2,7 @@
 
 * merge 850C style rx comms code with the existing SW102 code
 * merge the 850C style tx comms code with the existing SW102 code
+* merge the 850C eeprom code, keeping as much as possible in common
 * make the rtc stubs do something
 * turn on eeprom writing
 * add a logical buttons abstraction and callbacks for screen button handling
@@ -13,9 +14,14 @@
 * turn on system power / turn off system power per button press
 * delete dead code in mainscreen.c
 * initial release
+* FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
+the GUI thread.  Use two buffers + a ptr.
+* use battery icon
 * merge with 850C code somewhat? (sharing behavior - just different UX layer)
 
 # Misc notes from kevin not yet formatted
+
+* for reference old 0.18 version of comms is described here: https://github.com/OpenSource-EBike-firmware/TSDZ2-Smart-EBike/blob/v0.18.2/src/display/KT-LCD3/uart.c
 
 * install eabi toolchain from https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
 per https://launchpadlibrarian.net/218827232/How-to-build-toolchain.pdf

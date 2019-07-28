@@ -36,7 +36,7 @@ FS_REGISTER_CFG(fs_config_t fs_config) =
 
 void flash_read_words(uint8_t offset, void *dest, uint16_t length_words)
 {
-  memcpy(dest, &fs_config.p_start_addr[offset], length_words / sizeof(uint32_t));
+  memcpy(dest, &fs_config.p_start_addr[offset], length_words * sizeof(uint32_t));
   // return fs_config.p_start_addr[offset];
 }
 
@@ -55,6 +55,10 @@ bool flash_write_words(uint8_t offset, const void* value, uint16_t length_words)
   }
   while (ret == FS_ERR_QUEUE_FULL && cnt++ < 10);
 
+  cnt = 0;
+  while(!fs_queue_is_empty() && cnt++ < 100)
+    nrf_delay_us(100); // wait for all pending writes to complete
+
   return ret == FS_SUCCESS ? true : false;
 }
 
@@ -67,26 +71,6 @@ void eeprom_hw_init(void)
 
   fs_init();
 
-#if 0
-  static uint32_t ee_key = flash_read_word(ADDRESS_KEY);
-  /* Init eeprom to default if KEY is not valid */
-  if (ee_key != KEY)
-  {
-    /* Write default config to eeprom */
-    // FIXME - init eeprom contents
-    // eeprom_write_configuration(&default_configuration_variables);
-    uint32_t cnt = 0;
-    while (last_fs_ret == 0xFF && cnt++ < 10)
-      nrf_delay_us(100);
-
-    /* Write new KEY */
-    ee_key = KEY;
-    flash_write_words(ADDRESS_KEY, &ee_key, 1);
-    cnt = 0;
-    while (last_fs_ret == 0xFF && cnt++ < 10)
-      nrf_delay_us(100);
-  }
-#endif
 }
 
 

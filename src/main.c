@@ -254,10 +254,21 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
   fieldPrintf(&faultCode, "0x%lx", id);
   fieldPrintf(&addrCode, "0x%06lx", pc);
-  fieldPrintf(&infoCode, "%08lx", info);
+
+  if(id == NRF_FAULT_ID_SDK_ERROR) {
+    // app errors include filename and line
+    error_info_t *einfo = (error_info_t *) info;
+    fieldPrintf(&infoCode, "%s/%d/%d", einfo->p_file_name ? (const char *) einfo->p_file_name : "",
+        einfo->line_num,
+        einfo->err_code);
+  }
+  else
+    fieldPrintf(&infoCode, "%08lx", info);
 
   screenShow(&faultScreen);
 
   // FIXME - instead we should wait a few seconds and then reboot
   while (1);
 }
+
+

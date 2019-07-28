@@ -10,56 +10,86 @@
 #include "section_vars.h"
 #include "eeprom_hw.h"
 #include "common.h"
+#include "fds.h"
 #include "nrf_delay.h"
-#include "fstorage.h"
 
-
-volatile fs_ret_t last_fs_ret;
-
+// volatile fs_ret_t last_fs_ret;
 
 /* Event handler */
 
+volatile bool gc_done;
+
 /* Register fs_sys_event_handler with softdevice_sys_evt_handler_set in ble_stack_init or this doesn't fire! */
-static void fs_evt_handler(fs_evt_t const * const evt, fs_ret_t result)
+static void fds_evt_handler(fds_evt_t const *const evt)
 {
-  last_fs_ret = result;
-}
-
-
-FS_REGISTER_CFG(fs_config_t fs_config) =
-{
-    .callback  = fs_evt_handler,  // Function for event callbacks.
-    .num_pages = 1,               // Number of physical flash pages required (see also FS_PAGE_SIZE_WORDS for actual sizes).
-                                  // NRF51: 256 words (32 bit).
-    .priority  = 0xF0             // Priority for flash usage.
-};
-
-void flash_read_words(uint8_t offset, void *dest, uint16_t length_words)
-{
-  memcpy(dest, &fs_config.p_start_addr[offset], length_words * sizeof(uint32_t));
-  // return fs_config.p_start_addr[offset];
-}
-
-bool flash_write_words(uint8_t offset, const void* value, uint16_t length_words)
-{
-  fs_ret_t ret;
-  uint32_t cnt = 0;
-
-  do
+  switch (evt->id)
   {
-    last_fs_ret = 0xFF;
-    ret = fs_store(&fs_config, &fs_config.p_start_addr[offset], value, length_words, NULL);
-    /* Wait some time if fstore queue is full and retry */
-    if (ret == FS_ERR_QUEUE_FULL)
-      nrf_delay_us(100);
+  case FDS_EVT_INIT:
+    APP_ERROR_CHECK(evt->result);
+    break;
+  case FDS_EVT_GC:
+    gc_done = true;
+    break;
+  default:
+    break;
   }
-  while (ret == FS_ERR_QUEUE_FULL && cnt++ < 10);
+}
 
-  cnt = 0;
-  while(!fs_queue_is_empty() && cnt++ < 100)
-    nrf_delay_us(100); // wait for all pending writes to complete
+#define FILE_ID     0x1001
+#define REC_KEY     0x2001
 
-  return ret == FS_SUCCESS ? true : false;
+// returns true if our preferences were found
+bool flash_read_words(void *dest, uint16_t length_words)
+{
+  fds_flash_record_t  flash_record;
+  fds_record_desc_t   record_desc;
+  fds_find_token_t    ftok;
+
+  bool did_read = false;
+
+  memset(&ftok, 0x00, sizeof(fds_find_token_t));
+  // Loop until all records with the given key and file ID have been found.
+  while (fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok) == FDS_SUCCESS)
+  {
+    APP_ERROR_CHECK (fds_record_open(&record_desc, &flash_record));
+
+      // Access the record through the flash_record structure.
+    memcpy(dest, flash_record.p_data, length_words * sizeof(uint32_t));
+    did_read = true;
+
+      // Close the record when done.
+    APP_ERROR_CHECK (fds_record_close(&record_desc));
+  }
+
+  return did_read;
+}
+
+bool flash_write_words(const void *value, uint16_t length_words)
+{
+  fds_record_t record;
+  fds_record_desc_t record_desc;
+  fds_record_chunk_t record_chunk;
+
+// Set up data.
+  record_chunk.p_data = value;
+  record_chunk.length_words = length_words;
+
+// Set up record.
+  record.file_id = FILE_ID;
+  record.key = REC_KEY;
+  record.data.p_chunks = &record_chunk;
+  record.data.num_chunks = 1;
+
+  APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
+
+  return true;
+}
+
+static void wait_gc() {
+  gc_done = false;
+  APP_ERROR_CHECK(fds_gc());
+  for(int count = 0; count < 1000 && !gc_done; count++)
+    nrf_delay_ms(1);
 }
 
 /**
@@ -67,12 +97,10 @@ bool flash_write_words(uint8_t offset, const void* value, uint16_t length_words)
  */
 void eeprom_hw_init(void)
 {
-  UNUSED_VARIABLE(fs_config);  // To avoid 'Unused declaration' warning. Compiler doesn't see the section/linker magic in use.
+  ret_code_t ret = fds_register(fds_evt_handler);
+  APP_ERROR_CHECK(ret);
 
-  fs_init();
-
+  APP_ERROR_CHECK(fds_init());
+  wait_gc();
 }
-
-
-
 

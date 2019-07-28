@@ -5,7 +5,7 @@
 
 void eeprom_hw_init(void);
 
-bool flash_write_words(uint8_t offset, const void *value, uint16_t length_words);
-void flash_read_words(uint8_t offset, void *dest, uint16_t length_words);
+bool flash_write_words(const void *value, uint16_t length_words);
+bool flash_read_words(void *dest, uint16_t length_words);
 
 

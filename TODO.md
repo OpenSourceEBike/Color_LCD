@@ -18,6 +18,8 @@
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
 * use battery icon
+* pack & align eeprom
+* do EEPROM image flipflop like the 850C code (to ensure loss of power during a write doesn't hose us)
 * merge with 850C code somewhat? (sharing behavior - just different UX layer)
 
 # Misc notes from kevin not yet formatted

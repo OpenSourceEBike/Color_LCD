@@ -3,6 +3,7 @@
  *
  * Released under the GPL License, Version 3
  */
+#include <eeprom_hw.h>
 #include "ble_uart.h"
 #include "app_timer.h"
 #include "main.h"
@@ -12,8 +13,8 @@
 #include "fonts.h"
 #include "uart.h"
 #include "utils.h"
-#include "eeprom.h"
 #include "screen.h"
+#include "eeprom.h"
 
 /* Variable definition */
 
@@ -149,14 +150,6 @@ int main(void)
       /* RX */
       // bool ok = decode_rx_stream(p_rx_buffer, get_motor_controller_data(), get_configuration_variables());
       /* TX */
-#if 0
-      if (ok)
-      {
-        uint8_t* tx_buffer = uart_get_tx_buffer();
-        prepare_tx_stream(tx_buffer, get_motor_controller_data(), get_configuration_variables());
-        uart_send_tx_buffer(tx_buffer);
-      }
-#endif
     }
   }
 

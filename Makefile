@@ -27,6 +27,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
   $(PROJ_DIR)/src/eeprom.c \
+  $(PROJ_DIR)/src/eeprom_hw.c \
   $(PROJ_DIR)/src/screen.c \
   $(PROJ_DIR)/src/rtc.c \
   $(PROJ_DIR)/src/fonts.c \

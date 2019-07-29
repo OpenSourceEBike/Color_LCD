@@ -642,7 +642,7 @@ void graphs_draw_title(volatile lcd_vars_t *p_lcd_vars, uint32_t ui32_state)
         ui32_x_position = 110;
         UG_PutString(ui32_x_position,
                      ui32_y_position,
-                     "motor ers");
+                     "motor erps");
       break;
 
       case GRAPH_MOTOR_FOC_ANGLE:

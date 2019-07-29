@@ -30,11 +30,11 @@ typedef struct eeprom_data
   uint16_t ui16_battery_low_voltage_cut_off_x10;
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-  uint8_t ui8_assist_level_factor[9];
+  uint8_t ui8_assist_level_factor[10];
   uint8_t ui8_number_of_assist_levels;
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
   uint8_t ui8_startup_motor_power_boost_state;
-  uint8_t ui8_startup_motor_power_boost_factor[9];
+  uint8_t ui8_startup_motor_power_boost_factor[10];
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
   uint8_t ui8_temperature_limit_feature_enabled;
@@ -52,7 +52,7 @@ typedef struct eeprom_data
   uint8_t ui8_offroad_power_limit_div25;
   uint32_t ui32_odometer_x10;
   uint8_t ui8_walk_assist_feature_enabled;
-  uint8_t ui8_walk_assist_level_factor[9];
+  uint8_t ui8_walk_assist_level_factor[10];
   lcd_configurations_menu_t lcd_configurations_menu;
   graphs_id_t graph_id;
 } eeprom_data_t;

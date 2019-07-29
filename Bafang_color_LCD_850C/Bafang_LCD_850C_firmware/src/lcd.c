@@ -506,23 +506,17 @@ uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
   static uint32_t ui32_counter = 0;
-  uint8_t ui8_status = 0;
 
-  ui32_counter++;
-  if(ui32_counter > 500 &&
+  // count 10 seconds
+  if(++ui32_counter > 500 &&
       ui32_g_first_time == 1)
   {
     ui32_g_first_time = 0;
   }
 
-  // don't update LCD up to we get first communication package from the motor controller
-  if(ui8_motor_controller_init &&
-      ui8_m_usart1_received_first_package < 10)
-  {
-    ui8_status = 1;
-  }
   // this will be executed only 1 time at startup
-  else if (ui8_motor_controller_init)
+  if(ui8_motor_controller_init &&
+      ui32_g_first_time == 0)
   {
     ui8_motor_controller_init = 0;
 
@@ -540,7 +534,7 @@ uint8_t first_time_management(void)
     }
   }
 
-  return ui8_status;
+  return ui32_g_first_time;
 }
 
 void assist_level_state(void)

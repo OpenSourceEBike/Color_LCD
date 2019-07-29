@@ -785,13 +785,11 @@ void trip_distance(void)
 
 void power_off_management(void)
 {
-#if 0 // FIXME
-  if(buttons_get_onoff_long_click_event() &&
-    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+  if(buttons_get_onoff_long_click_event() /* &&
+    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN */)
   {
     lcd_power_off(1);
   }
-#endif
 }
 
 void lcd_power_off(uint8_t updateDistanceOdo)
@@ -2417,40 +2415,13 @@ void walk_assist_state(void)
 {
   // kevinh - note on the sw102 we show WALK in the box normally used for BRAKE display - the display code is handled there now
 #if 0
-  static uint8_t ui8_walk_assist_state = 0;
   static uint8_t ui8_walk_assist_previous;
   uint32_t ui32_x1;
   uint32_t ui32_y1;
   uint32_t ui32_x2;
   uint32_t ui32_y2;
 
-  if(m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
-      l3_vars.ui8_walk_assist_feature_enabled)
-  {
-    if(buttons_get_down_long_click_event())
-    {
-      // clear button long down click event
-      buttons_clear_down_long_click_event();
-      ui8_walk_assist_state = 1;
-    }
 
-    // if down button is still pressed
-    if(ui8_walk_assist_state &&
-        buttons_get_down_state())
-    {
-      l3_vars.ui8_walk_assist = 1;
-    }
-    else if(buttons_get_down_state() == 0)
-    {
-      ui8_walk_assist_state = 0;
-      l3_vars.ui8_walk_assist = 0;
-    }
-  }
-  else
-  {
-    ui8_walk_assist_state = 0;
-    l3_vars.ui8_walk_assist = 0;
-  }
 
   // if previous state was disable, draw
   if((l3_vars.ui8_walk_assist != ui8_walk_assist_previous) ||
@@ -2479,6 +2450,33 @@ void walk_assist_state(void)
     }
   }
 #endif
+  static uint8_t ui8_walk_assist_state = 0;
+  if(/* m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN && */
+      l3_vars.ui8_walk_assist_feature_enabled)
+  {
+    if(buttons_get_down_long_click_event())
+    {
+      // clear button long down click event
+      buttons_clear_down_long_click_event();
+      ui8_walk_assist_state = 1;
+    }
 
+    // if down button is still pressed
+    if(ui8_walk_assist_state &&
+        buttons_get_down_state())
+    {
+      l3_vars.ui8_walk_assist = 1;
+    }
+    else if(buttons_get_down_state() == 0)
+    {
+      ui8_walk_assist_state = 0;
+      l3_vars.ui8_walk_assist = 0;
+    }
+  }
+  else
+  {
+    ui8_walk_assist_state = 0;
+    l3_vars.ui8_walk_assist = 0;
+  }
 }
 

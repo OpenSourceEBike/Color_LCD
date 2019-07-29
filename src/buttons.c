@@ -54,7 +54,10 @@ uint32_t buttons_get_down_state (void)
 
 uint32_t buttons_get_onoff_state (void)
 {
-  return PollButton(&buttonPWR);
+  // FIXME - I'm temporarily using the M pin for power, because the real power button is only readable
+  // when hooked to a battery (which is in my basement right now)
+  return PollButton(&buttonM);
+  // return PollButton(&buttonPWR);
 }
 #endif
 

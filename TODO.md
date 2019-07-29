@@ -8,13 +8,13 @@
 * DONE turn on eeprom writing
 * DONE semi-cruftily port over the 850C button code 
 * DONE make accel button presses work
-* make all other button presses (excluding config) work
+* MOSTLY DONE make all other button presses (excluding config) work
+* add a logical buttons abstraction and callbacks for screen button handling
+* make config entry presses work
 * make a shutdown screen
 * make a boot screen (show until user releases power button)
 * test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
-* add a logical buttons abstraction and callbacks for screen button handling
-* make config entry presses work
 * make config system (hopefully usable on other platforms)
 * turn on system power / turn off system power per button press
 * delete dead code in mainscreen.c

@@ -31,7 +31,7 @@
 #define BATTERY_SOC_CONTOUR 1
 
 volatile l2_vars_t l2_vars;
-static l3_vars_t l3_vars;
+l3_vars_t l3_vars;
 
 volatile uint32_t ui32_g_layer_2_can_execute = 0;
 
@@ -780,7 +780,7 @@ void trip_distance(void)
     trip_distance.ui8_refresh_all_digits = 0;
   }
 #endif
-  fieldPrintf(&speedField, "%4d", l3_vars.ui16_distance_since_power_on_x10);
+  fieldPrintf(&speedField, "%2d.%01d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
 }
 
 void power_off_management(void)

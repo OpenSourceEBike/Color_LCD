@@ -33,6 +33,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/eeprom.c \
   $(PROJ_DIR)/src/eeprom_hw.c \
   $(PROJ_DIR)/src/screen.c \
+  $(PROJ_DIR)/src/configscreen.c \
   $(PROJ_DIR)/src/rtc.c \
   $(PROJ_DIR)/src/fonts.c \
   $(PROJ_DIR)/src/mainscreen.c \

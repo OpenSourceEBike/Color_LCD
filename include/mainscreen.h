@@ -159,7 +159,10 @@ typedef struct l3_vars_struct
   uint8_t ui8_offroad_mode;
 } l3_vars_t;
 
+// deprecated FIXME, delete
 l3_vars_t* get_l3_vars(void);
+
+extern l3_vars_t l3_vars;
 
 void screen_init();
 void screen_clock(); // call every 20ms

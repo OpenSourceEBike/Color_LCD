@@ -87,12 +87,24 @@ typedef enum {
   FieldDrawText = 0,
   FieldFill, // Fill with a solid color
   FieldMesh, // Fill with a mesh color
+  FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
+  FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
+  FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
 } FieldVariant;
+
+/**
+ * What sorts of types are supported for FieldEditable.  Currently just uint8, uint16, bool and choosing a string from a list and storing its
+ * index
+ */
+typedef enum {
+  EditUInt = 0, // This is the default type if not specified
+  EditEnum // Choose a string from a list
+} EditableType;
 
 /**
  * Ready to render data (normally populated by comms code) which might be used on multiple different screens
  */
-typedef struct {
+typedef struct Field {
   FieldVariant variant; //
   bool dirty; // true if this data has changed and needs to be rerendered
 
@@ -101,8 +113,55 @@ typedef struct {
       const UG_FONT *font;
       char msg[MAX_FIELD_LEN];
     } drawText;
+
+    struct {
+      const struct Field *entries; // the menu entries for this submenu.
+      const char *label; // the title shown in the GUI for this menu
+      uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
+      uint8_t selected; // the currently highlighted entry
+    } scrollable;
+
+    struct {
+      const char *label; // the label shown in the GUI for this item
+      void *target; // the data we are showing/manipulating
+      const EditableType typ;
+
+      // the following parameters are particular to the editable type
+      union {
+        struct {
+          const char *units;
+          const uint8_t size; // sizeof for the specified variable - we support 1 or 2, 4 would be easy
+          const uint8_t div_digits; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
+          const uint32_t max_value, min_value; // min/max
+          const uint32_t inc_step;
+        } number;
+
+        struct {
+          // we assume *target is a uint8_t
+          const char **options; // An array of strings, with a NULL entry at the end to mark end of choices
+        } editEnum;
+      };
+    } editable;
   };
 } Field;
+
+//
+// Helper macros to declare fields more easily
+//
+
+#define FIELD_SCROLLABLE(lbl, arry) { .variant = FieldScrollable, .scrollable = { .label = lbl, .entries = arry } }
+
+#define FIELD_EDITABLE_UINT(lbl, targ, unt, minv, maxv, ...) { .variant = FieldEditable, \
+  .editable = { .typ = EditUInt, .label = lbl, .target = targ, \
+      .number = { .size = sizeof(*targ), .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
+
+// C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
+#define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
+  .editable = { .typ = EditEnum, .label = lbl, .target = targ, \
+      .editEnum = { .options = (const char *[]){ __VA_ARGS__ } } } }
+
+#define FIELD_END { .variant = FieldEnd }
+
 
 typedef int8_t Coord; // Change to int16_t for screens wider/longer than 128
 

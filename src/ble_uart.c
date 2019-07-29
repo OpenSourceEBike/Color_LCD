@@ -10,9 +10,11 @@
 #include "ble_advdata.h"
 #include "ble_conn_params.h"
 #include "ble_advertising.h"
+#include "peer_manager.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
 #include "ble_nus.h"
+#include "fds.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -25,7 +27,7 @@
 #define CENTRAL_LINK_COUNT              0                                           /**< Number of central links used by the application. When changing this number remember to adjust the RAM settings*/
 #define PERIPHERAL_LINK_COUNT           1                                           /**< Number of peripheral links used by the application. When changing this number remember to adjust the RAM settings*/
 
-#define DEVICE_NAME                     "SW102_UART"                                /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
 #define APP_ADV_INTERVAL                160                                         /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
@@ -92,7 +94,7 @@ static void services_init(void)
 
     nus_init.data_handler = nus_data_handler;
 
-    ble_nus_init(&m_nus, &nus_init);
+    APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
 }
 
 
@@ -109,10 +111,15 @@ static void services_init(void)
  */
 static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
-    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
-    {
-        sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
-    }
+  switch(p_evt->evt_type) {
+  case BLE_CONN_PARAMS_EVT_FAILED:
+    sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+    break;
+  case BLE_CONN_PARAMS_EVT_SUCCEEDED:
+    break;
+  default:
+    break;
+  }
 }
 
 
@@ -143,9 +150,9 @@ static void conn_params_init(void)
     cp_init.evt_handler                    = on_conn_params_evt;
     cp_init.error_handler                  = conn_params_error_handler;
 
-    ble_conn_params_init(&cp_init);
+    APP_ERROR_CHECK(ble_conn_params_init(&cp_init));
 
-    ble_advertising_start(BLE_ADV_MODE_FAST);
+    APP_ERROR_CHECK(ble_advertising_start(BLE_ADV_MODE_FAST));
 }
 
 
@@ -309,14 +316,14 @@ static void ble_stack_init(void)
 #if (NRF_SD_BLE_API_VERSION == 3)
     ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
 #endif
-    softdevice_enable(&ble_enable_params);
+    APP_ERROR_CHECK(softdevice_enable(&ble_enable_params));
 
     // Subscribe for BLE events.
-    softdevice_ble_evt_handler_set(ble_evt_dispatch);
+    APP_ERROR_CHECK(softdevice_ble_evt_handler_set(ble_evt_dispatch));
 
     // Register with the SoftDevice handler module for system events.
     // Important for FDS and fstorage or event handler doesn't fire!
-    softdevice_sys_evt_handler_set(sys_evt_dispatch);
+    APP_ERROR_CHECK(softdevice_sys_evt_handler_set(sys_evt_dispatch));
 }
 
 /**@brief Function for initializing the Advertising functionality.
@@ -342,7 +349,121 @@ static void advertising_init(void)
     options.ble_adv_fast_interval = APP_ADV_INTERVAL;
     options.ble_adv_fast_timeout  = APP_ADV_TIMEOUT_IN_SECONDS;
 
-    ble_advertising_init(&advdata, &scanrsp, &options, on_adv_evt, NULL);
+    APP_ERROR_CHECK(ble_advertising_init(&advdata, &scanrsp, &options, on_adv_evt, NULL));
+}
+
+static void peer_manager_event_handler(pm_evt_t const *p_evt)
+{
+    ret_code_t err_code;
+    switch(p_evt->evt_id)
+    {
+        case PM_EVT_BONDED_PEER_CONNECTED:
+            // Update the rank of the peer.
+            err_code = pm_peer_rank_highest(p_evt->peer_id);
+            break;
+        case PM_EVT_CONN_SEC_START:
+            break;
+        case PM_EVT_CONN_SEC_SUCCEEDED:
+            // Update the rank of the peer.
+            err_code = pm_peer_rank_highest(p_evt->peer_id);
+            break;
+        case PM_EVT_CONN_SEC_FAILED:
+            // In some cases, when securing fails, it can be restarted directly. Sometimes it can be
+            // restarted, but only after changing some Security Parameters. Sometimes, it cannot be
+            // restarted until the link is disconnected and reconnected. Sometimes it is impossible
+            // to secure the link, or the peer device does not support it. How to handle this error
+            // is highly application-dependent.
+            break;
+        case PM_EVT_CONN_SEC_CONFIG_REQ:
+        {
+            // A connected peer (central) is trying to pair, but the Peer Manager already has a bond
+            // for that peer. Setting allow_repairing to false rejects the pairing request.
+            // If this event is ignored (pm_conn_sec_config_reply is not called in the event
+            // handler), the Peer Manager assumes allow_repairing to be false.
+            pm_conn_sec_config_t conn_sec_config = {.allow_repairing = false};
+            pm_conn_sec_config_reply(p_evt->conn_handle, &conn_sec_config);
+        }
+        break;
+        case PM_EVT_STORAGE_FULL:
+            // Run garbage collection on the flash.
+            err_code = fds_gc();
+            if (err_code == FDS_ERR_BUSY || err_code == FDS_ERR_NO_SPACE_IN_QUEUES)
+            {
+                // Retry.
+            }
+            else
+            {
+                APP_ERROR_CHECK(err_code);
+            }
+            break;
+        case PM_EVT_ERROR_UNEXPECTED:
+            // Assert.
+            APP_ERROR_CHECK(p_evt->params.error_unexpected.error);
+            break;
+        case PM_EVT_PEER_DATA_UPDATE_SUCCEEDED:
+            break;
+        case PM_EVT_PEER_DATA_UPDATE_FAILED:
+            // Assert.
+            APP_ERROR_CHECK_BOOL(false);
+            break;
+        case PM_EVT_PEER_DELETE_SUCCEEDED:
+            break;
+        case PM_EVT_PEER_DELETE_FAILED:
+            // Assert.
+            APP_ERROR_CHECK(p_evt->params.peer_delete_failed.error);
+            break;
+        case PM_EVT_PEERS_DELETE_SUCCEEDED:
+            // At this point it is safe to start advertising or scanning.
+            break;
+        case PM_EVT_PEERS_DELETE_FAILED:
+            // Assert.
+            APP_ERROR_CHECK(p_evt->params.peers_delete_failed_evt.error);
+            break;
+        case PM_EVT_LOCAL_DB_CACHE_APPLIED:
+            break;
+        case PM_EVT_LOCAL_DB_CACHE_APPLY_FAILED:
+            // The local database has likely changed, send service changed indications.
+            pm_local_database_has_changed();
+            break;
+        case PM_EVT_SERVICE_CHANGED_IND_SENT:
+            break;
+        case PM_EVT_SERVICE_CHANGED_IND_CONFIRMED:
+            break;
+    }
+}
+
+
+static void peer_init() {
+  bool erase_bonds = false; // FIXME, have UX have a place to delete remembered BT devices
+  ret_code_t err_code;
+  err_code = pm_init();
+  APP_ERROR_CHECK(err_code);
+  if (erase_bonds)
+  {
+      pm_peers_delete();
+  }
+
+  ble_gap_sec_params_t sec_param;
+  memset(&sec_param, 0, sizeof(ble_gap_sec_params_t));
+  // Security parameters to be used for all security procedures.
+  // per https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v12.3.0/lib_peer_manager.html?cp=5_5_7_3_1_8
+  // currently set to be super open and pair with anyone
+  sec_param.bond = true;
+  sec_param.mitm = false;
+  sec_param.lesc = 0;
+  sec_param.keypress = 0;
+  sec_param.io_caps = BLE_GAP_IO_CAPS_NONE;
+  sec_param.oob = false;
+  sec_param.min_key_size = 7;
+  sec_param.max_key_size = 16;
+  sec_param.kdist_own.enc = 1;
+  sec_param.kdist_own.id = 1;
+  sec_param.kdist_peer.enc = 1;
+  sec_param.kdist_peer.id = 1;
+  err_code = pm_sec_params_set(&sec_param);
+  APP_ERROR_CHECK(err_code);
+  err_code = pm_register(peer_manager_event_handler);
+  APP_ERROR_CHECK(err_code);
 }
 
 void ble_init(void)
@@ -352,4 +473,5 @@ void ble_init(void)
   services_init();
   advertising_init();
   conn_params_init();
+  peer_init();
 }

@@ -109,7 +109,7 @@ int main(void)
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
   // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  ble_init();
+  // ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
@@ -251,7 +251,24 @@ static void init_app_timers(void)
 
 
 
-/* Event handler */
+
+
+
+/**@brief Function for assert macro callback.
+ *
+ * @details This function will be called in case of an assert in the SoftDevice.
+ *
+ * @warning This handler is an example only and does not fit a final product. You need to analyse
+ *          how your product is supposed to react in case of Assert.
+ * @warning On assert from the SoftDevice, the system can only recover on reset.
+ *
+ * @param[in] line_num    Line number of the failing ASSERT call.
+ * @param[in] p_file_name File name of the failing ASSERT call.
+ */
+void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
+{
+    app_error_handler(0xdeadbeef, line_num, p_file_name);
+}
 
 
 /**@brief       Callback function for errors, asserts, and faults.

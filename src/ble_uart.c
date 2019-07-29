@@ -59,7 +59,7 @@ static void gap_params_init(void)
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
-    sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *) DEVICE_NAME, strlen(DEVICE_NAME));
+    APP_ERROR_CHECK(sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *) DEVICE_NAME, strlen(DEVICE_NAME)));
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
@@ -68,7 +68,7 @@ static void gap_params_init(void)
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
     gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
 
-    sd_ble_gap_ppcp_set(&gap_conn_params);
+    APP_ERROR_CHECK(sd_ble_gap_ppcp_set(&gap_conn_params));
 }
 
 
@@ -113,7 +113,7 @@ static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
   switch(p_evt->evt_type) {
   case BLE_CONN_PARAMS_EVT_FAILED:
-    sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+    APP_ERROR_CHECK(sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE));
     break;
   case BLE_CONN_PARAMS_EVT_SUCCEEDED:
     break;
@@ -316,6 +316,7 @@ static void ble_stack_init(void)
 #if (NRF_SD_BLE_API_VERSION == 3)
     ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
 #endif
+    ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
     APP_ERROR_CHECK(softdevice_enable(&ble_enable_params));
 
     // Subscribe for BLE events.

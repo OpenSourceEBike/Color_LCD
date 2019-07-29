@@ -37,14 +37,14 @@ static void fds_evt_handler(fds_evt_t const *const evt)
 }
 
 #define FILE_ID     0x1001
-#define REC_KEY     0x2001
+#define REC_KEY     0x2002
 
 // returns true if our preferences were found
 bool flash_read_words(void *dest, uint16_t length_words)
 {
-  fds_flash_record_t  flash_record;
-  fds_record_desc_t   record_desc;
-  fds_find_token_t    ftok;
+  fds_flash_record_t flash_record;
+  fds_record_desc_t record_desc;
+  fds_find_token_t ftok;
 
   bool did_read = false;
 
@@ -52,14 +52,14 @@ bool flash_read_words(void *dest, uint16_t length_words)
   // Loop until all records with the given key and file ID have been found.
   while (fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok) == FDS_SUCCESS)
   {
-    APP_ERROR_CHECK (fds_record_open(&record_desc, &flash_record));
+    APP_ERROR_CHECK(fds_record_open(&record_desc, &flash_record));
 
-      // Access the record through the flash_record structure.
+    // Access the record through the flash_record structure.
     memcpy(dest, flash_record.p_data, length_words * sizeof(uint32_t));
     did_read = true;
 
-      // Close the record when done.
-    APP_ERROR_CHECK (fds_record_close(&record_desc));
+    // Close the record when done.
+    APP_ERROR_CHECK(fds_record_close(&record_desc));
   }
 
   return did_read;
@@ -70,6 +70,11 @@ bool flash_write_words(const void *value, uint16_t length_words)
   fds_record_t record;
   fds_record_desc_t record_desc;
   fds_record_chunk_t record_chunk;
+  fds_find_token_t ftok;
+
+  // Do we already have one of these records?
+  bool has_old = fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok)
+      == FDS_SUCCESS;
 
 // Set up data.
   record_chunk.p_data = value;
@@ -81,15 +86,20 @@ bool flash_write_words(const void *value, uint16_t length_words)
   record.data.p_chunks = &record_chunk;
   record.data.num_chunks = 1;
 
-  APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
+  // either make a new record or update an old one (if we lose power during update the old record is preserved)
+  if (has_old)
+    APP_ERROR_CHECK(fds_record_update(&record_desc, &record));
+  else
+    APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
 
   return true;
 }
 
-static void wait_gc() {
+static void wait_gc()
+{
   gc_done = false;
   APP_ERROR_CHECK(fds_gc());
-  for(int count = 0; count < 1000 && !gc_done; count++)
+  for (int count = 0; count < 1000 && !gc_done; count++)
     nrf_delay_ms(1);
 }
 
@@ -100,7 +110,7 @@ void eeprom_hw_init(void)
 {
   ret_code_t ret = fds_register(fds_evt_handler);
   APP_ERROR_CHECK(ret);
-  for(int count = 0; count < 1000 && !init_done; count++)
+  for (int count = 0; count < 1000 && !init_done; count++)
     nrf_delay_ms(1);
 
   APP_ERROR_CHECK(fds_init());

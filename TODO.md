@@ -13,7 +13,7 @@
 * make config entry presses work
 * make a shutdown screen
 * make a boot screen (show until user releases power button)
-* test to make sure only one EEPROM record is getting written
+* DONE test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
 * make config system (hopefully usable on other platforms)
 * turn on system power / turn off system power per button press

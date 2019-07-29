@@ -8,12 +8,15 @@ PROJ_DIR := .
 $(OUTPUT_DIRECTORY)/nrf51822_sw102.out: \
   LINKER_SCRIPT  := gcc_nrf51.ld
 
-# OpenOCD configuration. Change OPENOCD_PATH to your system setting.
+# dev platform specific.
 # OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
 # OPENOCD_BIN := openocd.exe
+# NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
 
 OPENOCD_PATH := /usr/local/share/openocd/bin
 OPENOCD_BIN := openocd
+NRFUTIL := nrfutil
+
 
 OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
 
@@ -257,10 +260,17 @@ erase:
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; shutdown"
 
 # Generate DFU package
-NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
-KEYFILE := $(PROJ_DIR)/private.key
-generate_dfu_package:
+KEYFILE := $(PROJ_DIR)/../SW102_LCD_Bluetooth-bootloader/private.key
+generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version 1 --hw-version 51 --sd-req 0x87 update_firmware.zip
+
+# Generate a prebuilt bin file with bootloader apploand and valid app crc
+# per appendix 1 here: https://devzone.nordicsemi.com/nordic/nordic-blog/b/blog/posts/getting-started-with-nordics-secure-dfu-bootloader
+# Note: srec_cmp is part of the 'srecord' debian package, for windows supposedly mergehex does the same thing
+full_install:
+	nrfutil settings generate --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version 0 --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
+	srec_cat -MULTiple ../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex -Intel $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(OUTPUT_DIRECTORY)/sw102-full.hex -Intel 
+	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(OUTPUT_DIRECTORY)/sw102-full.hex; verify_image $(OUTPUT_DIRECTORY)/sw102-full.hex; echo FLASHED; reset halt; resume; shutdown"
 
 # Start CMSIS_Configuration_Wizard
 SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h

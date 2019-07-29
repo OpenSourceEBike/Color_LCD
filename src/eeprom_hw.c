@@ -17,7 +17,7 @@
 
 /* Event handler */
 
-volatile bool gc_done;
+volatile static bool gc_done, init_done;
 
 /* Register fs_sys_event_handler with softdevice_sys_evt_handler_set in ble_stack_init or this doesn't fire! */
 static void fds_evt_handler(fds_evt_t const *const evt)
@@ -26,6 +26,7 @@ static void fds_evt_handler(fds_evt_t const *const evt)
   {
   case FDS_EVT_INIT:
     APP_ERROR_CHECK(evt->result);
+    init_done = true;
     break;
   case FDS_EVT_GC:
     gc_done = true;
@@ -99,6 +100,8 @@ void eeprom_hw_init(void)
 {
   ret_code_t ret = fds_register(fds_evt_handler);
   APP_ERROR_CHECK(ret);
+  for(int count = 0; count < 1000 && !init_done; count++)
+    nrf_delay_ms(1);
 
   APP_ERROR_CHECK(fds_init());
   wait_gc();

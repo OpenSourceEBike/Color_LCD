@@ -25,10 +25,11 @@ void InitButton(Button* button, uint32_t pin_number, nrf_gpio_pin_pull_t pull_co
 /**
  * @brief Process button struct. Call every 10 ms.
  */
-void PollButton(Button* button)
+bool PollButton(Button* button)
 {
   uint32_t pinState = nrf_gpio_pin_read(button->PinNumber);
-  pinState ^= button->ActiveState;
+  if(button->ActiveState == BUTTON_ACTIVE_LOW)
+    pinState ^= 1;
 
   /* Not Active */
   if (pinState != 0)
@@ -61,6 +62,8 @@ void PollButton(Button* button)
     if (button->LongClickCnt++ >= LONGCLICK_TIME)
       button->State |= BTTN_LONGCLICK;
   }
+
+  return pinState != 0;
 }
 
 /**

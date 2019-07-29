@@ -18,6 +18,7 @@
 #include "uart.h"
 #include "mainscreen.h"
 #include "eeprom.h"
+#include "buttons.h"
 
 
 // Battery SOC symbol:
@@ -606,8 +607,22 @@ void assist_level_state(void)
     UG_PutString(12, 50, "ASSIST");
   }
 
-  if (buttons_get_up_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+
+
+  if ((l3_vars.ui8_assist_level != ui8_assist_level_previous) ||
+      m_lcd_vars.ui32_main_screen_draw_static_info)
+  {
+    ui8_assist_level_previous = l3_vars.ui8_assist_level;
+
+    assist_level.ui32_x_position = 20;
+    assist_level.ui32_y_position = 81;
+    assist_level.ui32_number = (uint32_t) l3_vars.ui8_assist_level;
+    assist_level.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
+    lcd_print_number(&assist_level);
+  }
+#endif
+  if (buttons_get_up_click_event() /* &&
+      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
   {
 //    buttons_clear_up_click_event ();
 //    buttons_clear_up_click_long_click_event ();
@@ -623,8 +638,8 @@ void assist_level_state(void)
       { l3_vars.ui8_assist_level = l3_vars.ui8_number_of_assist_levels; }
   }
 
-  if (buttons_get_down_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+  if (buttons_get_down_click_event() /* &&
+      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
   {
 //    buttons_clear_up_click_event ();
 //    buttons_clear_up_click_long_click_event ();
@@ -638,18 +653,6 @@ void assist_level_state(void)
       l3_vars.ui8_assist_level--;
   }
 
-  if ((l3_vars.ui8_assist_level != ui8_assist_level_previous) ||
-      m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    ui8_assist_level_previous = l3_vars.ui8_assist_level;
-
-    assist_level.ui32_x_position = 20;
-    assist_level.ui32_y_position = 81;
-    assist_level.ui32_number = (uint32_t) l3_vars.ui8_assist_level;
-    assist_level.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
-    lcd_print_number(&assist_level);
-  }
-#endif
   fieldPrintf(&assistLevelField, "%d", l3_vars.ui8_assist_level);
 }
 
@@ -804,12 +807,14 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
   // put screen all black and disable backlight
   UG_FillScreen(0);
+  lcd_refresh();
   // lcd_set_backlight_intensity(0);
 
+  // FIXME: wait for flash write to complete before powering down
   // now disable the power to all the system
   system_power(0);
 
-  // block here
+  // block here till we die
   while(1) ;
 }
 

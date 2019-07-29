@@ -2,6 +2,7 @@
 #define INCLUDE_MAIN_H_
 
 #include "common.h"
+#include "button.h"
 
 /* Typedef of unions for handy access of single bytes */
 /* Access bytewise: U16 var; var.byte[x] = z; */
@@ -22,5 +23,6 @@ typedef union
 void system_power(bool state);
 
 extern volatile uint32_t seconds_since_startup, seconds_since_reset;
+extern Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 #endif /* INCLUDE_MAIN_H_ */

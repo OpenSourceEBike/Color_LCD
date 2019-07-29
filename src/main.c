@@ -8,6 +8,7 @@
 #include "app_timer.h"
 #include "main.h"
 #include "button.h"
+#include "buttons.h"
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"
@@ -152,6 +153,7 @@ int main(void)
     uint32_t tick = gui_ticks;
     if(tick != lasttick) {
       lasttick = tick;
+      buttons_clock();
       screen_clock();
     }
 
@@ -193,6 +195,7 @@ static void gpio_init(void)
   InitButton(&buttonDWN, BUTTON_DOWN__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
 }
 
+#if 0
 static void button_poll_timer_timeout(void *p_context)
 {
     UNUSED_PARAMETER(p_context);
@@ -202,6 +205,7 @@ static void button_poll_timer_timeout(void *p_context)
     PollButton(&buttonUP);
     PollButton(&buttonDWN);
 }
+#endif
 
 static void seconds_timer_timeout(void *p_context)
 {
@@ -228,9 +232,11 @@ static void init_app_timers(void)
   // Start APP_TIMER to generate timeouts.
   APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
 
+#if 0
   // Create&Start button_poll_timer
   APP_ERROR_CHECK(app_timer_create(&button_poll_timer_id, APP_TIMER_MODE_REPEATED, button_poll_timer_timeout));
   APP_ERROR_CHECK(app_timer_start(button_poll_timer_id, BUTTON_POLL_INTERVAL, NULL));
+#endif
 
   // Create&Start timers.
   APP_ERROR_CHECK(app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED, seconds_timer_timeout));

@@ -6,21 +6,27 @@
 * DONE call the rx/tx comms loop every 20ms from the main loop (needed to fix app timers first)
 * DONE make the rtc stubs do something
 * DONE turn on eeprom writing
-* add a logical buttons abstraction and callbacks for screen button handling
-* make accel button presses work
+* DONE semi-cruftily port over the 850C button code 
+* DONE make accel button presses work
 * make all other button presses (excluding config) work
+* make a shutdown screen
+* make a boot screen (show until user releases power button)
+* test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
+* add a logical buttons abstraction and callbacks for screen button handling
 * make config entry presses work
 * make config system (hopefully usable on other platforms)
 * turn on system power / turn off system power per button press
 * delete dead code in mainscreen.c
 * initial release
+* FIXME - wait for last flash write to complete before powering down
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
 * use battery icon
 * pack & align eeprom
 * do eeprom GC if flash is full (currently only done at boot)
-* merge with 850C code somewhat? (sharing behavior - just different UX layer)
+* merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
+* clean up button handling and take advantage of extra button on the SW102
 
 # Misc notes from kevin not yet formatted
 

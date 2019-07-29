@@ -41,7 +41,10 @@ typedef struct
 #define BTTN_RELEASED_PROCESSED 0x80
 
 void InitButton(Button* button, uint32_t pin_number, nrf_gpio_pin_pull_t pull_config, button_active_state active_state);
-void PollButton(Button* button);
+
+// Returns true if button is currently pressed
+bool PollButton(Button* button);
+
 bool ButtonClicked(Button* button);
 bool ButtonLongClicked(Button* button);
 bool ButtonDoubleClicked(Button* button);

@@ -23,6 +23,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/lcd.c \
   $(PROJ_DIR)/src/ugui.c \
   $(PROJ_DIR)/src/button.c \
+  $(PROJ_DIR)/src/buttons.c \
   $(PROJ_DIR)/src/ble_uart.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \

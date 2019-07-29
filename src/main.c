@@ -106,14 +106,15 @@ int main(void)
   lcd_init();
   uart_init();
 
+  init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
+
   // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  // ble_init();
+  ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
   // FIXME
   // eeprom_read_configuration(get_configuration_variables());
-  init_app_timers();
   system_power(true);
 
   UG_ConsoleSetArea(0, 0, 63, 127);
@@ -226,8 +227,11 @@ static void gui_timer_timeout(void *p_context)
 static void init_app_timers(void)
 {
   // FIXME - not sure why I needed to do this manually: https://devzone.nordicsemi.com/f/nordic-q-a/31982/can-t-make-app_timer-work
-  NRF_CLOCK->TASKS_LFCLKSTART = 1;
-  while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
+  if(!NRF_CLOCK->EVENTS_LFCLKSTARTED) {
+    NRF_CLOCK->TASKS_LFCLKSTART = 1;
+
+    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
+  }
 
   // Start APP_TIMER to generate timeouts.
   APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);

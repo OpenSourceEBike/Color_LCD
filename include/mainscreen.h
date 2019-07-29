@@ -160,3 +160,6 @@ typedef struct l3_vars_struct
 } l3_vars_t;
 
 l3_vars_t* get_l3_vars(void);
+
+void screen_init();
+void screen_clock(); // call every 20ms

@@ -17,6 +17,7 @@
 #include "config.h"
 #include "uart.h"
 #include "mainscreen.h"
+#include "eeprom.h"
 
 
 // Battery SOC symbol:
@@ -361,7 +362,7 @@ void layer_2(void)
   l2_calc_wh();
 //  automatic_power_off_management();
 
-  graphs_measurements_update();
+  // graphs_measurements_update();
   /************************************************************************************************/
 }
 
@@ -433,7 +434,7 @@ Screen mainScreen = {
         .x = 32, .y = 0,
         .width = 5, .height = -1,
         .color = ColorNormal,
-        .field = &timeField
+        .field = &tripTimeField
     },
     {
         .x = 0, .y = 16,
@@ -487,6 +488,99 @@ Screen mainScreen = {
         .field = NULL
     }
 };
+
+
+void screen_init(void) {
+  screenShow(&mainScreen);
+}
+
+void screen_clock(void)
+{
+  static uint8_t ui8_counter_100ms = 0;
+
+  // every 100ms
+  if(ui8_counter_100ms++ >= 4)
+  {
+    ui8_counter_100ms = 0;
+
+    // receive data from layer 2 to layer 3
+    // send data from layer 3 to layer 2
+    ui32_g_layer_2_can_execute = 0;
+    copy_layer_2_layer_3_vars();
+    ui32_g_layer_2_can_execute = 1;
+
+    // FIXME: ask casainho why layer2 runs in ISR context on his board.  For now just run it here
+    layer_2();
+  }
+
+//  if(first_time_management())
+//    return;
+
+  // update_menu_flashing_state();
+
+  calc_battery_soc_watts_hour();
+
+#if 0
+  // enter menu configurations: UP + DOWN click event
+  if(buttons_get_up_down_click_event() &&
+      m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+  {
+    buttons_clear_all_events();
+
+    // reset needed variables of configurations screen
+    p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
+
+    // need to track start configuration
+    p_lcd_configurations_vars->ui8_battery_soc_power_used_state = 1;
+
+    m_lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
+  }
+
+  // enter in menu set power: ONOFF + UP click event
+  if(buttons_get_onoff_state() && buttons_get_up_state())
+  {
+    buttons_clear_all_events();
+    m_lcd_vars.ui8_lcd_menu_max_power = 1;
+  }
+
+  // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
+  // note: this piece of code must run before lcd_main_screen() -> graphs_draw()
+  if(ui32_m_draw_graphs_1)
+  {
+    ui32_m_draw_graphs_2 = 1;
+    graphs_clock_1();
+  }
+
+  switch(m_lcd_vars.lcd_screen_state)
+  {
+    case LCD_SCREEN_MAIN:
+      lcd_main_screen();
+    break;
+
+    case LCD_SCREEN_CONFIGURATIONS:
+      lcd_configurations_screen();
+    break;
+  }
+
+  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
+  // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
+  if(ui32_m_draw_graphs_2)
+  {
+    graphs_clock_2();
+  }
+#else
+  lcd_main_screen();
+#endif
+  screenUpdate();
+
+  power_off_management();
+
+#if 0
+  // must be reset after a full cycle of lcd_clock()
+  ui32_m_draw_graphs_1 = 0;
+  ui32_m_draw_graphs_2 = 0;
+#endif
+}
 
 
 void assist_level_state(void)
@@ -699,7 +793,6 @@ void power_off_management(void)
 
 void lcd_power_off(uint8_t updateDistanceOdo)
 {
-#if 0 // FIXME
 //  if (updateDistanceOdo)
 //  {
     l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
@@ -715,7 +808,6 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
   // now disable the power to all the system
   system_power(0);
-#endif
 
   // block here
   while(1) ;

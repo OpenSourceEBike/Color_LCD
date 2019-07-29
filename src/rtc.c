@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "main.h"
 #include "rtc.h"
+#include "main.h"
 
 #define SECONDS_IN_DAY 86399
 #define CONFIGURATION_DONE 0xAAAA
@@ -148,10 +149,9 @@ struct_rtc_time_t* rtc_get_time(void)
 
 struct_rtc_time_t* rtc_get_time_since_startup(void)
 {
-  uint32_t ui32_temp;
+  uint32_t ui32_temp = seconds_since_startup;
   static struct_rtc_time_t rtc_time;
 
-  ui32_temp = ui32_seconds_since_startup % SECONDS_IN_DAY;
   rtc_time.ui8_hours = ui32_temp / 3600;
   rtc_time.ui8_minutes = (ui32_temp % 3600) / 60;
 

@@ -19,4 +19,8 @@ typedef union
 } U32;
 
 
+void system_power(bool state);
+
+extern volatile uint32_t seconds_since_startup, seconds_since_reset;
+
 #endif /* INCLUDE_MAIN_H_ */

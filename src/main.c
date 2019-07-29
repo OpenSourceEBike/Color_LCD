@@ -15,6 +15,8 @@
 #include "utils.h"
 #include "screen.h"
 #include "eeprom.h"
+#include "mainscreen.h"
+#include "nrf_delay.h"
 
 /* Variable definition */
 
@@ -27,9 +29,14 @@ Button buttonM, buttonDWN, buttonUP, buttonPWR;
 /* App Timer */
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
+
 APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
 #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
 volatile uint32_t seconds_since_startup, seconds_since_reset;
+
+APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
+#define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
+volatile uint32_t gui_ticks;
 
 #define FONT12_Y 14 // we want a little bit of extra space
 
@@ -83,11 +90,8 @@ Screen faultScreen = {
 };
 
 /* Function prototype */
-static void system_power(bool state);
 static void gpio_init(void);
 static void init_app_timers(void);
-static void button_poll_timer_timeout(void * p_context);
-static void seconds_timer_timeout(void * p_context);
 /* UART RX/TX */
 
 
@@ -135,22 +139,23 @@ int main(void)
   lcd_refresh();
 
 
-  //screenShow(&mainScreen);
+  screen_init();
   //screenUpdate(); // FIXME - move into main loop
 
   // APP_ERROR_HANDLER(5);
 
   // Enter main loop.
+
+  uint32_t lasttick = 0;
   while (1)
   {
-    /* New RX packet to decode? */
-    const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
-    if (p_rx_buffer != NULL)
-    {
-      /* RX */
-      // bool ok = decode_rx_stream(p_rx_buffer, get_motor_controller_data(), get_configuration_variables());
-      /* TX */
+    uint32_t tick = gui_ticks;
+    if(tick != lasttick) {
+      lasttick = tick;
+      screen_clock();
     }
+
+    nrf_delay_ms(1); // let OS threads have time to run
   }
 
 }
@@ -158,7 +163,7 @@ int main(void)
 /**
  * @brief Hold system power (true) or not (false)
  */
-static void system_power(bool state)
+void system_power(bool state)
 {
   if (state)
     nrf_gpio_pin_set(SYSTEM_POWER_HOLD__PIN);
@@ -188,24 +193,6 @@ static void gpio_init(void)
   InitButton(&buttonDWN, BUTTON_DOWN__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
 }
 
-static void init_app_timers(void)
-{
-  // Start APP_TIMER to generate timeouts.
-  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
-
-  // Create&Start button_poll_timer
-  app_timer_create(&button_poll_timer_id, APP_TIMER_MODE_REPEATED, button_poll_timer_timeout);
-  app_timer_start(button_poll_timer_id, BUTTON_POLL_INTERVAL, NULL);
-
-  // Create&Start timers.
-  app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED, seconds_timer_timeout);
-  app_timer_start(seconds_timer_id, SECONDS_INTERVAL, NULL);
-}
-
-
-
-/* Event handler */
-
 static void button_poll_timer_timeout(void *p_context)
 {
     UNUSED_PARAMETER(p_context);
@@ -223,6 +210,39 @@ static void seconds_timer_timeout(void *p_context)
     seconds_since_startup++;
     seconds_since_reset++;
 }
+
+static void gui_timer_timeout(void *p_context)
+{
+    UNUSED_PARAMETER(p_context);
+
+    gui_ticks++;
+}
+
+
+static void init_app_timers(void)
+{
+  // FIXME - not sure why I needed to do this manually: https://devzone.nordicsemi.com/f/nordic-q-a/31982/can-t-make-app_timer-work
+  NRF_CLOCK->TASKS_LFCLKSTART = 1;
+  while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
+
+  // Start APP_TIMER to generate timeouts.
+  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
+
+  // Create&Start button_poll_timer
+  APP_ERROR_CHECK(app_timer_create(&button_poll_timer_id, APP_TIMER_MODE_REPEATED, button_poll_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(button_poll_timer_id, BUTTON_POLL_INTERVAL, NULL));
+
+  // Create&Start timers.
+  APP_ERROR_CHECK(app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED, seconds_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(seconds_timer_id, SECONDS_INTERVAL, NULL));
+  APP_ERROR_CHECK(app_timer_create(&gui_timer_id, APP_TIMER_MODE_REPEATED, gui_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(gui_timer_id, GUI_INTERVAL, NULL));
+}
+
+
+
+/* Event handler */
+
 
 /**@brief       Callback function for errors, asserts, and faults.
  *
@@ -268,7 +288,8 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   screenShow(&faultScreen);
 
   // FIXME - instead we should wait a few seconds and then reboot
-  while (1);
+  while (1)
+    nrf_delay_ms(1000);
 }
 
 

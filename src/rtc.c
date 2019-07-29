@@ -138,11 +138,15 @@ struct_rtc_time_t* rtc_get_time(void)
 {
   static struct_rtc_time_t rtc_time;
 
+  // FIXME - this RTC has no battery?
 #if 0
   uint32_t ui32_temp = RTC_GetCounter() % SECONDS_IN_DAY;
   rtc_time.ui8_hours = ui32_temp / 3600;
   rtc_time.ui8_minutes = (ui32_temp % 3600) / 60;
 #endif
+
+  rtc_time.ui8_hours = 0;
+  rtc_time.ui8_minutes = 0;
 
   return &rtc_time;
 }

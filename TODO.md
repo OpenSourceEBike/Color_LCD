@@ -4,7 +4,7 @@
 * DONE merge the 850C style tx comms code with the existing SW102 code
 * DONE merge the 850C eeprom code, keeping as much as possible in common
 * DONE call the rx/tx comms loop every 20ms from the main loop (needed to fix app timers first)
-* make the rtc stubs do something
+* DONE make the rtc stubs do something
 * DONE turn on eeprom writing
 * add a logical buttons abstraction and callbacks for screen button handling
 * make accel button presses work

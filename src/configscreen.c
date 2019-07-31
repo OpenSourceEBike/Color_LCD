@@ -29,6 +29,7 @@ static Field configRoot = { .variant = FieldScrollable, .scrollable = { .entries
 // Screens
 //
 Screen configScreen = {
+    // FIXME, add a drawable with the a "Config" title at top of screen
     {
         .color = ColorNormal,
         .field = &configRoot

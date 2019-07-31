@@ -406,20 +406,20 @@ uint8_t first_time_management(void)
 //
 // Fields - these might be shared my multiple screens
 //
-Field socField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field timeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field speedField = { .variant = FieldDrawText, .drawText = { .font = &FONT_16X26 } };
-Field assistLevelField = { .variant = FieldDrawText, .drawText = { .font = &FONT_12X20 } };
-Field maxPowerField = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12 } };
-Field humanPowerField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field socField = FIELD_DRAWTEXT(&FONT_5X12);
+Field timeField = FIELD_DRAWTEXT(&FONT_5X12);
+Field speedField = FIELD_DRAWTEXT(&FONT_16X26);
+Field assistLevelField = FIELD_DRAWTEXT(&FONT_12X20);
+Field maxPowerField = FIELD_DRAWTEXT(&MY_FONT_8X12);
+Field humanPowerField = FIELD_DRAWTEXT(&FONT_5X12);
 Field whiteFillField = { .variant = FieldFill };
 Field meshFillField = { .variant = FieldMesh };
-Field brakeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field lightField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field brakeField = FIELD_DRAWTEXT(&FONT_5X12);
+Field lightField = FIELD_DRAWTEXT(&FONT_5X12);
 
-Field tripTimeField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field tripDistanceField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field motorTempField = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field tripTimeField = FIELD_DRAWTEXT(&FONT_5X12);
+Field tripDistanceField = FIELD_DRAWTEXT(&FONT_5X12);
+Field motorTempField = FIELD_DRAWTEXT(&FONT_5X12);
 
 //
 // Screens

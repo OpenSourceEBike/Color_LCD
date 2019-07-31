@@ -75,7 +75,8 @@
 
 typedef enum {
   ColorNormal = 0, // white on black
-  ColorInvert  // black on white
+  ColorInvert,     // black on white
+  ColorSelected    // If we should mark that there is a cursor pointing to this item (for scrollable rows)
 } ColorOp;
 
 /**
@@ -115,7 +116,7 @@ typedef struct Field {
     } drawText;
 
     struct {
-      const struct Field *entries; // the menu entries for this submenu.
+      struct Field *entries; // the menu entries for this submenu.
       const char *label; // the title shown in the GUI for this menu
       uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
       uint8_t selected; // the currently highlighted entry
@@ -128,6 +129,7 @@ typedef struct Field {
 
       // the following parameters are particular to the editable type
       union {
+
         struct {
           const char *units;
           const uint8_t size; // sizeof for the specified variable - we support 1 or 2, 4 would be easy
@@ -160,6 +162,8 @@ typedef struct Field {
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__ } } } }
 
+#define FIELD_DRAWTEXT(fnt) { .variant = FieldDrawText, .drawText = { .font = fnt } }
+
 #define FIELD_END { .variant = FieldEnd }
 
 
@@ -169,17 +173,17 @@ typedef int8_t Coord; // Change to int16_t for screens wider/longer than 128
  * Defines the layout of a field on a particular screen
  */
 typedef struct {
-  const Coord x, y;
-  const Coord width; // for text fields width is in # of characters, or -1 to determine length based on strlen
-  const Coord height; // for text fields use height = -1 to determine height based on font size
+  Coord x, y;
+  Coord width; // for text fields width is in # of characters. or 0 to determine length based on remaining screen width
+  Coord height; // for text fields use height = -1 to determine height based on font size.  for all fields 0 means 'rest of screen'
 
-  const ColorOp color;
+  ColorOp color;
   Field *field;
 } FieldLayout;
 
-typedef const FieldLayout Screen[];
+typedef FieldLayout Screen[];
 
 
-void screenShow(const Screen *screen);
+void screenShow(Screen *screen);
 void screenUpdate();
 void fieldPrintf(Field *field, const char *fmt, ...);

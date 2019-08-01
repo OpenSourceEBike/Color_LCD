@@ -58,12 +58,10 @@ typedef bool (*FieldRenderFn)(FieldLayout *layout);
 static const FieldRenderFn renderers[];
 
 static bool renderDrawText(FieldLayout *layout) {
-  assert(layout->width >= -1);
-  assert(layout->height == -1);
 
   Field *field = layout->field;
-  UG_S16 width = (layout->width == -1 ? strlen(field->drawText.msg) : layout->width) * field->drawText.font->char_width;
-  UG_S16 height = field->drawText.font->char_height;
+  UG_S16 width = (layout->width < 0) ? -layout->width * field->drawText.font->char_width : layout->width;
+  UG_S16 height = (layout->height == -1) ? field->drawText.font->char_height : layout->height;
 
   UG_FontSelect(field->drawText.font);
   UG_COLOR back = getBackColor(layout);

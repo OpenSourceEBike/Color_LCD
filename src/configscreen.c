@@ -1,6 +1,6 @@
 #include "screen.h"
 #include "mainscreen.h"
-
+#include "configscreen.h"
 
 static Field wheelMenus[] = {
     FIELD_EDITABLE_UINT("Max wheel speed", &l3_vars.ui8_wheel_max_speed, "km/h", 1, 99),
@@ -23,7 +23,7 @@ static Field topMenus[] = {
     FIELD_END
 };
 
-static Field configRoot = { .variant = FieldScrollable, .scrollable = { .entries = topMenus } };
+static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
 
 //
 // Screens
@@ -38,3 +38,8 @@ Screen configScreen = {
         .field = NULL
     }
 };
+
+
+void configscreen_show(void) {
+  screenShow(&configScreen);
+}

@@ -167,15 +167,21 @@ typedef struct Field {
 #define FIELD_END { .variant = FieldEnd }
 
 
-typedef int8_t Coord; // Change to int16_t for screens wider/longer than 128
+typedef int16_t Coord; // Change to int16_t for screens wider/longer than 128, screens shorter than 128 can use uint8_t
 
 /**
  * Defines the layout of a field on a particular screen
  */
 typedef struct {
   Coord x, y;
-  Coord width; // for text fields width is in # of characters. or 0 to determine length based on remaining screen width
-  Coord height; // for text fields use height = -1 to determine height based on font size.  for all fields 0 means 'rest of screen'
+
+  // for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width
+  // For all other cases, width is in pixels
+  Coord width;
+
+  // for text fields use height = -1 to determine height based on font size.  for all fields 0 means 'rest of screen'
+  // for other cases height is in pixels
+  Coord height;
 
   ColorOp color;
   Field *field;

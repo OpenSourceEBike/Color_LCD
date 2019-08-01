@@ -17,6 +17,7 @@
 #include "screen.h"
 #include "eeprom.h"
 #include "mainscreen.h"
+#include "configscreen.h"
 #include "nrf_delay.h"
 
 /* Variable definition */
@@ -49,37 +50,37 @@ Field infoCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } 
 Screen faultScreen = {
     {
         .x = 0, .y = 0,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorInvert,
         .field = &faultHeading
     },
     {
         .x = 0, .y = FONT12_Y,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorNormal,
         .field = &faultCode
     },
     {
         .x = 0, .y = 2 * FONT12_Y,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorNormal,
         .field = &addrHeading
     },
     {
         .x = 0, .y = 3 * FONT12_Y,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorNormal,
         .field = &addrCode
     },
     {
         .x = 0, .y = 4 * FONT12_Y,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorNormal,
         .field = &infoHeading
     },
     {
         .x = 0, .y = 5 * FONT12_Y,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .color = ColorNormal,
         .field = &infoCode
     },
@@ -139,8 +140,8 @@ int main(void)
   lcd_refresh();
 
 
-  screen_init();
-  //screenUpdate(); // FIXME - move into main loop
+  // mainscreen_show();
+  configscreen_show();
 
   // APP_ERROR_HANDLER(5);
 
@@ -248,8 +249,17 @@ static void init_app_timers(void)
 }
 
 
+static inline void debugger_break(void) {
+  __asm volatile(
+    "bkpt #0x01\n\t"
+    "mov pc, lr\n\t"
+  );
+}
 
-
+void __attribute__((noreturn)) __assert_func(const char *file, int line, const char *func, const char *failedexpr) {
+  debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
+  abort();
+}
 
 
 /**@brief Function for assert macro callback.

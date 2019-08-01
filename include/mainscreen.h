@@ -164,5 +164,5 @@ l3_vars_t* get_l3_vars(void);
 
 extern l3_vars_t l3_vars;
 
-void screen_init();
+void mainscreen_show();
 void screen_clock(); // call every 20ms

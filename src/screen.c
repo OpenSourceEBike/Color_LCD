@@ -147,6 +147,9 @@ static bool forceScrollableRelayout;
 // FIXME - keep a stack of scrollables and the deepest one the user has selected is 'active' and expanded otherwise
 static Field *curActiveScrollable = NULL;
 
+// If the user is editing an editable, this will be it
+static Field *curActiveEditable = NULL;
+
 static bool renderScrollable(FieldLayout *layout)
 {
   const Coord rowHeight = 32; // 3 data rows 32 pixels tall + one 32 pixel header
@@ -312,6 +315,38 @@ static bool renderEnd(FieldLayout *layout)
   return true;
 }
 
+
+// Returns true if we've handled the event (and therefore it should be cleared)
+bool onPressEditable(buttons_events_t events)
+{
+  bool handled = false;
+  Field *s = curActiveScrollable;
+
+  if (events & UP_CLICK) {
+    // FIXME - increment/decrement
+    handled = true;
+  }
+
+  if (events & DOWN_CLICK) {
+    handled = true;
+  }
+
+  // Mark that we are no longer editing
+  if(events & ONOFF_CLICK) {
+    curActiveEditable = NULL;
+
+    handled = true;
+  }
+
+  if(curActiveScrollable && handled) {
+    s->dirty = true; // redraw our position
+    curActiveScrollable->dirty = true; // we just changed something, make sure we get a chance to be redrawn
+  }
+
+  return handled;
+}
+
+
 int countEntries(Field *s) {
   Field *e = s->scrollable.entries;
 
@@ -357,6 +392,14 @@ bool onPressScrollable(buttons_events_t events)
     handled = true;
   }
 
+  // If we aren't already editing anything, start now
+  if(curActiveEditable && (events & ONOFF_CLICK)) {
+    curActiveEditable = &s->scrollable.entries[s->scrollable.selected];
+
+    forceScrollableRelayout = true; // FIXME, I'm not sure if this is really required
+    handled = true;
+  }
+
   return handled;
 }
 
@@ -372,6 +415,9 @@ static bool screenDirty;
 bool screenOnPress(buttons_events_t events) {
   bool handled = false;
 
+  if(curActiveEditable)
+    handled |= onPressEditable(events);
+
   if(curActiveScrollable)
     handled |= onPressScrollable(events);
 
@@ -383,6 +429,7 @@ bool screenOnPress(buttons_events_t events) {
 
 void screenShow(Screen *screen)
 {
+  curActiveEditable = NULL;
   curActiveScrollable = NULL; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;

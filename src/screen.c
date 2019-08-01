@@ -35,6 +35,7 @@ static UG_COLOR getBackColor(const FieldLayout *layout) {
     case ColorInvert: return C_WHITE;
 
     case ColorNormal:
+    case ColorSelected:
     default:
       return C_BLACK;
   }
@@ -45,6 +46,7 @@ static UG_COLOR getForeColor(const FieldLayout *layout) {
     case ColorInvert: return C_BLACK;
 
     case ColorNormal:
+    case ColorSelected:
     default:
       return C_WHITE;
   }
@@ -63,7 +65,6 @@ static bool renderDrawText(FieldLayout *layout) {
   UG_S16 width = (layout->width == -1 ? strlen(field->drawText.msg) : layout->width) * field->drawText.font->char_width;
   UG_S16 height = field->drawText.font->char_height;
 
-  // FIXME, draw/clear background and set colors
   UG_FontSelect(field->drawText.font);
   UG_COLOR back = getBackColor(layout);
   UG_SetBackcolor(back);
@@ -188,7 +189,62 @@ static bool renderScrollable(FieldLayout *layout) {
   return renderLayouts(rows, false);
 }
 
+// Get the numeric value of an editable number, properly handling different possible byte encodings
+static int32_t getEditableNumber(Field *field) {
+  switch(field->editable.number.size) {
+  case 1:
+    return * (uint8_t *) field->editable.target;
+  case 2:
+    return * (int16_t *) field->editable.target;
+  case 4:
+    return * (int32_t *) field->editable.target;
+  default:
+    assert(0);
+    return 0;
+  }
+}
+
 static bool renderEditable(FieldLayout *layout) {
+  Field *field = layout->field;
+  UG_S16 width = layout->width;
+  UG_S16 height = layout->height;
+
+  UG_FontSelect(&FONT_5X12);
+  UG_COLOR back = getBackColor(layout);
+  UG_SetBackcolor(back);
+  UG_SetForecolor(getForeColor(layout));
+
+  // ug fonts include no blank space at the beginning, so we always include one col of padding
+  UG_FillFrame(layout->x, layout->y, layout->x + width - 1, layout->y + height -1, back);
+
+  // FIXME -draw bar by selected items
+  UG_PutString(layout->x + 1, layout->y, (char *) field->editable.label);
+
+  // draw editable value
+  char msgbuf[MAX_FIELD_LEN];
+  const char *msg;
+  switch(field->editable.typ) {
+  case EditUInt:
+  {
+    uint32_t num = getEditableNumber(field);
+    // FIXME properly handle div_digits
+    snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
+    msg = msgbuf;
+    break;
+  }
+  case EditEnum:
+  {
+    uint8_t enumval = * (uint8_t *) field->editable.target;
+    msg = field->editable.editEnum.options[enumval];
+    break;
+  }
+  default:
+    assert(0);
+    break;
+  }
+
+  UG_PutString(layout->x + 1, layout->y + FONT12_Y, (char *) msg);
+
   return true;
 }
 

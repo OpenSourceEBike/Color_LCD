@@ -39,8 +39,6 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 #define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
-#define FONT12_Y 14 // we want a little bit of extra space
-
 Field faultHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "FAULT" }};
 Field faultCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 Field addrHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8X12, .msg = "PC" } };

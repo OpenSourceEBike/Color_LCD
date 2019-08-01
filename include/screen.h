@@ -183,6 +183,9 @@ typedef struct {
 
 typedef FieldLayout Screen[];
 
+// Standard vertical spacing for fonts
+#define FONT12_Y 14 // we want a little bit of extra space
+
 
 void screenShow(Screen *screen);
 void screenUpdate();

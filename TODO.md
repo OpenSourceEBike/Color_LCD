@@ -9,8 +9,10 @@
 * DONE semi-cruftily port over the 850C button code 
 * DONE make accel button presses work
 * MOSTLY DONE make all other button presses (excluding config) work
-* add a logical buttons abstraction and callbacks for screen button handling
+* DONE add a logical buttons abstraction and callbacks for screen button handling
+* show current selection in selection menus
 * make config entry presses work
+* handle hierarchical menu entry/exit correctly
 * make a shutdown screen
 * make a boot screen (show until user releases power button)
 * DONE test to make sure only one EEPROM record is getting written

@@ -312,11 +312,52 @@ static bool renderEnd(FieldLayout *layout)
   return true;
 }
 
+int countEntries(Field *s) {
+  Field *e = s->scrollable.entries;
+
+  int n = 0;
+  while(e && e->variant != FieldEnd)
+    n++;
+
+  return n;
+}
+
 // Returns true if we've handled the event (and therefore it should be cleared)
-bool onPressScrollable(buttons_events_t buttons)
+// if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
+bool onPressScrollable(buttons_events_t events)
 {
-  // FIXME: if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
-  return false;
+  bool handled = false;
+  Field *s = curActiveScrollable;
+
+  if (events & UP_CLICK) {
+    if(s->scrollable.selected > 1) {
+      s->scrollable.selected--;
+    }
+
+    if(s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
+      s->scrollable.first = s->scrollable.selected;
+
+    forceScrollableRelayout = true;
+    handled = true;
+  }
+
+  if (events & DOWN_CLICK) {
+    int numEntries = countEntries(s);
+
+    if(s->scrollable.selected < numEntries - 1) {
+      s->scrollable.selected++;
+    }
+
+    int numDataRows = MAX_SCROLLABLE_ROWS - 1;
+    int lastVisibleRow = s->scrollable.first + numDataRows - 1;
+    if(s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
+      s->scrollable.first = s->scrollable.selected - numDataRows + 1;
+
+    forceScrollableRelayout = true;
+    handled = true;
+  }
+
+  return handled;
 }
 
 /**

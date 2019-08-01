@@ -29,6 +29,7 @@ static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
 // Screens
 //
 Screen configScreen = {
+    .fields = {
     // FIXME, add a drawable with the a "Config" title at top of screen
     {
         .color = ColorNormal,
@@ -36,6 +37,7 @@ Screen configScreen = {
     },
     {
         .field = NULL
+    }
     }
 };
 

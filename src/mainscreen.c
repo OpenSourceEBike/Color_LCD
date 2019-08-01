@@ -77,6 +77,29 @@ void trip_distance(void);
 void trip_time(void);
 
 
+bool mainscreen_onpress(buttons_events_t events) {
+  if (events & UP_CLICK /* &&
+      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
+  {
+    l3_vars.ui8_assist_level++;
+
+    if (l3_vars.ui8_assist_level > l3_vars.ui8_number_of_assist_levels)
+      { l3_vars.ui8_assist_level = l3_vars.ui8_number_of_assist_levels; }
+
+    return true;
+  }
+
+  if (events & DOWN_CLICK /* &&
+      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
+  {
+    if (l3_vars.ui8_assist_level > 0)
+      l3_vars.ui8_assist_level--;
+
+    return true;
+  }
+
+  return false;
+}
 
 void lcd_main_screen(void)
 {
@@ -425,6 +448,9 @@ Field motorTempField = FIELD_DRAWTEXT(&FONT_5X12);
 // Screens
 //
 Screen mainScreen = {
+    .onPress = mainscreen_onpress,
+
+    .fields = {
     {
         .x = 0, .y = 0,
         .width = -2, .height = -1,
@@ -487,7 +513,7 @@ Screen mainScreen = {
     },
     {
         .field = NULL
-    }
+    } }
 };
 
 
@@ -621,37 +647,7 @@ void assist_level_state(void)
     lcd_print_number(&assist_level);
   }
 #endif
-  if (buttons_get_up_click_event() /* &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
-  {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
-      buttons_clear_all_events();
 
-    l3_vars.ui8_assist_level++;
-
-    if (l3_vars.ui8_assist_level > l3_vars.ui8_number_of_assist_levels)
-      { l3_vars.ui8_assist_level = l3_vars.ui8_number_of_assist_levels; }
-  }
-
-  if (buttons_get_down_click_event() /* &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
-  {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
-      buttons_clear_all_events();
-
-    if (l3_vars.ui8_assist_level > 0)
-      l3_vars.ui8_assist_level--;
-  }
 
   fieldPrintf(&assistLevelField, "%d", l3_vars.ui8_assist_level);
 }

@@ -51,4 +51,6 @@ buttons_events_t buttons_get_events (void);
 void buttons_clear_all_events(void);
 void buttons_set_events (buttons_events_t events);
 
+extern buttons_events_t buttons_events;
+
 #endif /* _BUTTON_H_ */

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "ugui.h"
+#include "buttons.h"
 
 /**
  * Main screen notes
@@ -187,7 +188,23 @@ typedef struct {
   Field *field;
 } FieldLayout;
 
-typedef FieldLayout Screen[];
+
+/** Called when a press has occured, return true if this function has handled the event (and therefore it should be cleared)
+or false to let others handle it.
+
+The order of handlers is:
+* any active editable controls
+* any scrollable controls on this screen
+* the current screen handler
+* the top level application handler
+The top three handlers in the list above are handled by screen
+*/
+typedef bool (*ButtonEventHandler)(buttons_events_t events);
+
+typedef struct {
+  ButtonEventHandler onPress; // or NULL for no handler
+  FieldLayout fields[];
+} Screen;
 
 // Standard vertical spacing for fonts
 #define FONT12_Y 14 // we want a little bit of extra space
@@ -195,4 +212,8 @@ typedef FieldLayout Screen[];
 
 void screenShow(Screen *screen);
 void screenUpdate();
+
+/// Returns true if the current screen handled the press
+bool screenOnPress(buttons_events_t events);
+
 void fieldPrintf(Field *field, const char *fmt, ...);

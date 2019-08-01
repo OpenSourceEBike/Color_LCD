@@ -48,6 +48,7 @@ Field infoHeading = { .variant = FieldDrawText, .drawText = { .font = &MY_FONT_8
 Field infoCode = { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 
 Screen faultScreen = {
+    .fields = {
     {
         .x = 0, .y = 0,
         .width = 0, .height = -1,
@@ -86,7 +87,7 @@ Screen faultScreen = {
     },
     {
         .field = NULL
-    }
+    }}
 };
 
 /* Function prototype */
@@ -155,6 +156,15 @@ int main(void)
       lasttick = tick;
       buttons_clock();
       screen_clock();
+
+      if(buttons_events) {
+        bool handled = false;
+
+        handled |= screenOnPress(buttons_events);
+
+        if(handled)
+          buttons_clear_all_events();
+      }
     }
 
     nrf_delay_ms(1); // let OS threads have time to run

@@ -312,11 +312,13 @@ static bool renderEnd(FieldLayout *layout)
   return true;
 }
 
-void onPressScrollable()
+// Returns true if we've handled the event (and therefore it should be cleared)
+bool onPressScrollable(buttons_events_t buttons)
 {
   // FIXME: if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
-
+  return false;
 }
+
 /**
  * Used to map from FieldVariant enums to rendering functions
  */
@@ -326,8 +328,21 @@ static const FieldRenderFn renderers[] = { renderDrawText, renderFill,
 static Screen *curScreen;
 static bool screenDirty;
 
+bool screenOnPress(buttons_events_t events) {
+  bool handled = false;
+
+  if(curActiveScrollable)
+    handled |= onPressScrollable(events);
+
+  if(!handled && curScreen && curScreen->onPress)
+    handled |= curScreen->onPress(events);
+
+  return handled;
+}
+
 void screenShow(Screen *screen)
 {
+  curActiveScrollable = NULL; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;
   screenUpdate(); // Force a draw immediately
@@ -348,7 +363,7 @@ void screenUpdate()
   }
 
   // For each field if that field is dirty (or the screen is) redraw it
-  didDraw |= renderLayouts(*curScreen, screenDirty);
+  didDraw |= renderLayouts(curScreen->fields, screenDirty);
 
   // flush the screen to the hardware
   if (didDraw)

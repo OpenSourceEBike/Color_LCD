@@ -64,14 +64,16 @@ static const FieldRenderFn renderers[];
 
 static bool renderDrawText(FieldLayout *layout)
 {
-
   Field *field = layout->field;
+
+  // Allow developer to use this shorthand for one row high text fields
+  if(layout->height == -1)
+    layout->height = field->drawText.font->char_height;
+
   UG_S16 width =
       (layout->width < 0) ?
           -layout->width * field->drawText.font->char_width : layout->width;
-  UG_S16 height =
-      (layout->height == -1) ?
-          field->drawText.font->char_height : layout->height;
+  UG_S16 height = layout->height;
 
   UG_FontSelect(field->drawText.font);
   UG_COLOR back = getBackColor(layout);
@@ -105,6 +107,15 @@ static bool renderMesh(FieldLayout *layout)
   return true;
 }
 
+/**
+ * If we are selected, highlight this item with a bar to the left (on color screens possibly draw a small
+ * color pointer or at least color the line something nice.
+ */
+static void perhapsDrawSelected(FieldLayout *layout) {
+  if(layout->color == ColorSelected)
+    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1, getForeColor(layout));
+}
+
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
 
 const Coord screenWidth = 64, screenHeight = 128; // FIXME, for larger devices allow screen objcts to nest inside other screens
@@ -125,6 +136,9 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
         layout->height = screenHeight - layout->y;
 
       didDraw |= renderers[layout->field->variant](layout);
+
+      // Draw a selection marker on this item
+      perhapsDrawSelected(layout);
     }
   }
 
@@ -225,7 +239,7 @@ static bool renderScrollable(FieldLayout *layout)
   }
   else
   {
-    // Just draw our label (not highlighted) - FIXME show selection bar if necessary
+    // Just draw our label (not highlighted) - show selection bar if necessary
     FieldLayout *r = &rows[0];
 
     r->x = layout->x;
@@ -233,9 +247,9 @@ static bool renderScrollable(FieldLayout *layout)
     r->width = layout->width;
     r->height = layout->height;
 
-    // heading
-    fieldPrintf(&heading, "%s", field->scrollable.label);
-    r->field = &heading;
+    static Field label = FIELD_DRAWTEXT(&FONT_5X12);
+    fieldPrintf(&label, "%s", field->scrollable.label);
+    r->field = &label;
     r->color = ColorNormal;
 
     rows[1].field = NULL; // mark end of array (for rendering)
@@ -262,6 +276,9 @@ static int32_t getEditableNumber(Field *field)
   }
 }
 
+
+
+
 static bool renderEditable(FieldLayout *layout)
 {
   Field *field = layout->field;
@@ -269,15 +286,14 @@ static bool renderEditable(FieldLayout *layout)
   UG_S16 height = layout->height;
 
   UG_FontSelect(&FONT_5X12);
-  UG_COLOR back = getBackColor(layout);
+  UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetBackcolor(back);
-  UG_SetForecolor(getForeColor(layout));
+  UG_SetForecolor(fore);
 
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
 
-  // FIXME -draw bar by selected items
   UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
 
   // draw editable value
@@ -316,8 +332,14 @@ static bool renderEnd(FieldLayout *layout)
 }
 
 
+static void forceScrollableRender() {
+  assert(curActiveScrollable);
+  curActiveScrollable->dirty = true;
+  forceScrollableRelayout = true;
+}
+
 // Returns true if we've handled the event (and therefore it should be cleared)
-bool onPressEditable(buttons_events_t events)
+static bool onPressEditable(buttons_events_t events)
 {
   bool handled = false;
   Field *s = curActiveScrollable;
@@ -351,8 +373,10 @@ int countEntries(Field *s) {
   Field *e = s->scrollable.entries;
 
   int n = 0;
-  while(e && e->variant != FieldEnd)
+  while(e && e->variant != FieldEnd) {
     n++;
+    e++;
+  }
 
   return n;
 }
@@ -365,14 +389,14 @@ bool onPressScrollable(buttons_events_t events)
   Field *s = curActiveScrollable;
 
   if (events & UP_CLICK) {
-    if(s->scrollable.selected > 1) {
+    if(s->scrollable.selected >= 1) {
       s->scrollable.selected--;
     }
 
     if(s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
       s->scrollable.first = s->scrollable.selected;
 
-    forceScrollableRelayout = true;
+    forceScrollableRender();;
     handled = true;
   }
 
@@ -388,7 +412,7 @@ bool onPressScrollable(buttons_events_t events)
     if(s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
       s->scrollable.first = s->scrollable.selected - numDataRows + 1;
 
-    forceScrollableRelayout = true;
+    forceScrollableRender();
     handled = true;
   }
 
@@ -396,7 +420,7 @@ bool onPressScrollable(buttons_events_t events)
   if(curActiveEditable && (events & ONOFF_CLICK)) {
     curActiveEditable = &s->scrollable.entries[s->scrollable.selected];
 
-    forceScrollableRelayout = true; // FIXME, I'm not sure if this is really required
+    forceScrollableRender();; // FIXME, I'm not sure if this is really required
     handled = true;
   }
 

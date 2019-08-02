@@ -178,7 +178,6 @@ int main(void)
   UG_ConsolePutString("boot\n");
   lcd_refresh();
 
-
   // mainscreen_show();
   configscreen_show();
 

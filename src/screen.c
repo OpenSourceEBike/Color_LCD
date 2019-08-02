@@ -322,7 +322,7 @@ static bool renderScrollable(FieldLayout *layout)
 // Get the numeric value of an editable number, properly handling different possible byte encodings
 static int32_t getEditableNumber(Field *field)
 {
-  switch (field->editable.number.size)
+  switch (field->editable.size)
   {
   case 1:
     return *(uint8_t*) field->editable.target;
@@ -333,6 +333,25 @@ static int32_t getEditableNumber(Field *field)
   default:
     assert(0);
     return 0;
+  }
+}
+
+// Set the numeric value of an editable number, properly handling different possible byte encodings
+static void setEditableNumber(Field *field, uint32_t v)
+{
+  switch (field->editable.size)
+  {
+  case 1:
+    *(uint8_t*) field->editable.target = (uint8_t) v;
+    break;
+  case 2:
+    *(uint16_t*) field->editable.target = (uint16_t) v;
+    break;
+  case 4:
+    *(uint32_t*) field->editable.target = (uint32_t) v;
+    break;
+  default:
+    assert(0);
   }
 }
 
@@ -357,28 +376,29 @@ static bool renderEditable(FieldLayout *layout)
   // draw editable value
   char msgbuf[MAX_FIELD_LEN];
   const char *msg;
+  uint32_t num = getEditableNumber(field);
   switch (field->editable.typ)
   {
   case EditUInt:
-  {
-    uint32_t num = getEditableNumber(field);
     // FIXME properly handle div_digits
     snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
     msg = msgbuf;
     break;
-  }
   case EditEnum:
-  {
-    uint8_t enumval = *(uint8_t*) field->editable.target;
-    msg = field->editable.editEnum.options[enumval];
+    msg = field->editable.editEnum.options[num];
     break;
-  }
   default:
     assert(0);
     break;
   }
 
-  // right justify on the second line
+  // Print the value (inverted if we are editing it)
+  if(curActiveEditable == field) {
+    UG_SetBackcolor(fore);
+    UG_SetForecolor(back);
+  }
+
+  // right justify value on the second line
   UG_PutString(layout->x + width - (strlen(msg) + 1) * font->char_width, layout->y + FONT12_Y, (char*) msg);
 
   return true;
@@ -398,6 +418,61 @@ static void forceScrollableRender()
   forceScrollableRelayout = true;
 }
 
+static int countEnumOptions(Field *s)
+{
+  const char **e = s->editable.editEnum.options;
+
+  int n = 0;
+  while (e++)
+    n++;
+
+  return n;
+}
+
+
+/**
+ * increment/decrement an editable
+ */
+static void changeEditable(bool increment) {
+  Field *f = curActiveEditable;
+  assert(f);
+
+  int v = getEditableNumber(f);
+
+  switch (f->editable.typ)
+  {
+  case EditUInt:
+  {
+    int step = f->editable.number.inc_step;
+
+    if(step == 0)
+      step = 1;
+
+    v += step * (increment ? 1 : -1);
+    if(v < f->editable.number.min_value) // loop around
+      v = f->editable.number.max_value;
+    else if(v > f->editable.number.max_value)
+      v = f->editable.number.min_value;
+    setEditableNumber(f, v);
+    break;
+  }
+  case EditEnum:
+  {
+    int numOpts = countEnumOptions(f);
+    v += increment ? 1 : -1;
+    if(v < 0) // loop around
+      v = numOpts - 1;
+    else if(v >= numOpts)
+      v = 0;
+    setEditableNumber(f, v);
+    break;
+  }
+  default:
+    assert(0);
+    break;
+  }
+}
+
 // Returns true if we've handled the event (and therefore it should be cleared)
 static bool onPressEditable(buttons_events_t events)
 {
@@ -406,12 +481,13 @@ static bool onPressEditable(buttons_events_t events)
 
   if (events & UP_CLICK)
   {
-    // FIXME - increment/decrement
+    changeEditable(true);
     handled = true;
   }
 
   if (events & DOWN_CLICK)
   {
+    changeEditable(false);
     handled = true;
   }
 

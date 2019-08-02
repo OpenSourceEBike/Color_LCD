@@ -9,6 +9,7 @@ static Field wheelMenus[] = {
     FIELD_END
 };
 
+/*
 static Field batteryMenus[] = {
     FIELD_EDITABLE_UINT("Max current", &l3_vars.ui8_battery_max_current, "amps", 1, 30),
     FIELD_EDITABLE_UINT("Current ramp", &l3_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 255, .div_digits = 1),
@@ -22,8 +23,9 @@ static Field topMenus[] = {
     // FIXME and remaining top level menus
     FIELD_END
 };
+*/
 
-static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
+static Field configRoot = FIELD_SCROLLABLE("Config", wheelMenus /* topMenus */);
 
 //
 // Screens

@@ -127,16 +127,16 @@ typedef struct Field {
       const char *label; // the label shown in the GUI for this item
       void *target; // the data we are showing/manipulating
       const EditableType typ;
+      const uint8_t size; // sizeof for the specified target - we support 1 or 2 or 4
 
       // the following parameters are particular to the editable type
       union {
 
         struct {
           const char *units;
-          const uint8_t size; // sizeof for the specified variable - we support 1 or 2, 4 would be easy
           const uint8_t div_digits; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
           const uint32_t max_value, min_value; // min/max
-          const uint32_t inc_step;
+          const uint32_t inc_step; // if zero, then 1 is assumed
         } number;
 
         struct {
@@ -155,12 +155,12 @@ typedef struct Field {
 #define FIELD_SCROLLABLE(lbl, arry) { .variant = FieldScrollable, .scrollable = { .label = lbl, .entries = arry } }
 
 #define FIELD_EDITABLE_UINT(lbl, targ, unt, minv, maxv, ...) { .variant = FieldEditable, \
-  .editable = { .typ = EditUInt, .label = lbl, .target = targ, \
-      .number = { .size = sizeof(*targ), .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
+  .editable = { .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
+      .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
-  .editable = { .typ = EditEnum, .label = lbl, .target = targ, \
+  .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__ } } } }
 
 #define FIELD_DRAWTEXT(fnt) { .variant = FieldDrawText, .drawText = { .font = fnt } }

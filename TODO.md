@@ -14,7 +14,8 @@
 * DONE wait for last flash write to complete before powering down
 * DONE show current selection in selection menus
 * DONE make config entry presses work
-* handle hierarchical menu entry/exit correctly
+* DONE handle hierarchical menu entry/exit correctly
+* make editor presses work correctly
 * Make short press of power - cycle to next screen?
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen

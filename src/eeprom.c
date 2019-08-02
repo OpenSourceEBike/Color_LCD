@@ -176,8 +176,6 @@ void eeprom_init_variables(void)
       m_eeprom_data.ui8_assist_level_factor[7];
   p_l3_output_vars->ui8_assist_level_factor[8] =
       m_eeprom_data.ui8_assist_level_factor[8];
-  p_l3_output_vars->ui8_assist_level_factor[9] =
-      m_eeprom_data.ui8_assist_level_factor[9];
   p_l3_output_vars->ui8_number_of_assist_levels =
       m_eeprom_data.ui8_number_of_assist_levels;
   p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled =
@@ -202,8 +200,6 @@ void eeprom_init_variables(void)
       m_eeprom_data.ui8_startup_motor_power_boost_factor[7];
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[8] =
       m_eeprom_data.ui8_startup_motor_power_boost_factor[8];
-  p_l3_output_vars->ui8_startup_motor_power_boost_factor[9] =
-      m_eeprom_data.ui8_startup_motor_power_boost_factor[9];
   p_l3_output_vars->ui8_startup_motor_power_boost_time =
       m_eeprom_data.ui8_startup_motor_power_boost_time;
   p_l3_output_vars->ui8_startup_motor_power_boost_fade_time =
@@ -253,8 +249,6 @@ void eeprom_init_variables(void)
       m_eeprom_data.ui8_walk_assist_level_factor[7];
   p_l3_output_vars->ui8_walk_assist_level_factor[8] =
       m_eeprom_data.ui8_walk_assist_level_factor[8];
-  p_l3_output_vars->ui8_walk_assist_level_factor[9] =
-      m_eeprom_data.ui8_walk_assist_level_factor[9];
 
 #if 0
   p_lcd_configurations_menu->ui8_item_number = m_eeprom_data.lcd_configurations_menu.ui8_item_number;
@@ -316,8 +310,6 @@ void eeprom_write_variables(void)
       p_l3_output_vars->ui8_assist_level_factor[7];
   m_eeprom_data.ui8_assist_level_factor[8] =
       p_l3_output_vars->ui8_assist_level_factor[8];
-  m_eeprom_data.ui8_assist_level_factor[9] =
-      p_l3_output_vars->ui8_assist_level_factor[9];
   m_eeprom_data.ui8_number_of_assist_levels =
       p_l3_output_vars->ui8_number_of_assist_levels;
   m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled =
@@ -342,8 +334,6 @@ void eeprom_write_variables(void)
       p_l3_output_vars->ui8_startup_motor_power_boost_factor[7];
   m_eeprom_data.ui8_startup_motor_power_boost_factor[8] =
       p_l3_output_vars->ui8_startup_motor_power_boost_factor[8];
-  m_eeprom_data.ui8_startup_motor_power_boost_factor[9] =
-      p_l3_output_vars->ui8_startup_motor_power_boost_factor[9];
   m_eeprom_data.ui8_startup_motor_power_boost_time =
       p_l3_output_vars->ui8_startup_motor_power_boost_time;
   m_eeprom_data.ui8_startup_motor_power_boost_fade_time =
@@ -393,8 +383,6 @@ void eeprom_write_variables(void)
       p_l3_output_vars->ui8_walk_assist_level_factor[7];
   m_eeprom_data.ui8_walk_assist_level_factor[8] =
       p_l3_output_vars->ui8_walk_assist_level_factor[8];
-  m_eeprom_data.ui8_walk_assist_level_factor[9] =
-      p_l3_output_vars->ui8_walk_assist_level_factor[9];
 #if 0
   m_eeprom_data.lcd_configurations_menu.ui8_item_number = p_lcd_configurations_menu->ui8_item_number;
   m_eeprom_data.lcd_configurations_menu.ui8_item_visible_start_index = p_lcd_configurations_menu->ui8_item_visible_start_index;

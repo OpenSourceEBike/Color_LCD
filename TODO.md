@@ -19,6 +19,7 @@
 * Make short press of power - cycle to next screen?
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
+* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * make a boot screen with version info (show until user releases power button)
 * DONE test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
@@ -26,6 +27,7 @@
 * change mainscreen layout defs to match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * initial release
+* when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by

@@ -17,7 +17,7 @@
 
 /* Event handler */
 
-volatile static bool gc_done, init_done;
+volatile static bool gc_done, init_done, write_done;
 
 /* Register fs_sys_event_handler with softdevice_sys_evt_handler_set in ble_stack_init or this doesn't fire! */
 static void fds_evt_handler(fds_evt_t const *const evt)
@@ -30,6 +30,10 @@ static void fds_evt_handler(fds_evt_t const *const evt)
     break;
   case FDS_EVT_GC:
     gc_done = true;
+    break;
+  case FDS_EVT_UPDATE:
+  case FDS_EVT_WRITE:
+    write_done = true;
     break;
   default:
     break;
@@ -86,11 +90,16 @@ bool flash_write_words(const void *value, uint16_t length_words)
   record.data.p_chunks = &record_chunk;
   record.data.num_chunks = 1;
 
+  write_done = false;
+
   // either make a new record or update an old one (if we lose power during update the old record is preserved)
   if (has_old)
     APP_ERROR_CHECK(fds_record_update(&record_desc, &record));
   else
     APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
+
+  for (int count = 0; count < 1000 && !write_done; count++)
+    nrf_delay_ms(1);
 
   return true;
 }

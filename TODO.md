@@ -11,6 +11,7 @@
 * DONE make all other button presses (excluding config) work
 * DONE add a logical buttons abstraction and callbacks for screen button handling
 * DONE turn on system power / turn off system power per button press
+* DONE wait for last flash write to complete before powering down
 * show current selection in selection menus
 * make config entry presses work
 * handle hierarchical menu entry/exit correctly
@@ -23,7 +24,6 @@
 * make config system (hopefully usable on other platforms)
 * delete dead code in mainscreen.c
 * initial release
-* FIXME - wait for last flash write to complete before powering down
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
 * use battery icon

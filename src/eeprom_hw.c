@@ -119,10 +119,11 @@ void eeprom_hw_init(void)
 {
   ret_code_t ret = fds_register(fds_evt_handler);
   APP_ERROR_CHECK(ret);
+
+  APP_ERROR_CHECK(fds_init());
   for (int count = 0; count < 1000 && !init_done; count++)
     nrf_delay_ms(1);
 
-  APP_ERROR_CHECK(fds_init());
   wait_gc();
 }
 

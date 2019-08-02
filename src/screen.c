@@ -342,7 +342,8 @@ static bool renderEditable(FieldLayout *layout)
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
 
-  UG_FontSelect(&FONT_5X12);
+  const UG_FONT *font = &FONT_5X12;
+  UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetBackcolor(back);
   UG_SetForecolor(fore);
@@ -377,7 +378,8 @@ static bool renderEditable(FieldLayout *layout)
     break;
   }
 
-  UG_PutString(layout->x + 1, layout->y + FONT12_Y, (char*) msg);
+  // right justify on the second line
+  UG_PutString(layout->x + width - (strlen(msg) + 1) * font->char_width, layout->y + FONT12_Y, (char*) msg);
 
   return true;
 }

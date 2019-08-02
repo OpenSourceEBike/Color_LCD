@@ -197,10 +197,12 @@ int main(void)
       if(buttons_events) {
         bool handled = false;
 
-        handled |= appwide_onpress(buttons_events);
-
         if(!handled)
           handled |= screenOnPress(buttons_events);
+
+        // Note: this must be after the screen/menu handlers have had their shot
+        if(!handled)
+          handled |= appwide_onpress(buttons_events);
 
         if(handled)
           buttons_clear_all_events();

@@ -16,6 +16,8 @@ uint32_t ui32_down_button_state = 0;
 uint32_t ui32_down_button_state_counter = 0;
 uint32_t ui32_up_button_state = 0;
 uint32_t ui32_up_button_state_counter = 0;
+uint32_t ui32_m_button_state = 0;
+uint32_t ui32_m_button_state_counter = 0;
 uint32_t ui32_m_clear_event = 0;
 
 buttons_events_t buttons_events = 0;
@@ -54,12 +56,44 @@ uint32_t buttons_get_down_state (void)
 
 uint32_t buttons_get_onoff_state (void)
 {
-  // FIXME - I'm temporarily using the M pin for power, because the real power button is only readable
-  // when hooked to a battery (which is in my basement right now)
+  return PollButton(&buttonPWR);
+}
+
+uint32_t buttons_get_m_state (void)
+{
   return PollButton(&buttonM);
-  // return PollButton(&buttonPWR);
 }
 #endif
+
+uint32_t buttons_get_m_click_event (void)
+{
+  return (buttons_events & M_CLICK) ? 1: 0;
+}
+
+uint32_t buttons_get_m_long_click_event (void)
+{
+  return (buttons_events & M_LONG_CLICK) ? 1: 0;
+}
+
+void buttons_clear_m_click_event (void)
+{
+  buttons_events &= ~M_CLICK;
+}
+
+uint32_t buttons_get_m_click_long_click_event (void)
+{
+  return (buttons_events & M_CLICK_LONG_CLICK) ? 1: 0;
+}
+
+void buttons_clear_m_long_click_event (void)
+{
+  buttons_events &= ~M_LONG_CLICK;
+}
+
+void buttons_clear_m_click_long_click_event (void)
+{
+  buttons_events &= ~M_CLICK_LONG_CLICK;
+}
 
 uint32_t buttons_get_up_click_event (void)
 {
@@ -295,6 +329,106 @@ void buttons_clock (void)
 
     default:
       ui32_onoff_button_state = 0;
+    break;
+  }
+
+  switch (ui32_m_button_state)
+  {
+    case 0:
+      if (!buttons_get_m_click_event() &&
+          !buttons_get_m_long_click_event() &&
+          !buttons_get_m_click_long_click_event() &&
+          buttons_get_m_state())
+        {
+          ui32_m_button_state_counter = 0;
+          ui32_m_button_state = 1;
+        }
+    break;
+
+    case 1:
+      ui32_m_button_state_counter++;
+
+      // event long click
+      if (ui32_m_button_state_counter++ > 100) // 2 seconds
+      {
+        buttons_set_events(M_LONG_CLICK);
+
+        ui32_m_button_state = 2;
+        ui32_m_button_state_counter = 0;
+        break;
+      }
+
+      // if button release
+      if (!buttons_get_m_state ())
+      {
+        // let's validade if will be a quick click + long click
+        if (ui32_m_button_state_counter <= 2) // 0.3 second
+        {
+          ui32_m_button_state_counter = 0;
+          ui32_m_button_state = 3;
+          break;
+        }
+        // event click
+        else
+        {
+          buttons_set_events(M_CLICK);
+          ui32_m_button_state = 0;
+          break;
+        }
+      }
+    break;
+
+    case 2:
+      // wait for button release
+      if (!buttons_get_m_state ())
+      {
+        ui32_m_button_state = 0;
+        break;
+      }
+    break;
+
+    case 3:
+      ui32_m_button_state_counter++;
+
+      // on next step, start counting for long click
+      if (buttons_get_m_state ())
+      {
+        ui32_m_button_state_counter = 0;
+        ui32_m_button_state = 4;
+        break;
+      }
+
+      // event click
+      if (ui32_m_button_state_counter > 20)
+      {
+        buttons_set_events(M_CLICK);
+        ui32_m_button_state = 0;
+        break;
+      }
+    break;
+
+    case 4:
+      ui32_m_button_state_counter++;
+
+      // event click, but this time it is: click + long click
+      if (ui32_m_button_state_counter > 50)
+      {
+        buttons_set_events(M_CLICK_LONG_CLICK);
+        ui32_m_button_state = 2;
+        break;
+      }
+
+      // button release
+      if (!buttons_get_m_state ())
+      {
+        buttons_set_events(M_CLICK);
+        ui32_m_button_state = 0;
+        break;
+      }
+    break;
+
+    default:
+      ui32_m_button_state = 0;
     break;
   }
 

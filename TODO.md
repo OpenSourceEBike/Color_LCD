@@ -16,9 +16,9 @@
 * DONE make config entry presses work
 * handle hierarchical menu entry/exit correctly
 * Make short press of power - cycle to next screen?
-* change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown)
+* change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
-* make a boot screen (show until user releases power button)
+* make a boot screen with version info (show until user releases power button)
 * DONE test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
 * make config system (hopefully usable on other platforms)
@@ -26,6 +26,7 @@
 * delete dead code in mainscreen.c
 * initial release
 * make selection in menus prettier
+* clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
 * use battery icon

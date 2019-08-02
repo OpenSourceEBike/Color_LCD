@@ -20,7 +20,10 @@ typedef enum
   DOWN_CLICK = 64,
   DOWN_CLICK_LONG_CLICK = 128,
   DOWN_LONG_CLICK = 256,
-  UPDOWN_CLICK = 512
+  UPDOWN_CLICK = 512,
+  M_CLICK = 1024, // Some devices (SW102) have this extra button
+  M_CLICK_LONG_CLICK = 2048,
+  M_LONG_CLICK = 4096
 } buttons_events_t;
 
 uint32_t buttons_get_up_state (void);

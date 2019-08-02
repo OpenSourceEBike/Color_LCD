@@ -28,6 +28,8 @@
 #include "screen.h"
 #include "lcd.h"
 #include "ugui.h"
+#include "mainscreen.h"
+#include "eeprom.h"
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -67,7 +69,7 @@ static bool renderDrawText(FieldLayout *layout)
   Field *field = layout->field;
 
   // Allow developer to use this shorthand for one row high text fields
-  if(layout->height == -1)
+  if (layout->height == -1)
     layout->height = field->drawText.font->char_height;
 
   UG_S16 width =
@@ -111,9 +113,11 @@ static bool renderMesh(FieldLayout *layout)
  * If we are selected, highlight this item with a bar to the left (on color screens possibly draw a small
  * color pointer or at least color the line something nice.
  */
-static void perhapsDrawSelected(FieldLayout *layout) {
-  if(layout->color == ColorSelected)
-    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1, getForeColor(layout));
+static void perhapsDrawSelected(FieldLayout *layout)
+{
+  if (layout->color == ColorSelected)
+    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
+        getForeColor(layout));
 }
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
@@ -156,15 +160,63 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 // FIXME - currently limited to one scrollable per screen
 static bool forceScrollableRelayout;
 
-// The (currently only one allowed per screen) scrollable that is currently being shown to the user.
-// if the scrollable changes, we'll need to regenerate the entire render
-// FIXME - keep a stack of scrollables and the deepest one the user has selected is 'active' and expanded otherwise
-static Field *curActiveScrollable = NULL;
 
 // If the user is editing an editable, this will be it
 static Field *curActiveEditable = NULL;
 
-static bool renderScrollable(FieldLayout *layout)
+#define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
+
+static Field *scrollableStack[MAX_SCROLLABLE_DEPTH];
+int scrollableStackPtr = 0; // Points to where to push the next entry (so if zero, stack is empty)
+
+// Return the scrollable we are currently showing the user, or NULL if none
+// The (currently only one allowed per screen) scrollable that is currently being shown to the user.
+// if the scrollable changes, we'll need to regenerate the entire render
+static Field *getActiveScrollable() {
+  return scrollableStackPtr ? scrollableStack[scrollableStackPtr - 1] : NULL;
+}
+
+/**
+ * The user just clicked on a scrollable entry, descend down into it
+ */
+static void enterScrollable(Field *f) {
+  assert(scrollableStackPtr < MAX_SCROLLABLE_DEPTH);
+  scrollableStack[scrollableStackPtr++] = f;
+
+  // NOTE: Only the root scrollable is ever checked for 'dirty' by the main screen renderer,
+  // so that's the one we set
+  scrollableStack[0]->dirty = true;
+
+  forceScrollableRelayout = true;
+}
+
+/**
+ * The user just clicked to exit a scrollable entry, ascend to the entry above us or if we are the top
+ * go back to the main screen
+ */
+static void exitScrollable() {
+  assert(scrollableStackPtr > 0);
+  scrollableStackPtr--;
+
+  Field *f = getActiveScrollable();
+  if(f) {
+    // Parent was a scrollable, show it
+    f->dirty = true;
+    forceScrollableRelayout = true;
+  }
+  else {
+    // We just exited our last scrollable, just go to the mainscreen (for now, someday we might want to have
+    // a loop of screens, of which config and 'main' are just two of the options)
+
+    // save the variables on EEPROM
+    // FIXME: move this into a onExit callback on the config screen object instead
+    eeprom_write_variables();
+
+    mainscreen_show();
+  }
+}
+
+static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
   const Coord rowHeight = 32; // 3 data rows 32 pixels tall + one 32 pixel header
 
@@ -173,14 +225,7 @@ static bool renderScrollable(FieldLayout *layout)
 
   static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
 
-  Field *field = layout->field;
-
-  forceScrollableRelayout |= (field != curActiveScrollable);
-
-  if (!curActiveScrollable)
-    curActiveScrollable = field;
-
-  bool weAreExpanded = curActiveScrollable == field;
+  bool weAreExpanded = getActiveScrollable() == field;
 
   // If we are expanded show our heading and the current visible child elements
   // Otherwise just show our label so that the user might select us to expand
@@ -217,7 +262,8 @@ static bool renderScrollable(FieldLayout *layout)
             hasMoreRows = false;
 
           // if the current row is valid, render that, otherwise render blank space
-          if (hasMoreRows) {
+          if (hasMoreRows)
+          {
             r->field = entry;
             r->color =
                 (entryNum == field->scrollable.selected) ?
@@ -259,6 +305,20 @@ static bool renderScrollable(FieldLayout *layout)
   return renderLayouts(rows, false);
 }
 
+static bool renderScrollable(FieldLayout *layout)
+{
+  if (!getActiveScrollable()) // we are the first scrollable on this screen, use us to init the stack
+    enterScrollable(layout->field);
+
+  // If we are being asked to render the root scrollable, instead we want to substitute the deepest scrollable
+  // in the stack
+  Field *field = layout->field;
+  if(scrollableStack[0] == field)
+    field = getActiveScrollable();
+
+  return renderActiveScrollable(layout, field);
+}
+
 // Get the numeric value of an editable number, properly handling different possible byte encodings
 static int32_t getEditableNumber(Field *field)
 {
@@ -275,9 +335,6 @@ static int32_t getEditableNumber(Field *field)
     return 0;
   }
 }
-
-
-
 
 static bool renderEditable(FieldLayout *layout)
 {
@@ -331,10 +388,11 @@ static bool renderEnd(FieldLayout *layout)
   return true;
 }
 
-
-static void forceScrollableRender() {
-  assert(curActiveScrollable);
-  curActiveScrollable->dirty = true;
+static void forceScrollableRender()
+{
+  Field *active = getActiveScrollable();
+  assert(active);
+  active->dirty = true;
   forceScrollableRelayout = true;
 }
 
@@ -342,38 +400,45 @@ static void forceScrollableRender() {
 static bool onPressEditable(buttons_events_t events)
 {
   bool handled = false;
-  Field *s = curActiveScrollable;
+  Field *s = curActiveEditable;
 
-  if (events & UP_CLICK) {
+  if (events & UP_CLICK)
+  {
     // FIXME - increment/decrement
     handled = true;
   }
 
-  if (events & DOWN_CLICK) {
+  if (events & DOWN_CLICK)
+  {
     handled = true;
   }
 
   // Mark that we are no longer editing
-  if(events & ONOFF_CLICK) {
+  if (events & ONOFF_CLICK)
+  {
     curActiveEditable = NULL;
 
     handled = true;
   }
 
-  if(curActiveScrollable && handled) {
+  // If we are inside a scrollable, tell the GUI that scrollable also needs to be redrawn
+  Field *scrollable = getActiveScrollable();
+  if (scrollable && handled)
+  {
     s->dirty = true; // redraw our position
-    curActiveScrollable->dirty = true; // we just changed something, make sure we get a chance to be redrawn
+    scrollable->dirty = true; // we just changed something, make sure we get a chance to be redrawn
   }
 
   return handled;
 }
 
-
-int countEntries(Field *s) {
+int countEntries(Field *s)
+{
   Field *e = s->scrollable.entries;
 
   int n = 0;
-  while(e && e->variant != FieldEnd) {
+  while (e && e->variant != FieldEnd)
+  {
     n++;
     e++;
   }
@@ -381,47 +446,79 @@ int countEntries(Field *s) {
   return n;
 }
 
+
+
 // Returns true if we've handled the event (and therefore it should be cleared)
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
-bool onPressScrollable(buttons_events_t events)
+static bool onPressScrollable(buttons_events_t events)
 {
   bool handled = false;
-  Field *s = curActiveScrollable;
+  Field *s = getActiveScrollable();
 
-  if (events & UP_CLICK) {
-    if(s->scrollable.selected >= 1) {
+  if(!s)
+    return false; // no scrollable is active
+
+  if (events & UP_CLICK)
+  {
+    if (s->scrollable.selected >= 1)
+    {
       s->scrollable.selected--;
     }
 
-    if(s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
+    if (s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
       s->scrollable.first = s->scrollable.selected;
 
-    forceScrollableRender();;
+    forceScrollableRender();
+    ;
     handled = true;
   }
 
-  if (events & DOWN_CLICK) {
+  if (events & DOWN_CLICK)
+  {
     int numEntries = countEntries(s);
 
-    if(s->scrollable.selected < numEntries - 1) {
+    if (s->scrollable.selected < numEntries - 1)
+    {
       s->scrollable.selected++;
     }
 
     int numDataRows = MAX_SCROLLABLE_ROWS - 1;
     int lastVisibleRow = s->scrollable.first + numDataRows - 1;
-    if(s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
+    if (s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
       s->scrollable.first = s->scrollable.selected - numDataRows + 1;
 
     forceScrollableRender();
     handled = true;
   }
 
-  // If we aren't already editing anything, start now
-  if(curActiveEditable && (events & ONOFF_CLICK)) {
-    curActiveEditable = &s->scrollable.entries[s->scrollable.selected];
+  // If we aren't already editing anything, start now (note: we will only be called if some active editable
+  // hasn't already handled this button
+  if (events & M_CLICK)
+  {
+    Field *clicked = &s->scrollable.entries[s->scrollable.selected];
 
-    forceScrollableRender();; // FIXME, I'm not sure if this is really required
-    handled = true;
+    switch (clicked->variant)
+    {
+    case FieldEditable:
+      curActiveEditable = clicked;
+      handled = true;
+      forceScrollableRender(); // FIXME, I'm not sure if this is really required
+      break;
+
+    case FieldScrollable:
+      enterScrollable(clicked);
+      break;
+
+    default:
+      break;
+    }
+  }
+
+  // Note: this really should be the power button being clicked (because we use power button to switch
+  // to config screen or exit back to main/next screen.  But for now I use M because I'm not yet using a
+  // battery pack
+  if (events & M_LONG_CLICK) {
+    exitScrollable();
   }
 
   return handled;
@@ -436,16 +533,17 @@ static const FieldRenderFn renderers[] = { renderDrawText, renderFill,
 static Screen *curScreen;
 static bool screenDirty;
 
-bool screenOnPress(buttons_events_t events) {
+bool screenOnPress(buttons_events_t events)
+{
   bool handled = false;
 
-  if(curActiveEditable)
+  if (curActiveEditable)
     handled |= onPressEditable(events);
 
-  if(curActiveScrollable)
+  if (!handled)
     handled |= onPressScrollable(events);
 
-  if(!handled && curScreen && curScreen->onPress)
+  if (!handled && curScreen && curScreen->onPress)
     handled |= curScreen->onPress(events);
 
   return handled;
@@ -454,7 +552,7 @@ bool screenOnPress(buttons_events_t events) {
 void screenShow(Screen *screen)
 {
   curActiveEditable = NULL;
-  curActiveScrollable = NULL; // new screen might not have one, we will find out when we render
+  scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;
   screenUpdate(); // Force a draw immediately

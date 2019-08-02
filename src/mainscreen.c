@@ -600,8 +600,6 @@ void screen_clock(void)
 #endif
   screenUpdate();
 
-  power_off_management();
-
 #if 0
   // must be reset after a full cycle of lcd_clock()
   ui32_m_draw_graphs_1 = 0;
@@ -779,38 +777,7 @@ void trip_distance(void)
   fieldPrintf(&speedField, "%2d.%01d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
 }
 
-void power_off_management(void)
-{
-  if(buttons_get_onoff_long_click_event() /* &&
-    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN */)
-  {
-    lcd_power_off(1);
-  }
-}
 
-void lcd_power_off(uint8_t updateDistanceOdo)
-{
-//  if (updateDistanceOdo)
-//  {
-    l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
-//    l3_vars.ui32_odometer_x10 += ((uint32_t) l3_vars.ui16_odometer_distance_x10);
-//  }
-
-  // save the variables on EEPROM
-  eeprom_write_variables ();
-
-  // put screen all black and disable backlight
-  UG_FillScreen(0);
-  lcd_refresh();
-  // lcd_set_backlight_intensity(0);
-
-  // FIXME: wait for flash write to complete before powering down
-  // now disable the power to all the system
-  system_power(0);
-
-  // block here till we die
-  while(1) ;
-}
 
 void l2_low_pass_filter_battery_voltage_current_power(void)
 {

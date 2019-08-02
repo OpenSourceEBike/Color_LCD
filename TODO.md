@@ -10,6 +10,7 @@
 * DONE make accel button presses work
 * DONE make all other button presses (excluding config) work
 * DONE add a logical buttons abstraction and callbacks for screen button handling
+* DONE turn on system power / turn off system power per button press
 * show current selection in selection menus
 * make config entry presses work
 * handle hierarchical menu entry/exit correctly
@@ -20,7 +21,6 @@
 * DONE test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
 * make config system (hopefully usable on other platforms)
-* turn on system power / turn off system power per button press
 * delete dead code in mainscreen.c
 * initial release
 * FIXME - wait for last flash write to complete before powering down

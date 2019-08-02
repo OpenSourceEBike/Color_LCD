@@ -97,6 +97,44 @@ static void init_app_timers(void);
 
 
 
+
+
+void lcd_power_off(uint8_t updateDistanceOdo)
+{
+//  if (updateDistanceOdo)
+//  {
+    l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
+//    l3_vars.ui32_odometer_x10 += ((uint32_t) l3_vars.ui16_odometer_distance_x10);
+//  }
+
+  // save the variables on EEPROM
+  eeprom_write_variables ();
+
+  // put screen all black and disable backlight
+  UG_FillScreen(0);
+  lcd_refresh();
+  // lcd_set_backlight_intensity(0);
+
+  // FIXME: wait for flash write to complete before powering down
+  // now disable the power to all the system
+  system_power(0);
+
+  // block here till we die
+  while(1) ;
+}
+
+
+bool appwide_onpress(buttons_events_t events)
+{
+  if(events & ONOFF_LONG_CLICK)
+  {
+    lcd_power_off(1);
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * @brief Application main entry.
  */
@@ -160,7 +198,10 @@ int main(void)
       if(buttons_events) {
         bool handled = false;
 
-        handled |= screenOnPress(buttons_events);
+        handled |= appwide_onpress(buttons_events);
+
+        if(!handled)
+          handled |= screenOnPress(buttons_events);
 
         if(handled)
           buttons_clear_all_events();

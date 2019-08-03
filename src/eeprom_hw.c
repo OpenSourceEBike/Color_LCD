@@ -12,6 +12,7 @@
 #include "common.h"
 #include "fds.h"
 #include "nrf_delay.h"
+#include "assert.h"
 
 // volatile fs_ret_t last_fs_ret;
 
@@ -98,7 +99,7 @@ bool flash_write_words(const void *value, uint16_t length_words)
   else
     APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
 
-  for (int count = 0; count < 1000 && !write_done; count++)
+  for (volatile int count = 0; count < 1000 && !write_done; count++)
     nrf_delay_ms(1);
 
   return true;
@@ -108,8 +109,9 @@ static void wait_gc()
 {
   gc_done = false;
   APP_ERROR_CHECK(fds_gc());
-  for (int count = 0; count < 1000 && !gc_done; count++)
+  for (volatile int count = 0; count < 5000 && !gc_done; count++)
     nrf_delay_ms(1);
+  assert(gc_done);
 }
 
 /**
@@ -121,8 +123,9 @@ void eeprom_hw_init(void)
   APP_ERROR_CHECK(ret);
 
   APP_ERROR_CHECK(fds_init());
-  for (int count = 0; count < 1000 && !init_done; count++)
+  for (volatile int count = 0; count < 5000 && !init_done; count++)
     nrf_delay_ms(1);
+  assert(init_done);
 
   wait_gc();
 }

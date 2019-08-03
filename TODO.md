@@ -15,8 +15,9 @@
 * DONE show current selection in selection menus
 * DONE make config entry presses work
 * DONE handle hierarchical menu entry/exit correctly
-* Make short press of power - cycle to next screen.  make screens a loop: main, config, power tuning?, fault (optional)
+* DONE Make short press of UP-DOWN (really should be power) - cycle to next screen.  make screens a loop: main, config, power tuning?, fault (optional)
 * make editor presses work correctly
+* make walk assist press work
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
@@ -27,6 +28,7 @@
 * change mainscreen layout defs to match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * initial release
+* turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches

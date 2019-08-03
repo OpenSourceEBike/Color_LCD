@@ -1,5 +1,7 @@
 #pragma once
 
+#include "screen.h"
+
 typedef struct l2_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
@@ -166,3 +168,5 @@ extern l3_vars_t l3_vars;
 
 void mainscreen_show();
 void screen_clock(); // call every 20ms
+
+extern Screen mainScreen;

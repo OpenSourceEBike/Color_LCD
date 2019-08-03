@@ -202,6 +202,7 @@ The top three handlers in the list above are handled by screen
 typedef bool (*ButtonEventHandler)(buttons_events_t events);
 
 typedef struct {
+  void (*onExit)(); // If !NULL will be called when this screen is no longer visible
   ButtonEventHandler onPress; // or NULL for no handler
   FieldLayout fields[];
 } Screen;

@@ -1,6 +1,7 @@
 #include "screen.h"
 #include "mainscreen.h"
 #include "configscreen.h"
+#include "eeprom.h"
 
 static Field wheelMenus[] = {
     FIELD_EDITABLE_UINT("Max wheel speed", &l3_vars.ui8_wheel_max_speed, "km/h", 1, 99),
@@ -134,10 +135,18 @@ static Field topMenus[] = {
 
 static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
 
+static void configExit() {
+      // save the variables on EEPROM
+      // FIXME: move this into a onExit callback on the config screen object instead
+      eeprom_write_variables();
+}
+
 //
 // Screens
 //
 Screen configScreen = {
+    .onExit = configExit,
+
     .fields = {
     // FIXME, add a drawable with the a "Config" title at top of screen
     {

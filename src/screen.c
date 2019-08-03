@@ -28,8 +28,6 @@
 #include "screen.h"
 #include "lcd.h"
 #include "ugui.h"
-#include "mainscreen.h"
-#include "eeprom.h"
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -205,14 +203,7 @@ static void exitScrollable() {
     forceScrollableRelayout = true;
   }
   else {
-    // We just exited our last scrollable, just go to the mainscreen (for now, someday we might want to have
-    // a loop of screens, of which config and 'main' are just two of the options)
-
-    // save the variables on EEPROM
-    // FIXME: move this into a onExit callback on the config screen object instead
-    eeprom_write_variables();
-
-    mainscreen_show();
+    // otherwise we just leave the screen showing the top scrollable
   }
 }
 
@@ -629,6 +620,9 @@ bool screenOnPress(buttons_events_t events)
 
 void screenShow(Screen *screen)
 {
+  if(curScreen && curScreen->onExit)
+    curScreen->onExit();
+
   curActiveEditable = NULL;
   scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;

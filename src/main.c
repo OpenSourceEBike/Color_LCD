@@ -93,7 +93,28 @@ void lcd_power_off(uint8_t updateDistanceOdo)
     ;
 }
 
-bool appwide_onpress(buttons_events_t events)
+// Screens in a loop, shown when the user short presses the power button
+static Screen *screens[] = {
+    &mainScreen,
+    &configScreen,
+    NULL
+};
+
+static int nextScreen = 0;
+
+void showNextScreen() {
+  Screen *next = screens[nextScreen++];
+
+  if(!next) {
+    nextScreen = 0;
+    next = screens[nextScreen++];
+  }
+
+  screenShow(next);
+}
+
+
+static bool appwide_onpress(buttons_events_t events)
 {
   if (events & ONOFF_LONG_CLICK)
   {
@@ -101,8 +122,14 @@ bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
+  if(events & UPDOWN_CLICK) {  // FIXME, use power click instead, but kevin's board is still not running from battery so sim with this
+    showNextScreen();
+    return true;
+  }
+
   return false;
 }
+
 
 /**
  * @brief Application main entry.
@@ -147,8 +174,7 @@ int main(void)
   UG_ConsolePutString("boot\n");
   lcd_refresh();
 
-  // mainscreen_show();
-  configscreen_show();
+  showNextScreen();
 
   // APP_ERROR_HANDLER(5);
 
@@ -350,12 +376,12 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   {
   case NRF_FAULT_ID_SDK_ERROR:
     // app errors include filename and line
-    fieldPrintf(&infoCode, "%s/%d/%d",
-        einfo->p_file_name ? (const char*) einfo->p_file_name : "",
+    fieldPrintf(&infoCode, "%s:%d (%d)",
+        einfo->p_file_name ? (const char*) einfo->p_file_name : "nofile",
         einfo->line_num, einfo->err_code);
     break;
   case FAULT_GCC_ASSERT:
-    fieldPrintf(&infoCode, "%s/%d",
+    fieldPrintf(&infoCode, "%s:%d",
         einfo->p_file_name ? (const char*) einfo->p_file_name : "",
         einfo->line_num);
     break;

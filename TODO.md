@@ -35,8 +35,10 @@
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
 * use battery icon
+* Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
 * pack & align eeprom
-* FIXME - make width 0, and height 0 mean "auto select based on display size"
+* implement a watchdog function
+* DONE make width 0, and height 0 mean "auto select based on display size"
 * do eeprom GC if flash is full (currently only done at boot)
 * merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
 * clean up button handling and take advantage of extra button on the SW102

@@ -95,8 +95,8 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
 // Screens in a loop, shown when the user short presses the power button
 static Screen *screens[] = {
-    &mainScreen,
     &configScreen,
+    &mainScreen,
     NULL
 };
 

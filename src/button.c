@@ -15,9 +15,11 @@ void InitButton(Button* button, uint32_t pin_number, nrf_gpio_pin_pull_t pull_co
   /* Init GPIO */
   nrf_gpio_cfg_input(pin_number, pull_config);
 
+#if 0
   button->State = (BTTN_CLEAR | BTTN_RELEASED_PROCESSED); // if we just set to BTTN_CLEAR, ButtonReleased() triggers on startup
   button->DebounceCnt = button->LongClickCnt = 0;
   button->DoubleClickCnt = DOUBLECLICK_TIME;
+#endif
   button->ActiveState = active_state;
   button->PinNumber = pin_number;
 }
@@ -30,6 +32,8 @@ bool PollButton(Button* button)
   uint32_t pinState = nrf_gpio_pin_read(button->PinNumber);
   if(button->ActiveState == BUTTON_ACTIVE_LOW)
     pinState ^= 1;
+
+#if 0 // FIXME, removed for now, we debounce in the shared 850C code
 
   /* Not Active */
   if (pinState != 0)
@@ -62,10 +66,12 @@ bool PollButton(Button* button)
     if (button->LongClickCnt++ >= LONGCLICK_TIME)
       button->State |= BTTN_LONGCLICK;
   }
+#endif
 
   return pinState != 0;
 }
 
+#if 0
 /**
  * @brief Check if Button is clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
  */
@@ -127,3 +133,4 @@ bool ButtonReleased(Button* button)
 
   return false;
 }
+#endif

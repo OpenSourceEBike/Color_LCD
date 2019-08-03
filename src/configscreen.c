@@ -119,7 +119,7 @@ static Field technicalMenus[] = {
 static Field topMenus[] = {
     FIELD_SCROLLABLE("Wheel settings", wheelMenus),
     FIELD_SCROLLABLE("Battery", batteryMenus),
-    FIELD_SCROLLABLE("Battery SOC", socMenus),
+    FIELD_SCROLLABLE("SOC", socMenus),
     FIELD_SCROLLABLE("Assist level", assistMenus),
     FIELD_SCROLLABLE("Walk assist", walkAssistMenus),
     FIELD_SCROLLABLE("Startup power", startupPowerMenus),

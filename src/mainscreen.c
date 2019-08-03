@@ -38,6 +38,7 @@ volatile uint32_t ui32_g_layer_2_can_execute = 0;
 static uint16_t ui16_m_battery_soc_watts_hour = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
+static uint8_t ui8_walk_assist_state = 0;
 
 // kevinh: removed volatile because I don't think it is needed
 uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
@@ -78,6 +79,12 @@ void trip_time(void);
 
 
 bool mainscreen_onpress(buttons_events_t events) {
+  if((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled)
+  {
+    ui8_walk_assist_state = 1;
+    return true;
+  }
+
   if (events & UP_CLICK /* &&
       m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
   {
@@ -2414,17 +2421,9 @@ void walk_assist_state(void)
     }
   }
 #endif
-  static uint8_t ui8_walk_assist_state = 0;
   if(/* m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN && */
       l3_vars.ui8_walk_assist_feature_enabled)
   {
-    if(buttons_get_down_long_click_event())
-    {
-      // clear button long down click event
-      buttons_clear_down_long_click_event();
-      ui8_walk_assist_state = 1;
-    }
-
     // if down button is still pressed
     if(ui8_walk_assist_state &&
         buttons_get_down_state())

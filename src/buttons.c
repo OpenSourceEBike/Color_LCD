@@ -214,6 +214,7 @@ void buttons_clear_all_events (void)
   ui32_onoff_button_state = 0;
   ui32_up_button_state = 0;
   ui32_down_button_state = 0;
+  ui32_m_button_state = 0;
 }
 
 void buttons_clock (void)

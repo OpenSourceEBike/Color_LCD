@@ -158,7 +158,6 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 // FIXME - currently limited to one scrollable per screen
 static bool forceScrollableRelayout;
 
-
 // If the user is editing an editable, this will be it
 static Field *curActiveEditable = NULL;
 
@@ -170,14 +169,16 @@ int scrollableStackPtr = 0; // Points to where to push the next entry (so if zer
 // Return the scrollable we are currently showing the user, or NULL if none
 // The (currently only one allowed per screen) scrollable that is currently being shown to the user.
 // if the scrollable changes, we'll need to regenerate the entire render
-static Field *getActiveScrollable() {
+static Field* getActiveScrollable()
+{
   return scrollableStackPtr ? scrollableStack[scrollableStackPtr - 1] : NULL;
 }
 
 /**
  * The user just clicked on a scrollable entry, descend down into it
  */
-static void enterScrollable(Field *f) {
+static void enterScrollable(Field *f)
+{
   assert(scrollableStackPtr < MAX_SCROLLABLE_DEPTH);
   scrollableStack[scrollableStackPtr++] = f;
 
@@ -192,17 +193,20 @@ static void enterScrollable(Field *f) {
  * The user just clicked to exit a scrollable entry, ascend to the entry above us or if we are the top
  * go back to the main screen
  */
-static void exitScrollable() {
+static void exitScrollable()
+{
   assert(scrollableStackPtr > 0);
   scrollableStackPtr--;
 
   Field *f = getActiveScrollable();
-  if(f) {
+  if (f)
+  {
     // Parent was a scrollable, show it
     f->dirty = true;
     forceScrollableRelayout = true;
   }
-  else {
+  else
+  {
     // otherwise we just leave the screen showing the top scrollable
   }
 }
@@ -304,7 +308,7 @@ static bool renderScrollable(FieldLayout *layout)
   // If we are being asked to render the root scrollable, instead we want to substitute the deepest scrollable
   // in the stack
   Field *field = layout->field;
-  if(scrollableStack[0] == field)
+  if (scrollableStack[0] == field)
     field = getActiveScrollable();
 
   return renderActiveScrollable(layout, field);
@@ -384,13 +388,15 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   // Print the value (inverted if we are editing it)
-  if(curActiveEditable == field) {
+  if (curActiveEditable == field)
+  {
     UG_SetBackcolor(fore);
     UG_SetForecolor(back);
   }
 
   // right justify value on the second line
-  UG_PutString(layout->x + width - (strlen(msg) + 1) * font->char_width, layout->y + FONT12_Y, (char*) msg);
+  UG_PutString(layout->x + width - (strlen(msg) + 1) * font->char_width,
+      layout->y + FONT12_Y, (char*) msg);
 
   return true;
 }
@@ -405,7 +411,7 @@ static void forceScrollableRender()
 {
   Field *active = getActiveScrollable();
   assert(active);
-  active->dirty = true;
+  scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
   forceScrollableRelayout = true;
 }
 
@@ -420,11 +426,11 @@ static int countEnumOptions(Field *s)
   return n;
 }
 
-
 /**
  * increment/decrement an editable
  */
-static void changeEditable(bool increment) {
+static void changeEditable(bool increment)
+{
   Field *f = curActiveEditable;
   assert(f);
 
@@ -436,13 +442,13 @@ static void changeEditable(bool increment) {
   {
     int step = f->editable.number.inc_step;
 
-    if(step == 0)
+    if (step == 0)
       step = 1;
 
     v += step * (increment ? 1 : -1);
-    if(v < f->editable.number.min_value) // loop around
+    if (v < f->editable.number.min_value) // loop around
       v = f->editable.number.max_value;
-    else if(v > f->editable.number.max_value)
+    else if (v > f->editable.number.max_value)
       v = f->editable.number.min_value;
     setEditableNumber(f, v);
     break;
@@ -451,9 +457,9 @@ static void changeEditable(bool increment) {
   {
     int numOpts = countEnumOptions(f);
     v += increment ? 1 : -1;
-    if(v < 0) // loop around
+    if (v < 0) // loop around
       v = numOpts - 1;
-    else if(v >= numOpts)
+    else if (v >= numOpts)
       v = 0;
     setEditableNumber(f, v);
     break;
@@ -490,12 +496,15 @@ static bool onPressEditable(buttons_events_t events)
     handled = true;
   }
 
-  // If we are inside a scrollable, tell the GUI that scrollable also needs to be redrawn
-  Field *scrollable = getActiveScrollable();
-  if (scrollable && handled)
-  {
+  if(handled) {
     s->dirty = true; // redraw our position
-    scrollable->dirty = true; // we just changed something, make sure we get a chance to be redrawn
+
+    // If we are inside a scrollable, tell the GUI that scrollable also needs to be redrawn
+    Field *scrollable = getActiveScrollable();
+    if (scrollable)
+    {
+      scrollableStack[0]->dirty = true; // we just changed something, make sure we get a chance to be redrawn
+    }
   }
 
   return handled;
@@ -515,8 +524,6 @@ int countEntries(Field *s)
   return n;
 }
 
-
-
 // Returns true if we've handled the event (and therefore it should be cleared)
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
 static bool onPressScrollable(buttons_events_t events)
@@ -524,7 +531,7 @@ static bool onPressScrollable(buttons_events_t events)
   bool handled = false;
   Field *s = getActiveScrollable();
 
-  if(!s)
+  if (!s)
     return false; // no scrollable is active
 
   if (events & UP_CLICK)
@@ -570,12 +577,14 @@ static bool onPressScrollable(buttons_events_t events)
     {
     case FieldEditable:
       curActiveEditable = clicked;
+      curActiveEditable->dirty = true; // force redraw with highlighting
       handled = true;
       forceScrollableRender(); // FIXME, I'm not sure if this is really required
       break;
 
     case FieldScrollable:
       enterScrollable(clicked);
+      handled = true;
       break;
 
     default:
@@ -586,7 +595,8 @@ static bool onPressScrollable(buttons_events_t events)
   // Note: this really should be the power button being clicked (because we use power button to switch
   // to config screen or exit back to main/next screen.  But for now I use M because I'm not yet using a
   // battery pack
-  if (events & M_LONG_CLICK) {
+  if (events & M_LONG_CLICK)
+  {
     exitScrollable();
   }
 
@@ -620,7 +630,7 @@ bool screenOnPress(buttons_events_t events)
 
 void screenShow(Screen *screen)
 {
-  if(curScreen && curScreen->onExit)
+  if (curScreen && curScreen->onExit)
     curScreen->onExit();
 
   curActiveEditable = NULL;

@@ -15,15 +15,15 @@
 * DONE show current selection in selection menus
 * DONE make config entry presses work
 * DONE handle hierarchical menu entry/exit correctly
+* Make short press of power - cycle to next screen.  make screens a loop: main, config, power tuning?, fault (optional)
 * make editor presses work correctly
-* Make short press of power - cycle to next screen?
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * make a boot screen with version info (show until user releases power button)
 * DONE test to make sure only one EEPROM record is getting written
 * test with real motor (after triple checking wiring color questions)
-* make config system (hopefully usable on other platforms)
+* DONE make config system (hopefully usable on other platforms)
 * change mainscreen layout defs to match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * initial release

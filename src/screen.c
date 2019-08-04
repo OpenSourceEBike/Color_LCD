@@ -490,8 +490,8 @@ static bool onPressEditable(buttons_events_t events)
     handled = true;
   }
 
-  // Mark that we are no longer editing
-  if (events & M_LONG_CLICK)
+  // Mark that we are no longer editing - click pwr button to exit
+  if (events & ONOFF_CLICK)
   {
     curActiveEditable = NULL;
 
@@ -594,10 +594,8 @@ static bool onPressScrollable(buttons_events_t events)
     }
   }
 
-  // Note: this really should be the power button being clicked (because we use power button to switch
-  // to config screen or exit back to main/next screen.  But for now I use M because I'm not yet using a
-  // battery pack
-  if (events & M_LONG_CLICK)
+  // click power button to exit out of menus
+  if (events & ONOFF_CLICK)
   {
     exitScrollable();
   }

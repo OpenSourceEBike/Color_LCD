@@ -19,6 +19,7 @@
 #include "mainscreen.h"
 #include "configscreen.h"
 #include "nrf_delay.h"
+#include "nrf_soc.h"
 
 /* Variable definition */
 
@@ -122,7 +123,7 @@ static bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
-  if(events & ONOFF_CLICK) {   from battery so sim with this
+  if(events & ONOFF_CLICK) {
     showNextScreen();
     return true;
   }
@@ -207,7 +208,7 @@ int main(void)
       buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
     }
 
-    nrf_delay_ms(1); // let OS threads have time to run
+    sd_app_evt_wait(); // let OS threads have time to run
   }
 
 }
@@ -396,7 +397,8 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
 
   // FIXME - instead we should wait a few seconds and then reboot
-  while (1)
+  while (1) {
     nrf_delay_ms(1000);
+  }
 }
 

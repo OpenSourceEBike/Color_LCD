@@ -1168,7 +1168,7 @@ void brake(void)
     }
   }
 #endif
-  fieldPrintf(&brakeField, l3_vars.ui8_braking ? "BRK" : (l3_vars.ui8_walk_assist ? "WALK" : ""));
+  fieldPrintf(&brakeField, l3_vars.ui8_braking ? "BRK " : (l3_vars.ui8_walk_assist ? "WALK" : "    "));
 }
 
 #if 0

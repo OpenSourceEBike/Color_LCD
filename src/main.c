@@ -122,7 +122,7 @@ static bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
-  if(events & UPDOWN_CLICK) {  // FIXME, use power click instead, but kevin's board is still not running from battery so sim with this
+  if(events & ONOFF_CLICK) {   from battery so sim with this
     showNextScreen();
     return true;
   }
@@ -187,7 +187,6 @@ int main(void)
     if (tick != lasttick)
     {
       lasttick = tick;
-      buttons_clock();
       screen_clock();
 
       if (buttons_events)
@@ -204,6 +203,8 @@ int main(void)
         if (handled)
           buttons_clear_all_events();
       }
+
+      buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
     }
 
     nrf_delay_ms(1); // let OS threads have time to run

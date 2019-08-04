@@ -16,14 +16,16 @@
 * DONE make config entry presses work
 * DONE handle hierarchical menu entry/exit correctly
 * DONE Make short press of UP-DOWN (really should be power) - cycle to next screen.  make screens a loop: main, config, power tuning?, fault (optional)
+* fix exititing editor via long press
 * make editor presses work correctly
 * make walk assist press work
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
+* figure out why assert(gc_done) fails in eeprom_hw.c
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * make a boot screen with version info (show until user releases power button)
 * DONE test to make sure only one EEPROM record is getting written
-* test with real motor (after triple checking wiring color questions)
+* DONE test with real motor (after triple checking wiring color questions)
 * DONE make config system (hopefully usable on other platforms)
 * change mainscreen layout defs to match the v2 version of casain's spec
 * delete dead code in mainscreen.c

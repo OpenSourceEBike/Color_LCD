@@ -366,6 +366,7 @@ void send_tx_package(void)
 
   // send the full package to UART
   // start DMA UART transfer
+  // FIXME - disabled for now
   uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
 
   // increment message_id for next package

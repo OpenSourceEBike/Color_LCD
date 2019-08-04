@@ -29,6 +29,8 @@
 #include "lcd.h"
 #include "ugui.h"
 
+extern UG_GUI gui;
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -72,7 +74,7 @@ static bool renderDrawText(FieldLayout *layout)
 
   UG_S16 width =
       (layout->width < 0) ?
-          -layout->width * field->drawText.font->char_width : layout->width;
+          -layout->width * (field->drawText.font->char_width + gui.char_h_space) : layout->width;
   UG_S16 height = layout->height;
 
   UG_FontSelect(field->drawText.font);
@@ -395,7 +397,7 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   // right justify value on the second line
-  UG_PutString(layout->x + width - (strlen(msg) + 1) * font->char_width,
+  UG_PutString(layout->x + width - strlen(msg) * (font->char_width + gui.char_h_space),
       layout->y + FONT12_Y, (char*) msg);
 
   return true;
@@ -420,7 +422,7 @@ static int countEnumOptions(Field *s)
   const char **e = s->editable.editEnum.options;
 
   int n = 0;
-  while (e++)
+  while (*e++)
     n++;
 
   return n;
@@ -489,7 +491,7 @@ static bool onPressEditable(buttons_events_t events)
   }
 
   // Mark that we are no longer editing
-  if (events & ONOFF_CLICK)
+  if (events & M_LONG_CLICK)
   {
     curActiveEditable = NULL;
 

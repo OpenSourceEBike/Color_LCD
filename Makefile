@@ -27,7 +27,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/ugui.c \
   $(PROJ_DIR)/src/button.c \
   $(PROJ_DIR)/src/buttons.c \
-  $(PROJ_DIR)/src/ble_uart.c \
+  $(PROJ_DIR)/src/ble_services.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
   $(PROJ_DIR)/src/eeprom.c \
@@ -55,8 +55,11 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_state.c \
-  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_nus/ble_nus.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_bas/ble_bas.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dis/ble_dis.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_cscs/ble_cscs.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_cscs/ble_sc_ctrlpt.c \
   $(SDK_ROOT)/components/ble/common/ble_srv_common.c \
   $(SDK_ROOT)/components/ble/peer_manager/gatt_cache_manager.c \
   $(SDK_ROOT)/components/ble/peer_manager/gatts_cache_manager.c \

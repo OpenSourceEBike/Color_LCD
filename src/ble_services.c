@@ -5,7 +5,7 @@
  */
 #include "common.h"
 #include "fstorage.h"
-#include "ble_uart.h"
+#include "ble_services.h"
 #include "ble_hci.h"
 #include "ble_advdata.h"
 #include "ble_conn_params.h"
@@ -14,6 +14,9 @@
 #include "softdevice_handler.h"
 #include "app_timer.h"
 #include "ble_nus.h"
+#include "ble_bas.h"
+#include "ble_cscs.h"
+#include "ble_dis.h"
 #include "fds.h"
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
@@ -28,13 +31,14 @@
 #define PERIPHERAL_LINK_COUNT           1                                           /**< Number of peripheral links used by the application. When changing this number remember to adjust the RAM settings*/
 
 #define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
+#define MANUFACTURER_NAME               "Unknown"
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
-#define APP_ADV_INTERVAL                160                                         /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
+#define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
 
-#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(20, UNIT_1_25_MS)             /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
-#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(75, UNIT_1_25_MS)             /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(500, UNIT_1_25_MS)             /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(1000, UNIT_1_25_MS)             /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
 #define SLAVE_LATENCY                   0                                           /**< Slave latency. */
 #define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)             /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000, APP_TIMER_PRESCALER)  /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
@@ -44,7 +48,29 @@
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
-static ble_uuid_t                       m_adv_uuids[] = {{BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}};  /**< Universally unique service identifier. */
+static ble_uuid_t                       m_adv_uuids[] = {
+    {BLE_UUID_CYCLING_SPEED_AND_CADENCE, BLE_UUID_TYPE_BLE},
+    {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
+    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
+    {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+};  /**< Universally unique service identifier. */
+
+static ble_bas_t  m_bas;                                                            /**< Structure used to identify the battery service. */
+static ble_cscs_t m_cscs;                                                           /**< Structure used to identify the cycling speed and cadence service. */
+
+static uint32_t m_cumulative_wheel_revs;                                            /**< Cumulative wheel revolutions. */
+static bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
+
+static ble_sensor_location_t supported_locations[] = {BLE_SENSOR_LOCATION_FRONT_WHEEL,
+                                                      BLE_SENSOR_LOCATION_LEFT_CRANK,
+                                                      BLE_SENSOR_LOCATION_RIGHT_CRANK,
+                                                      BLE_SENSOR_LOCATION_LEFT_PEDAL,
+                                                      BLE_SENSOR_LOCATION_RIGHT_PEDAL,
+                                                      BLE_SENSOR_LOCATION_FRONT_HUB,
+                                                      BLE_SENSOR_LOCATION_REAR_DROPOUT,
+                                                      BLE_SENSOR_LOCATION_CHAINSTAY,
+                                                      BLE_SENSOR_LOCATION_REAR_WHEEL,
+                                                      BLE_SENSOR_LOCATION_REAR_HUB}; /**< supported location for the sensor location. */
 
 
 /**@brief Function for the GAP initialization.
@@ -60,6 +86,8 @@ static void gap_params_init(void)
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 
     APP_ERROR_CHECK(sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *) DEVICE_NAME, strlen(DEVICE_NAME)));
+
+    APP_ERROR_CHECK(sd_ble_gap_appearance_set(BLE_APPEARANCE_GENERIC_CYCLING));
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
@@ -83,18 +111,103 @@ static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t lengt
 
 }
 
+/**@brief Function for handling Speed and Cadence Control point events
+ *
+ * @details Function for handling Speed and Cadence Control point events.
+ *          This function parses the event and in case the "set cumulative value" event is received,
+ *          sets the wheel cumulative value to the received value.
+ */
+ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
+                                            ble_sc_ctrlpt_evt_t * p_evt)
+{
+    switch (p_evt->evt_type)
+    {
+        case BLE_SC_CTRLPT_EVT_SET_CUMUL_VALUE:
+            m_cumulative_wheel_revs = p_evt->params.cumulative_value;
+            break;
+
+        case BLE_SC_CTRLPT_EVT_START_CALIBRATION:
+            m_auto_calibration_in_progress = true;
+            break;
+
+        default:
+            // No implementation needed.
+            break;
+    }
+    return (BLE_SCPT_SUCCESS);
+}
 
 /**@brief Function for initializing services that will be used by the application.
  */
 static void services_init(void)
 {
-    ble_nus_init_t nus_init;
+    // Init the serial port service
 
+    ble_nus_init_t nus_init;
     memset(&nus_init, 0, sizeof(nus_init));
 
     nus_init.data_handler = nus_data_handler;
 
     APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
+
+    ble_cscs_init_t       cscs_init;
+    ble_bas_init_t        bas_init;
+    ble_dis_init_t        dis_init;
+    ble_sensor_location_t sensor_location;
+
+    // Initialize Cycling Speed and Cadence Service.
+    memset(&cscs_init, 0, sizeof(cscs_init));
+
+    cscs_init.evt_handler = NULL;
+    cscs_init.feature     = BLE_CSCS_FEATURE_WHEEL_REV_BIT | BLE_CSCS_FEATURE_CRANK_REV_BIT |
+                            BLE_CSCS_FEATURE_MULTIPLE_SENSORS_BIT;
+
+    // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_meas_attr_md.cccd_write_perm);   // for the measurement characteristic, only the CCCD write permission can be set by the application, others are mandated by service specification
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_feature_attr_md.read_perm);      // for the feature characteristic, only the read permission can be set by the application, others are mandated by service specification
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.write_perm);      // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.cccd_write_perm); // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
+
+    cscs_init.ctrplt_supported_functions = BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED
+                                           | BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
+                                           | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED;
+    cscs_init.ctrlpt_evt_handler            = sc_ctrlpt_event_handler;
+    cscs_init.list_supported_locations      = supported_locations;
+    cscs_init.size_list_supported_locations = sizeof(supported_locations) /
+                                              sizeof(ble_sensor_location_t);
+
+    sensor_location           = BLE_SENSOR_LOCATION_FRONT_WHEEL;                 // initializes the sensor location to add the sensor location characteristic.
+    cscs_init.sensor_location = &sensor_location;
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_sensor_loc_attr_md.read_perm); // for the sensor location characteristic, only the read permission can be set by the application, others are mendated by service specification
+
+    APP_ERROR_CHECK(ble_cscs_init(&m_cscs, &cscs_init));
+
+    // Initialize Battery Service.
+    memset(&bas_init, 0, sizeof(bas_init));
+
+    // Here the sec level for the Battery Service can be changed/increased.
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.cccd_write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bas_init.battery_level_char_attr_md.write_perm);
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_report_read_perm);
+
+    bas_init.evt_handler          = NULL;
+    bas_init.support_notification = true;
+    bas_init.p_report_ref         = NULL;
+    bas_init.initial_batt_level   = 100;
+
+    APP_ERROR_CHECK(ble_bas_init(&m_bas, &bas_init));
+
+    // Initialize Device Information Service.
+    memset(&dis_init, 0, sizeof(dis_init));
+
+    ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, MANUFACTURER_NAME);
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init.dis_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init.dis_attr_md.write_perm);
+
+    APP_ERROR_CHECK(ble_dis_init(&dis_init));
 }
 
 
@@ -338,8 +451,8 @@ static void advertising_init(void)
     // Build advertising data struct to pass into @ref ble_advertising_init.
     memset(&advdata, 0, sizeof(advdata));
     advdata.name_type          = BLE_ADVDATA_FULL_NAME;
-    advdata.include_appearance = false;
-    advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_LIMITED_DISC_MODE;
+    advdata.include_appearance = true;
+    advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     memset(&scanrsp, 0, sizeof(scanrsp));
     scanrsp.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);

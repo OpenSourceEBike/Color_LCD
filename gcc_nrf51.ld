@@ -5,60 +5,26 @@ GROUP(-lgcc -lc -lnosys)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x0, LENGTH = 0x40000
-  RAM (rwx) :  ORIGIN = 0x20000000, LENGTH = 0x8000
+  /* 4k MBR, 104k Softdevice S130, 127k Application Data, 20k Bootloader, 1k Bootloader Settings */
+  FLASH (rx) : ORIGIN = 0x1b000, LENGTH = 256k - 4k - 104k - 20k - 1k
+  /* 11k Softdevice S130 */
+  RAM (rwx) :  ORIGIN = 0x20002C00, LENGTH = 32k - 11k
 }
 
 SECTIONS
 {
-}
-
-SECTIONS
-{
-  . = ALIGN(4);
-  .mem_section_dummy_ram :
+  .fs_data :
   {
-  }
-  .log_dynamic_data :
-  {
-    PROVIDE(__start_log_dynamic_data = .);
-    KEEP(*(SORT(.log_dynamic_data*)))
-    PROVIDE(__stop_log_dynamic_data = .);
+    PROVIDE(__start_fs_data = .);
+    KEEP(*(.fs_data))
+    PROVIDE(__stop_fs_data = .);
   } > RAM
-  .log_filter_data :
+  .pwr_mgmt_data :
   {
-    PROVIDE(__start_log_filter_data = .);
-    KEEP(*(SORT(.log_filter_data*)))
-    PROVIDE(__stop_log_filter_data = .);
+    PROVIDE(__start_pwr_mgmt_data = .);
+    KEEP(*(.pwr_mgmt_data))
+    PROVIDE(__stop_pwr_mgmt_data = .);
   } > RAM
-
 } INSERT AFTER .data;
 
-SECTIONS
-{
-  .mem_section_dummy_rom :
-  {
-  }
-  .log_const_data :
-  {
-    PROVIDE(__start_log_const_data = .);
-    KEEP(*(SORT(.log_const_data*)))
-    PROVIDE(__stop_log_const_data = .);
-  } > FLASH
-  .log_backends :
-  {
-    PROVIDE(__start_log_backends = .);
-    KEEP(*(SORT(.log_backends*)))
-    PROVIDE(__stop_log_backends = .);
-  } > FLASH
-    .nrf_balloc :
-  {
-    PROVIDE(__start_nrf_balloc = .);
-    KEEP(*(.nrf_balloc))
-    PROVIDE(__stop_nrf_balloc = .);
-  } > FLASH
-
-} INSERT AFTER .text
-
-
-INCLUDE "nrf_common.ld"
+INCLUDE "nrf5x_common.ld"

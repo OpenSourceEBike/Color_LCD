@@ -1,28 +1,135 @@
-
-#include "app_util_platform.h"
-#include "nrf_delay.h"
-#include "boards.h"
+/*
+ * Bafang LCD SW102 Bluetooth firmware
+ *
+ * Released under the GPL License, Version 3
+ */
+#include <ble_services.h>
+#include <eeprom_hw.h>
+#include "app_timer.h"
 #include "main.h"
-#include "pins.h"
+#include "button.h"
+#include "buttons.h"
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"
-#include "nrfx_uart.h"
+#include "uart.h"
+#include "utils.h"
+#include "screen.h"
+#include "eeprom.h"
+#include "mainscreen.h"
+#include "configscreen.h"
+#include "nrf_delay.h"
+#include "nrf_soc.h"
 
 /* Variable definition */
+
+/* �GUI */
 UG_GUI gui;
 
-const nrfx_uart_t uart0 = NRFX_UART_INSTANCE(UART0);
-uint8_t uart_byte_rx;
+/* Buttons */
+Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
+/* App Timer */
+APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
+#define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 
+APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
+#define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
+volatile uint32_t seconds_since_startup, seconds_since_reset;
+
+APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
+#define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
+volatile uint32_t gui_ticks;
+
+Field faultHeading = { .variant = FieldDrawText, .drawText = { .font =
+    &MY_FONT_8X12, .msg = "FAULT" } };
+Field faultCode =
+    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field addrHeading = { .variant = FieldDrawText, .drawText = { .font =
+    &MY_FONT_8X12, .msg = "PC" } };
+Field addrCode =
+    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field infoHeading = { .variant = FieldDrawText, .drawText = { .font =
+    &MY_FONT_8X12, .msg = "Info" } };
+Field infoCode =
+    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+
+Screen faultScreen = { .fields = { { .x = 0, .y = 0, .width = 0, .height = -1,
+    .color = ColorInvert, .field = &faultHeading }, { .x = 0, .y = FONT12_Y,
+    .width = 0, .height = -1, .color = ColorNormal, .field = &faultCode }, {
+    .x = 0, .y = 2 * FONT12_Y, .width = 0, .height = -1, .color = ColorNormal,
+    .field = &addrHeading }, { .x = 0, .y = 3 * FONT12_Y, .width = 0, .height =
+    -1, .color = ColorNormal, .field = &addrCode }, { .x = 0, .y = 4 * FONT12_Y,
+    .width = 0, .height = -1, .color = ColorNormal, .field = &infoHeading }, {
+    .x = 0, .y = 5 * FONT12_Y, .width = 0, .height = -1, .color = ColorNormal,
+    .field = &infoCode }, { .field = NULL } } };
 
 /* Function prototype */
-static void system_power(bool state);
 static void gpio_init(void);
-static void uart_init(void);
-static void uart_event_handler(nrfx_uart_event_t const *p_event, void *p_context);
+static void init_app_timers(void);
+/* UART RX/TX */
 
+void lcd_power_off(uint8_t updateDistanceOdo)
+{
+//  if (updateDistanceOdo)
+//  {
+  l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
+//    l3_vars.ui32_odometer_x10 += ((uint32_t) l3_vars.ui16_odometer_distance_x10);
+//  }
+
+// save the variables on EEPROM
+  eeprom_write_variables();
+
+  // put screen all black and disable backlight
+  UG_FillScreen(0);
+  lcd_refresh();
+  // lcd_set_backlight_intensity(0);
+
+  // FIXME: wait for flash write to complete before powering down
+  // now disable the power to all the system
+  system_power(0);
+
+  // block here till we die
+  while (1)
+    ;
+}
+
+// Screens in a loop, shown when the user short presses the power button
+static Screen *screens[] = {
+    &configScreen,
+    &mainScreen,
+    NULL
+};
+
+static int nextScreen = 0;
+
+void showNextScreen() {
+  Screen *next = screens[nextScreen++];
+
+  if(!next) {
+    nextScreen = 0;
+    next = screens[nextScreen++];
+  }
+
+  screenShow(next);
+}
+
+
+static bool appwide_onpress(buttons_events_t events)
+{
+  if (events & ONOFF_LONG_CLICK)
+  {
+    lcd_power_off(1);
+    return true;
+  }
+
+  if(events & ONOFF_CLICK) {
+    showNextScreen();
+    return true;
+  }
+
+  return false;
+}
 
 
 /**
@@ -31,35 +138,85 @@ static void uart_event_handler(nrfx_uart_event_t const *p_event, void *p_context
 int main(void)
 {
   gpio_init();
-  uart_init();
   lcd_init();
+  uart_init();
+
+  init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
+
+  // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
+  ble_init();
+
+  /* eeprom_init AFTER ble_init! */
+  eeprom_init();
+  // FIXME
+  // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
-  UG_FontSelect(&MY_FONT_BATTERY);
-  UG_ConsolePutString("5\n");
-  UG_ConsolePutString("4\n");
-  UG_ConsolePutString("3\n");
-  UG_ConsolePutString("2\n");
-  UG_ConsolePutString("1\n");
-  UG_ConsolePutString("0\n");
+  /*
+   UG_FontSelect(&MY_FONT_BATTERY);
+   UG_ConsolePutString("5\n");
+   UG_ConsolePutString("4\n");
+   UG_ConsolePutString("3\n");
+   UG_ConsolePutString("2\n");
+   UG_ConsolePutString("1\n");
+   UG_ConsolePutString("0\n");
+   */
+
+  /*
+   UG_FontSelect(&MY_FONT_8X12);
+   static const char degC[] = { 31, 'C', 0 };
+   UG_ConsolePutString(degC);
+   */
 
   UG_FontSelect(&MY_FONT_8X12);
-  static const char degC[] = { 31, 'C' };
-  UG_ConsolePutString(degC);
+  UG_ConsolePutString("boot\n");
+  lcd_refresh();
+
+  showNextScreen();
+
+  // APP_ERROR_HANDLER(5);
 
   // Enter main loop.
+
+  uint32_t lasttick = 0;
   while (1)
   {
+    uint32_t tick = gui_ticks;
+    if (tick != lasttick)
+    {
+      lasttick = tick;
+      screen_clock();
+
+      if (buttons_events)
+      {
+        bool handled = false;
+
+        if (!handled)
+          handled |= screenOnPress(buttons_events);
+
+        // Note: this must be after the screen/menu handlers have had their shot
+        if (!handled)
+          handled |= appwide_onpress(buttons_events);
+
+        if (handled)
+          buttons_clear_all_events();
+      }
+
+      buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+    }
+
+    sd_app_evt_wait(); // let OS threads have time to run
   }
+
 }
 
 /**
  * @brief Hold system power (true) or not (false)
  */
-static void system_power(bool state)
+void system_power(bool state)
 {
   if (state)
     nrf_gpio_pin_set(SYSTEM_POWER_HOLD__PIN);
@@ -67,13 +224,8 @@ static void system_power(bool state)
     nrf_gpio_pin_clear(SYSTEM_POWER_HOLD__PIN);
 }
 
-
-
 /* Hardware Initialization */
 
-/**
- * @brief GPIO initialization.
- */
 static void gpio_init(void)
 {
   /* POWER_HOLD */
@@ -84,22 +236,109 @@ static void gpio_init(void)
   nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
   nrf_gpio_cfg_output(LCD_RES__PIN);
   nrf_gpio_pin_clear(LCD_RES__PIN); // Hold LCD in reset until initialization
+
+  /* Buttons */
+  InitButton(&buttonPWR, BUTTON_PWR__PIN, NRF_GPIO_PIN_NOPULL,
+      BUTTON_ACTIVE_HIGH);
+  InitButton(&buttonM, BUTTON_M__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
+  InitButton(&buttonUP, BUTTON_UP__PIN, NRF_GPIO_PIN_PULLUP, BUTTON_ACTIVE_LOW);
+  InitButton(&buttonDWN, BUTTON_DOWN__PIN, NRF_GPIO_PIN_PULLUP,
+      BUTTON_ACTIVE_LOW);
 }
 
-static void uart_init(void)
+#if 0
+static void button_poll_timer_timeout(void *p_context)
 {
-  nrfx_uart_config_t uart_config = NRFX_UART_DEFAULT_CONFIG;
-  uart_config.pselrxd = UART_RX__PIN;
-  uart_config.pseltxd = UART_TX__PIN;
-  nrfx_uart_init(&uart0, &uart_config, uart_event_handler);
-  /* Enable & start RX */
-  nrfx_uart_rx_enable(&uart0);
-  nrfx_uart_rx(&uart0, &uart_byte_rx, 1);
+    UNUSED_PARAMETER(p_context);
+
+    PollButton(&buttonPWR);
+    PollButton(&buttonM);
+    PollButton(&buttonUP);
+    PollButton(&buttonDWN);
+}
+#endif
+
+static void seconds_timer_timeout(void *p_context)
+{
+  UNUSED_PARAMETER(p_context);
+
+  seconds_since_startup++;
+  seconds_since_reset++;
 }
 
-static void uart_event_handler(nrfx_uart_event_t const *p_event, void *p_context)
+static void gui_timer_timeout(void *p_context)
 {
+  UNUSED_PARAMETER(p_context);
 
+  gui_ticks++;
+}
+
+static void init_app_timers(void)
+{
+  // FIXME - not sure why I needed to do this manually: https://devzone.nordicsemi.com/f/nordic-q-a/31982/can-t-make-app_timer-work
+  if (!NRF_CLOCK->EVENTS_LFCLKSTARTED)
+  {
+    NRF_CLOCK->TASKS_LFCLKSTART = 1;
+
+    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0)
+      ;
+  }
+
+  // Start APP_TIMER to generate timeouts.
+  APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
+
+#if 0
+  // Create&Start button_poll_timer
+  APP_ERROR_CHECK(app_timer_create(&button_poll_timer_id, APP_TIMER_MODE_REPEATED, button_poll_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(button_poll_timer_id, BUTTON_POLL_INTERVAL, NULL));
+#endif
+
+  // Create&Start timers.
+  APP_ERROR_CHECK(
+      app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED,
+          seconds_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(seconds_timer_id, SECONDS_INTERVAL, NULL));
+  APP_ERROR_CHECK(
+      app_timer_create(&gui_timer_id, APP_TIMER_MODE_REPEATED,
+          gui_timer_timeout));
+  APP_ERROR_CHECK(app_timer_start(gui_timer_id, GUI_INTERVAL, NULL));
+}
+
+static inline void debugger_break(void)
+{
+  __asm volatile(
+      "bkpt #0x01\n\t"
+      "mov pc, lr\n\t"
+  );
+}
+
+// Standard app error codes
+#define FAULT_GCC_ASSERT 1
+
+// handle standard gcc assert failures
+void __attribute__((noreturn)) __assert_func(const char *file, int line,
+    const char *func, const char *failedexpr)
+{
+  error_info_t errinfo = { .line_num = (uint16_t) line, .p_file_name = (uint8_t const *) file, .err_code = FAULT_GCC_ASSERT };
+
+  app_error_fault_handler(FAULT_GCC_ASSERT, 0, (uint32_t) &errinfo);
+  abort();
+}
+
+/**@brief Function for assert macro callback.
+ *
+ * @details This function will be called in case of an assert in the SoftDevice.
+ *
+ * @warning This handler is an example only and does not fit a final product. You need to analyse
+ *          how your product is supposed to react in case of Assert.
+ * @warning On assert from the SoftDevice, the system can only recover on reset.
+ *
+ * @param[in] line_num    Line number of the failing ASSERT call.
+ * @param[in] p_file_name File name of the failing ASSERT call.
+ */
+void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
+{
+  app_error_handler(0xdeadbeef, line_num, p_file_name);
 }
 
 /**@brief       Callback function for errors, asserts, and faults.
@@ -112,5 +351,54 @@ static void uart_event_handler(nrfx_uart_event_t const *p_event, void *p_context
  */
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
-  while (1);
+  /*
+   UG_FontSelect(&MY_FONT_8X12);
+   char buf[32];
+   sprintf(buf, "ERR 0x%lx\n", id);
+   UG_ConsolePutString(buf);
+
+   UG_ConsolePutString("PC\n");
+   UG_FontSelect(&FONT_5X12);
+   sprintf(buf, "0x%lx\n", pc);
+   UG_ConsolePutString(buf);
+   UG_FontSelect(&MY_FONT_8X12);
+   UG_ConsolePutString("INFO\n");
+   UG_FontSelect(&FONT_5X12);
+   sprintf(buf, "0x%lx\n", info);
+   UG_ConsolePutString(buf);
+   lcd_refresh();
+   */
+
+  fieldPrintf(&faultCode, "0x%lx", id);
+  fieldPrintf(&addrCode, "0x%06lx", pc);
+
+  error_info_t *einfo = (error_info_t*) info;
+
+  switch (id)
+  {
+  case NRF_FAULT_ID_SDK_ERROR:
+    // app errors include filename and line
+    fieldPrintf(&infoCode, "%s:%d (%d)",
+        einfo->p_file_name ? (const char*) einfo->p_file_name : "nofile",
+        einfo->line_num, einfo->err_code);
+    break;
+  case FAULT_GCC_ASSERT:
+    fieldPrintf(&infoCode, "%s:%d",
+        einfo->p_file_name ? (const char*) einfo->p_file_name : "",
+        einfo->line_num);
+    break;
+  default:
+    fieldPrintf(&infoCode, "%08lx", info);
+    break;
+  }
+
+  screenShow(&faultScreen);
+
+  debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
+
+  // FIXME - instead we should wait a few seconds and then reboot
+  while (1) {
+    nrf_delay_ms(1000);
+  }
 }
+

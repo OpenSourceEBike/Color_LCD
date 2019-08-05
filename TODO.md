@@ -22,11 +22,13 @@
 * add motorsim so I can move my real motor to my bike but still continue dev
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
-* figure out why assert(gc_done) fails in eeprom_hw.c
+* (probably solved?) figure out why assert(gc_done) fails in eeprom_hw.c
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * make selection cursor and editor box blink
 * make all fields white on black
+* fix BT with pixel 3 before release (because bootloader probably needs same fix)
 * make a boot screen with version info (show until user releases power button)
+* update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
 * DONE test to make sure only one EEPROM record is getting written
 * DONE test with real motor (after triple checking wiring color questions)
 * DONE make config system (hopefully usable on other platforms)
@@ -34,6 +36,7 @@
 * delete dead code in mainscreen.c
 * initial release
 * turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
+and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches

@@ -501,6 +501,80 @@ Screen mainScreen = {
         .color = ColorNormal,
         .field = &humanPowerField
     },
+    /*
+    {
+        .x = 0, .y = 69 + 12,
+        .width = 64, .height = 32,
+        .color = ColorNormal,
+        .field = &meshFillField
+    }, */
+    {
+        .x = 4, .y = 114,
+        .width = -3, .height = -1,
+        .color = ColorNormal,
+        .field = &brakeField
+    },
+    {
+        .x = 34, .y = 114,
+        .width = -4, .height = -1,
+        .color = ColorNormal,
+        .field = &lightField
+    },
+    {
+        .field = NULL
+    } }
+};
+
+/*
+ * This is the version 1 layout (with a graph)
+ * Currently unused.
+
+Screen mainScreen = {
+    .onPress = mainscreen_onpress,
+
+    .fields = {
+    {
+        .x = 0, .y = 0,
+        .width = -2, .height = -1,
+        .color = ColorNormal,
+        .field = &socField
+    },
+    {
+        .x = 32, .y = 0,
+        .width = -5, .height = -1,
+        .color = ColorNormal,
+        .field = &tripTimeField
+    },
+    {
+        .x = 0, .y = 16,
+        .width = -1, .height = -1,
+        .color = ColorInvert,
+        .field = &assistLevelField
+    },
+    {
+        .x = 19, .y = 16,
+        .width = -2, .height = -1,
+        .color = ColorInvert,
+        .field = &speedField
+    },
+    {
+        .x = 0, .y = 48,
+        .width = -6, .height = -1,
+        .color = ColorNormal,
+        .field = &maxPowerField
+    },
+    {
+        .x = 0, .y = 68,
+        .width = 64, .height = 1,
+        .color = ColorNormal,
+        .field = &whiteFillField
+    },
+    {
+        .x = 24, .y = 69,
+        .width = -6, .height = -1,
+        .color = ColorNormal,
+        .field = &humanPowerField
+    },
     {
         .x = 0, .y = 69 + 12,
         .width = 64, .height = 32,
@@ -524,6 +598,7 @@ Screen mainScreen = {
     } }
 };
 
+ */
 
 void mainscreen_show(void) {
   screenShow(&mainScreen);

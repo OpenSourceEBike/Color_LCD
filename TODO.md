@@ -22,7 +22,7 @@
 * add motorsim so I can move my real motor to my bike but still continue dev
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
-* (probably solved?) figure out why assert(gc_done) fails in eeprom_hw.c
+* figure out why assert(gc_done) fails in eeprom_hw.c
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * make selection cursor and editor box blink
 * make all fields white on black
@@ -34,7 +34,10 @@
 * DONE make config system (hopefully usable on other platforms)
 * change mainscreen layout defs to match the v2 version of casain's spec
 * delete dead code in mainscreen.c
+* make fault screen reboot after a short period of time - confirm that it doesn't mess up on a running bike
+* add a watchdog handler
 * initial release
+* make fields customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring

@@ -31,7 +31,7 @@
 #define PERIPHERAL_LINK_COUNT           1                                           /**< Number of peripheral links used by the application. When changing this number remember to adjust the RAM settings*/
 
 #define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "Unknown"
+#define MANUFACTURER_NAME               "github:OpenSource-EBike-firmware"
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
 #define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */

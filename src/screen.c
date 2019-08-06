@@ -628,16 +628,23 @@ bool screenOnPress(buttons_events_t events)
   return handled;
 }
 
-void screenShow(Screen *screen)
+// A low level screen render that doesn't use soft device or call exit handlers (useful for the critical fault handler ONLY)
+void panicScreenShow(Screen *screen)
 {
-  if (curScreen && curScreen->onExit)
-    curScreen->onExit();
-
   curActiveEditable = NULL;
   scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;
   screenUpdate(); // Force a draw immediately
+}
+
+
+void screenShow(Screen *screen)
+{
+  if (curScreen && curScreen->onExit)
+    curScreen->onExit();
+
+  panicScreenShow(screen);
 }
 
 void screenUpdate()

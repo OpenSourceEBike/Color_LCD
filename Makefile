@@ -30,6 +30,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/ble_services.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
+  $(PROJ_DIR)/src/adc.c \
   $(PROJ_DIR)/src/eeprom.c \
   $(PROJ_DIR)/src/eeprom_hw.c \
   $(PROJ_DIR)/src/screen.c \
@@ -46,6 +47,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
   $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
+  $(SDK_ROOT)/components/drivers_nrf/adc/nrf_drv_adc.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \

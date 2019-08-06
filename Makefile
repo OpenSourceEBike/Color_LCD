@@ -23,7 +23,7 @@ NRFUTIL := nrfutil
 OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
 
 # The integer build number for this release, MUST BE INCREMENTED FOR EACH RELEASE SO BOOTLOADER WILL INSTALL
-VERSION_NUM := 1
+VERSION_NUM := 2
 
 VERSION_STRING := 0.19.$(VERSION_NUM)
 

@@ -19,14 +19,15 @@
 * DONE fix exititing editor via pwr press
 * make editor presses work correctly
 * DONE make walk assist press work
+* make selection cursor and editor box blink
+* make all fields white on black
+* properly scale all config values
 * add motorsim so I can move my real motor to my bike but still continue dev
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * figure out why assert(gc_done) fails in eeprom_hw.c
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
-* make selection cursor and editor box blink
-* make all fields white on black
-* fix BT with pixel 3 before release (because bootloader probably needs same fix)
+* test bootloader with pixel 3 
 * make a boot screen with version info (show until user releases power button)
 * update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
 * DONE test to make sure only one EEPROM record is getting written

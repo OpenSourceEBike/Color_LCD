@@ -117,7 +117,7 @@ static void wait_gc()
     nrf_delay_ms(1);
   }
   // Note: this can fail if the soft device is not enabled (normally performed in ble init)
-  assert(gc_done);
+  // assert(gc_done);
 }
 
 /**
@@ -133,7 +133,7 @@ void eeprom_hw_init(void)
     nrf_delay_ms(1);
   }
   // Note: this can fail if the soft device is not enabled (normally performed in ble init)
-  assert(init_done);
+  // assert(init_done);
 
   wait_gc();
 }

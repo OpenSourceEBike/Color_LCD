@@ -39,7 +39,6 @@ static UG_COLOR getBackColor(const FieldLayout *layout)
     return C_WHITE;
 
   case ColorNormal:
-  case ColorSelected:
   default:
     return C_BLACK;
   }
@@ -53,7 +52,6 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
     return C_BLACK;
 
   case ColorNormal:
-  case ColorSelected:
   default:
     return C_WHITE;
   }
@@ -63,6 +61,10 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
 typedef bool (*FieldRenderFn)(FieldLayout *layout);
 
 static const FieldRenderFn renderers[];
+
+/// If true blink changed to be true or false this tick and we should redraw anything that is animated
+static bool blinkChanged;
+static bool blinkOn;
 
 static bool renderDrawText(FieldLayout *layout)
 {
@@ -113,11 +115,10 @@ static bool renderMesh(FieldLayout *layout)
  * If we are selected, highlight this item with a bar to the left (on color screens possibly draw a small
  * color pointer or at least color the line something nice.
  */
-static void perhapsDrawSelected(FieldLayout *layout)
+static void drawSelectionMarker(FieldLayout *layout)
 {
-  if (layout->color == ColorSelected)
-    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
-        getForeColor(layout));
+  if(layout->field && layout->field->is_selected) // Only consider doing this on items that might be animated
+    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1, blinkOn ? getForeColor(layout) : getBackColor(layout));
 }
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
@@ -131,7 +132,8 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
-    if (layout->field->dirty || forceRender)
+    // We always render dirty items, or items that might need to show blink animations
+    if (layout->field->dirty || (layout->field->blink && blinkChanged) || forceRender)
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;
@@ -141,8 +143,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 
       didDraw |= renderers[layout->field->variant](layout);
 
-      // Draw a selection marker on this item
-      perhapsDrawSelected(layout);
+      drawSelectionMarker(layout);
     }
   }
 
@@ -184,6 +185,9 @@ static void enterScrollable(Field *f)
   assert(scrollableStackPtr < MAX_SCROLLABLE_DEPTH);
   scrollableStack[scrollableStackPtr++] = f;
 
+  // We always set blink for scrollables, because they contain child items that might need to blink
+  f->blink = true;
+
   // NOTE: Only the root scrollable is ever checked for 'dirty' by the main screen renderer,
   // so that's the one we set
   scrollableStack[0]->dirty = true;
@@ -218,18 +222,21 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
   const Coord rowHeight = 32; // 3 data rows 32 pixels tall + one 32 pixel header
 
   static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading
-  static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
 
-  static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
-
-  bool weAreExpanded = getActiveScrollable() == field;
+  Field *scrollable = getActiveScrollable();
+  bool weAreExpanded = scrollable == field;
 
   // If we are expanded show our heading and the current visible child elements
   // Otherwise just show our label so that the user might select us to expand
   if (weAreExpanded)
   {
-    if (forceScrollableRelayout)
+    // FIXME - we shouldn't need to relayout scrollables on blink transition, but currently we share the static rows[] array when we really should not, because
+    // it is used _both_ in the drawing of expanded elements and the non expanded case.  This problem becomes apparant if you remove this blinkChanged check.
+    if (forceScrollableRelayout || blinkChanged)
     {
+      static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
+      static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
+
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
       forceScrollableRelayout = false;
@@ -262,9 +269,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           if (hasMoreRows)
           {
             r->field = entry;
-            r->color =
-                (entryNum == field->scrollable.selected) ?
-                    ColorSelected : ColorNormal;
+            entry->is_selected = (entryNum == field->scrollable.selected);
           }
           else
           {
@@ -294,6 +299,12 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
+
+    // If we are inside a scrollable and selected, blink
+    if(scrollable)
+      label.is_selected = field == &scrollable->scrollable.entries[scrollable->scrollable.selected];
+    else
+      label.is_selected = false;
 
     rows[1].field = NULL; // mark end of array (for rendering)
   }
@@ -653,6 +664,14 @@ void screenUpdate()
     return;
 
   bool didDraw = false; // we only render to hardware if something changed
+
+  // Every 200ms toggle any blinking animations
+  static uint8_t blinkCounter;
+  blinkCounter = (blinkCounter + 1) % 10;
+  blinkChanged = (blinkCounter == 0);
+  if(blinkChanged) {
+    blinkOn = !blinkOn;
+  }
 
   if (screenDirty)
   {

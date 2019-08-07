@@ -76,8 +76,7 @@
 
 typedef enum {
   ColorNormal = 0, // white on black
-  ColorInvert,     // black on white
-  ColorSelected    // If we should mark that there is a cursor pointing to this item (for scrollable rows)
+  ColorInvert     // black on white
 } ColorOp;
 
 /**
@@ -108,7 +107,9 @@ typedef enum {
  */
 typedef struct Field {
   FieldVariant variant; //
-  bool dirty; // true if this data has changed and needs to be rerendered
+  bool dirty : 1; // true if this data has changed and needs to be rerendered
+  bool blink : 1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
+  bool is_selected : 1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
 
   union {
     struct {

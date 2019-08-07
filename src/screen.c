@@ -478,7 +478,7 @@ static bool renderEditable(FieldLayout *layout)
       while(divd--)
         div *= 10; // pwrs of 10
 
-      snprintf(msgbuf, sizeof(msgbuf), "%lu.%lu", num / div, num % div);
+      snprintf(msgbuf, sizeof(msgbuf), "%lu.%0*lu", num / div, field->editable.number.div_digits, num % div);
     }
     msg = msgbuf;
     break;

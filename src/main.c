@@ -203,11 +203,13 @@ int main(void)
    UG_ConsolePutString(degC);
    */
 
-  // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
-  while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_up_state())
-    ;
 
   screenShow(&bootScreen);
+
+  // After we show the bootscreen...
+  // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
+  while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
+    ;
 
   // APP_ERROR_HANDLER(5);
 

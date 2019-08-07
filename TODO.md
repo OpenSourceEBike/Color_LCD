@@ -1,9 +1,9 @@
 # TODO tasks remaining before initial alpha release
 
-* make editor presses work correctly
 * add motorsim so I can move my real motor to my bike but still continue dev
+* properly scale all config values (including x25 values)
 * make all fields white on black
-* properly scale all config values
+* install on kevin's bike
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
@@ -67,6 +67,7 @@ the GUI thread.  Use two buffers + a ptr.
 * DONE make release_build task to generate end user usable bins
 * DONE figure out why assert(gc_done) fails in eeprom_hw.c - it requires softdevice to be running
 * DONE make selection cursor and editor box blink
+* DONE make editor presses work correctly
 
 # Misc notes from kevin not yet formatted
 

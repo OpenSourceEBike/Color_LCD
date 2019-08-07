@@ -468,10 +468,21 @@ static bool renderEditable(FieldLayout *layout)
   switch (field->editable.typ)
   {
   case EditUInt:
-    // FIXME properly handle div_digits
-    snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
+  {
+    // properly handle div_digits
+    int divd = field->editable.number.div_digits;
+    if(divd == 0)
+      snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
+    else {
+      int div = 1;
+      while(divd--)
+        div *= 10; // pwrs of 10
+
+      snprintf(msgbuf, sizeof(msgbuf), "%lu.%lu", num / div, num % div);
+    }
     msg = msgbuf;
     break;
+  }
   case EditEnum:
     msg = field->editable.editEnum.options[num];
     break;

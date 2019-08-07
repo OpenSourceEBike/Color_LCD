@@ -111,7 +111,7 @@ bool flash_write_words(const void *value, uint16_t length_words)
 static void wait_gc()
 {
   gc_done = false;
-  APP_ERROR_CHECK(fds_gc());
+  fds_gc();
   for (int count = 0; count < 1000 && !gc_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);

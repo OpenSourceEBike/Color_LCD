@@ -779,7 +779,7 @@ void trip_distance(void)
   }
 #endif
   // fieldPrintf(&speedField, "%2d.%01d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
-  fieldPrintf(&speedField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
+  fieldPrintf(&tripDistanceField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
 }
 
 

@@ -133,7 +133,67 @@ void lcd_main_screen(void)
 #endif
 }
 
+static uint16_t fake(uint16_t minv, uint16_t maxv) {
+  static uint16_t seed = 1; // Just generate some slightly increasing data, scaled to fit the required range
 
+  uint16_t numval = maxv - minv + 1;
+
+  return (seed++ % numval) + minv;
+}
+
+/**
+ * Pretend we just received a randomized motor packet
+ */
+void parse_simmotor() {
+
+    // per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
+    l2_vars.ui16_adc_battery_voltage = fake(10, 1000);
+
+    // battery current drain x5
+    l2_vars.ui8_battery_current_x5 = fake(10, 30);
+
+    l2_vars.ui16_wheel_speed_x10 = fake(0, 300);
+
+    l2_vars.ui8_braking = fake(0, 1);
+
+    l2_vars.ui8_adc_throttle = fake(0, 100);
+
+    if(l2_vars.ui8_temperature_limit_feature_enabled)
+    {
+      l2_vars.ui8_motor_temperature = fake(20, 90);
+    }
+    else
+    {
+      l2_vars.ui8_throttle = fake(0, 100);
+    }
+
+    l2_vars.ui8_adc_pedal_torque_sensor = fake(0, 100);
+
+    l2_vars.ui8_pedal_torque_sensor = fake(0, 100);
+
+    l2_vars.ui8_pedal_cadence = fake(0, 100);
+    l2_vars.ui8_pedal_human_power = fake(0, 100);
+    l2_vars.ui8_duty_cycle = fake(0, 100);
+    l2_vars.ui16_motor_speed_erps = fake(0, 4000);
+    l2_vars.ui8_foc_angle = fake(0, 100);
+
+    // error states
+    l2_vars.ui8_error_states = fake(0, 1);
+
+    // temperature actual limiting value
+    l2_vars.ui8_temperature_current_limiting_value = fake(0, 100);
+
+    // wheel_speed_sensor_tick_counter
+
+    l2_vars.ui32_wheel_speed_sensor_tick_counter = fake(0, 4000);
+
+    // ui16_pedal_torque_x10
+    l2_vars.ui16_pedal_torque_x10 = fake(10, 1000);
+
+    // ui16_pedal_power_x10
+    l2_vars.ui16_pedal_power_x10 = fake(10, 1000);
+
+}
 
 void process_rx(void)
 {
@@ -142,14 +202,18 @@ void process_rx(void)
 
   const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
 
-  /************************************************************************************************/
+
   // process rx package
-  if(p_rx_buffer)
+  if(is_sim_motor)
+    parse_simmotor();
+  else if(p_rx_buffer)
   {
     // now process rx data
     // only if first byte is equal to package start byte
     if(*p_rx_buffer == 67)
     {
+      has_seen_motor = true;
+
       p_rx_buffer++;
 
       l2_vars.ui16_adc_battery_voltage = *p_rx_buffer;
@@ -366,8 +430,8 @@ void send_tx_package(void)
 
   // send the full package to UART
   // start DMA UART transfer
-  // FIXME - disabled for now
-  uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
+  if(!is_sim_motor) // If we are simulating received packets never send real packets
+    uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
 
   // increment message_id for next package
   if(++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID)
@@ -462,37 +526,34 @@ Screen mainScreen = {
     {
         .x = 0, .y = 0,
         .width = -2, .height = -1,
-        .color = ColorNormal,
         .field = &socField
     },
     {
         .x = 32, .y = 0,
         .width = -5, .height = -1,
-        .color = ColorNormal,
         .field = &tripTimeField
     },
     {
         .x = 0, .y = 16,
         .width = -1, .height = -1,
-        .color = ColorInvert,
-        .field = &assistLevelField
+        .field = &assistLevelField,
+        .border = BorderBox
     },
     {
         .x = 19, .y = 16,
         .width = -2, .height = -1,
-        .color = ColorInvert,
-        .field = &speedField
+        // .color = ColorInvert,
+        .field = &speedField,
+        .border = BorderBox
     },
     {
         .x = 0, .y = 48,
         .width = -6, .height = -1,
-        .color = ColorNormal,
         .field = &maxPowerField
     },
     {
         .x = 0, .y = 68,
         .width = 64, .height = 1,
-        .color = ColorNormal,
         .field = &whiteFillField
     },
     {
@@ -501,7 +562,7 @@ Screen mainScreen = {
         .color = ColorNormal,
         .field = &humanPowerField
     },
-    /*
+    /* placeholder for a graph
     {
         .x = 0, .y = 69 + 12,
         .width = 64, .height = 32,
@@ -511,13 +572,11 @@ Screen mainScreen = {
     {
         .x = 4, .y = 114,
         .width = -3, .height = -1,
-        .color = ColorNormal,
         .field = &brakeField
     },
     {
         .x = 34, .y = 114,
         .width = -4, .height = -1,
-        .color = ColorNormal,
         .field = &lightField
     },
     {
@@ -525,80 +584,6 @@ Screen mainScreen = {
     } }
 };
 
-/*
- * This is the version 1 layout (with a graph)
- * Currently unused.
-
-Screen mainScreen = {
-    .onPress = mainscreen_onpress,
-
-    .fields = {
-    {
-        .x = 0, .y = 0,
-        .width = -2, .height = -1,
-        .color = ColorNormal,
-        .field = &socField
-    },
-    {
-        .x = 32, .y = 0,
-        .width = -5, .height = -1,
-        .color = ColorNormal,
-        .field = &tripTimeField
-    },
-    {
-        .x = 0, .y = 16,
-        .width = -1, .height = -1,
-        .color = ColorInvert,
-        .field = &assistLevelField
-    },
-    {
-        .x = 19, .y = 16,
-        .width = -2, .height = -1,
-        .color = ColorInvert,
-        .field = &speedField
-    },
-    {
-        .x = 0, .y = 48,
-        .width = -6, .height = -1,
-        .color = ColorNormal,
-        .field = &maxPowerField
-    },
-    {
-        .x = 0, .y = 68,
-        .width = 64, .height = 1,
-        .color = ColorNormal,
-        .field = &whiteFillField
-    },
-    {
-        .x = 24, .y = 69,
-        .width = -6, .height = -1,
-        .color = ColorNormal,
-        .field = &humanPowerField
-    },
-    {
-        .x = 0, .y = 69 + 12,
-        .width = 64, .height = 32,
-        .color = ColorNormal,
-        .field = &meshFillField
-    },
-    {
-        .x = 4, .y = 114,
-        .width = -3, .height = -1,
-        .color = ColorNormal,
-        .field = &brakeField
-    },
-    {
-        .x = 34, .y = 114,
-        .width = -4, .height = -1,
-        .color = ColorNormal,
-        .field = &lightField
-    },
-    {
-        .field = NULL
-    } }
-};
-
- */
 
 void mainscreen_show(void) {
   screenShow(&mainScreen);
@@ -857,8 +842,7 @@ void trip_distance(void)
     trip_distance.ui8_refresh_all_digits = 0;
   }
 #endif
-  // fieldPrintf(&speedField, "%2d.%01d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
-  fieldPrintf(&speedField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
+  fieldPrintf(&tripDistanceField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
 }
 
 
@@ -2033,7 +2017,7 @@ void wheel_speed(void)
     lcd_print_number(&wheel_speed_decimal);
   }
 #endif
-  fieldPrintf(&speedField, "%d", l3_vars.ui16_wheel_speed_x10 / 10 /*, l3_vars.ui16_wheel_speed_x10 % 10 */);
+  fieldPrintf(&speedField, "%2d", l3_vars.ui16_wheel_speed_x10 / 10 /*, l3_vars.ui16_wheel_speed_x10 % 10 */);
 }
 
 void calc_battery_soc_watts_hour(void)

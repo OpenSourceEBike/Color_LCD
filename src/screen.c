@@ -28,6 +28,7 @@
 #include "screen.h"
 #include "lcd.h"
 #include "ugui.h"
+#include "fonts.h"
 
 extern UG_GUI gui;
 
@@ -52,6 +53,12 @@ static const FieldRenderFn renderers[];
 /// If true blink changed to be true or false this tick and we should redraw anything that is animated
 static bool blinkChanged;
 static bool blinkOn;
+
+#define heading_font &FONT_5X12
+#define scrollable_font &FONT_5X12
+
+static const UG_FONT const *editable_label_font = &FONT_5X12;
+static const UG_FONT const *editable_value_font = &FONT_5X12;
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -87,11 +94,11 @@ static bool renderDrawText(FieldLayout *layout)
   if (layout->height == -1)
     layout->height = field->drawText.font->char_height;
 
-  UG_S16 width =
-      (layout->width < 0) ?
-          -layout->width
-              * (field->drawText.font->char_width + gui.char_h_space) :
-          layout->width;
+  // if user specified width in terms of characters, change it to pixels
+  if(layout->width < 0)
+    layout->width = -layout->width * (field->drawText.font->char_width + gui.char_h_space);
+
+  UG_S16 width = layout->width;
   UG_S16 height = layout->height;
 
   UG_FontSelect(field->drawText.font);
@@ -133,9 +140,55 @@ static bool renderMesh(FieldLayout *layout)
 static void drawSelectionMarker(FieldLayout *layout)
 {
   // Only consider doing this on items that might be animated - and when editing don't blink the selection cursor
+  // we size the cursor to be slightly shorter than the box it is in
   if (layout->field && layout->field->is_selected && !curActiveEditable)
-    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
+    UG_DrawLine(layout->x, layout->y + 2, layout->x,
+        layout->y + layout->height - 3,
         blinkOn ? getForeColor(layout) : getBackColor(layout));
+}
+
+/**
+ * If we have a border on this layout, drawit
+ */
+static void drawBorder(FieldLayout *layout)
+{
+  UG_COLOR color = getForeColor(layout);
+
+  switch (layout->border)
+  {
+  case BorderTop:
+    UG_DrawLine(layout->x, layout->y, layout->x + layout->width - 1, layout->y,
+        color); // top
+    break;
+
+  case BorderBottom:
+    UG_DrawLine(layout->x, layout->y + layout->height - 1,
+        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
+    break;
+
+  case BorderBottomFat:
+    UG_FillFrame(layout->x, layout->y + layout->height - 2,
+        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
+    break;
+
+  case BorderBox:
+    UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
+        color); // left
+    UG_DrawLine(layout->x + layout->width - 1, layout->y,
+        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // right
+    UG_DrawLine(layout->x, layout->y + layout->height - 1,
+        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
+    UG_DrawLine(layout->x, layout->y, layout->x + layout->width - 1, layout->y,
+        color); // top
+    break;
+
+  case BorderNone:
+    break;
+
+  default:
+    assert(0);
+  }
+
 }
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
@@ -162,6 +215,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       didDraw |= renderers[layout->field->variant](layout);
 
       drawSelectionMarker(layout);
+      drawBorder(layout);
     }
   }
 
@@ -244,7 +298,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     if (forceScrollableRelayout || blinkChanged)
     {
       static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
-      static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
+      static Field heading = FIELD_DRAWTEXT(heading_font);
 
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
@@ -256,13 +310,15 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
         r->x = layout->x;
         r->y = layout->y + rowHeight * i;
         r->width = layout->width;
-        r->height = rowHeight;
+        r->height = rowHeight - 1; // Allow a 1 line gap between each row
+        r->border = BorderNone;
 
         if (i == 0)
         { // heading
           fieldPrintf(&heading, "%s", field->scrollable.label);
           r->field = &heading;
-          r->color = ColorInvert;
+          r->color = ColorNormal;
+          r->border = BorderBottomFat;
         }
         else
         {
@@ -303,8 +359,9 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     r->y = layout->y;
     r->width = layout->width;
     r->height = layout->height;
+    r->border = BorderNone;
 
-    static Field label = FIELD_DRAWTEXT(&FONT_5X12);
+    static Field label = FIELD_DRAWTEXT(scrollable_font);
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
@@ -435,8 +492,6 @@ static bool renderEditable(FieldLayout *layout)
   UG_S16 height = layout->height;
   bool isActive = curActiveEditable == field; // are we being edited right now?
 
-  const UG_FONT *font = &FONT_5X12;
-  UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetBackcolor(back);
   UG_SetForecolor(fore);
@@ -455,6 +510,8 @@ static bool renderEditable(FieldLayout *layout)
     }
   }
 
+  UG_FontSelect(editable_label_font);
+
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
@@ -471,14 +528,16 @@ static bool renderEditable(FieldLayout *layout)
   {
     // properly handle div_digits
     int divd = field->editable.number.div_digits;
-    if(divd == 0)
+    if (divd == 0)
       snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
-    else {
+    else
+    {
       int div = 1;
-      while(divd--)
+      while (divd--)
         div *= 10; // pwrs of 10
 
-      snprintf(msgbuf, sizeof(msgbuf), "%lu.%0*lu", num / div, field->editable.number.div_digits, num % div);
+      snprintf(msgbuf, sizeof(msgbuf), "%lu.%0*lu", num / div,
+          field->editable.number.div_digits, num % div);
     }
     msg = msgbuf;
     break;
@@ -490,6 +549,9 @@ static bool renderEditable(FieldLayout *layout)
     assert(0);
     break;
   }
+
+  const UG_FONT *font = editable_value_font;
+  UG_FontSelect(font);
 
   // right justify value on the second line
   UG_S16 x = layout->x + width
@@ -522,8 +584,6 @@ static void forceScrollableRender()
   scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
   forceScrollableRelayout = true;
 }
-
-
 
 // Returns true if we've handled the event (and therefore it should be cleared)
 static bool onPressEditable(buttons_events_t events)
@@ -701,6 +761,10 @@ void screenShow(Screen *screen)
     curScreen->onExit();
 
   panicScreenShow(screen);
+}
+
+Screen *getCurrentScreen() {
+  return curScreen;
 }
 
 void screenUpdate()

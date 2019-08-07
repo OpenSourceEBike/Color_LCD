@@ -6,7 +6,6 @@
 * make all fields white on black
 * properly scale all config values
 * let button press exit fault screen (or have it timeout?)
-* figure out why assert(gc_done) fails in eeprom_hw.c
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
 * change mainscreen layout defs to more closely match the v2 version of casain's spec
@@ -67,6 +66,7 @@ the GUI thread.  Use two buffers + a ptr.
 * DONE make config system (hopefully usable on other platforms)
 * DONE make width 0, and height 0 mean "auto select based on display size"
 * DONE make release_build task to generate end user usable bins
+* DONE figure out why assert(gc_done) fails in eeprom_hw.c - it requires softdevice to be running
 
 # Misc notes from kevin not yet formatted
 

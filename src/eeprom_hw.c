@@ -100,7 +100,7 @@ bool flash_write_words(const void *value, uint16_t length_words)
   else
     APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
 
-  for (volatile int count = 0; count < 1000 && !write_done; count++) {
+  for (int count = 0; count < 1000 && !write_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }
@@ -112,12 +112,12 @@ static void wait_gc()
 {
   gc_done = false;
   APP_ERROR_CHECK(fds_gc());
-  for (volatile int count = 0; count < 1000 && !gc_done; count++) {
+  for (int count = 0; count < 1000 && !gc_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }
-  // FIXME - why does this fail sometimes, I suspect there is a bug in fds calling events
-  //assert(gc_done);
+  // Note: this can fail if the soft device is not enabled (normally performed in ble init)
+  assert(gc_done);
 }
 
 /**
@@ -125,14 +125,14 @@ static void wait_gc()
  */
 void eeprom_hw_init(void)
 {
-  ret_code_t ret = fds_register(fds_evt_handler);
-  APP_ERROR_CHECK(ret);
+  APP_ERROR_CHECK(fds_register(fds_evt_handler));
 
   APP_ERROR_CHECK(fds_init());
-  for (volatile int count = 0; count < 1000 && !init_done; count++) {
+  for (int count = 0; count < 1000 && !init_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }
+  // Note: this can fail if the soft device is not enabled (normally performed in ble init)
   assert(init_done);
 
   wait_gc();

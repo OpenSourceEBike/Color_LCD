@@ -26,6 +26,7 @@ typedef enum
   M_LONG_CLICK = 4096
 } buttons_events_t;
 
+uint32_t buttons_get_m_state (void);
 uint32_t buttons_get_up_state (void);
 uint32_t buttons_get_up_click_event (void);
 uint32_t buttons_get_up_click_long_click_event (void);

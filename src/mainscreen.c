@@ -152,7 +152,7 @@ void parse_simmotor() {
     // battery current drain x5
     l2_vars.ui8_battery_current_x5 = fake(10, 30);
 
-    l2_vars.ui16_wheel_speed_x10 = fake(0, 100);
+    l2_vars.ui16_wheel_speed_x10 = fake(0, 300);
 
     l2_vars.ui8_braking = fake(0, 1);
 
@@ -842,7 +842,6 @@ void trip_distance(void)
     trip_distance.ui8_refresh_all_digits = 0;
   }
 #endif
-  // fieldPrintf(&speedField, "%2d.%01d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
   fieldPrintf(&tripDistanceField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
 }
 
@@ -2018,7 +2017,7 @@ void wheel_speed(void)
     lcd_print_number(&wheel_speed_decimal);
   }
 #endif
-  fieldPrintf(&speedField, "%d", l3_vars.ui16_wheel_speed_x10 / 10 /*, l3_vars.ui16_wheel_speed_x10 % 10 */);
+  fieldPrintf(&speedField, "%2d", l3_vars.ui16_wheel_speed_x10 / 10 /*, l3_vars.ui16_wheel_speed_x10 % 10 */);
 }
 
 void calc_battery_soc_watts_hour(void)

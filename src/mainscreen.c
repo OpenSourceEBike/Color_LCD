@@ -1900,7 +1900,7 @@ void power(void)
     }
   }
 #endif
-  fieldPrintf(&maxPowerField, "%4d w", l3_vars.ui16_battery_power_filtered);
+  fieldPrintf(&maxPowerField, "%4d W", l3_vars.ui16_battery_power_filtered);
 
 }
 
@@ -1953,7 +1953,7 @@ void pedal_human_power(void)
 
   }
 #endif
-  fieldPrintf(&humanPowerField, "%4d w", l3_vars.ui16_pedal_power_filtered);
+  fieldPrintf(&humanPowerField, "%4d W", l3_vars.ui16_pedal_power_filtered);
 }
 
 void wheel_speed(void)

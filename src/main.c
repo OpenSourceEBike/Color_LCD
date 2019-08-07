@@ -321,7 +321,8 @@ static inline void debugger_break(void)
 }
 
 // Standard app error codes
-#define FAULT_GCC_ASSERT 1
+#define FAULT_SOFTDEVICE 1
+#define FAULT_GCC_ASSERT 10
 
 // handle standard gcc assert failures
 void __attribute__((noreturn)) __assert_func(const char *file, int line,
@@ -395,12 +396,18 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
         einfo->p_file_name ? (const char*) einfo->p_file_name : "",
         einfo->line_num);
     break;
+  case FAULT_SOFTDEVICE:
+    fieldPrintf(&infoCode, "softdevice");
+    break;
   default:
     fieldPrintf(&infoCode, "%08lx", info);
     break;
   }
 
   panicScreenShow(&faultScreen);
+
+  if(id == FAULT_SOFTDEVICE)
+    return; // kevinh, see if we can silently continue - softdevice might be messed up but at least we can continue debugging?
 
   debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
 

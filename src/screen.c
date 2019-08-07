@@ -53,6 +53,11 @@ static const FieldRenderFn renderers[];
 static bool blinkChanged;
 static bool blinkOn;
 
+#define scrollable_font &FONT_4X6  // &FONT_5X12;
+
+static const UG_FONT const *editable_label_font = &FONT_4X6; // &FONT_5X12;
+static const UG_FONT const *editable_value_font = &FONT_4X6; // &FONT_5X12;
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -244,7 +249,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     if (forceScrollableRelayout || blinkChanged)
     {
       static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
-      static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
+      static Field heading = FIELD_DRAWTEXT(scrollable_font);
 
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
@@ -304,7 +309,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     r->width = layout->width;
     r->height = layout->height;
 
-    static Field label = FIELD_DRAWTEXT(&FONT_5X12);
+    static Field label = FIELD_DRAWTEXT(scrollable_font);
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
@@ -435,8 +440,6 @@ static bool renderEditable(FieldLayout *layout)
   UG_S16 height = layout->height;
   bool isActive = curActiveEditable == field; // are we being edited right now?
 
-  const UG_FONT *font = &FONT_5X12;
-  UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetBackcolor(back);
   UG_SetForecolor(fore);
@@ -454,6 +457,8 @@ static bool renderEditable(FieldLayout *layout)
       changeEditable(false);
     }
   }
+
+  UG_FontSelect(editable_label_font);
 
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
@@ -490,6 +495,9 @@ static bool renderEditable(FieldLayout *layout)
     assert(0);
     break;
   }
+
+  const UG_FONT *font = editable_value_font;
+  UG_FontSelect(font);
 
   // right justify value on the second line
   UG_S16 x = layout->x + width

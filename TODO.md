@@ -2,7 +2,6 @@
 
 * add motorsim so I can move my real motor to my bike but still continue dev
 * properly scale all config values (including x25 values)
-* make all fields white on black
 * install on kevin's bike
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
@@ -68,6 +67,8 @@ the GUI thread.  Use two buffers + a ptr.
 * DONE figure out why assert(gc_done) fails in eeprom_hw.c - it requires softdevice to be running
 * DONE make selection cursor and editor box blink
 * DONE make editor presses work correctly
+* make all fields white on black
+* add a border line between each config entry
 
 # Misc notes from kevin not yet formatted
 

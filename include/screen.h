@@ -171,6 +171,16 @@ typedef struct Field {
 
 typedef int16_t Coord; // Change to int16_t for screens wider/longer than 128, screens shorter than 128 can use uint8_t
 
+typedef enum {
+  BorderNone = 0,
+  BorderBottom,
+  BorderTop,
+  BorderBox, // left,right,bottom,top
+  BorderBottomFat // two pixels tall
+  // define others as needed
+} BorderOp;
+
+
 /**
  * Defines the layout of a field on a particular screen
  */
@@ -187,6 +197,8 @@ typedef struct {
 
   ColorOp color;
   Field *field;
+
+  BorderOp border; // an optional border to draw within this field
 } FieldLayout;
 
 

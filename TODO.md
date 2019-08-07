@@ -1,4 +1,45 @@
-# TODO sequence
+# TODO tasks remaining before initial alpha release
+
+* add motorsim so I can move my real motor to my bike but still continue dev
+* properly scale all config values (including x25 values)
+* make all fields white on black
+* install on kevin's bike
+* let button press exit fault screen (or have it timeout?)
+* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
+* update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
+* change mainscreen layout defs to more closely match the v2 version of casain's spec
+* delete dead code in mainscreen.c
+* show motor faults promenantly on main screen
+* make fault screen reboot after a short period of time - confirm that it doesn't mess up on a running bike
+* initial release
+
+# TODO tasks for beta release
+
+* successful installation/usage report from at least one alpha user/dev
+* add a watchdog handler
+* make fields customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
+* turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
+and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
+* when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
+* make selection in menus prettier
+* use battery icon
+* make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
+* change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
+* make a shutdown screen
+* pack & align eeprom 
+* implement a watchdog function
+* do eeprom GC if flash is full (currently only done at boot)
+
+# TODO tasks for future releases
+
+* Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
+* merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
+* clean up button handling and take advantage of extra button on the SW102
+* clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
+* FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
+the GUI thread.  Use two buffers + a ptr.
+
+# Completed TODO work items
 
 * DONE merge 850C style rx comms code with the existing SW102 code
 * DONE merge the 850C style tx comms code with the existing SW102 code
@@ -17,43 +58,18 @@
 * DONE handle hierarchical menu entry/exit correctly
 * DONE Make short press of UP-DOWN (really should be power) - cycle to next screen.  make screens a loop: main, config, power tuning?, fault (optional)
 * DONE fix exititing editor via pwr press
-* make editor presses work correctly
 * DONE make walk assist press work
-* add motorsim so I can move my real motor to my bike but still continue dev
-* change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
-* make a shutdown screen
-* (probably solved?) figure out why assert(gc_done) fails in eeprom_hw.c
-* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
-* make selection cursor and editor box blink
-* make all fields white on black
-* fix BT with pixel 3 before release (because bootloader probably needs same fix)
-* make a boot screen with version info (show until user releases power button)
-* update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
+* DONE test bootloader with pixel 3 
 * DONE test to make sure only one EEPROM record is getting written
 * DONE test with real motor (after triple checking wiring color questions)
 * DONE make config system (hopefully usable on other platforms)
-* change mainscreen layout defs to match the v2 version of casain's spec
-* delete dead code in mainscreen.c
-* initial release
-* turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
-and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
-* when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
-* make selection in menus prettier
-* clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
-* FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
-the GUI thread.  Use two buffers + a ptr.
-* use battery icon
-* Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
-* pack & align eeprom
-* implement a watchdog function
 * DONE make width 0, and height 0 mean "auto select based on display size"
-* do eeprom GC if flash is full (currently only done at boot)
-* merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
-* clean up button handling and take advantage of extra button on the SW102
+* DONE make release_build task to generate end user usable bins
+* DONE figure out why assert(gc_done) fails in eeprom_hw.c - it requires softdevice to be running
+* DONE make selection cursor and editor box blink
+* DONE make editor presses work correctly
 
 # Misc notes from kevin not yet formatted
-
-* for reference old 0.18 version of comms is described here: https://github.com/OpenSource-EBike-firmware/TSDZ2-Smart-EBike/blob/v0.18.2/src/display/KT-LCD3/uart.c
 
 * install eabi toolchain from https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
 per https://launchpadlibrarian.net/218827232/How-to-build-toolchain.pdf

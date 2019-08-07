@@ -20,6 +20,7 @@
 #include "configscreen.h"
 #include "nrf_delay.h"
 #include "nrf_soc.h"
+#include "adc.h"
 
 /* Variable definition */
 
@@ -54,15 +55,18 @@ Field infoHeading = { .variant = FieldDrawText, .drawText = { .font =
 Field infoCode =
     { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
 
-Screen faultScreen = { .fields = { { .x = 0, .y = 0, .width = 0, .height = -1,
-    .color = ColorInvert, .field = &faultHeading }, { .x = 0, .y = FONT12_Y,
-    .width = 0, .height = -1, .color = ColorNormal, .field = &faultCode }, {
-    .x = 0, .y = 2 * FONT12_Y, .width = 0, .height = -1, .color = ColorNormal,
-    .field = &addrHeading }, { .x = 0, .y = 3 * FONT12_Y, .width = 0, .height =
-    -1, .color = ColorNormal, .field = &addrCode }, { .x = 0, .y = 4 * FONT12_Y,
-    .width = 0, .height = -1, .color = ColorNormal, .field = &infoHeading }, {
-    .x = 0, .y = 5 * FONT12_Y, .width = 0, .height = -1, .color = ColorNormal,
-    .field = &infoCode }, { .field = NULL } } };
+Screen faultScreen = {
+    .fields = {
+    { .height = -1, .color = ColorInvert, .field = &faultHeading },
+    { .y = FONT12_Y, .height = -1, .color = ColorNormal, .field = &faultCode },
+    { .y = 2 * FONT12_Y, .height = -1, .color = ColorNormal,
+    .field = &addrHeading },
+    { .y = 3 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &addrCode },
+    { .y = 4 * FONT12_Y,
+    .width = 0, .height = -1, .color = ColorNormal, .field = &infoHeading },
+    { .y = 5 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &infoCode },
+    { .field = NULL }
+    } };
 
 /* Function prototype */
 static void gpio_init(void);
@@ -96,8 +100,8 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
 // Screens in a loop, shown when the user short presses the power button
 static Screen *screens[] = {
-    &configScreen,
     &mainScreen,
+    &configScreen,
     NULL
 };
 
@@ -132,6 +136,7 @@ static bool appwide_onpress(buttons_events_t events)
 }
 
 
+
 /**
  * @brief Application main entry.
  */
@@ -140,11 +145,12 @@ int main(void)
   gpio_init();
   lcd_init();
   uart_init();
+  battery_voltage_init();
 
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
   // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  ble_init();
+  // ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
@@ -206,6 +212,8 @@ int main(void)
       }
 
       buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+
+      battery_voltage_10x_get();
     }
 
     sd_app_evt_wait(); // let OS threads have time to run
@@ -392,7 +400,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     break;
   }
 
-  screenShow(&faultScreen);
+  panicScreenShow(&faultScreen);
 
   debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
 

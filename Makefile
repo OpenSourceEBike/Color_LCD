@@ -2,6 +2,9 @@ PROJECT_NAME     := nrf51822_sw102
 TARGETS          := nrf51822_sw102
 OUTPUT_DIRECTORY := _build
 
+# Only this directory contains bins that should be uploaded to github for end-user-use
+RELEASE_DIRECTORY := _release
+
 SDK_ROOT := ./nRF5_SDK_12.3.0
 PROJ_DIR := .
 
@@ -17,8 +20,12 @@ OPENOCD_PATH := /usr/local/share/openocd/bin
 OPENOCD_BIN := openocd
 NRFUTIL := nrfutil
 
-
 OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
+
+# The integer build number for this release, MUST BE INCREMENTED FOR EACH RELEASE SO BOOTLOADER WILL INSTALL
+VERSION_NUM := 2
+
+VERSION_STRING := 0.19.$(VERSION_NUM)
 
 # Source files common to all targets
 SRC_FILES += \
@@ -30,6 +37,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/ble_services.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
+  $(PROJ_DIR)/src/adc.c \
   $(PROJ_DIR)/src/eeprom.c \
   $(PROJ_DIR)/src/eeprom_hw.c \
   $(PROJ_DIR)/src/screen.c \
@@ -46,6 +54,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
   $(SDK_ROOT)/components/libraries/fstorage/fstorage.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
+  $(SDK_ROOT)/components/drivers_nrf/adc/nrf_drv_adc.c \
   $(SDK_ROOT)/components/drivers_nrf/common/nrf_drv_common.c \
   $(SDK_ROOT)/components/drivers_nrf/clock/nrf_drv_clock.c \
   $(SDK_ROOT)/components/drivers_nrf/gpiote/nrf_drv_gpiote.c \
@@ -266,15 +275,19 @@ erase:
 # Generate DFU package
 KEYFILE := $(PROJ_DIR)/../SW102_LCD_Bluetooth-bootloader/private.key
 generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
-	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version 1 --hw-version 51 --sd-req 0x87 update_firmware.zip
+	mkdir -p $(RELEASE_DIRECTORY)
+	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version $(VERSION_NUM) --hw-version 51 --sd-req 0x87 $(RELEASE_DIRECTORY)/sw102-otaupdate-$(VERSION_STRING).zip
 
 # Generate a prebuilt bin file with bootloader apploand and valid app crc
 # per appendix 1 here: https://devzone.nordicsemi.com/nordic/nordic-blog/b/blog/posts/getting-started-with-nordics-secure-dfu-bootloader
 # Note: srec_cmp is part of the 'srecord' debian package, for windows supposedly mergehex does the same thing
-full_install:
-	nrfutil settings generate --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version 0 --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
-	srec_cat -MULTiple ../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex -Intel $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(OUTPUT_DIRECTORY)/sw102-full.hex -Intel 
-	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(OUTPUT_DIRECTORY)/sw102-full.hex; verify_image $(OUTPUT_DIRECTORY)/sw102-full.hex; echo FLASHED; reset halt; resume; shutdown"
+release_build: generate_dfu_package
+	$(NRFUTIL) settings generate --no-backup --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version $(VERSION_NUM) --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
+	srec_cat -MULTiple ../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex -Intel $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel 
+
+# Program a full release build onto the connected device (including bootloader and soft device)
+release_program: release_build
+	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex; verify_image $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex; echo FLASHED; reset halt; resume; shutdown"
 
 # Start CMSIS_Configuration_Wizard
 SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h

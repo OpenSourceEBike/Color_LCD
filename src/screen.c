@@ -31,6 +31,28 @@
 
 extern UG_GUI gui;
 
+// If true, the scroll position changed and force a complete redraw
+// FIXME - heading shouldn't be redrawn
+// FIXME - currently limited to one scrollable per screen
+static bool forceScrollableRelayout;
+
+// If the user is editing an editable, this will be it
+static Field *curActiveEditable = NULL;
+
+#define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
+
+static Field *scrollableStack[MAX_SCROLLABLE_DEPTH];
+int scrollableStackPtr = 0; // Points to where to push the next entry (so if zero, stack is empty)
+
+// Returns true if we decided to draw something
+typedef bool (*FieldRenderFn)(FieldLayout *layout);
+
+static const FieldRenderFn renderers[];
+
+/// If true blink changed to be true or false this tick and we should redraw anything that is animated
+static bool blinkChanged;
+static bool blinkOn;
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -39,7 +61,6 @@ static UG_COLOR getBackColor(const FieldLayout *layout)
     return C_WHITE;
 
   case ColorNormal:
-  case ColorSelected:
   default:
     return C_BLACK;
   }
@@ -53,16 +74,10 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
     return C_BLACK;
 
   case ColorNormal:
-  case ColorSelected:
   default:
     return C_WHITE;
   }
 }
-
-// Returns true if we decided to draw something
-typedef bool (*FieldRenderFn)(FieldLayout *layout);
-
-static const FieldRenderFn renderers[];
 
 static bool renderDrawText(FieldLayout *layout)
 {
@@ -74,7 +89,9 @@ static bool renderDrawText(FieldLayout *layout)
 
   UG_S16 width =
       (layout->width < 0) ?
-          -layout->width * (field->drawText.font->char_width + gui.char_h_space) : layout->width;
+          -layout->width
+              * (field->drawText.font->char_width + gui.char_h_space) :
+          layout->width;
   UG_S16 height = layout->height;
 
   UG_FontSelect(field->drawText.font);
@@ -113,11 +130,12 @@ static bool renderMesh(FieldLayout *layout)
  * If we are selected, highlight this item with a bar to the left (on color screens possibly draw a small
  * color pointer or at least color the line something nice.
  */
-static void perhapsDrawSelected(FieldLayout *layout)
+static void drawSelectionMarker(FieldLayout *layout)
 {
-  if (layout->color == ColorSelected)
+  // Only consider doing this on items that might be animated - and when editing don't blink the selection cursor
+  if (layout->field && layout->field->is_selected && !curActiveEditable)
     UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
-        getForeColor(layout));
+        blinkOn ? getForeColor(layout) : getBackColor(layout));
 }
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
@@ -131,7 +149,9 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
-    if (layout->field->dirty || forceRender)
+    // We always render dirty items, or items that might need to show blink animations
+    if (layout->field->dirty || (layout->field->blink && blinkChanged)
+        || forceRender)
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;
@@ -141,8 +161,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 
       didDraw |= renderers[layout->field->variant](layout);
 
-      // Draw a selection marker on this item
-      perhapsDrawSelected(layout);
+      drawSelectionMarker(layout);
     }
   }
 
@@ -154,19 +173,6 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 
   return didDraw;
 }
-
-// If true, the scroll position changed and force a complete redraw
-// FIXME - heading shouldn't be redrawn
-// FIXME - currently limited to one scrollable per screen
-static bool forceScrollableRelayout;
-
-// If the user is editing an editable, this will be it
-static Field *curActiveEditable = NULL;
-
-#define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
-
-static Field *scrollableStack[MAX_SCROLLABLE_DEPTH];
-int scrollableStackPtr = 0; // Points to where to push the next entry (so if zero, stack is empty)
 
 // Return the scrollable we are currently showing the user, or NULL if none
 // The (currently only one allowed per screen) scrollable that is currently being shown to the user.
@@ -184,6 +190,9 @@ static void enterScrollable(Field *f)
   assert(scrollableStackPtr < MAX_SCROLLABLE_DEPTH);
   scrollableStack[scrollableStackPtr++] = f;
 
+  // We always set blink for scrollables, because they contain child items that might need to blink
+  f->blink = true;
+
   // NOTE: Only the root scrollable is ever checked for 'dirty' by the main screen renderer,
   // so that's the one we set
   scrollableStack[0]->dirty = true;
@@ -194,8 +203,10 @@ static void enterScrollable(Field *f)
 /**
  * The user just clicked to exit a scrollable entry, ascend to the entry above us or if we are the top
  * go back to the main screen
+ *
+ * @return true if we just selected a new scrollable
  */
-static void exitScrollable()
+static bool exitScrollable()
 {
   assert(scrollableStackPtr > 0);
   scrollableStackPtr--;
@@ -206,10 +217,12 @@ static void exitScrollable()
     // Parent was a scrollable, show it
     f->dirty = true;
     forceScrollableRelayout = true;
+    return true;
   }
   else
   {
     // otherwise we just leave the screen showing the top scrollable
+    return false;
   }
 }
 
@@ -218,18 +231,21 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
   const Coord rowHeight = 32; // 3 data rows 32 pixels tall + one 32 pixel header
 
   static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading
-  static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
 
-  static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
-
-  bool weAreExpanded = getActiveScrollable() == field;
+  Field *scrollable = getActiveScrollable();
+  bool weAreExpanded = scrollable == field;
 
   // If we are expanded show our heading and the current visible child elements
   // Otherwise just show our label so that the user might select us to expand
   if (weAreExpanded)
   {
-    if (forceScrollableRelayout)
+    // FIXME - we shouldn't need to relayout scrollables on blink transition, but currently we share the static rows[] array when we really should not, because
+    // it is used _both_ in the drawing of expanded elements and the non expanded case.  This problem becomes apparant if you remove this blinkChanged check.
+    if (forceScrollableRelayout || blinkChanged)
     {
+      static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
+      static Field heading = FIELD_DRAWTEXT(&FONT_5X12);
+
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
       forceScrollableRelayout = false;
@@ -262,9 +278,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           if (hasMoreRows)
           {
             r->field = entry;
-            r->color =
-                (entryNum == field->scrollable.selected) ?
-                    ColorSelected : ColorNormal;
+            entry->is_selected = (entryNum == field->scrollable.selected);
           }
           else
           {
@@ -294,6 +308,13 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
+
+    // If we are inside a scrollable and selected, blink
+    if (scrollable)
+      label.is_selected = field
+          == &scrollable->scrollable.entries[scrollable->scrollable.selected];
+    else
+      label.is_selected = false;
 
     rows[1].field = NULL; // mark end of array (for rendering)
   }
@@ -352,71 +373,6 @@ static void setEditableNumber(Field *field, uint32_t v)
   }
 }
 
-static bool renderEditable(FieldLayout *layout)
-{
-  Field *field = layout->field;
-  UG_S16 width = layout->width;
-  UG_S16 height = layout->height;
-
-  const UG_FONT *font = &FONT_5X12;
-  UG_FontSelect(font);
-  UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
-  UG_SetBackcolor(back);
-  UG_SetForecolor(fore);
-
-  // ug fonts include no blank space at the beginning, so we always include one col of padding
-  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
-      layout->y + height - 1, back);
-
-  UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
-
-  // draw editable value
-  char msgbuf[MAX_FIELD_LEN];
-  const char *msg;
-  uint32_t num = getEditableNumber(field);
-  switch (field->editable.typ)
-  {
-  case EditUInt:
-    // FIXME properly handle div_digits
-    snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
-    msg = msgbuf;
-    break;
-  case EditEnum:
-    msg = field->editable.editEnum.options[num];
-    break;
-  default:
-    assert(0);
-    break;
-  }
-
-  // Print the value (inverted if we are editing it)
-  if (curActiveEditable == field)
-  {
-    UG_SetBackcolor(fore);
-    UG_SetForecolor(back);
-  }
-
-  // right justify value on the second line
-  UG_PutString(layout->x + width - strlen(msg) * (font->char_width + gui.char_h_space),
-      layout->y + FONT12_Y, (char*) msg);
-
-  return true;
-}
-
-static bool renderEnd(FieldLayout *layout)
-{
-  assert(0); // This should never be called I think
-  return true;
-}
-
-static void forceScrollableRender()
-{
-  Field *active = getActiveScrollable();
-  assert(active);
-  scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
-  forceScrollableRelayout = true;
-}
-
 static int countEnumOptions(Field *s)
 {
   const char **e = s->editable.editEnum.options;
@@ -472,6 +428,103 @@ static void changeEditable(bool increment)
   }
 }
 
+static bool renderEditable(FieldLayout *layout)
+{
+  Field *field = layout->field;
+  UG_S16 width = layout->width;
+  UG_S16 height = layout->height;
+  bool isActive = curActiveEditable == field; // are we being edited right now?
+
+  const UG_FONT *font = &FONT_5X12;
+  UG_FontSelect(font);
+  UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
+  UG_SetBackcolor(back);
+  UG_SetForecolor(fore);
+
+  // If we are blinking right now, that's a good place to poll our buttons so that the user can press and hold to change a series of values
+  if (isActive && blinkChanged)
+  {
+    if (buttons_get_up_state())
+    {
+      changeEditable(true);
+    }
+
+    if (buttons_get_down_state())
+    {
+      changeEditable(false);
+    }
+  }
+
+  // ug fonts include no blank space at the beginning, so we always include one col of padding
+  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
+      layout->y + height - 1, back);
+
+  UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
+
+  // draw editable value
+  char msgbuf[MAX_FIELD_LEN];
+  const char *msg;
+  uint32_t num = getEditableNumber(field);
+  switch (field->editable.typ)
+  {
+  case EditUInt:
+  {
+    // properly handle div_digits
+    int divd = field->editable.number.div_digits;
+    if(divd == 0)
+      snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
+    else {
+      int div = 1;
+      while(divd--)
+        div *= 10; // pwrs of 10
+
+      snprintf(msgbuf, sizeof(msgbuf), "%lu.%0*lu", num / div, field->editable.number.div_digits, num % div);
+    }
+    msg = msgbuf;
+    break;
+  }
+  case EditEnum:
+    msg = field->editable.editEnum.options[num];
+    break;
+  default:
+    assert(0);
+    break;
+  }
+
+  // right justify value on the second line
+  UG_S16 x = layout->x + width
+      - strlen(msg) * (font->char_width + gui.char_h_space);
+  UG_S16 y = layout->y + FONT12_Y;
+  UG_PutString(x, y, (char*) msg);
+
+  // Blinking underline cursor when editing
+  if (isActive)
+  {
+    /* UG_SetBackcolor(fore);
+     UG_SetForecolor(back); */
+    UG_S16 cursorY = y + font->char_height + 1;
+    UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
+  }
+
+  return true;
+}
+
+static bool renderEnd(FieldLayout *layout)
+{
+  assert(0); // This should never be called I think
+  return true;
+}
+
+static void forceScrollableRender()
+{
+  Field *active = getActiveScrollable();
+  assert(active);
+  scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
+  forceScrollableRelayout = true;
+}
+
+
+
 // Returns true if we've handled the event (and therefore it should be cleared)
 static bool onPressEditable(buttons_events_t events)
 {
@@ -480,13 +533,16 @@ static bool onPressEditable(buttons_events_t events)
 
   if (events & UP_CLICK)
   {
-    changeEditable(true);
+    // Note: we mark that we've handled this 'event' (so that other subsystems don't think they should) but really, we have already
+    // been calling changeEditable in our render function, where we check only on blinkChanged, so that users can press and hold to
+    // change values.
+    // changeEditable(true);
     handled = true;
   }
 
   if (events & DOWN_CLICK)
   {
-    changeEditable(false);
+    // changeEditable(false);
     handled = true;
   }
 
@@ -498,7 +554,8 @@ static bool onPressEditable(buttons_events_t events)
     handled = true;
   }
 
-  if(handled) {
+  if (handled)
+  {
     s->dirty = true; // redraw our position
 
     // If we are inside a scrollable, tell the GUI that scrollable also needs to be redrawn
@@ -597,7 +654,7 @@ static bool onPressScrollable(buttons_events_t events)
   // click power button to exit out of menus
   if (events & ONOFF_CLICK)
   {
-    exitScrollable();
+    handled = exitScrollable(); // if we were top scrollable don't claim we handled this press (let rest of app do it)
   }
 
   return handled;
@@ -628,16 +685,22 @@ bool screenOnPress(buttons_events_t events)
   return handled;
 }
 
-void screenShow(Screen *screen)
+// A low level screen render that doesn't use soft device or call exit handlers (useful for the critical fault handler ONLY)
+void panicScreenShow(Screen *screen)
 {
-  if (curScreen && curScreen->onExit)
-    curScreen->onExit();
-
   curActiveEditable = NULL;
   scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;
   screenUpdate(); // Force a draw immediately
+}
+
+void screenShow(Screen *screen)
+{
+  if (curScreen && curScreen->onExit)
+    curScreen->onExit();
+
+  panicScreenShow(screen);
 }
 
 void screenUpdate()
@@ -646,6 +709,15 @@ void screenUpdate()
     return;
 
   bool didDraw = false; // we only render to hardware if something changed
+
+  // Every 200ms toggle any blinking animations
+  static uint8_t blinkCounter;
+  blinkCounter = (blinkCounter + 1) % 10;
+  blinkChanged = (blinkCounter == 0);
+  if (blinkChanged)
+  {
+    blinkOn = !blinkOn;
+  }
 
   if (screenDirty)
   {

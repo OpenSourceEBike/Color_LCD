@@ -22,6 +22,8 @@
 #include "nrf_soc.h"
 #include "adc.h"
 
+#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
+
 /* Variable definition */
 
 /* �GUI */
@@ -29,6 +31,10 @@ UG_GUI gui;
 
 /* Buttons */
 Button buttonM, buttonDWN, buttonUP, buttonPWR;
+
+bool has_seen_motor; // true once we've received a packet from a real motor
+bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+
 
 /* App Timer */
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
@@ -42,18 +48,12 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 #define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
-Field faultHeading = { .variant = FieldDrawText, .drawText = { .font =
-    &MY_FONT_8X12, .msg = "FAULT" } };
-Field faultCode =
-    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field addrHeading = { .variant = FieldDrawText, .drawText = { .font =
-    &MY_FONT_8X12, .msg = "PC" } };
-Field addrCode =
-    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
-Field infoHeading = { .variant = FieldDrawText, .drawText = { .font =
-    &MY_FONT_8X12, .msg = "Info" } };
-Field infoCode =
-    { .variant = FieldDrawText, .drawText = { .font = &FONT_5X12 } };
+Field faultHeading = FIELD_DRAWTEXT(&MY_FONT_8X12, .msg = "FAULT");
+Field faultCode = FIELD_DRAWTEXT(&FONT_5X12);
+Field addrHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "PC");
+Field addrCode = FIELD_DRAWTEXT(&FONT_5X12);
+Field infoHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "Info");
+Field infoCode = FIELD_DRAWTEXT(&FONT_5X12);
 
 Screen faultScreen = {
     .fields = {
@@ -67,6 +67,32 @@ Screen faultScreen = {
     { .y = 5 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &infoCode },
     { .field = NULL }
     } };
+
+
+Field bootHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "OpenSource EBike");
+Field bootVersion = FIELD_DRAWTEXT(&FONT_5X12, .msg = VERSION_STRING);
+Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "No motor?");
+
+
+
+Screen bootScreen = {
+    .fields = {
+    {
+        .x = 0, .y = 0,
+        .field = &bootHeading
+    },
+    {
+        .x = 0, .y = 32,
+        .field = &bootVersion
+    },
+    {
+        .x = 0, .y = 80,
+        .field = &bootStatus
+    },
+    {
+        .field = NULL
+    }
+    }};
 
 /* Function prototype */
 static void gpio_init(void);
@@ -177,11 +203,7 @@ int main(void)
    UG_ConsolePutString(degC);
    */
 
-  UG_FontSelect(&MY_FONT_8X12);
-  UG_ConsolePutString("boot\n");
-  lcd_refresh();
-
-  showNextScreen();
+  screenShow(&bootScreen);
 
   // APP_ERROR_HANDLER(5);
 
@@ -212,8 +234,24 @@ int main(void)
       }
 
       buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+    }
 
-      battery_voltage_10x_get();
+
+    if(getCurrentScreen() == &bootScreen) {
+      uint16_t bvolt = battery_voltage_10x_get();
+
+      is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
+
+      if(is_sim_motor)
+        fieldPrintf(&bootStatus, "SIMULATING motor!");
+      else if(has_seen_motor)
+        fieldPrintf(&bootStatus, "Found motor");
+      else
+        fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
+
+      // Stop showing the boot screen after a few seconds
+      if(seconds_since_startup >= 3)
+        showNextScreen();
     }
 
     sd_app_evt_wait(); // let OS threads have time to run

@@ -763,6 +763,10 @@ void screenShow(Screen *screen)
   panicScreenShow(screen);
 }
 
+Screen *getCurrentScreen() {
+  return curScreen;
+}
+
 void screenUpdate()
 {
   if (!curScreen)

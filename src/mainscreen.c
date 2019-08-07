@@ -133,7 +133,67 @@ void lcd_main_screen(void)
 #endif
 }
 
+static uint16_t fake(uint16_t minv, uint16_t maxv) {
+  static uint16_t seed = 1; // Just generate some slightly increasing data, scaled to fit the required range
 
+  uint16_t numval = maxv - minv + 1;
+
+  return (seed++ % numval) + minv;
+}
+
+/**
+ * Pretend we just received a randomized motor packet
+ */
+void parse_simmotor() {
+
+    // per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
+    l2_vars.ui16_adc_battery_voltage = fake(10, 1000);
+
+    // battery current drain x5
+    l2_vars.ui8_battery_current_x5 = fake(10, 30);
+
+    l2_vars.ui16_wheel_speed_x10 = fake(0, 100);
+
+    l2_vars.ui8_braking = fake(0, 1);
+
+    l2_vars.ui8_adc_throttle = fake(0, 100);
+
+    if(l2_vars.ui8_temperature_limit_feature_enabled)
+    {
+      l2_vars.ui8_motor_temperature = fake(20, 90);
+    }
+    else
+    {
+      l2_vars.ui8_throttle = fake(0, 100);
+    }
+
+    l2_vars.ui8_adc_pedal_torque_sensor = fake(0, 100);
+
+    l2_vars.ui8_pedal_torque_sensor = fake(0, 100);
+
+    l2_vars.ui8_pedal_cadence = fake(0, 100);
+    l2_vars.ui8_pedal_human_power = fake(0, 100);
+    l2_vars.ui8_duty_cycle = fake(0, 100);
+    l2_vars.ui16_motor_speed_erps = fake(0, 4000);
+    l2_vars.ui8_foc_angle = fake(0, 100);
+
+    // error states
+    l2_vars.ui8_error_states = fake(0, 1);
+
+    // temperature actual limiting value
+    l2_vars.ui8_temperature_current_limiting_value = fake(0, 100);
+
+    // wheel_speed_sensor_tick_counter
+
+    l2_vars.ui32_wheel_speed_sensor_tick_counter = fake(0, 4000);
+
+    // ui16_pedal_torque_x10
+    l2_vars.ui16_pedal_torque_x10 = fake(10, 1000);
+
+    // ui16_pedal_power_x10
+    l2_vars.ui16_pedal_power_x10 = fake(10, 1000);
+
+}
 
 void process_rx(void)
 {
@@ -142,14 +202,18 @@ void process_rx(void)
 
   const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
 
-  /************************************************************************************************/
+
   // process rx package
-  if(p_rx_buffer)
+  if(is_sim_motor)
+    parse_simmotor();
+  else if(p_rx_buffer)
   {
     // now process rx data
     // only if first byte is equal to package start byte
     if(*p_rx_buffer == 67)
     {
+      has_seen_motor = true;
+
       p_rx_buffer++;
 
       l2_vars.ui16_adc_battery_voltage = *p_rx_buffer;
@@ -366,8 +430,8 @@ void send_tx_package(void)
 
   // send the full package to UART
   // start DMA UART transfer
-  // FIXME - disabled for now
-  uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
+  if(!is_sim_motor) // If we are simulating received packets never send real packets
+    uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
 
   // increment message_id for next package
   if(++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID)

@@ -72,7 +72,7 @@
  *
  */
 
-#define MAX_FIELD_LEN 16
+#define MAX_FIELD_LEN 32
 
 typedef enum {
   ColorNormal = 0, // white on black
@@ -164,7 +164,7 @@ typedef struct Field {
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
-#define FIELD_DRAWTEXT(fnt) { .variant = FieldDrawText, .drawText = { .font = fnt } }
+#define FIELD_DRAWTEXT(fnt, ...) { .variant = FieldDrawText, .drawText = { .font = fnt, ##__VA_ARGS__  } }
 
 #define FIELD_END { .variant = FieldEnd }
 
@@ -226,6 +226,9 @@ typedef struct {
 void panicScreenShow(Screen *screen);
 void screenShow(Screen *screen);
 void screenUpdate();
+
+/// Return the current visible screen
+Screen *getCurrentScreen();
 
 /// Returns true if the current screen handled the press
 bool screenOnPress(buttons_events_t events);

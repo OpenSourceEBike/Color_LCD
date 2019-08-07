@@ -1,6 +1,5 @@
 # TODO tasks remaining before initial alpha release
 
-* add motorsim so I can move my real motor to my bike but still continue dev
 * properly scale all config values (including x25 values)
 * install on kevin's bike
 * let button press exit fault screen (or have it timeout?)
@@ -22,7 +21,7 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
 * use battery icon
-* make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
+
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * pack & align eeprom 
@@ -69,6 +68,8 @@ the GUI thread.  Use two buffers + a ptr.
 * DONE make editor presses work correctly
 * make all fields white on black
 * add a border line between each config entry
+* add motorsim so I can move my real motor to my bike but still continue dev
+* make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
 
 # Misc notes from kevin not yet formatted
 

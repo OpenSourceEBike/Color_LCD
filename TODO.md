@@ -2,6 +2,13 @@
 
 * properly scale all config values (including x25 values)
 * install on kevin's bike
+* idle shutdown timer
+* soc battery capacity needs a larger stepsize
+* walk assist has very little boost
+* show volts or SOC in top left
+* only allow walk mode when speeds are legal
+* test cruise button
+* fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
 * fix power fields to blink as needed
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)

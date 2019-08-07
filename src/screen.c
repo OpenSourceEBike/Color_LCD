@@ -31,6 +31,31 @@
 
 extern UG_GUI gui;
 
+// If true, the scroll position changed and force a complete redraw
+// FIXME - heading shouldn't be redrawn
+// FIXME - currently limited to one scrollable per screen
+static bool forceScrollableRelayout;
+
+// If the user is editing an editable, this will be it
+static Field *curActiveEditable = NULL;
+
+#define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
+
+static Field *scrollableStack[MAX_SCROLLABLE_DEPTH];
+int scrollableStackPtr = 0; // Points to where to push the next entry (so if zero, stack is empty)
+
+// Returns true if we decided to draw something
+typedef bool (*FieldRenderFn)(FieldLayout *layout);
+
+static const FieldRenderFn renderers[];
+
+/// If true blink changed to be true or false this tick and we should redraw anything that is animated
+static bool blinkChanged;
+static bool blinkOn;
+
+
+
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -56,15 +81,6 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
     return C_WHITE;
   }
 }
-
-// Returns true if we decided to draw something
-typedef bool (*FieldRenderFn)(FieldLayout *layout);
-
-static const FieldRenderFn renderers[];
-
-/// If true blink changed to be true or false this tick and we should redraw anything that is animated
-static bool blinkChanged;
-static bool blinkOn;
 
 static bool renderDrawText(FieldLayout *layout)
 {
@@ -117,7 +133,8 @@ static bool renderMesh(FieldLayout *layout)
  */
 static void drawSelectionMarker(FieldLayout *layout)
 {
-  if(layout->field && layout->field->is_selected) // Only consider doing this on items that might be animated
+  // Only consider doing this on items that might be animated - and when editing don't blink the selection cursor
+  if(layout->field && layout->field->is_selected && !curActiveEditable)
     UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1, blinkOn ? getForeColor(layout) : getBackColor(layout));
 }
 
@@ -156,18 +173,6 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   return didDraw;
 }
 
-// If true, the scroll position changed and force a complete redraw
-// FIXME - heading shouldn't be redrawn
-// FIXME - currently limited to one scrollable per screen
-static bool forceScrollableRelayout;
-
-// If the user is editing an editable, this will be it
-static Field *curActiveEditable = NULL;
-
-#define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
-
-static Field *scrollableStack[MAX_SCROLLABLE_DEPTH];
-int scrollableStackPtr = 0; // Points to where to push the next entry (so if zero, stack is empty)
 
 // Return the scrollable we are currently showing the user, or NULL if none
 // The (currently only one allowed per screen) scrollable that is currently being shown to the user.
@@ -400,16 +405,19 @@ static bool renderEditable(FieldLayout *layout)
     break;
   }
 
-  // Print the value (inverted if we are editing it)
+  // right justify value on the second line
+  UG_S16 x = layout->x + width - strlen(msg) * (font->char_width + gui.char_h_space);
+  UG_S16 y = layout->y + FONT12_Y;
+  UG_PutString(x, y, (char*) msg);
+
+  // Blinking underline cursor when editing
   if (curActiveEditable == field)
   {
-    UG_SetBackcolor(fore);
-    UG_SetForecolor(back);
+    /* UG_SetBackcolor(fore);
+    UG_SetForecolor(back); */
+    UG_S16 cursorY = y + font->char_height + 1;
+    UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
   }
-
-  // right justify value on the second line
-  UG_PutString(layout->x + width - strlen(msg) * (font->char_width + gui.char_h_space),
-      layout->y + FONT12_Y, (char*) msg);
 
   return true;
 }

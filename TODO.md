@@ -2,7 +2,6 @@
 
 * make editor presses work correctly
 * add motorsim so I can move my real motor to my bike but still continue dev
-* make selection cursor and editor box blink
 * make all fields white on black
 * properly scale all config values
 * let button press exit fault screen (or have it timeout?)
@@ -67,10 +66,9 @@ the GUI thread.  Use two buffers + a ptr.
 * DONE make width 0, and height 0 mean "auto select based on display size"
 * DONE make release_build task to generate end user usable bins
 * DONE figure out why assert(gc_done) fails in eeprom_hw.c - it requires softdevice to be running
+* DONE make selection cursor and editor box blink
 
 # Misc notes from kevin not yet formatted
-
-* for reference old 0.18 version of comms is described here: https://github.com/OpenSource-EBike-firmware/TSDZ2-Smart-EBike/blob/v0.18.2/src/display/KT-LCD3/uart.c
 
 * install eabi toolchain from https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
 per https://launchpadlibrarian.net/218827232/How-to-build-toolchain.pdf

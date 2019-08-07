@@ -15,11 +15,6 @@ void InitButton(Button* button, uint32_t pin_number, nrf_gpio_pin_pull_t pull_co
   /* Init GPIO */
   nrf_gpio_cfg_input(pin_number, pull_config);
 
-#if 0
-  button->State = (BTTN_CLEAR | BTTN_RELEASED_PROCESSED); // if we just set to BTTN_CLEAR, ButtonReleased() triggers on startup
-  button->DebounceCnt = button->LongClickCnt = 0;
-  button->DoubleClickCnt = DOUBLECLICK_TIME;
-#endif
   button->ActiveState = active_state;
   button->PinNumber = pin_number;
 }
@@ -33,104 +28,7 @@ bool PollButton(Button* button)
   if(button->ActiveState == BUTTON_ACTIVE_LOW)
     pinState ^= 1;
 
-#if 0 // FIXME, removed for now, we debounce in the shared 850C code
-
-  /* Not Active */
-  if (pinState != 0)
-  {
-    button->DebounceCnt = button->LongClickCnt = 0;
-    button->DoubleClickCnt++;
-    /*
-     * Reset only after clicked state reached. Important not just to set button->State to BTTN_CLEAR
-     * or ButtonReleased() triggers over and over again!
-     */
-    if (button->State & BTTN_CLICK)
-    {
-      button->State = BTTN_CLEAR;
-      button->DoubleClickCnt = 0;
-    }
-  }
-  /* Active */
-  else
-  {
-    /* Click & DoubleClick */
-    if (button->DebounceCnt++ >= DEBOUNCE_TIME)
-    {
-      button->State |= BTTN_CLICK;
-
-      if (button->DoubleClickCnt < DOUBLECLICK_TIME)
-        button->State |= BTTN_DBLCLICK;
-    }
-
-    /* Long Click */
-    if (button->LongClickCnt++ >= LONGCLICK_TIME)
-      button->State |= BTTN_LONGCLICK;
-  }
-#endif
-
   return pinState != 0;
 }
 
-#if 0
-/**
- * @brief Check if Button is clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
- */
-bool ButtonClicked(Button* button)
-{
-  if ((button->State & BTTN_CLICK) && !(button->State & BTTN_CLICK_PROCESSED))
-  {
-#if (CLICKED_SIGNAL_ONCE > 0)
-    button->State |= BTTN_CLICK_PROCESSED;
-#endif
-    return true;
-  }
 
-  return false;
-}
-
-/**
- * @brief Check if Button is long clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
- */
-bool ButtonLongClicked(Button* button)
-{
-  if ((button->State & BTTN_LONGCLICK) && !(button->State & BTTN_LC_PROCESSED))
-  {
-#if (CLICKED_SIGNAL_ONCE > 0)
-    button->State |= BTTN_LC_PROCESSED;
-#endif
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * @brief Check if Button is double clicked & return true (once if CLICKED_SIGNAL_ONCE > 0)
- */
-bool ButtonDoubleClicked(Button* button)
-{
-  if ((button->State & BTTN_DBLCLICK) && !(button->State & BTTN_DC_PROCESSED))
-  {
-#if (CLICKED_SIGNAL_ONCE > 0)
-    button->State |= BTTN_DC_PROCESSED;
-#endif
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * @brief Check if Button was released after clicked & return true once
- */
-bool ButtonReleased(Button* button)
-{
-  if (button->State == BTTN_CLEAR)
-  {
-    button->State |= BTTN_RELEASED_PROCESSED;
-    return true;
-  }
-
-  return false;
-}
-#endif

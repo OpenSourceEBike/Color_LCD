@@ -19,12 +19,6 @@ typedef enum
 
 typedef struct
 {
-#if 0
-  uint8_t State;
-  uint32_t DebounceCnt;
-  uint32_t LongClickCnt;
-  uint32_t DoubleClickCnt;
-#endif
   button_active_state ActiveState;
   uint32_t PinNumber;
 } Button;

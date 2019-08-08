@@ -23,7 +23,9 @@ typedef union
 void system_power(bool state);
 
 uint32_t get_seconds(); // how many seconds since boot
-uint32_t get_seconds(); // how many seconds since boot
+
+/// msecs since boot (note: will roll over every 50 days)
+uint32_t get_msecs();
 
 extern Button buttonM, buttonDWN, buttonUP, buttonPWR;
 

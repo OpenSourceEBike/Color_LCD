@@ -143,26 +143,40 @@ static uint16_t fake(uint16_t minv, uint16_t maxv) {
   return (seed++ % numval) + minv;
 }
 
+/// Generate a fake value that slowly loops between min and max and then back to min.  You must provide static storage for this routine to use
+static uint16_t fakeWave(uint32_t *storage, uint16_t minv, uint16_t maxv) {
+  (*storage)++;
+
+  uint16_t numval = maxv - minv + 1;
+
+  return (*storage % numval) + minv;
+}
+
 /**
  * Pretend we just received a randomized motor packet
  */
 void parse_simmotor() {
 
+    const uint32_t min_bat10x = 400, max_bat10x = 546, max_cur10x = 140;
+    static uint32_t votestore, curstore, speedstore, cadencestore, tempstore;
+
     // per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
-    l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+    // l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+    l2_vars.ui16_adc_battery_voltage = fakeWave(&votestore, min_bat10x, max_bat10x) * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+
 
     // battery current drain x5
-    l2_vars.ui8_battery_current_x5 = fake(10, 30);
+    l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
 
-    l2_vars.ui16_wheel_speed_x10 = fake(0, 300);
+    l2_vars.ui16_wheel_speed_x10 = fakeWave(&speedstore, 0, 300);
 
-    l2_vars.ui8_braking = fake(0, 1);
+    l2_vars.ui8_braking = 0; // fake(0, 1);
 
     l2_vars.ui8_adc_throttle = fake(0, 100);
 
     if(l2_vars.ui8_temperature_limit_feature_enabled)
     {
-      l2_vars.ui8_motor_temperature = fake(20, 90);
+      l2_vars.ui8_motor_temperature = fakeWave(&tempstore, 20, 90);
     }
     else
     {
@@ -173,7 +187,7 @@ void parse_simmotor() {
 
     l2_vars.ui8_pedal_torque_sensor = fake(0, 100);
 
-    l2_vars.ui8_pedal_cadence = fake(0, 100);
+    l2_vars.ui8_pedal_cadence = fakeWave(&cadencestore, 0, 100);
     l2_vars.ui8_pedal_human_power = fake(0, 100);
     l2_vars.ui8_duty_cycle = fake(0, 100);
     l2_vars.ui16_motor_speed_erps = fake(0, 4000);

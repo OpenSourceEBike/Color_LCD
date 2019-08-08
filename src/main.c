@@ -317,6 +317,12 @@ static void gui_timer_timeout(void *p_context)
     seconds++;
 }
 
+
+/// msecs since boot (note: will roll over every 50 days)
+uint32_t get_msecs() {
+  return gui_ticks * MSEC_PER_TICK;
+}
+
 uint32_t get_seconds() {
   return seconds;
 }

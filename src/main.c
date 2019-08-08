@@ -71,7 +71,7 @@ Screen faultScreen = {
 
 Field bootHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "OpenSource EBike");
 Field bootVersion = FIELD_DRAWTEXT(&FONT_5X12, .msg = VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "No motor?");
+Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "Booting...");
 
 
 
@@ -211,8 +211,6 @@ int main(void)
   while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
     ;
 
-  // APP_ERROR_HANDLER(5);
-
   // Enter main loop.
 
   uint32_t lasttick = 0;
@@ -256,7 +254,7 @@ int main(void)
         fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
 
       // Stop showing the boot screen after a few seconds
-      if(seconds_since_startup >= 3)
+      if(seconds_since_startup >= 5)
         showNextScreen();
     }
 

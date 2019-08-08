@@ -1,15 +1,11 @@
 # TODO tasks remaining before initial alpha release
 
 * properly scale all config values (including x25 values)
-* install on kevin's bike
 * idle shutdown timer
-* soc battery capacity needs a larger stepsize
 * walk assist has very little boost
 * show volts or SOC in top left
 * only allow walk mode when speeds are legal
 * test cruise button
-* fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
-* fix power fields to blink as needed
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
@@ -21,6 +17,10 @@
 
 # TODO tasks for beta release
 
+* fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
+* fix power fields to blink as needed
+* show motor temp alerts
+* show power limiting alerts (due to PWM or temp or whatever)
 * successful installation/usage report from at least one alpha user/dev
 * add a watchdog handler
 * make fields customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
@@ -78,6 +78,8 @@ the GUI thread.  Use two buffers + a ptr.
 * add a border line between each config entry
 * add motorsim so I can move my real motor to my bike but still continue dev
 * make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
+* soc battery capacity needs a larger stepsize
+* install on kevin's bike
 
 # Misc notes from kevin not yet formatted
 

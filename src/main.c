@@ -21,6 +21,7 @@
 #include "nrf_delay.h"
 #include "nrf_soc.h"
 #include "adc.h"
+#include "hardfault.h"
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
@@ -364,6 +365,8 @@ static inline void debugger_break(void)
 
 // Standard app error codes
 #define FAULT_SOFTDEVICE 1
+#define FAULT_HARDFAULT 2
+#define FAULT_NRFASSERT 3
 #define FAULT_GCC_ASSERT 10
 
 // handle standard gcc assert failures
@@ -374,6 +377,14 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line,
 
   app_error_fault_handler(FAULT_GCC_ASSERT, 0, (uint32_t) &errinfo);
   abort();
+}
+
+
+/// Called for critical hardfaults by the CPU - note - p_stack might be null, if we've overrun our main stack, in that case stack history is unavailable
+void HardFault_process  ( HardFault_stack_t *   p_stack ) {
+  uint32_t pc = !p_stack ? 0 : p_stack->pc;
+
+  app_error_fault_handler(FAULT_GCC_ASSERT, pc, (uint32_t) &p_stack);
 }
 
 /**@brief Function for assert macro callback.
@@ -389,7 +400,9 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line,
  */
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 {
-  app_error_handler(0xdeadbeef, line_num, p_file_name);
+  error_info_t errinfo = { .line_num = line_num, .p_file_name = p_file_name, .err_code = FAULT_NRFASSERT };
+
+  app_error_fault_handler(FAULT_NRFASSERT, 0, (uint32_t) &errinfo);
 }
 
 /**@brief       Callback function for errors, asserts, and faults.
@@ -437,6 +450,16 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     fieldPrintf(&infoCode, "%s:%d",
         einfo->p_file_name ? (const char*) einfo->p_file_name : "",
         einfo->line_num);
+    break;
+  case FAULT_HARDFAULT:
+    if(!info)
+      fieldPrintf(&infoCode, "stk overflow");
+    else {
+      HardFault_stack_t *hs = (HardFault_stack_t *) info;
+
+      fieldPrintf(&infoCode, "%x:%x",
+        hs->r12, hs->lr);
+    }
     break;
   case FAULT_SOFTDEVICE:
     fieldPrintf(&infoCode, "softdevice");

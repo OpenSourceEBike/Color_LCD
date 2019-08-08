@@ -57,7 +57,6 @@ void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void l2_low_pass_filter_battery_voltage_current_power(void);
 void calc_battery_soc_watts_hour(void);
-void l2_calc_odometer(void);
 //static void l2_automatic_power_off_management(void);
 void brake(void);
 void walk_assist_state(void);
@@ -459,6 +458,85 @@ void send_tx_package(void)
 }
 
 
+static void l2_calc_odometer(void)
+{
+  uint32_t uint32_temp;
+  static uint8_t ui8_1s_timmer_counter;
+
+  // calc at 1s rate
+  if (ui8_1s_timmer_counter++ >= 10)
+  {
+    ui8_1s_timmer_counter = 0;
+
+    uint32_temp = (l2_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)
+        * ((uint32_t) l2_vars.ui16_wheel_perimeter);
+    // avoid division by 0
+    if (uint32_temp > 100000) { uint32_temp /= 100000;}  // milimmeters to 0.1kms
+    else { uint32_temp = 0; }
+
+    // now store the value on the global variable
+    l2_vars.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
+  }
+}
+
+static void l2_automatic_power_off_management(void)
+{
+  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
+  static uint16_t ui16_lcd_power_off_time_counter = 0;
+
+  if(l2_vars.ui8_lcd_power_off_time_minutes != 0)
+  {
+    // see if we should reset the automatic power off minutes counter
+    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
+        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
+        (l3_vars.ui8_braking) ||                // braking
+        buttons_get_events())                                 // any button active
+    {
+      ui16_lcd_power_off_time_counter = 0;
+      ui8_lcd_power_off_time_counter_minutes = 0;
+    }
+
+    // increment the automatic power off minutes counter
+    ui16_lcd_power_off_time_counter++;
+
+    // check if we should power off the LCD
+    if(ui16_lcd_power_off_time_counter >= (10 * 60)) // 1 minute passed
+    {
+      ui16_lcd_power_off_time_counter = 0;
+
+      ui8_lcd_power_off_time_counter_minutes++;
+      if (ui8_lcd_power_off_time_counter_minutes
+          >= l2_vars.ui8_lcd_power_off_time_minutes)
+      {
+        lcd_power_off(1);
+      }
+    }
+  }
+  else
+  {
+    ui16_lcd_power_off_time_counter = 0;
+    ui8_lcd_power_off_time_counter_minutes = 0;
+  }
+}
+
+static void l2_low_pass_filter_pedal_cadence(void)
+{
+  static uint16_t ui16_pedal_cadence_accumulated = 0;
+
+  // low pass filter
+  ui16_pedal_cadence_accumulated -= (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
+  ui16_pedal_cadence_accumulated += (uint16_t) l2_vars.ui8_pedal_cadence;
+
+  // consider the filtered value only for medium and high values of the unfiltered value
+  if(l2_vars.ui8_pedal_cadence > 20)
+  {
+    l2_vars.ui8_pedal_cadence_filtered = (uint8_t) (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
+  }
+  else
+  {
+    l2_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence;
+  }
+}
 
 // Note: this called from ISR context every 100ms
 void layer_2(void)
@@ -474,11 +552,11 @@ void layer_2(void)
 
   l2_low_pass_filter_battery_voltage_current_power();
   l2_low_pass_filter_pedal_torque_and_power();
-//  l2_low_pass_filter_pedal_cadence();
+  l2_low_pass_filter_pedal_cadence();
   l2_calc_battery_voltage_soc();
-//  l2_calc_odometer();
+  l2_calc_odometer();
   l2_calc_wh();
-//  automatic_power_off_management();
+  l2_automatic_power_off_management();
 
   // graphs_measurements_update();
   /************************************************************************************************/
@@ -1007,26 +1085,8 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
 #endif
 }
 
-#if 0
-static void l2_low_pass_filter_pedal_cadence(void)
-{
-  static uint16_t ui16_pedal_cadence_accumulated = 0;
 
-  // low pass filter
-  ui16_pedal_cadence_accumulated -= (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
-  ui16_pedal_cadence_accumulated += (uint16_t) l2_vars.ui8_pedal_cadence;
 
-  // consider the filtered value only for medium and high values of the unfiltered value
-  if(l2_vars.ui8_pedal_cadence > 20)
-  {
-    l2_vars.ui8_pedal_cadence_filtered = (uint8_t) (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
-  }
-  else
-  {
-    l2_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence;
-  }
-}
-#endif
 
 void l2_calc_wh(void)
 {
@@ -1056,67 +1116,7 @@ void l2_calc_wh(void)
   ui8_1s_timmer_counter++;
 }
 
-void l2_calc_odometer(void)
-{
-//  uint32_t uint32_temp;
-//  static uint8_t ui8_1s_timmer_counter;
-//
-//  // calc at 1s rate
-//  if (ui8_1s_timmer_counter++ >= 10)
-//  {
-//    ui8_1s_timmer_counter = 0;
-//
-//    uint32_temp = (uart_rx_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)
-//        * ((uint32_t) configuration_variables.ui16_wheel_perimeter);
-//    // avoid division by 0
-//    if (uint32_temp > 100000) { uint32_temp /= 100000;}  // milimmeters to 0.1kms
-//    else { uint32_temp = 0; }
-//
-//    // now store the value on the global variable
-//    configuration_variables.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
-//  }
-}
 
-#if 0
-static void l2_automatic_power_off_management(void)
-{
-//  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
-//  static uint16_t ui16_lcd_power_off_time_counter = 0;
-//
-//  if(configuration_variables.ui8_lcd_power_off_time_minutes != 0)
-//  {
-//    // see if we should reset the automatic power off minutes counter
-//    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
-//        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
-//        (l3_vars.ui8_braking) ||                // braking
-//        buttons_get_events())                                 // any button active
-//    {
-//      ui16_lcd_power_off_time_counter = 0;
-//      ui8_lcd_power_off_time_counter_minutes = 0;
-//    }
-//
-//    // increment the automatic power off minutes counter
-//    ui16_lcd_power_off_time_counter++;
-//
-//    // check if we should power off the LCD
-//    if(ui16_lcd_power_off_time_counter >= (10 * 60)) // 1 minute passed
-//    {
-//      ui16_lcd_power_off_time_counter = 0;
-//
-//      ui8_lcd_power_off_time_counter_minutes++;
-//      if(ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
-//      {
-//        lcd_power_off(1);
-//      }
-//    }
-//  }
-//  else
-//  {
-//    ui16_lcd_power_off_time_counter = 0;
-//    ui8_lcd_power_off_time_counter_minutes = 0;
-//  }
-}
-#endif
 
 #if 0
 void update_menu_flashing_state(void)

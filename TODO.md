@@ -1,5 +1,9 @@
 # TODO tasks remaining before initial alpha release
 
+* BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
+* BUG: walk assist power boost is way too low
+* show ODO on main screen
+* show motor temp on main screen
 * properly scale all config values (including x25 values)
 * idle shutdown timer
 * walk assist has very little boost

@@ -1,7 +1,5 @@
 # TODO tasks remaining before initial alpha release
 
-* retest SOC on bike
-* retest walk assist - power boost is way too low
 * show trip distance on info screen
 * show motor temp on info screen
 * use a bigger font for motor power (more like the spec)
@@ -90,6 +88,8 @@ the GUI thread.  Use two buffers + a ptr.
 * improve sim a bit for soc dev
 * show volts or SOC in top left
 * idle shutdown timer
+* retest SOC on bike
+* retest walk assist - power boost is way too low
 
 # Misc notes from kevin not yet formatted
 

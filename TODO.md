@@ -1,9 +1,11 @@
 # TODO tasks remaining before initial alpha release
 
+* improve sim a bit for soc dev
 * BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
 * BUG: walk assist power boost is way too low
-* show ODO on main screen
-* show motor temp on main screen
+* show trip distance on info screen
+* show motor temp on info screen
+* use a bigger font for motor power (more like the spec)
 * properly scale all config values (including x25 values)
 * idle shutdown timer
 * walk assist has very little boost
@@ -14,7 +16,7 @@
 * fix startup boost config entries
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
-* update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
+* update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
 * change mainscreen layout defs to more closely match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * show motor faults promenantly on main screen
@@ -23,6 +25,7 @@
 
 # TODO tasks for beta release
 
+* investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
 * fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
 * fix power fields to blink as needed
 * show motor temp alerts
@@ -86,6 +89,7 @@ the GUI thread.  Use two buffers + a ptr.
 * soc battery capacity needs a larger stepsize
 * install on kevin's bike
 * use battery icon
+* Run layer2 from a 100ms timer tick
 
 # Misc notes from kevin not yet formatted
 

@@ -444,8 +444,12 @@ void send_tx_package(void)
 
 
 
+// Note: this called from ISR context every 100ms
 void layer_2(void)
 {
+  if(!ui32_g_layer_2_can_execute)
+    return;
+
   process_rx();
   send_tx_package();
 
@@ -613,9 +617,6 @@ void screen_clock(void)
     ui32_g_layer_2_can_execute = 0;
     copy_layer_2_layer_3_vars();
     ui32_g_layer_2_can_execute = 1;
-
-    // FIXME: ask casainho why layer2 runs in ISR context on his board.  For now just run it here
-    layer_2();
   }
 
 //  if(first_time_management())

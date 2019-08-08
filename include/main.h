@@ -22,7 +22,9 @@ typedef union
 
 void system_power(bool state);
 
-extern volatile uint32_t seconds_since_startup, seconds_since_reset;
+uint32_t get_seconds(); // how many seconds since boot
+uint32_t get_seconds(); // how many seconds since boot
+
 extern Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor

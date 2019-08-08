@@ -153,7 +153,7 @@ struct_rtc_time_t* rtc_get_time(void)
 
 struct_rtc_time_t* rtc_get_time_since_startup(void)
 {
-  uint32_t ui32_temp = seconds_since_startup;
+  uint32_t ui32_temp = get_seconds();
   static struct_rtc_time_t rtc_time;
 
   rtc_time.ui8_hours = ui32_temp / 3600;

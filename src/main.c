@@ -40,12 +40,13 @@ bool is_sim_motor; // true if we are simulating a motor (and therefore not talki
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 
-APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
-#define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
-volatile uint32_t seconds_since_startup, seconds_since_reset;
+// APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
+// #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
+
+#define MSEC_PER_TICK 20
 
 APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
-#define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
+#define GUI_INTERVAL APP_TIMER_TICKS(MSEC_PER_TICK, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
 Field faultHeading = FIELD_DRAWTEXT(&MY_FONT_8X12, .msg = "FAULT");
@@ -206,6 +207,7 @@ int main(void)
   // Enter main loop.
 
   uint32_t lasttick = 0;
+  uint32_t start_time = get_seconds();
   while (1)
   {
     uint32_t tick = gui_ticks;
@@ -246,7 +248,7 @@ int main(void)
         fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
 
       // Stop showing the boot screen after a few seconds (once we've found a motor)
-      if(seconds_since_startup >= 5 && (has_seen_motor || is_sim_motor))
+      if(get_seconds() - start_time >= 5 && (has_seen_motor || is_sim_motor))
         showNextScreen();
     }
 
@@ -300,19 +302,23 @@ static void button_poll_timer_timeout(void *p_context)
 }
 #endif
 
-static void seconds_timer_timeout(void *p_context)
-{
-  UNUSED_PARAMETER(p_context);
 
-  seconds_since_startup++;
-  seconds_since_reset++;
-}
+static uint32_t seconds = 0;
 
 static void gui_timer_timeout(void *p_context)
 {
   UNUSED_PARAMETER(p_context);
 
   gui_ticks++;
+  if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
+    layer_2();
+
+  if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
+    seconds++;
+}
+
+uint32_t get_seconds() {
+  return seconds;
 }
 
 static void init_app_timers(void)
@@ -336,10 +342,6 @@ static void init_app_timers(void)
 #endif
 
   // Create&Start timers.
-  APP_ERROR_CHECK(
-      app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED,
-          seconds_timer_timeout));
-  APP_ERROR_CHECK(app_timer_start(seconds_timer_id, SECONDS_INTERVAL, NULL));
   APP_ERROR_CHECK(
       app_timer_create(&gui_timer_id, APP_TIMER_MODE_REPEATED,
           gui_timer_timeout));

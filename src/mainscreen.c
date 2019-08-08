@@ -19,6 +19,7 @@
 #include "mainscreen.h"
 #include "eeprom.h"
 #include "buttons.h"
+#include "adc.h"
 
 
 // Battery SOC symbol:
@@ -147,7 +148,7 @@ static uint16_t fake(uint16_t minv, uint16_t maxv) {
 void parse_simmotor() {
 
     // per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
-    l2_vars.ui16_adc_battery_voltage = fake(10, 1000);
+    l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
 
     // battery current drain x5
     l2_vars.ui8_battery_current_x5 = fake(10, 30);
@@ -1509,7 +1510,7 @@ void battery_soc(void)
     // to keep same scale as voltage of x10
     ui32_battery_cells_number_x10 = (uint32_t) (l3_vars.ui8_battery_cells_number * 10);
 
-    if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
+    if(ui16_battery_voltage_filtered_x10.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 10; }
     else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 9; }
     else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 8; }
     else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 7; }
@@ -1619,7 +1620,10 @@ void battery_soc(void)
     }
   }
 #endif
-  fieldPrintf(&socField, "%d", ui16_m_battery_soc_watts_hour);
+  if (l3_vars.ui8_battery_soc_enable)
+    fieldPrintf(&socField, "%d%%", ui16_m_battery_soc_watts_hour);
+  else
+    fieldPrintf(&socField, "%u.%uV", l3_vars.ui16_battery_voltage_soc_x10 / 10, l3_vars.ui16_battery_voltage_soc_x10 % 10);
 }
 
 void temperature(void)

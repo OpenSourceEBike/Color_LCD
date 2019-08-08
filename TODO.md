@@ -6,6 +6,8 @@
 * show volts or SOC in top left
 * only allow walk mode when speeds are legal
 * test cruise button
+* show temp warnings
+* fix startup boost config entries
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)

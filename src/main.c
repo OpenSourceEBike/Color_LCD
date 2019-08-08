@@ -253,8 +253,8 @@ int main(void)
       else
         fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
 
-      // Stop showing the boot screen after a few seconds
-      if(seconds_since_startup >= 5)
+      // Stop showing the boot screen after a few seconds (once we've found a motor)
+      if(seconds_since_startup >= 5 && (has_seen_motor || is_sim_motor))
         showNextScreen();
     }
 

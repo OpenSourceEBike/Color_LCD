@@ -540,7 +540,7 @@ Screen mainScreen = {
     */
     {
         .x = 32, .y = 0,
-        .width = -4, .height = -1,
+        .width = -5, .height = -1,
         .field = &socField
     },
     {
@@ -1630,9 +1630,9 @@ void battery_soc(void)
   }
 #endif
   if (l3_vars.ui8_battery_soc_enable)
-    fieldPrintf(&socField, "%d%%", ui16_m_battery_soc_watts_hour);
+    fieldPrintf(&socField, "%3d%%", ui16_m_battery_soc_watts_hour);
   else
-    fieldPrintf(&socField, "%u.%uV", l3_vars.ui16_battery_voltage_soc_x10 / 10, l3_vars.ui16_battery_voltage_soc_x10 % 10);
+    fieldPrintf(&socField, "%2u.%1uV", l3_vars.ui16_battery_voltage_soc_x10 / 10, l3_vars.ui16_battery_voltage_soc_x10 % 10);
 }
 
 // Show our battery graphic

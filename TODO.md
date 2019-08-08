@@ -6,11 +6,8 @@
 * show motor temp on info screen
 * use a bigger font for motor power (more like the spec)
 * properly scale all config values (including x25 values)
-* idle shutdown timer
-* walk assist has very little boost
-* show volts or SOC in top left
-* only allow walk mode when speeds are legal
 * test cruise button
+* only allow walk mode when speeds are legal
 * show temp warnings
 * fix startup boost config entries
 * let button press exit fault screen (or have it timeout?)
@@ -91,6 +88,8 @@ the GUI thread.  Use two buffers + a ptr.
 * Run layer2 from a 100ms timer tick
 * BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
 * improve sim a bit for soc dev
+* show volts or SOC in top left
+* idle shutdown timer
 
 # Misc notes from kevin not yet formatted
 

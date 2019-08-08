@@ -481,10 +481,9 @@ static void l2_calc_odometer(void)
 
 static void l2_automatic_power_off_management(void)
 {
-  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
-  static uint16_t ui16_lcd_power_off_time_counter = 0;
+  static uint32_t ui16_lcd_power_off_time_counter = 0;
 
-  if(l2_vars.ui8_lcd_power_off_time_minutes != 0)
+  if(l3_vars.ui8_lcd_power_off_time_minutes != 0)
   {
     // see if we should reset the automatic power off minutes counter
     if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
@@ -493,20 +492,14 @@ static void l2_automatic_power_off_management(void)
         buttons_get_events())                                 // any button active
     {
       ui16_lcd_power_off_time_counter = 0;
-      ui8_lcd_power_off_time_counter_minutes = 0;
     }
-
-    // increment the automatic power off minutes counter
-    ui16_lcd_power_off_time_counter++;
-
-    // check if we should power off the LCD
-    if(ui16_lcd_power_off_time_counter >= (10 * 60)) // 1 minute passed
+    else
     {
-      ui16_lcd_power_off_time_counter = 0;
+      // increment the automatic power off ticks counter
+      ui16_lcd_power_off_time_counter++;
 
-      ui8_lcd_power_off_time_counter_minutes++;
-      if (ui8_lcd_power_off_time_counter_minutes
-          >= l2_vars.ui8_lcd_power_off_time_minutes)
+      // check if we should power off the LCD
+      if(ui16_lcd_power_off_time_counter >= (l3_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) // have we passed our timeout?
       {
         lcd_power_off(1);
       }
@@ -515,7 +508,6 @@ static void l2_automatic_power_off_management(void)
   else
   {
     ui16_lcd_power_off_time_counter = 0;
-    ui8_lcd_power_off_time_counter_minutes = 0;
   }
 }
 

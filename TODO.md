@@ -28,7 +28,6 @@
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
-* use battery icon
 
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
@@ -80,6 +79,7 @@ the GUI thread.  Use two buffers + a ptr.
 * make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
 * soc battery capacity needs a larger stepsize
 * install on kevin's bike
+* use battery icon
 
 # Misc notes from kevin not yet formatted
 

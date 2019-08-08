@@ -67,7 +67,7 @@ void pedal_human_power(void);
 void power_off_management(void);
 void temperature(void);
 void time(void);
-void battery_soc(void);
+void battery_soc(void), battery_display();
 void l2_calc_battery_voltage_soc(void);
 void l2_calc_wh(void);
 void l2_low_pass_filter_pedal_torque_and_power(void);
@@ -120,6 +120,7 @@ void lcd_main_screen(void)
   power();
   pedal_human_power();
   battery_soc();
+  battery_display();
   brake();
   trip_time();
   trip_distance();
@@ -503,6 +504,7 @@ uint8_t first_time_management(void)
 // Fields - these might be shared my multiple screens
 //
 Field socField = FIELD_DRAWTEXT(&FONT_5X12);
+Field batteryField = FIELD_DRAWTEXT(&MY_FONT_BATTERY);
 Field timeField = FIELD_DRAWTEXT(&FONT_5X12);
 Field speedField = FIELD_DRAWTEXT(&FONT_16X26);
 Field assistLevelField = FIELD_DRAWTEXT(&FONT_12X20);
@@ -526,13 +528,20 @@ Screen mainScreen = {
     .fields = {
     {
         .x = 0, .y = 0,
-        .width = -2, .height = -1,
-        .field = &socField
+        .width = -1, .height = -1,
+        .field = &batteryField
     },
+    /*
     {
         .x = 32, .y = 0,
         .width = -5, .height = -1,
         .field = &tripTimeField
+    },
+    */
+    {
+        .x = 32, .y = 0,
+        .width = -4, .height = -1,
+        .field = &socField
     },
     {
         .x = 0, .y = 16,
@@ -1624,6 +1633,28 @@ void battery_soc(void)
     fieldPrintf(&socField, "%d%%", ui16_m_battery_soc_watts_hour);
   else
     fieldPrintf(&socField, "%u.%uV", l3_vars.ui16_battery_voltage_soc_x10 / 10, l3_vars.ui16_battery_voltage_soc_x10 % 10);
+}
+
+// Show our battery graphic
+void battery_display() {
+  // to keep same scale as voltage of x10
+  uint32_t ui32_battery_cells_number_x10 = (uint32_t) (l3_vars.ui8_battery_cells_number * 10);
+
+  uint8_t ui32_battery_bar_number;
+  if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_90))) { ui32_battery_bar_number = 5; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_80))) { ui32_battery_bar_number = 4; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_70))) { ui32_battery_bar_number = 4; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_60))) { ui32_battery_bar_number = 3; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_50))) { ui32_battery_bar_number = 3; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_40))) { ui32_battery_bar_number = 2; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_30))) { ui32_battery_bar_number = 2; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_20))) { ui32_battery_bar_number = 1; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_10))) { ui32_battery_bar_number = 1; }
+  else if(l3_vars.ui16_battery_voltage_soc_x10 > ((uint16_t) ((float) ui32_battery_cells_number_x10 * LI_ION_CELL_VOLTS_0))) { ui32_battery_bar_number = 0; }
+  else { ui32_battery_bar_number = 0; }
+
+  UG_FontSelect(&MY_FONT_BATTERY);
+  fieldPrintf(&batteryField, "%d", ui32_battery_bar_number);
 }
 
 void temperature(void)

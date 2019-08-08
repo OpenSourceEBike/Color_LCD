@@ -184,20 +184,12 @@ int main(void)
   // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
-  UG_ConsoleSetArea(0, 0, 63, 127);
+
+
+
+  /*   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
-  /*
-   UG_FontSelect(&MY_FONT_BATTERY);
-   UG_ConsolePutString("5\n");
-   UG_ConsolePutString("4\n");
-   UG_ConsolePutString("3\n");
-   UG_ConsolePutString("2\n");
-   UG_ConsolePutString("1\n");
-   UG_ConsolePutString("0\n");
-   */
-
-  /*
    UG_FontSelect(&MY_FONT_8X12);
    static const char degC[] = { 31, 'C', 0 };
    UG_ConsolePutString(degC);

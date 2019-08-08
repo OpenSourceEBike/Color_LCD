@@ -157,13 +157,15 @@ static uint16_t fakeWave(uint32_t *storage, uint16_t minv, uint16_t maxv) {
  */
 void parse_simmotor() {
 
-    const uint32_t min_bat10x = 400, max_bat10x = 546, max_cur10x = 140;
-    static uint32_t votestore, curstore, speedstore, cadencestore, tempstore;
+    const uint32_t min_bat10x = 400;
+    const uint32_t max_bat10x = 546;
+    const uint32_t max_cur10x = 140;
+    static uint32_t voltstore, curstore, speedstore, cadencestore, tempstore;
 
     // per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
     // l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
-    l2_vars.ui16_adc_battery_voltage = fakeWave(&votestore, min_bat10x, max_bat10x) * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
-
+    l2_vars.ui16_adc_battery_voltage = fakeWave(&voltstore, min_bat10x, max_bat10x) * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+    // l2_vars.ui16_adc_battery_voltage = max_bat10x * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
 
     // battery current drain x5
     l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
@@ -633,8 +635,8 @@ void screen_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-//  if(first_time_management())
-//    return;
+  if(first_time_management())
+    return;
 
   // update_menu_flashing_state();
 
@@ -2086,7 +2088,7 @@ void calc_battery_soc_watts_hour(void)
   }
 
   // 100% - current SOC or just current SOC
-  if (l3_vars.ui8_battery_soc_increment_decrement)
+  if (!l3_vars.ui8_battery_soc_increment_decrement)
   {
     if (ui32_temp > 100)
       ui32_temp = 100;

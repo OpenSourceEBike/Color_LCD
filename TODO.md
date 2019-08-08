@@ -1,8 +1,7 @@
 # TODO tasks remaining before initial alpha release
 
-* improve sim a bit for soc dev
-* BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
-* BUG: walk assist power boost is way too low
+* retest SOC on bike
+* retest walk assist - power boost is way too low
 * show trip distance on info screen
 * show motor temp on info screen
 * use a bigger font for motor power (more like the spec)
@@ -90,6 +89,8 @@ the GUI thread.  Use two buffers + a ptr.
 * install on kevin's bike
 * use battery icon
 * Run layer2 from a 100ms timer tick
+* BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
+* improve sim a bit for soc dev
 
 # Misc notes from kevin not yet formatted
 

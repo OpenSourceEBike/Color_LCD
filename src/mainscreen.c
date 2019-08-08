@@ -597,8 +597,8 @@ Field socField = FIELD_DRAWTEXT(&FONT_5X12);
 Field batteryField = FIELD_DRAWTEXT(&MY_FONT_BATTERY);
 Field timeField = FIELD_DRAWTEXT(&FONT_5X12);
 Field speedField = FIELD_DRAWTEXT(&FONT_16X26);
-Field assistLevelField = FIELD_DRAWTEXT(&FONT_12X20);
-Field maxPowerField = FIELD_DRAWTEXT(&MY_FONT_8X12);
+Field assistLevelField = FIELD_DRAWTEXT(&FONT_24X40);
+Field maxPowerField = FIELD_DRAWTEXT(&FONT_10X16);
 Field humanPowerField = FIELD_DRAWTEXT(&FONT_5X12);
 Field whiteFillField = { .variant = FieldFill };
 Field meshFillField = { .variant = FieldMesh };
@@ -635,40 +635,36 @@ Screen mainScreen = {
     },
     {
         .x = 0, .y = 16,
-        .width = -1, .height = -1,
+        .width = 0, .height = -1,
         .field = &assistLevelField,
-        .border = BorderBox
+        .border = BorderBottom
     },
+    /*
     {
         .x = 19, .y = 16,
         .width = -2, .height = -1,
         // .color = ColorInvert,
         .field = &speedField,
-        .border = BorderBox
-    },
-    {
-        .x = 0, .y = 48,
-        .width = -6, .height = -1,
-        .field = &maxPowerField
-    },
-    {
-        .x = 0, .y = 68,
-        .width = 64, .height = 1,
-        .field = &whiteFillField
-    },
-    {
-        .x = 24, .y = 69,
-        .width = -6, .height = -1,
-        .color = ColorNormal,
-        .field = &humanPowerField
-    },
-    /* placeholder for a graph
-    {
-        .x = 0, .y = 69 + 12,
-        .width = 64, .height = 32,
-        .color = ColorNormal,
-        .field = &meshFillField
+        .border = BorderNone
     }, */
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &maxPowerField,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &motorTempField,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &tripDistanceField,
+        .border = BorderBottom
+    },
     {
         .x = 4, .y = 114,
         .width = -3, .height = -1,
@@ -683,6 +679,7 @@ Screen mainScreen = {
         .field = NULL
     } }
 };
+
 
 
 void mainscreen_show(void) {
@@ -823,64 +820,6 @@ void trip_time(void)
 
   p_time = rtc_get_time_since_startup();
 
-#if 0
-  static print_number_t hours =
-  {
-    .font = &FONT_24X40,
-    .fore_color = C_WHITE,
-    .back_color = C_BLACK,
-    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
-    .ui8_field_number_of_digits = 2,
-    .ui8_left_zero_paddig = 0,
-  };
-
-  static print_number_t minutes =
-  {
-    .font = &FONT_24X40,
-    .fore_color = C_WHITE,
-    .back_color = C_BLACK,
-    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
-    .ui8_field_number_of_digits = 2,
-    .ui8_left_zero_paddig = 1,
-  };
-
-  if(m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
-    UG_FontSelect(&FONT_10X16);
-    UG_PutString(28, 244, "trip time");
-  }
-
-  if ((trip_time.ui8_minutes != trip_time_previous.ui8_minutes) ||
-      m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    trip_time_previous.ui8_hours = trip_time.ui8_hours;
-    trip_time_previous.ui8_minutes = trip_time.ui8_minutes;
-
-    // print hours number
-    ui32_x_position = 21;
-    ui32_y_position = 268;
-    hours.ui32_x_position = ui32_x_position;
-    hours.ui32_y_position = ui32_y_position;
-    hours.ui32_number = trip_time.ui8_hours;
-    hours.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
-    lcd_print_number(&hours);
-
-    // print ":"
-    ui32_x_position = hours.ui32_x_final_position;
-    ui32_y_position = hours.ui32_y_final_position;
-    UG_PutChar(58, ui32_x_position, ui32_y_position, C_WHITE, C_BLACK);
-    ui32_x_position += minutes.font->char_width; // x width from ":"
-
-    // print minutes number
-    minutes.ui32_x_position = ui32_x_position;
-    minutes.ui32_y_position = ui32_y_position;
-    minutes.ui32_number = trip_time.ui8_minutes;
-    minutes.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
-    lcd_print_number(&minutes);
-  }
-#endif
   fieldPrintf(&tripTimeField, "%02d:%02d",  p_time->ui8_hours,  p_time->ui8_minutes);
 }
 
@@ -901,45 +840,7 @@ void trip_distance(void)
     l3_vars.ui32_wheel_speed_sensor_tick_counter_offset = l3_vars.ui32_wheel_speed_sensor_tick_counter;
   }
 
-#if 0
-  static print_number_t trip_distance =
-  {
-    .font = &FONT_24X40,
-    .fore_color = C_WHITE,
-    .back_color = C_BLACK,
-    .ui32_x_position = 32,
-    .ui32_y_position = 191,
-    .ui8_previous_digits_array = {255, 255, 255, 255, 255},
-    .ui8_field_number_of_digits = 4,
-    .ui8_left_zero_paddig = 0,
-    .ui32_number = 0,
-    .ui8_refresh_all_digits = 1,
-    .ui8_decimal_digits = 1
-  };
-
-  if(m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    UG_SetBackcolor(C_BLACK);
-    UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
-    UG_FontSelect(&FONT_10X16);
-    UG_PutString(8, 164, "trip distance");
-  }
-
-  uint32_t ui32_trip_distance = l3_vars.ui16_distance_since_power_on_x10;
-  if((ui32_trip_distance != ui32_trip_distance_previous) ||
-      m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    ui32_trip_distance_previous = ui32_trip_distance;
-
-    // print the number
-    trip_distance.ui32_number = ui32_trip_distance;
-//    trip_distance.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
-    trip_distance.ui8_refresh_all_digits = 1; // seems that decimal number needs always refresh other way there is an issue with print the "."
-    lcd_print_number(&trip_distance);
-    trip_distance.ui8_refresh_all_digits = 0;
-  }
-#endif
-  fieldPrintf(&tripDistanceField, "%2d", l3_vars.ui16_distance_since_power_on_x10 / 10);
+  fieldPrintf(&tripDistanceField, "%d.%d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
 }
 
 
@@ -1732,7 +1633,7 @@ void temperature(void)
 #endif
   if(l3_vars.ui8_temperature_limit_feature_enabled)
   {
-    fieldPrintf(&motorTempField, "%3dC", l3_vars.ui8_motor_temperature);
+    fieldPrintf(&motorTempField, "%dC", l3_vars.ui8_motor_temperature);
   }
 }
 
@@ -1944,7 +1845,7 @@ void power(void)
     }
   }
 #endif
-  fieldPrintf(&maxPowerField, "%4d W", l3_vars.ui16_battery_power_filtered);
+  fieldPrintf(&maxPowerField, "%dW", l3_vars.ui16_battery_power_filtered);
 
 }
 

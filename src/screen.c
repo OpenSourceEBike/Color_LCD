@@ -98,8 +98,15 @@ static bool renderDrawText(FieldLayout *layout)
   if(layout->width < 0)
     layout->width = -layout->width * (field->drawText.font->char_width + gui.char_h_space);
 
+  // how many pixels does our rendered string
+  UG_S16 strwidth = (field->drawText.font->char_width + gui.char_h_space) * strlen(field->drawText.msg);
+
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
+  UG_S16 x = layout->x;
+
+  if(strwidth < width) // If the user gave us more space than we need, center justify within that box
+    x += (width - strwidth) / 2;
 
   UG_FontSelect(field->drawText.font);
   UG_COLOR back = getBackColor(layout);
@@ -109,7 +116,7 @@ static bool renderDrawText(FieldLayout *layout)
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
-  UG_PutString(layout->x + 1, layout->y, field->drawText.msg);
+  UG_PutString(x + 1, layout->y, field->drawText.msg);
   return true;
 }
 
@@ -153,42 +160,23 @@ static void drawSelectionMarker(FieldLayout *layout)
 static void drawBorder(FieldLayout *layout)
 {
   UG_COLOR color = getForeColor(layout);
+  int fatness = (layout->border & BorderFat) ? 2 : 1;
 
-  switch (layout->border)
-  {
-  case BorderTop:
+  if(layout->border & BorderTop)
     UG_DrawLine(layout->x, layout->y, layout->x + layout->width - 1, layout->y,
         color); // top
-    break;
 
-  case BorderBottom:
-    UG_DrawLine(layout->x, layout->y + layout->height - 1,
+  if(layout->border & BorderBottom)
+    UG_FillFrame(layout->x, layout->y + layout->height - fatness,
         layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
-    break;
 
-  case BorderBottomFat:
-    UG_FillFrame(layout->x, layout->y + layout->height - 2,
-        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
-    break;
-
-  case BorderBox:
+  if(layout->border & BorderLeft)
     UG_DrawLine(layout->x, layout->y, layout->x, layout->y + layout->height - 1,
-        color); // left
+            color); // left
+
+  if(layout->border & BorderRight)
     UG_DrawLine(layout->x + layout->width - 1, layout->y,
-        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // right
-    UG_DrawLine(layout->x, layout->y + layout->height - 1,
-        layout->x + layout->width - 1, layout->y + layout->height - 1, color); // bottom
-    UG_DrawLine(layout->x, layout->y, layout->x + layout->width - 1, layout->y,
-        color); // top
-    break;
-
-  case BorderNone:
-    break;
-
-  default:
-    assert(0);
-  }
-
+            layout->x + layout->width - 1, layout->y + layout->height - 1, color); // right
 }
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
@@ -198,6 +186,8 @@ const Coord screenWidth = 64, screenHeight = 128; // FIXME, for larger devices a
 const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 {
   bool didDraw = false; // we only render to hardware if something changed
+
+  Coord maxy = 0;
 
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
@@ -212,7 +202,14 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       if (layout->height == 0)
         layout->height = screenHeight - layout->y;
 
+      if(layout->y == -1)
+        layout->y = maxy;
+
       didDraw |= renderers[layout->field->variant](layout);
+
+      // After the renderer has run, cache the highest Y we have seen (for entries that have y = -1 for auto assignment)
+      if(layout->y + layout->height > maxy)
+        maxy = layout->y + layout->height;
 
       drawSelectionMarker(layout);
       drawBorder(layout);
@@ -318,7 +315,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           fieldPrintf(&heading, "%s", field->scrollable.label);
           r->field = &heading;
           r->color = ColorNormal;
-          r->border = BorderBottomFat;
+          r->border = BorderBottom | BorderFat;
         }
         else
         {

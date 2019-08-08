@@ -173,10 +173,12 @@ typedef int16_t Coord; // Change to int16_t for screens wider/longer than 128, s
 
 typedef enum {
   BorderNone = 0,
-  BorderBottom,
-  BorderTop,
-  BorderBox, // left,right,bottom,top
-  BorderBottomFat // two pixels tall
+  BorderBottom = (1 << 0),
+  BorderTop = (1 << 1),
+  BorderLeft = (1 << 2),
+  BorderRight = (1 << 3),
+  BorderFat = (1 << 4), // two pixels tall
+  BorderBox = BorderLeft | BorderRight | BorderTop | BorderBottom, // left,right,bottom,top
   // define others as needed
 } BorderOp;
 
@@ -185,7 +187,7 @@ typedef enum {
  * Defines the layout of a field on a particular screen
  */
 typedef struct {
-  Coord x, y;
+  Coord x, y; // a y==-1 means, start just below the previous lowest point on the screen
 
   // for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width
   // For all other cases, width is in pixels

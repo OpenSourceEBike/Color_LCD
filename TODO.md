@@ -1,11 +1,19 @@
 # TODO tasks remaining before initial alpha release
 
+* review new 850C changes from new 850C branch, changes after 7/22
+* split info screen
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land? can no longer repro possibly heap corruption?
+* show trip distance on info screen
+* show motor temp on info screen
+* use a bigger font for motor power (more like the spec)
 * properly scale all config values (including x25 values)
-* install on kevin's bike
-* fix power fields to blink as needed
+* test cruise button
+* only allow walk mode when speeds are legal
+* show temp warnings
+* fix startup boost config entries
 * let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
-* update wiki with end-user readable wiring instructions (add to existing LCD3/850C table)
+* update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
 * change mainscreen layout defs to more closely match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * show motor faults promenantly on main screen
@@ -14,6 +22,12 @@
 
 # TODO tasks for beta release
 
+* move font selection out of Field and into FieldLayout
+* investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
+* fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
+* fix power fields to blink as needed
+* show motor temp alerts
+* show power limiting alerts (due to PWM or temp or whatever)
 * successful installation/usage report from at least one alpha user/dev
 * add a watchdog handler
 * make fields customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
@@ -21,8 +35,6 @@
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
-* use battery icon
-
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * pack & align eeprom 
@@ -34,9 +46,11 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
 * merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
 * clean up button handling and take advantage of extra button on the SW102
+* don't bother wasting CPU cycles to update Fields that are currently not being shown to the user
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
+* LowPerformer idea to only use the numbers for bigger fonts to save flash. (USE_FONT_24X40 costs 30KB of flash space for instance)
 
 # Completed TODO work items
 
@@ -71,6 +85,16 @@ the GUI thread.  Use two buffers + a ptr.
 * add a border line between each config entry
 * add motorsim so I can move my real motor to my bike but still continue dev
 * make a boot screen with version info, battery voltage (detected locally), and "looking for motor" (show until we've had motor comms for 5 seconds)
+* soc battery capacity needs a larger stepsize
+* install on kevin's bike
+* use battery icon
+* Run layer2 from a 100ms timer tick
+* BUG: Soc is wrong on bike, debug in simulator (starts at 0% SOC and goes up to 200% after 20% of battery consumed)
+* improve sim a bit for soc dev
+* show volts or SOC in top left
+* idle shutdown timer
+* retest SOC on bike
+* retest walk assist - power boost is way too low
 
 # Misc notes from kevin not yet formatted
 

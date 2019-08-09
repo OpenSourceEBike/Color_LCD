@@ -21,6 +21,7 @@
 #include "nrf_delay.h"
 #include "nrf_soc.h"
 #include "adc.h"
+#include "hardfault.h"
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
@@ -40,12 +41,13 @@ bool is_sim_motor; // true if we are simulating a motor (and therefore not talki
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 
-APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
-#define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
-volatile uint32_t seconds_since_startup, seconds_since_reset;
+// APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
+// #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
+
+#define MSEC_PER_TICK 20
 
 APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
-#define GUI_INTERVAL APP_TIMER_TICKS(20/*ms*/, APP_TIMER_PRESCALER)
+#define GUI_INTERVAL APP_TIMER_TICKS(MSEC_PER_TICK, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
 Field faultHeading = FIELD_DRAWTEXT(&MY_FONT_8X12, .msg = "FAULT");
@@ -71,7 +73,7 @@ Screen faultScreen = {
 
 Field bootHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "OpenSource EBike");
 Field bootVersion = FIELD_DRAWTEXT(&FONT_5X12, .msg = VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "No motor?");
+Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "Booting...");
 
 
 
@@ -184,36 +186,29 @@ int main(void)
   // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
-  UG_ConsoleSetArea(0, 0, 63, 127);
+
+
+
+  /*   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
-  /*
-   UG_FontSelect(&MY_FONT_BATTERY);
-   UG_ConsolePutString("5\n");
-   UG_ConsolePutString("4\n");
-   UG_ConsolePutString("3\n");
-   UG_ConsolePutString("2\n");
-   UG_ConsolePutString("1\n");
-   UG_ConsolePutString("0\n");
-   */
-
-  /*
    UG_FontSelect(&MY_FONT_8X12);
    static const char degC[] = { 31, 'C', 0 };
    UG_ConsolePutString(degC);
    */
 
-  // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
-  while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_up_state())
-    ;
 
   screenShow(&bootScreen);
 
-  // APP_ERROR_HANDLER(5);
+  // After we show the bootscreen...
+  // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
+  while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
+    ;
 
   // Enter main loop.
 
   uint32_t lasttick = 0;
+  uint32_t start_time = get_seconds();
   while (1)
   {
     uint32_t tick = gui_ticks;
@@ -253,8 +248,8 @@ int main(void)
       else
         fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
 
-      // Stop showing the boot screen after a few seconds
-      if(seconds_since_startup >= 3)
+      // Stop showing the boot screen after a few seconds (once we've found a motor)
+      if(get_seconds() - start_time >= 5 && (has_seen_motor || is_sim_motor))
         showNextScreen();
     }
 
@@ -308,19 +303,29 @@ static void button_poll_timer_timeout(void *p_context)
 }
 #endif
 
-static void seconds_timer_timeout(void *p_context)
-{
-  UNUSED_PARAMETER(p_context);
 
-  seconds_since_startup++;
-  seconds_since_reset++;
-}
+static uint32_t seconds = 0;
 
 static void gui_timer_timeout(void *p_context)
 {
   UNUSED_PARAMETER(p_context);
 
   gui_ticks++;
+  if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
+    layer_2();
+
+  if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
+    seconds++;
+}
+
+
+/// msecs since boot (note: will roll over every 50 days)
+uint32_t get_msecs() {
+  return gui_ticks * MSEC_PER_TICK;
+}
+
+uint32_t get_seconds() {
+  return seconds;
 }
 
 static void init_app_timers(void)
@@ -345,10 +350,6 @@ static void init_app_timers(void)
 
   // Create&Start timers.
   APP_ERROR_CHECK(
-      app_timer_create(&seconds_timer_id, APP_TIMER_MODE_REPEATED,
-          seconds_timer_timeout));
-  APP_ERROR_CHECK(app_timer_start(seconds_timer_id, SECONDS_INTERVAL, NULL));
-  APP_ERROR_CHECK(
       app_timer_create(&gui_timer_id, APP_TIMER_MODE_REPEATED,
           gui_timer_timeout));
   APP_ERROR_CHECK(app_timer_start(gui_timer_id, GUI_INTERVAL, NULL));
@@ -364,6 +365,8 @@ static inline void debugger_break(void)
 
 // Standard app error codes
 #define FAULT_SOFTDEVICE 1
+#define FAULT_HARDFAULT 2
+#define FAULT_NRFASSERT 3
 #define FAULT_GCC_ASSERT 10
 
 // handle standard gcc assert failures
@@ -374,6 +377,14 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line,
 
   app_error_fault_handler(FAULT_GCC_ASSERT, 0, (uint32_t) &errinfo);
   abort();
+}
+
+
+/// Called for critical hardfaults by the CPU - note - p_stack might be null, if we've overrun our main stack, in that case stack history is unavailable
+void HardFault_process  ( HardFault_stack_t *   p_stack ) {
+  uint32_t pc = !p_stack ? 0 : p_stack->pc;
+
+  app_error_fault_handler(FAULT_GCC_ASSERT, pc, (uint32_t) &p_stack);
 }
 
 /**@brief Function for assert macro callback.
@@ -389,7 +400,9 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line,
  */
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name)
 {
-  app_error_handler(0xdeadbeef, line_num, p_file_name);
+  error_info_t errinfo = { .line_num = line_num, .p_file_name = p_file_name, .err_code = FAULT_NRFASSERT };
+
+  app_error_fault_handler(FAULT_NRFASSERT, 0, (uint32_t) &errinfo);
 }
 
 /**@brief       Callback function for errors, asserts, and faults.
@@ -437,6 +450,16 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     fieldPrintf(&infoCode, "%s:%d",
         einfo->p_file_name ? (const char*) einfo->p_file_name : "",
         einfo->line_num);
+    break;
+  case FAULT_HARDFAULT:
+    if(!info)
+      fieldPrintf(&infoCode, "stk overflow");
+    else {
+      HardFault_stack_t *hs = (HardFault_stack_t *) info;
+
+      fieldPrintf(&infoCode, "%x:%x",
+        hs->r12, hs->lr);
+    }
     break;
   case FAULT_SOFTDEVICE:
     fieldPrintf(&infoCode, "softdevice");

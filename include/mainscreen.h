@@ -63,7 +63,7 @@ typedef struct l2_vars_struct
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
   uint8_t ui8_motor_temperature_max_value_to_limit;
-  uint8_t ui8_lcd_power_off_time_minutes;
+  // uint8_t ui8_lcd_power_off_time_minutes;
   uint8_t ui8_lcd_backlight_on_brightness;
   uint8_t ui8_lcd_backlight_off_brightness;
   uint8_t ui8_offroad_feature_enabled;
@@ -168,5 +168,6 @@ extern l3_vars_t l3_vars;
 
 void mainscreen_show();
 void screen_clock(); // call every 20ms
+void layer_2(void);
 
 extern Screen mainScreen;

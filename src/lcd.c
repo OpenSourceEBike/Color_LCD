@@ -38,7 +38,24 @@ extern UG_GUI gui;
 uint8_t frameBuffer[16][64];
 
 /* Init sequence sampled by casainho from original SW102 display */
-const uint8_t init_array[] = { 0xAE, 0xA8, 0x3F, 0xD5, 0x50, 0xC0, 0xD3, 0x60, 0xDC, 0x00, 0x20, 0x81, 0xBF, 0xA0, 0xA4, 0xA6, 0xAD, 0x8A, 0xD9, 0x1F, 0xDB, 0x30, 0xAF };
+const uint8_t init_array[] = {
+    0xAE, // 11. display on
+    0xA8, 0x3F, // set multiplex ratio 3f
+    0xD5, 0x50, // set display divite/oscillator ratios
+    0xC0, // set common scan dir
+    0xD3, 0x60, // ???
+    0xDC, 0x00,  // set display start line
+    0x20, // set memory address mode
+    0x81, 0xFF, // Set contrast level (POR value is 0x80, but closed source software uses 0xBF
+    0xA0, // set segment remap
+    0xA4, // set normal display mode
+    0xA6, // not inverted
+    0xAD, 0x8A, // set DC-DC converter
+    0xD9, 0x1F, // set discharge/precharge period
+    0xDB, 0x30, // set common output voltage
+    0xAF // turn display on
+    };
+
 
 /* SPI instance */
 const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(LCD_SPI_INSTANCE);
@@ -120,7 +137,7 @@ void lcd_refresh(void)
   for (uint8_t i = 0; i < 16; i++)
   {
     // New page address
-    send_cmd(addr++);
+    send_cmd(addr++); // set page address
     send_cmd(0x00);
     send_cmd(0x10);
     // send page data

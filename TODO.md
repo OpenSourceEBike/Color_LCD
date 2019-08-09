@@ -22,34 +22,32 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 * move motor temp to info screen
 * put speed back into main screen
 * add cadence back to main screen (if it fits readably, otherwise move the info screen)
-* uncomment offroad mode?
-* fix hang when saving after turning on motor temp - something seems wonky in FDS land? can no longer repro now - possibly heap corruption do ptr badness somewhere else?  Will watch for it.
-* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * include units on speed
 * label assist on main screen
+* let user edit maxpower from the mainscreen
+* fix power fields to blink as needed
+* uncomment offroad mode?
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land? Note: can no longer repro now - possibly heap corruption do ptr badness somewhere else?  Will watch for it.
+* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * move font selection out of Field and into FieldLayout
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
-* fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
-* fix power fields to blink as needed
 * show motor temp alerts
 * show power limiting alerts (due to PWM or temp or whatever)
 * successful installation/usage report from at least one alpha user/dev
 * add a watchdog handler
-* make fields customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
-* when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
-* make selection in menus prettier
-* change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
 * do eeprom GC if flash is full (currently only done at boot)
 * Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
-* change mainscreen layout defs to more closely match the v2 version of casain's spec
 
-# TODO tasks for future releases
+# Tasks for future releases
+After the initial 1.0 release the following features can go into 1.1
 
+* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
+* add a graph field type which can be used to graph any parameter vs time.  Allow this new graph type to be plopped into any of the standard layouts/screens
 * dim screen when the headlight is on
 * Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
 * merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
@@ -106,6 +104,8 @@ the GUI thread.  Use two buffers + a ptr.
 * let button press exit fault screen (or have it timeout?)
 * review new 850C changes from new 850C branch, changes after 7/22
 * use a bigger font for motor power (more like the spec)
+* when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
+* make selection in menus prettier
 
 # Misc notes from kevin not yet formatted
 

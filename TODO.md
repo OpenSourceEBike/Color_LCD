@@ -40,9 +40,11 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * pack & align eeprom 
 * implement a watchdog function
 * do eeprom GC if flash is full (currently only done at boot)
+* Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want
 
 # TODO tasks for future releases
 
+* dim screen when the headlight is on
 * Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
 * merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
 * clean up button handling and take advantage of extra button on the SW102

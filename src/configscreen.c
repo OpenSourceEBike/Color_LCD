@@ -22,7 +22,7 @@ static Field batteryMenus[] = {
 
 static Field socMenus[] = {
     FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_battery_soc_enable, "disable", "enable"),
-    FIELD_EDITABLE_ENUM("Show % full", &l3_vars.ui8_battery_soc_increment_decrement, "%full", "%used"),
+    FIELD_EDITABLE_ENUM("Show", &l3_vars.ui8_battery_soc_increment_decrement, "%full", "%used"),
     FIELD_EDITABLE_UINT("Reset threshold", &l3_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
     FIELD_EDITABLE_UINT("Battery total", &l3_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .inc_step = 10),
     FIELD_EDITABLE_UINT("Used", &l3_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
@@ -59,8 +59,8 @@ static Field walkAssistMenus[] = {
 
 static Field startupPowerMenus[] = {
     FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_startup_motor_power_boost_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
-    FIELD_EDITABLE_ENUM("Active on", &l3_vars.ui8_startup_motor_power_boost_state, "startup", "always"), // huge FIXME - this is wrong, make boost enable a sepearate boolean - see 850C code
-    FIELD_EDITABLE_ENUM("FIXME-lim max", &l3_vars.ui8_startup_motor_power_boost_state, "no", "yes"),
+    FIELD_EDITABLE_ENUM("Active on", &l3_vars.ui8_startup_motor_power_boost_always, "startup", "always"),
+    FIELD_EDITABLE_ENUM("Limit to max-power", &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
     FIELD_EDITABLE_UINT("Duration", &l3_vars.ui8_startup_motor_power_boost_time, "secs", 0, 255, .div_digits = 1),
     FIELD_EDITABLE_UINT("Fade", &l3_vars.ui8_startup_motor_power_boost_fade_time, "secs", 0, 255, .div_digits = 1),
     FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_startup_motor_power_boost_factor[0], "", 0, 255, .div_digits = 1),

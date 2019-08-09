@@ -1,9 +1,7 @@
 # TODO tasks remaining before initial alpha release
-We define alpha releases as: Not feature complete list, but functional and probably safe.
+We define alpha releases as: Not feature complete, but functional and probably safe.
 
 * properly scale all config values (including x25 values)
-* test that we only allow walk mode when speeds are legal
-* fix startup boost config entries
 * update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
 * delete dead code in mainscreen.c
 * confirm fault screen can't mess up a running bike (i.e. in cruise mode or walk assist mode) - ask casainho
@@ -46,6 +44,7 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 # Tasks for future releases
 After the initial 1.0 release the following features can go into 1.1
 
+* setup the local analog comparator to compare Vbat to a min voltage (19V or whatever).  If it falls below that voltage assume user just killed the power at the battery and quickly write settings to flash.  Only feasible if oscope timing shows we have enough time before the CPU voltage fails for this to be worth bothering with.
 * let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * add a graph field type which can be used to graph any parameter vs time.  Allow this new graph type to be plopped into any of the standard layouts/screens
 * dim screen when the headlight is on
@@ -107,6 +106,9 @@ the GUI thread.  Use two buffers + a ptr.
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
 * fix hang when saving after turning on motor temp - something seems wonky in FDS land? 
+* test that we only allow walk mode when speeds are legal
+* fix startup boost config entries
+* save ODO to flash on shutdown
 
 # Misc notes from kevin not yet formatted
 

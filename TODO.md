@@ -1,6 +1,8 @@
 # TODO tasks remaining before initial alpha release
 
-* fix hang when saving after turning on motor temp - something seems wonky in FDS land
+* review new 850C changes from new 850C branch, changes after 7/22
+* split info screen
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land? can no longer repro possibly heap corruption?
 * show trip distance on info screen
 * show motor temp on info screen
 * use a bigger font for motor power (more like the spec)

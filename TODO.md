@@ -1,5 +1,6 @@
 # TODO tasks remaining before initial alpha release
 
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land
 * show trip distance on info screen
 * show motor temp on info screen
 * use a bigger font for motor power (more like the spec)
@@ -19,6 +20,7 @@
 
 # TODO tasks for beta release
 
+* move font selection out of Field and into FieldLayout
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
 * fix special max power button - possibly just have a different screen for high power driving?  what is the usecase of maxpower mode?
 * fix power fields to blink as needed
@@ -31,7 +33,6 @@
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
-
 * change fault screen to be serviced via the regular main loop (but only for first fault, to prevent bricking the user's ability to powerdown/reboot in the case of really serious faults)
 * make a shutdown screen
 * pack & align eeprom 
@@ -43,9 +44,11 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
 * merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
 * clean up button handling and take advantage of extra button on the SW102
+* don't bother wasting CPU cycles to update Fields that are currently not being shown to the user
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
+* LowPerformer idea to only use the numbers for bigger fonts to save flash.
 
 # Completed TODO work items
 

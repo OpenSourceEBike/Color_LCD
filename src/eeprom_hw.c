@@ -100,24 +100,25 @@ bool flash_write_words(const void *value, uint16_t length_words)
   else
     APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
 
-  for (int count = 0; count < 1000 && !write_done; count++) {
+  for (volatile int count = 0; count < 1000 && !write_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }
 
-  return true;
+  return write_done;
 }
 
-static void wait_gc()
+static bool wait_gc()
 {
   gc_done = false;
   fds_gc();
-  for (int count = 0; count < 1000 && !gc_done; count++) {
+  for (volatile int count = 0; count < 1000 && !gc_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }
   // Note: this can fail if the soft device is not enabled (normally performed in ble init)
   // assert(gc_done);
+  return gc_done;
 }
 
 /**
@@ -128,7 +129,7 @@ void eeprom_hw_init(void)
   APP_ERROR_CHECK(fds_register(fds_evt_handler));
 
   APP_ERROR_CHECK(fds_init());
-  for (int count = 0; count < 1000 && !init_done; count++) {
+  for (volatile int count = 0; count < 1000 && !init_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);
   }

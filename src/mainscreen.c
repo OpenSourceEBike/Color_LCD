@@ -117,6 +117,7 @@ void lcd_main_screen(void)
   walk_assist_state();
 //  offroad_mode();
   power();
+  temperature();
   pedal_human_power();
   battery_soc();
   battery_display();

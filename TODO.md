@@ -1,8 +1,8 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete list, but functional and probably safe.
 
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land? 
 * properly scale all config values (including x25 values)
-* test cruise mode and fix as needed
 * test that we only allow walk mode when speeds are legal
 * fix startup boost config entries
 * update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
@@ -15,6 +15,8 @@ Note: there will probably be a few alpha releases based on user bug reports and 
 will declare beta.
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.
 
+* Implement cruise mode (also missing in 850C)
+* Implement offroad mode(also missing in 850C)
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
 * put secondary data on a new "info" screen
@@ -27,7 +29,6 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 * let user edit maxpower from the mainscreen
 * fix power fields to blink as needed
 * uncomment offroad mode?
-* fix hang when saving after turning on motor temp - something seems wonky in FDS land? Note: can no longer repro now - possibly heap corruption do ptr badness somewhere else?  Will watch for it.
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * move font selection out of Field and into FieldLayout
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter

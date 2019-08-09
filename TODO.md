@@ -1,6 +1,7 @@
 # TODO tasks remaining before initial alpha release
 
 * review new 850C changes from new 850C branch, changes after 7/22
+* uncomment offroad mode
 * split info screen
 * fix hang when saving after turning on motor temp - something seems wonky in FDS land? can no longer repro possibly heap corruption?
 * show trip distance on info screen
@@ -11,13 +12,12 @@
 * only allow walk mode when speeds are legal
 * show temp warnings
 * fix startup boost config entries
-* let button press exit fault screen (or have it timeout?)
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
 * change mainscreen layout defs to more closely match the v2 version of casain's spec
 * delete dead code in mainscreen.c
 * show motor faults promenantly on main screen
-* make fault screen reboot after a short period of time - confirm that it doesn't mess up on a running bike
+* confirm fault screen can't mess up a running bike (i.e. in cruise mode or walk assist mode)
 * initial release
 
 # TODO tasks for beta release
@@ -97,6 +97,7 @@ the GUI thread.  Use two buffers + a ptr.
 * idle shutdown timer
 * retest SOC on bike
 * retest walk assist - power boost is way too low
+* let button press exit fault screen (or have it timeout?)
 
 # Misc notes from kevin not yet formatted
 

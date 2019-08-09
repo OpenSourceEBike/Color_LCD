@@ -512,14 +512,20 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
   panicScreenShow(&faultScreen);
 
-  if(id == FAULT_SOFTDEVICE)
-    return; // kevinh, see if we can silently continue - softdevice might be messed up but at least we can continue debugging?
+  //if(id == FAULT_SOFTDEVICE) (did not work - failed experiment)
+  //  return; // kevinh, see if we can silently continue - softdevice might be messed up but at least we can continue debugging?
 
-  debugger_break(); // FIXME, only do if debugging, instead show the end user error screen
+  if(is_sim_motor)
+    debugger_break(); // if debugging, try to drop into the debugger
 
-  // FIXME - instead we should wait a few seconds and then reboot
+  // loop until the user presses the pwr button then reboot
+  buttons_clear_all_events(); // require a new press
   while (1) {
-    nrf_delay_ms(1000);
+    if(buttons_get_onoff_click_event())
+      sd_nvic_SystemReset();
+
+    nrf_delay_ms(20);
+    buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
   }
 }
 

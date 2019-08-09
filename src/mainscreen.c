@@ -57,7 +57,6 @@ void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void l2_low_pass_filter_battery_voltage_current_power(void);
 void calc_battery_soc_watts_hour(void);
-//static void l2_automatic_power_off_management(void);
 void brake(void);
 void walk_assist_state(void);
 void wheel_speed(void);
@@ -480,37 +479,6 @@ static void l2_calc_odometer(void)
   }
 }
 
-static void l2_automatic_power_off_management(void)
-{
-  static uint32_t ui16_lcd_power_off_time_counter = 0;
-
-  if(l3_vars.ui8_lcd_power_off_time_minutes != 0)
-  {
-    // see if we should reset the automatic power off minutes counter
-    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
-        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
-        (l3_vars.ui8_braking) ||                // braking
-        buttons_get_events())                                 // any button active
-    {
-      ui16_lcd_power_off_time_counter = 0;
-    }
-    else
-    {
-      // increment the automatic power off ticks counter
-      ui16_lcd_power_off_time_counter++;
-
-      // check if we should power off the LCD
-      if(ui16_lcd_power_off_time_counter >= (l3_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) // have we passed our timeout?
-      {
-        lcd_power_off(1);
-      }
-    }
-  }
-  else
-  {
-    ui16_lcd_power_off_time_counter = 0;
-  }
-}
 
 static void l2_low_pass_filter_pedal_cadence(void)
 {
@@ -549,7 +517,6 @@ void layer_2(void)
   l2_calc_battery_voltage_soc();
   l2_calc_odometer();
   l2_calc_wh();
-  l2_automatic_power_off_management();
 
   // graphs_measurements_update();
   /************************************************************************************************/

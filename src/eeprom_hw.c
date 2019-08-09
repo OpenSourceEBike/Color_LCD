@@ -54,7 +54,8 @@ bool flash_read_words(void *dest, uint16_t length_words)
 
   bool did_read = false;
 
-  memset(&ftok, 0x00, sizeof(fds_find_token_t));
+  memset(&record_desc, 0x00, sizeof(record_desc));
+  memset(&ftok, 0x00, sizeof(ftok));
   // Loop until all records with the given key and file ID have been found.
   while (fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok) == FDS_SUCCESS)
   {
@@ -79,6 +80,8 @@ bool flash_write_words(const void *value, uint16_t length_words)
   fds_find_token_t ftok;
 
   // Do we already have one of these records?
+  memset(&record_desc, 0x00, sizeof(record_desc));
+  memset(&ftok, 0x00, sizeof(ftok));
   bool has_old = fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok)
       == FDS_SUCCESS;
 

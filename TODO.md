@@ -1,7 +1,6 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete list, but functional and probably safe.
 
-* fix hang when saving after turning on motor temp - something seems wonky in FDS land? 
 * properly scale all config values (including x25 values)
 * test that we only allow walk mode when speeds are legal
 * fix startup boost config entries
@@ -107,6 +106,7 @@ the GUI thread.  Use two buffers + a ptr.
 * use a bigger font for motor power (more like the spec)
 * when editables are selected invert the entire background, not just each character (current approach has an ugly black line between chars)  possibly just fix the bug in ugui putstring
 * make selection in menus prettier
+* fix hang when saving after turning on motor temp - something seems wonky in FDS land? 
 
 # Misc notes from kevin not yet formatted
 

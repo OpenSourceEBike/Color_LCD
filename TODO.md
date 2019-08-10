@@ -1,17 +1,16 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete, but functional and probably safe.
 
-* properly scale all config values (including x25 values)
-* update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table)
-* delete dead code in mainscreen.c
-* confirm fault screen can't mess up a running bike (i.e. in cruise mode or walk assist mode) - ask casainho
-* initial release
+* update wiki with end-user readable wiring instructions (already added to existing LCD3/850C table) - tell user to use a soldering iron like this, and the 3.3V connector
 
 # TODO tasks for beta release
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.
 
+* test with 0.20 motor code
+* delete dead code in mainscreen.c
+* display faults shouldn't mess up a running bike (i.e. in cruise mode or walk assist mode) - we should have the motor controller stop the motor if it doesn't hear from the display for X seconds?
 * Implement cruise mode (also missing in 850C)
 * Implement offroad mode(also missing in 850C)
 * show temp warnings on main screen
@@ -25,7 +24,7 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 * label assist on main screen
 * let user edit maxpower from the mainscreen
 * fix power fields to blink as needed
-* uncomment offroad mode?
+* uncomment offroad mode - and fix the config editing of the div25 field it use
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * move font selection out of Field and into FieldLayout
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter

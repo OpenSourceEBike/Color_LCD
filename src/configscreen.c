@@ -88,6 +88,7 @@ static Field displayMenus[] = {
     FIELD_END
 };
 
+#if 0
 static Field offroadMenus[] = {
     FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_offroad_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
     FIELD_EDITABLE_ENUM("Active on start", &l3_vars.ui8_offroad_enabled_on_startup, "no", "yes"), // FIXME, share one array of disable/enable strings
@@ -96,6 +97,7 @@ static Field offroadMenus[] = {
     FIELD_EDITABLE_UINT("Power limit", &l3_vars.ui8_offroad_power_limit_div25, "watt", 0, 2000), // huge FIXME - div25 can't work with this system, change it
     FIELD_END
 };
+#endif
 
 static Field variousMenus[] = {
     FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
@@ -125,7 +127,7 @@ static Field topMenus[] = {
     FIELD_SCROLLABLE("Startup power", startupPowerMenus),
     FIELD_SCROLLABLE("Motor temperature", motorTempMenus),
     FIELD_SCROLLABLE("Display", displayMenus),
-    FIELD_SCROLLABLE("Offroad", offroadMenus),
+    // FIELD_SCROLLABLE("Offroad", offroadMenus),
     FIELD_SCROLLABLE("Various", variousMenus),
     FIELD_SCROLLABLE("Technical", technicalMenus),
     FIELD_END

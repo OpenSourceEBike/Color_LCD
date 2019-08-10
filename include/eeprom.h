@@ -16,8 +16,14 @@
 #define ADDRESS_KEY 0
 #define KEY 1
 
+// For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
+// changes bump up EEPROM_VERSION and the user's EEPROM settings will be discarded.
+#define EEPROM_VERSION 0x10
+
 typedef struct eeprom_data
 {
+  uint8_t eeprom_version;  // Used to detect changes in eeprom encoding, if != EEPROM_VERSION we will not use it
+
   uint8_t ui8_assist_level;
   uint16_t ui16_wheel_perimeter;
   uint8_t ui8_wheel_max_speed;
@@ -34,7 +40,8 @@ typedef struct eeprom_data
   uint8_t ui8_assist_level_factor[9];
   uint8_t ui8_number_of_assist_levels;
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
-  uint8_t ui8_startup_motor_power_boost_state;
+  uint8_t ui8_startup_motor_power_boost_always;
+  uint8_t ui8_startup_motor_power_boost_limit_power;
   uint8_t ui8_startup_motor_power_boost_factor[9];
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
@@ -101,7 +108,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    18
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    20
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED     0
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE               1
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS              1
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      4
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_2      7
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_3      10

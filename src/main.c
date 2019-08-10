@@ -104,11 +104,7 @@ static void init_app_timers(void);
 
 void lcd_power_off(uint8_t updateDistanceOdo)
 {
-//  if (updateDistanceOdo)
-//  {
   l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
-//    l3_vars.ui32_odometer_x10 += ((uint32_t) l3_vars.ui16_odometer_distance_x10);
-//  }
 
 // save the variables on EEPROM
   eeprom_write_variables();

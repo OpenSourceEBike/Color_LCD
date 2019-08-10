@@ -17,7 +17,8 @@
 static eeprom_data_t m_eeprom_data;
 
 eeprom_data_t m_eeprom_data_defaults =
-    { .ui8_assist_level = DEFAULT_VALUE_ASSIST_LEVEL, .ui16_wheel_perimeter =
+    { .eeprom_version = EEPROM_VERSION,
+        .ui8_assist_level = DEFAULT_VALUE_ASSIST_LEVEL, .ui16_wheel_perimeter =
         DEFAULT_VALUE_WHEEL_PERIMETER, .ui8_wheel_max_speed =
         DEFAULT_VALUE_WHEEL_MAX_SPEED, .ui8_units_type =
         DEFAULT_VALUE_UNITS_TYPE, .ui32_wh_x10_offset =
@@ -45,8 +46,8 @@ eeprom_data_t m_eeprom_data_defaults =
             DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS,
         .ui8_startup_motor_power_boost_feature_enabled =
             DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED,
-        .ui8_startup_motor_power_boost_state =
-            DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
+        .ui8_startup_motor_power_boost_always =
+            DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS,
         .ui8_startup_motor_power_boost_factor = {
         DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
         DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,
@@ -115,7 +116,7 @@ void eeprom_init()
 
   // read the values from EEPROM to array
   memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
-  if (!flash_read_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t)))
+  if (!flash_read_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t)) || m_eeprom_data.eeprom_version != EEPROM_VERSION)
     // If we are using default data it doesn't get written to flash until someone calls write
     memcpy(&m_eeprom_data, &m_eeprom_data_defaults, sizeof(m_eeprom_data_defaults));
 
@@ -180,8 +181,10 @@ void eeprom_init_variables(void)
       m_eeprom_data.ui8_number_of_assist_levels;
   p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled =
       m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled;
-  p_l3_output_vars->ui8_startup_motor_power_boost_state =
-      m_eeprom_data.ui8_startup_motor_power_boost_state;
+  p_l3_output_vars->ui8_startup_motor_power_boost_limit_power =
+      m_eeprom_data.ui8_startup_motor_power_boost_limit_power;
+  p_l3_output_vars->ui8_startup_motor_power_boost_always =
+      m_eeprom_data.ui8_startup_motor_power_boost_always;
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[0] =
       m_eeprom_data.ui8_startup_motor_power_boost_factor[0];
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[1] =
@@ -269,7 +272,9 @@ void eeprom_write_variables(void)
   // p_lcd_configurations_menu = get_lcd_configurations_menu();
 
   // write vars to eeprom struct
-  memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
+  // Note: we don't clear eeprom_data before writing to it, because we want to preserve any defaults from m_eeprom_data_defaults
+  // memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
+
   m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
   m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
   m_eeprom_data.ui8_wheel_max_speed = p_l3_output_vars->ui8_wheel_max_speed;
@@ -314,8 +319,10 @@ void eeprom_write_variables(void)
       p_l3_output_vars->ui8_number_of_assist_levels;
   m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled =
       p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled;
-  m_eeprom_data.ui8_startup_motor_power_boost_state =
-      p_l3_output_vars->ui8_startup_motor_power_boost_state;
+  m_eeprom_data.ui8_startup_motor_power_boost_always =
+      p_l3_output_vars->ui8_startup_motor_power_boost_always;
+  m_eeprom_data.ui8_startup_motor_power_boost_limit_power =
+      p_l3_output_vars->ui8_startup_motor_power_boost_limit_power;
   m_eeprom_data.ui8_startup_motor_power_boost_factor[0] =
       p_l3_output_vars->ui8_startup_motor_power_boost_factor[0];
   m_eeprom_data.ui8_startup_motor_power_boost_factor[1] =

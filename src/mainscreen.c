@@ -391,8 +391,8 @@ void send_tx_package(void)
     case 3:
       ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_motor_type;
 
-      ui8_g_usart1_tx_buffer[6] = (l2_vars.ui8_startup_motor_power_boost_state & 1) |
-                          ((l2_vars.ui8_startup_motor_power_boost_state & 1) << 1);
+      ui8_g_usart1_tx_buffer[6] = (l2_vars.ui8_startup_motor_power_boost_always ? 1 : 0) |
+                          (l2_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
     break;
 
     case 4:
@@ -475,7 +475,22 @@ static void l2_calc_odometer(void)
     else { uint32_temp = 0; }
 
     // now store the value on the global variable
-    l2_vars.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
+    // l2_vars.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
+
+    // calculate how many revolutions since last reset and convert to distance traveled
+    uint32_t ui32_temp = (l3_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset) * ((uint32_t) l3_vars.ui16_wheel_perimeter);
+
+    // if traveled distance is more than 100 meters update all distance variables and reset
+    if (ui32_temp >= 100000) // 100000 -> 100000 mm -> 0.1 km
+    {
+      // update all distance variables
+      // l3_vars.ui16_distance_since_power_on_x10 += 1;
+      l3_vars.ui32_odometer_x10 += 1;
+      l3_vars.ui32_trip_x10 += 1;
+
+      // reset the always incrementing value (up to motor controller power reset) by setting the offset to current value
+      l3_vars.ui32_wheel_speed_sensor_tick_counter_offset = l3_vars.ui32_wheel_speed_sensor_tick_counter;
+    }
   }
 }
 
@@ -575,6 +590,7 @@ Field lightField = FIELD_DRAWTEXT(&FONT_5X12);
 
 Field tripTimeField = FIELD_DRAWTEXT(&FONT_5X12);
 Field tripDistanceField = FIELD_DRAWTEXT(&FONT_5X12);
+Field odoField = FIELD_DRAWTEXT(&FONT_5X12);
 Field motorTempField = FIELD_DRAWTEXT(&FONT_5X12);
 
 //
@@ -793,22 +809,8 @@ void trip_time(void)
 
 void trip_distance(void)
 {
-  // calculate how many revolutions since last reset and convert to distance traveled
-  uint32_t ui32_temp = (l3_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset) * ((uint32_t) l3_vars.ui16_wheel_perimeter);
-
-  // if traveled distance is more than 100 meters update all distance variables and reset
-  if (ui32_temp >= 100000) // 100000 -> 100000 mm -> 0.1 km
-  {
-    // update all distance variables
-    l3_vars.ui16_distance_since_power_on_x10 += 1;
-    l3_vars.ui32_odometer_x10 += 1;
-    l3_vars.ui32_trip_x10 += 1;
-
-    // reset the always incrementing value (up to motor controller power reset) by setting the offset to current value
-    l3_vars.ui32_wheel_speed_sensor_tick_counter_offset = l3_vars.ui32_wheel_speed_sensor_tick_counter;
-  }
-
-  fieldPrintf(&tripDistanceField, "%d.%d", l3_vars.ui16_distance_since_power_on_x10 / 10, l3_vars.ui16_distance_since_power_on_x10 % 10);
+  fieldPrintf(&tripDistanceField, "%d.%d", l3_vars.ui32_trip_x10 / 10, l3_vars.ui32_trip_x10 % 10);
+  fieldPrintf(&odoField, "%d.%d", l3_vars.ui32_odometer_x10 / 10, l3_vars.ui32_odometer_x10 % 10);
 }
 
 
@@ -2264,7 +2266,8 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
   l2_vars.ui8_motor_assistance_startup_without_pedal_rotation = l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
   l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
-  l2_vars.ui8_startup_motor_power_boost_state = l3_vars.ui8_startup_motor_power_boost_state;
+  l2_vars.ui8_startup_motor_power_boost_always = l3_vars.ui8_startup_motor_power_boost_always;
+  l2_vars.ui8_startup_motor_power_boost_limit_power = l3_vars.ui8_startup_motor_power_boost_limit_power;
   l2_vars.ui8_startup_motor_power_boost_time = l3_vars.ui8_startup_motor_power_boost_time;
   l2_vars.ui8_startup_motor_power_boost_factor[1] = l3_vars.ui8_startup_motor_power_boost_factor[0];
   l2_vars.ui8_startup_motor_power_boost_factor[2] = l3_vars.ui8_startup_motor_power_boost_factor[1];

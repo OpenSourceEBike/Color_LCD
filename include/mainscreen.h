@@ -56,7 +56,8 @@ typedef struct l2_vars_struct
   uint8_t ui8_walk_assist_feature_enabled;
   uint8_t ui8_walk_assist_level_factor[10];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
-  uint8_t ui8_startup_motor_power_boost_state;
+  uint8_t ui8_startup_motor_power_boost_always;
+  uint8_t ui8_startup_motor_power_boost_limit_power;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
   uint8_t ui8_startup_motor_power_boost_factor[10];
@@ -71,7 +72,7 @@ typedef struct l2_vars_struct
   uint8_t ui8_offroad_speed_limit;
   uint8_t ui8_offroad_power_limit_enabled;
   uint8_t ui8_offroad_power_limit_div25;
-  uint16_t ui16_odometer_distance_x10;
+  // uint16_t ui16_odometer_distance_x10;
   uint32_t ui32_odometer_x10;
 
   uint8_t ui8_lights;
@@ -135,7 +136,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_walk_assist_feature_enabled;
   uint8_t ui8_walk_assist_level_factor[9];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
-  uint8_t ui8_startup_motor_power_boost_state;
+  uint8_t ui8_startup_motor_power_boost_always;
+  uint8_t ui8_startup_motor_power_boost_limit_power;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
   uint8_t ui8_startup_motor_power_boost_factor[9];
@@ -150,9 +152,9 @@ typedef struct l3_vars_struct
   uint8_t ui8_offroad_speed_limit;
   uint8_t ui8_offroad_power_limit_enabled;
   uint8_t ui8_offroad_power_limit_div25;
-  uint16_t ui16_odometer_distance_x10;
+  // uint16_t ui16_odometer_distance_x10;
   uint32_t ui32_odometer_x10;
-  uint16_t ui16_distance_since_power_on_x10;
+  // uint16_t ui16_distance_since_power_on_x10;
   uint32_t ui32_trip_x10;
 
   uint8_t ui8_lights;

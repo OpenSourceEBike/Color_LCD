@@ -15,6 +15,7 @@ will declare beta.
 * Implement cruise mode (also missing in 850C)
 * Implement offroad mode(also missing in 850C)
 * show temp warnings on main screen
+* merge walk/brake into a single status line with other faults
 * show motor faults promenantly on main screen
 * put speed back into main screen
 * add cadence back to main screen (if it fits readably, otherwise move the info screen)

@@ -652,13 +652,13 @@ Screen mainScreen = {
         .border = BorderNone
     }, */
     {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
+        .x = 0, .y = -3,
+        .width = 0, .height = 20,
         .field = &maxPowerField,
         .border = BorderBottom
     },
     {
-        .x = 0, .y = -1,
+        .x = 0, .y = -3,
         .width = 0, .height = -1,
         .field = &speedField,
         .border = BorderNone

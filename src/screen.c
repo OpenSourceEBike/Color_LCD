@@ -202,8 +202,9 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       if (layout->height == 0)
         layout->height = screenHeight - layout->y;
 
-      if(layout->y == -1)
-        layout->y = maxy;
+      // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
+      if(layout->y < 0)
+        layout->y = maxy + -layout->y + 1;
 
       didDraw |= renderers[layout->field->variant](layout);
 

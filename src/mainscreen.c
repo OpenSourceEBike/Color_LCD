@@ -579,7 +579,7 @@ uint8_t first_time_management(void)
 Field socField = FIELD_DRAWTEXT(&FONT_5X12);
 Field batteryField = FIELD_DRAWTEXT(&MY_FONT_BATTERY);
 Field timeField = FIELD_DRAWTEXT(&FONT_5X12);
-Field speedField = FIELD_DRAWTEXT(&FONT_10X16);
+Field speedField = FIELD_DRAWTEXT(&FONT_24X40);
 Field assistLevelField = FIELD_DRAWTEXT(&FONT_24X40);
 Field maxPowerField = FIELD_DRAWTEXT(&FONT_10X16);
 Field humanPowerField = FIELD_DRAWTEXT(&FONT_5X12);
@@ -593,6 +593,42 @@ Field tripDistanceField = FIELD_DRAWTEXT(&FONT_5X12);
 Field odoField = FIELD_DRAWTEXT(&FONT_5X12);
 Field motorTempField = FIELD_DRAWTEXT(&FONT_5X12);
 
+/**
+ * Appears at the bottom of all screens, includes status msgs or critical fault alerts
+ * FIXME - get rid of this nasty define - instead add the concept of Subscreens, so that the battery bar
+ * at the top and the status bar at the bottom can be shared across all screens
+ */
+#define STATUS_BAR \
+{ \
+    .x = 4, .y = 114, \
+    .width = -3, .height = -1, \
+    .field = &brakeField \
+}, \
+{ \
+    .x = 34, .y = 114, \
+    .width = -4, .height = -1, \
+    .field = &lightField \
+}
+
+#define BATTERY_BAR \
+    { \
+        .x = 0, .y = 0, \
+        .width = -1, .height = -1, \
+        .field = &batteryField \
+    }, \
+    { \
+        .x = 32, .y = 0, \
+        .width = -5, .height = -1, \
+        .field = &socField \
+    }
+/*
+{
+    .x = 32, .y = 0,
+    .width = -5, .height = -1,
+    .field = &tripTimeField
+},
+*/
+
 //
 // Screens
 //
@@ -600,25 +636,9 @@ Screen mainScreen = {
     .onPress = mainscreen_onpress,
 
     .fields = {
+    BATTERY_BAR,
     {
-        .x = 0, .y = 0,
-        .width = -1, .height = -1,
-        .field = &batteryField
-    },
-    /*
-    {
-        .x = 32, .y = 0,
-        .width = -5, .height = -1,
-        .field = &tripTimeField
-    },
-    */
-    {
-        .x = 32, .y = 0,
-        .width = -5, .height = -1,
-        .field = &socField
-    },
-    {
-        .x = 0, .y = 16,
+        .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &assistLevelField,
         .border = BorderBottom
@@ -632,11 +652,28 @@ Screen mainScreen = {
         .border = BorderNone
     }, */
     {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
+        .x = 0, .y = -3,
+        .width = 0, .height = 20,
         .field = &maxPowerField,
         .border = BorderBottom
     },
+    {
+        .x = 0, .y = -3,
+        .width = 0, .height = -1,
+        .field = &speedField,
+        .border = BorderNone
+    },
+    STATUS_BAR,
+    {
+        .field = NULL
+    } }
+};
+
+Screen infoScreen = {
+    // .onPress = mainscreen_onpress,
+
+    .fields = {
+    BATTERY_BAR,
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
@@ -646,19 +683,22 @@ Screen mainScreen = {
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
+        .field = &humanPowerField,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
         .field = &tripDistanceField,
         .border = BorderBottom
     },
     {
-        .x = 4, .y = 114,
-        .width = -3, .height = -1,
-        .field = &brakeField
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &odoField,
+        .border = BorderBottom
     },
-    {
-        .x = 34, .y = 114,
-        .width = -4, .height = -1,
-        .field = &lightField
-    },
+    STATUS_BAR,
     {
         .field = NULL
     } }
@@ -795,7 +835,6 @@ void assist_level_state(void)
 
   fieldPrintf(&assistLevelField, "%d", l3_vars.ui8_assist_level);
 }
-
 
 
 void trip_time(void)
@@ -1604,6 +1643,9 @@ void temperature(void)
   if(l3_vars.ui8_temperature_limit_feature_enabled)
   {
     fieldPrintf(&motorTempField, "%dC", l3_vars.ui8_motor_temperature);
+  }
+  else {
+    fieldPrintf(&motorTempField, "no temp");
   }
 }
 

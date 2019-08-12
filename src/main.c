@@ -164,6 +164,7 @@ static void automatic_power_off_management(void)
 // Screens in a loop, shown when the user short presses the power button
 static Screen *screens[] = {
     &mainScreen,
+    &infoScreen,
     &configScreen,
     NULL
 };

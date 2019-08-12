@@ -187,7 +187,7 @@ typedef enum {
  * Defines the layout of a field on a particular screen
  */
 typedef struct {
-  Coord x, y; // a y==-1 means, start just below the previous lowest point on the screen
+  Coord x, y; // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
 
   // for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width
   // For all other cases, width is in pixels

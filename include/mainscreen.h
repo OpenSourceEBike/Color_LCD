@@ -172,4 +172,4 @@ void mainscreen_show();
 void screen_clock(); // call every 20ms
 void layer_2(void);
 
-extern Screen mainScreen;
+extern Screen mainScreen, infoScreen;

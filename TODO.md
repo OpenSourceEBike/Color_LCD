@@ -19,7 +19,7 @@ will declare beta.
 * show motor faults promenantly on main screen
 * include units on speed
 * label assist on main screen
-* let user edit maxpower from the mainscreen
+* let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
 * uncomment offroad mode - and fix the config editing of the div25 field it use
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)

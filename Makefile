@@ -37,6 +37,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/ble_services.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
+  $(PROJ_DIR)/src/state.c \
   $(PROJ_DIR)/src/adc.c \
   $(PROJ_DIR)/src/eeprom.c \
   $(PROJ_DIR)/src/eeprom_hw.c \

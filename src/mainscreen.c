@@ -653,7 +653,7 @@ Screen mainScreen = {
     }, */
     {
         .x = 0, .y = -3,
-        .width = 0, .height = 20,
+        .width = 0, .height = 19,
         .field = &maxPowerField,
         .border = BorderBottom
     },

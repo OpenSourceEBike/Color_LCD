@@ -23,7 +23,7 @@
 // define to enable the (not yet used) serial service
 // #define BLE_SERIAL
 // define to able reporting speed and cadence via bluetooth
-// #define BLE_CSC
+#define BLE_CSC
 // define to enable reporting battery SOC via bluetooth
 #define BLE_BAS
 
@@ -151,6 +151,55 @@ static uint32_t m_cumulative_wheel_revs;                                        
 static bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
 
 
+#define WHEEL_CIRCUMFERENCE_MM          2100                                        /**< Simulated wheel circumference in millimeters. */
+#define KPH_TO_MM_PER_SEC               278                                         /**< Constant to convert kilometers per hour into millimeters per second. */
+
+#define DEGREES_PER_REVOLUTION          360                                         /**< Constant used in simulation for calculating crank speed. */
+#define RPM_TO_DEGREES_PER_SEC          6                                           /**< Constant to convert revolutions per minute into degrees per second. */
+
+static void csc_measurement(ble_cscs_meas_t * p_measurement)
+{
+    static uint16_t cumulative_crank_revs = 0;
+    static uint16_t event_time            = 0;
+    static uint16_t wheel_revolution_mm   = 0;
+    static uint16_t crank_rev_degrees     = 0;
+
+    uint16_t mm_per_sec;
+    uint16_t degrees_per_sec;
+    uint16_t event_time_inc;
+
+    // Per specification event time is in 1/1024th's of a second.
+    event_time_inc = (1024 * SPEED_AND_CADENCE_MEAS_INTERVAL) / 1000;
+
+    // Calculate simulated wheel revolution values.
+    p_measurement->is_wheel_rev_data_present = true;
+
+    mm_per_sec = KPH_TO_MM_PER_SEC * 20;
+
+    wheel_revolution_mm     += mm_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    m_cumulative_wheel_revs += wheel_revolution_mm / WHEEL_CIRCUMFERENCE_MM;
+    wheel_revolution_mm     %= WHEEL_CIRCUMFERENCE_MM;
+
+    p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
+    p_measurement->last_wheel_event_time =
+        event_time + (event_time_inc * (mm_per_sec - wheel_revolution_mm) / mm_per_sec);
+
+    // Calculate simulated cadence values.
+    p_measurement->is_crank_rev_data_present = true;
+
+    degrees_per_sec = RPM_TO_DEGREES_PER_SEC * 50;
+
+    crank_rev_degrees     += degrees_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    cumulative_crank_revs += crank_rev_degrees / DEGREES_PER_REVOLUTION;
+    crank_rev_degrees     %= DEGREES_PER_REVOLUTION;
+
+    p_measurement->cumulative_crank_revs = cumulative_crank_revs;
+    p_measurement->last_crank_event_time =
+        event_time + (event_time_inc * (degrees_per_sec - crank_rev_degrees) / degrees_per_sec);
+
+    event_time += event_time_inc;
+}
+
 /**@brief Function for handling the Cycling Speed and Cadence measurement timer timeouts.
  *
  * @details This function will be called each time the cycling speed and cadence
@@ -166,7 +215,7 @@ static void csc_meas_timeout_handler(void * p_context)
 
     UNUSED_PARAMETER(p_context);
 
-    csc_sim_measurement(&cscs_measurement);
+    csc_measurement(&cscs_measurement);
 
     err_code = ble_cscs_measurement_send(&m_cscs, &cscs_measurement);
     if ((err_code != NRF_SUCCESS) &&
@@ -237,9 +286,9 @@ static void csc_init() {
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.write_perm);      // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.cccd_write_perm); // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
 
-  cscs_init.ctrplt_supported_functions = BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED
-                                         | BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
-                                         | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED;
+  cscs_init.ctrplt_supported_functions = /* BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED | */
+                                         BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
+                                         /* | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED */;
   cscs_init.ctrlpt_evt_handler            = sc_ctrlpt_event_handler;
   cscs_init.list_supported_locations      = supported_locations;
   cscs_init.size_list_supported_locations = sizeof(supported_locations) /
@@ -251,8 +300,11 @@ static void csc_init() {
 
   APP_ERROR_CHECK(ble_cscs_init(&m_cscs, &cscs_init));
 
-  err_code = app_timer_start(m_csc_meas_timer_id, SPEED_AND_CADENCE_MEAS_INTERVAL, NULL);
-  APP_ERROR_CHECK(err_code);
+  APP_ERROR_CHECK(app_timer_create(&m_csc_meas_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              csc_meas_timeout_handler));
+
+  APP_ERROR_CHECK(app_timer_start(m_csc_meas_timer_id, SPEED_AND_CADENCE_MEAS_INTERVAL, NULL));
 }
 
 #endif

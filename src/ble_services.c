@@ -19,6 +19,9 @@
 #include "ble_dis.h"
 #include "fds.h"
 
+// define to enable the (not yet used) serial service
+// #define BLE_SERIAL
+
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
 #if (NRF_SD_BLE_API_VERSION == 3)
@@ -31,8 +34,7 @@
 #define PERIPHERAL_LINK_COUNT           1                                           /**< Number of peripheral links used by the application. When changing this number remember to adjust the RAM settings*/
 
 #define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "github:OpenSource-EBike-firmware"
-#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+#define MANUFACTURER_NAME               "https://github.com/OpenSource-EBike-firmware"
 
 #define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
@@ -45,14 +47,21 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
+#ifdef BLE_SERIAL
+#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+#endif
+
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
 static ble_uuid_t                       m_adv_uuids[] = {
     {BLE_UUID_CYCLING_SPEED_AND_CADENCE, BLE_UUID_TYPE_BLE},
     {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
     {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
+#ifdef BLE_SERIAL
     {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+#endif
 };  /**< Universally unique service identifier. */
 
 static ble_bas_t  m_bas;                                                            /**< Structure used to identify the battery service. */
@@ -100,6 +109,7 @@ static void gap_params_init(void)
 }
 
 
+#ifdef BLE_SERIAL
 /**@brief Function for handling the data from the Nordic UART Service.
  *
  * @param[in] p_nus    Nordic UART Service structure.
@@ -108,8 +118,20 @@ static void gap_params_init(void)
  */
 static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t length)
 {
-
+ // fixme
 }
+
+// Init the serial port service
+static void serial_init()
+{
+  ble_nus_init_t nus_init;
+  memset(&nus_init, 0, sizeof(nus_init));
+
+  nus_init.data_handler = nus_data_handler;
+
+  APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
+}
+#endif
 
 /**@brief Function for handling Speed and Cadence Control point events
  *
@@ -141,14 +163,9 @@ ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
  */
 static void services_init(void)
 {
-    // Init the serial port service
-
-    ble_nus_init_t nus_init;
-    memset(&nus_init, 0, sizeof(nus_init));
-
-    nus_init.data_handler = nus_data_handler;
-
-    APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
+#ifdef BLE_SERIAL
+    serial_init();
+#endif
 
     ble_cscs_init_t       cscs_init;
     ble_bas_init_t        bas_init;
@@ -209,6 +226,8 @@ static void services_init(void)
 
     APP_ERROR_CHECK(ble_dis_init(&dis_init));
 }
+
+
 
 
 /**@brief Function for handling an event from the Connection Parameters Module.
@@ -380,7 +399,9 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
     ble_conn_params_on_ble_evt(p_ble_evt);
+#ifdef BLE_SERIAL
     ble_nus_on_ble_evt(&m_nus, p_ble_evt);
+#endif
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
 }

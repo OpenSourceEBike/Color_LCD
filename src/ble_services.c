@@ -18,13 +18,14 @@
 #include "ble_cscs.h"
 #include "ble_dis.h"
 #include "fds.h"
+#include "mainscreen.h"
 
 // define to enable the (not yet used) serial service
 // #define BLE_SERIAL
 // define to able reporting speed and cadence via bluetooth
 // #define BLE_CSC
 // define to enable reporting battery SOC via bluetooth
-// #define BLE_BAS
+#define BLE_BAS
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -126,6 +127,11 @@ static void serial_init()
 #endif
 
 #ifdef BLE_CSC
+
+#define SPEED_AND_CADENCE_MEAS_INTERVAL APP_TIMER_TICKS(1000, APP_TIMER_PRESCALER)  /**< Speed and cadence measurement interval (milliseconds). */
+
+
+APP_TIMER_DEF(m_csc_meas_timer_id);                                                 /**< CSC measurement timer. */
 
 static ble_sensor_location_t supported_locations[] = {BLE_SENSOR_LOCATION_FRONT_WHEEL,
                                                       BLE_SENSOR_LOCATION_LEFT_CRANK,
@@ -244,13 +250,52 @@ static void csc_init() {
   BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_sensor_loc_attr_md.read_perm); // for the sensor location characteristic, only the read permission can be set by the application, others are mendated by service specification
 
   APP_ERROR_CHECK(ble_cscs_init(&m_cscs, &cscs_init));
+
+  err_code = app_timer_start(m_csc_meas_timer_id, SPEED_AND_CADENCE_MEAS_INTERVAL, NULL);
+  APP_ERROR_CHECK(err_code);
 }
 
 #endif
 
 #ifdef BLE_BAS
 
+#define BATTERY_LEVEL_MEAS_INTERVAL     APP_TIMER_TICKS(2000, APP_TIMER_PRESCALER)  /**< Battery level measurement interval (ticks). */
+
+APP_TIMER_DEF(m_battery_timer_id);                                                  /**< Battery timer. */
 static ble_bas_t  m_bas;                                                            /**< Structure used to identify the battery service. */
+
+/**@brief Function for performing battery measurement and updating the Battery Level characteristic
+ *        in Battery Service.
+ */
+static void battery_level_update(void)
+{
+    uint32_t err_code;
+    uint8_t  battery_level = l3_vars.volt_based_soc; // from 0 to 100
+
+    err_code = ble_bas_battery_level_update(&m_bas, battery_level);
+    if ((err_code != NRF_SUCCESS) &&
+        (err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != BLE_ERROR_NO_TX_PACKETS) &&
+        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+       )
+    {
+        APP_ERROR_HANDLER(err_code);
+    }
+}
+
+
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the battery level measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void battery_level_meas_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    battery_level_update();
+}
 
 static void bas_init() {
   // Initialize Battery Service.
@@ -270,6 +315,12 @@ static void bas_init() {
   bas_init.initial_batt_level   = 100;
 
   APP_ERROR_CHECK(ble_bas_init(&m_bas, &bas_init));
+
+  APP_ERROR_CHECK(app_timer_create(&m_battery_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              battery_level_meas_timeout_handler));
+
+  APP_ERROR_CHECK(app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL));
 }
 #endif
 

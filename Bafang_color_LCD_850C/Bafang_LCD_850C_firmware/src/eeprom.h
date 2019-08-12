@@ -13,7 +13,7 @@
 #include "lcd_configurations.h"
 
 #define ADDRESS_KEY 0
-#define KEY 2
+#define KEY 3
 
 typedef struct eeprom_data
 {
@@ -55,6 +55,7 @@ typedef struct eeprom_data
   uint8_t ui8_walk_assist_level_factor[10];
   lcd_configurations_menu_t lcd_configurations_menu;
   graphs_id_t graph_id;
+  uint8_t ui8_battery_soc_increment_decrement;
 } eeprom_data_t;
 
 void eeprom_init(void);

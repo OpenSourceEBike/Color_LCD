@@ -496,11 +496,7 @@ void layer_2(void)
   l2_calc_wh();
 //  automatic_power_off_management();
 
-  // start update graphs only after a startup delay to avoid wrong values of the variables
-  if(ui32_g_first_time == 0)
-  {
-    graphs_measurements_update();
-  }
+  graphs_measurements_update();
   /************************************************************************************************/
 }
 
@@ -508,6 +504,7 @@ uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
   static uint32_t ui32_counter = 0;
+  uint8_t ui8_status = 0;
 
   // count 10 seconds
   if(++ui32_counter > 500 &&
@@ -516,8 +513,14 @@ uint8_t first_time_management(void)
     ui32_g_first_time = 0;
   }
 
-  // this will be executed only 1 time at startup
+  // don't update LCD up to we get first communication package from the motor controller
   if(ui8_motor_controller_init &&
+      (ui8_m_usart1_received_first_package < 10))
+  {
+    ui8_status = 1;
+  }
+  // this will be executed only 1 time at startup
+  else if(ui8_motor_controller_init &&
       ui32_g_first_time == 0)
   {
     ui8_motor_controller_init = 0;
@@ -536,7 +539,7 @@ uint8_t first_time_management(void)
     }
   }
 
-  return ui32_g_first_time;
+  return ui8_status;
 }
 
 void assist_level_state(void)
@@ -2214,72 +2217,76 @@ void graphs_measurements_update(void)
   graphs_id_t graph_id = 0;
   uint32_t ui32_temp;
 
-  for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
+  // start update graphs only after a startup delay to avoid wrong values of the variables
+  if(ui32_g_first_time == 0)
   {
-    switch(graph_id)
+    for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
     {
-      case GRAPH_WHEEL_SPEED:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_wheel_speed_x10;
-      break;
+      switch(graph_id)
+      {
+        case GRAPH_WHEEL_SPEED:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_wheel_speed_x10;
+        break;
 
-      case GRAPH_PEDAL_HUMAN_POWER:
-        // apply the same low pass filter as for the value show to user
-        ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-        ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+        case GRAPH_PEDAL_HUMAN_POWER:
+          // apply the same low pass filter as for the value show to user
+          ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+          ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
 
-        // sum the value
-        m_p_graphs[graph_id].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-      break;
+          // sum the value
+          m_p_graphs[graph_id].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+        break;
 
-      case GRAPH_PEDAL_CADENCE:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui8_pedal_cadence_filtered;
-      break;
+        case GRAPH_PEDAL_CADENCE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_pedal_cadence_filtered;
+        break;
 
-      case GRAPH_BATTERY_VOLTAGE:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_battery_voltage_filtered_x10;
-      break;
+        case GRAPH_BATTERY_VOLTAGE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_voltage_filtered_x10;
+        break;
 
-      case GRAPH_BATTERY_CURRENT:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_battery_current_filtered_x5 * 2; // x10
-      break;
+        case GRAPH_BATTERY_CURRENT:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_current_filtered_x5 * 2; // x10
+        break;
 
-      case GRAPH_BATTERY_SOC:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            ui16_m_battery_soc_watts_hour_fixed;
-      break;
+        case GRAPH_BATTERY_SOC:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              ui16_m_battery_soc_watts_hour_fixed;
+        break;
 
-      case GRAPH_MOTOR_POWER:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_battery_power_filtered;
-      break;
+        case GRAPH_MOTOR_POWER:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_power_filtered;
+        break;
 
-      case GRAPH_MOTOR_TEMPERATURE:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui8_motor_temperature;
-      break;
+        case GRAPH_MOTOR_TEMPERATURE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_motor_temperature;
+        break;
 
-      case GRAPH_MOTOR_PWM_DUTY_CYCLE:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui8_duty_cycle;
-      break;
+        case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_duty_cycle;
+        break;
 
-      case GRAPH_MOTOR_ERPS:
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            l3_vars.ui16_motor_speed_erps;
-      break;
+        case GRAPH_MOTOR_ERPS:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_motor_speed_erps;
+        break;
 
-      case GRAPH_MOTOR_FOC_ANGLE:
-        ui32_temp = l3_vars.ui8_foc_angle * 140; // each 1 unit equals to 1.4 degrees
-        m_p_graphs[graph_id].measurement.ui32_sum_value +=
-            ui32_temp;
-      break;
+        case GRAPH_MOTOR_FOC_ANGLE:
+          ui32_temp = l3_vars.ui8_foc_angle * 140; // each 1 unit equals to 1.4 degrees
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              ui32_temp;
+        break;
 
-      default:
-      break;
+        default:
+        break;
+      }
     }
   }
 

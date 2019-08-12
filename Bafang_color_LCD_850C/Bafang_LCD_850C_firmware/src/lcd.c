@@ -158,7 +158,9 @@ void lcd_clock(void)
   }
 
   // enter in menu set power: ONOFF + UP click event
-  if(buttons_get_onoff_state() && buttons_get_up_state())
+  if(m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
+      buttons_get_onoff_long_click_event() &&
+      buttons_get_up_long_click_event())
   {
     buttons_clear_all_events();
     m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_POWER;
@@ -729,7 +731,9 @@ void trip_distance(void)
 void power_off_management(void)
 {
   if(buttons_get_onoff_long_click_event() &&
-    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
+    buttons_get_up_state() == 0 &&
+    buttons_get_down_state() == 0)
   {
     lcd_power_off(1);
   }
@@ -956,8 +960,8 @@ void update_menu_flashing_state(void)
   static uint8_t ui8_lcd_menu_counter_1000ms = 0;
 
   // ***************************************************************************************************
-  // For flashing on menus, 0.2 seconds flash
-  if (ui8_lcd_menu_flash_counter++ > 20)
+  // For flashing on menus, 0.15 seconds flash
+  if (ui8_lcd_menu_flash_counter++ > 15)
   {
     ui8_lcd_menu_flash_counter = 0;
 
@@ -1650,9 +1654,6 @@ void power(void)
   }
   else if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_POWER)
   {
-    // because this click envent can happens and will block the detection of button_onoff_long_click_event
-    buttons_clear_onoff_click_event();
-
     // leave this menu with a button_onoff_long_click
     if(buttons_get_onoff_long_click_event())
     {
@@ -1663,8 +1664,6 @@ void power(void)
 
       // save the updated variables on EEPROM
       eeprom_write_variables();
-
-      buttons_clear_all_events();
       return;
     }
 
@@ -1685,7 +1684,7 @@ void power(void)
       if(l3_vars.ui8_target_max_battery_power > 100) { l3_vars.ui8_target_max_battery_power = 100; }
     }
 
-    if(buttons_get_down_click_event ())
+    if(buttons_get_down_click_event())
     {
       buttons_clear_all_events();
 
@@ -2380,7 +2379,7 @@ void walk_assist_state(void)
 void change_graph(void)
 {
   // see if we should enter the MAIN_SCREEN_STATE_CHANGE_GRAPH
-  if(buttons_get_onoff_click_event() &&
+  if(buttons_get_onoff_click_long_click_event() &&
       m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
     buttons_clear_all_events();

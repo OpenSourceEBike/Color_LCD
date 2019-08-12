@@ -151,7 +151,6 @@ static uint32_t m_cumulative_wheel_revs;                                        
 static bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
 
 
-#define WHEEL_CIRCUMFERENCE_MM          2100                                        /**< Simulated wheel circumference in millimeters. */
 #define KPH_TO_MM_PER_SEC               278                                         /**< Constant to convert kilometers per hour into millimeters per second. */
 
 #define DEGREES_PER_REVOLUTION          360                                         /**< Constant used in simulation for calculating crank speed. */
@@ -177,8 +176,8 @@ static void csc_measurement(ble_cscs_meas_t * p_measurement)
     mm_per_sec = KPH_TO_MM_PER_SEC * 20;
 
     wheel_revolution_mm     += mm_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
-    m_cumulative_wheel_revs += wheel_revolution_mm / WHEEL_CIRCUMFERENCE_MM;
-    wheel_revolution_mm     %= WHEEL_CIRCUMFERENCE_MM;
+    m_cumulative_wheel_revs += wheel_revolution_mm / l3_vars.ui16_wheel_perimeter;
+    wheel_revolution_mm     %= l3_vars.ui16_wheel_perimeter;
 
     p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
     p_measurement->last_wheel_event_time =

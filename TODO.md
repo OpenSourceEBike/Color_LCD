@@ -33,7 +33,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
-* do eeprom GC if flash is full (currently only done at boot)
 
 # Tasks for release 1.1
 * report pedal power via strava
@@ -115,6 +114,7 @@ the GUI thread.  Use two buffers + a ptr.
 * put speed back into main screen
 * add cadence back to main screen (if it fits readably, otherwise move the info screen)
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
+* do eeprom GC if flash is full (currently only done at boot)
 
 # Misc notes from kevin not yet formatted
 

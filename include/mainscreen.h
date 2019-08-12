@@ -161,6 +161,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
+
+  uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 } l3_vars_t;
 
 // deprecated FIXME, delete

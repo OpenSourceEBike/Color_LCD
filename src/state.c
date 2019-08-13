@@ -119,11 +119,9 @@ void parse_simmotor() {
 
 void process_rx(void)
 {
-  uint8_t ui8_temp;
+  static uint32_t num_missed_packets = 0;
 
   const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
-
-  static uint32_t num_missed_packets = 0;
 
   // process rx package if we are simulating or the UART had a packet
   if(is_sim_motor || p_rx_buffer) {
@@ -154,7 +152,7 @@ void process_rx(void)
         l2_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
         p_rx_buffer++;
 
-        ui8_temp = *p_rx_buffer;
+        uint8_t ui8_temp = *p_rx_buffer;
         l2_vars.ui8_braking = ui8_temp & 1;
         p_rx_buffer++;
 
@@ -236,7 +234,7 @@ void process_rx(void)
     // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
     // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
     // and wait for 5 seconds of missed packets.
-    if(true || has_seen_motor) {
+    if(has_seen_motor) {
 
       // Note: we only declare failure on the 50th missed packet, not later ones to prevent redundant fault notifications
       if(num_missed_packets++ == 50)

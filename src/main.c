@@ -287,7 +287,7 @@ int main(void)
       if(tickshandled++ % (100 / MSEC_PER_TICK) == 0) { // every 100ms
 
         if(stack_overflow_debug() < 128) // we are close to running out of stack
-          app_error_fault_handler(FAULT_STACKOVERFLOW, 0, 0);
+          APP_ERROR_HANDLER(FAULT_STACKOVERFLOW);
       }
 
       screen_clock();

@@ -112,13 +112,15 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
   switch (id)
   {
+  case FAULT_GCC_ASSERT:
+  case FAULT_SOFTDEVICE:
   case NRF_FAULT_ID_SDK_ERROR:
     // app errors include filename and line
     fieldPrintf(&infoCode, "%s:%d (%d)",
         einfo->p_file_name ? (const char*) einfo->p_file_name : "nofile",
         einfo->line_num, einfo->err_code);
     break;
-  case FAULT_GCC_ASSERT:
+
     fieldPrintf(&infoCode, "%s:%d",
         einfo->p_file_name ? (const char*) einfo->p_file_name : "",
         einfo->line_num);
@@ -133,9 +135,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
         hs->r12, hs->lr);
     }
     break;
-  case FAULT_SOFTDEVICE:
-    fieldPrintf(&infoCode, "softdevice");
-    break;
+
   case FAULT_MISSEDTICK:
     fieldPrintf(&infoCode, "missed tick");
     break;

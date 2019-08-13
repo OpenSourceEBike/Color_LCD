@@ -192,7 +192,7 @@ LIB_FILES += \
 
 # Optimization flags release
 OPT = -Os -g3
-# Optimization flags debug
+# Optimization flags debug (important to get line numbers for faults
 #OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
 
 # C flags common to all targets

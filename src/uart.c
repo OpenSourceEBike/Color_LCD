@@ -131,8 +131,8 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       //}
 
       /* Start bytewise RX again (regardless of if we liked the current packet or not) */
-      APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1));
       uart_rx_state_machine = 0;
+      APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1));
     }
     break;
 

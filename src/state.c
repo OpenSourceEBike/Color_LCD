@@ -233,13 +233,9 @@ void process_rx(void)
   } else {
     // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
     // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
-    // and wait for 5 seconds of missed packets.
-    if(has_seen_motor) {
-
-      // Note: we only declare failure on the 50th missed packet, not later ones to prevent redundant fault notifications
-      if(num_missed_packets++ == 50)
-        app_error_fault_handler(FAULT_LOSTRX, 0, 0);
-    }
+    // and wait for 10 seconds of missed packets.
+    if(has_seen_motor && num_missed_packets++ == 100)
+      APP_ERROR_HANDLER(FAULT_LOSTRX);
   }
 
 }

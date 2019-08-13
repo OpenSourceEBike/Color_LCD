@@ -142,6 +142,9 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
   case FAULT_STACKOVERFLOW:
     fieldPrintf(&infoCode, "stack overflow");
     break;
+  case FAULT_LOSTRX:
+    fieldPrintf(&infoCode, "lost rx");
+    break;
   default:
     fieldPrintf(&infoCode, "%08lx", info);
     break;

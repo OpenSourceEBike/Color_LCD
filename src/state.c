@@ -20,6 +20,7 @@
 #include "eeprom.h"
 #include "buttons.h"
 #include "adc.h"
+#include "fault.h"
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
@@ -122,112 +123,127 @@ void process_rx(void)
 
   const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
 
+  static uint32_t num_missed_packets = 0;
 
-  // process rx package
-  if(is_sim_motor)
-    parse_simmotor();
-  else if(p_rx_buffer)
-  {
-    // now process rx data
-    // only if first byte is equal to package start byte
-    if(*p_rx_buffer == 67)
+  // process rx package if we are simulating or the UART had a packet
+  if(is_sim_motor || p_rx_buffer) {
+    if(is_sim_motor)
+      parse_simmotor();
+    else if(p_rx_buffer)
     {
-      has_seen_motor = true;
-
-      p_rx_buffer++;
-
-      l2_vars.ui16_adc_battery_voltage = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui16_adc_battery_voltage |= ((uint16_t) (*p_rx_buffer & 0x30)) << 4;
-      p_rx_buffer++;
-
-      l2_vars.ui8_battery_current_x5 = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui16_wheel_speed_x10 = (uint16_t) *p_rx_buffer;
-      p_rx_buffer++;
-      l2_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
-      p_rx_buffer++;
-
-      ui8_temp = *p_rx_buffer;
-      l2_vars.ui8_braking = ui8_temp & 1;
-      p_rx_buffer++;
-
-      l2_vars.ui8_adc_throttle = *p_rx_buffer;
-      p_rx_buffer++;
-
-      if(l2_vars.ui8_temperature_limit_feature_enabled)
+      // now process rx data
+      // only if first byte is equal to package start byte
+      if(*p_rx_buffer == 67)
       {
-        l2_vars.ui8_motor_temperature = *p_rx_buffer;
+        has_seen_motor = true;
+        num_missed_packets = 0; // reset missed packet count
+
+        p_rx_buffer++;
+
+        l2_vars.ui16_adc_battery_voltage = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui16_adc_battery_voltage |= ((uint16_t) (*p_rx_buffer & 0x30)) << 4;
+        p_rx_buffer++;
+
+        l2_vars.ui8_battery_current_x5 = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui16_wheel_speed_x10 = (uint16_t) *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
+        p_rx_buffer++;
+
+        ui8_temp = *p_rx_buffer;
+        l2_vars.ui8_braking = ui8_temp & 1;
+        p_rx_buffer++;
+
+        l2_vars.ui8_adc_throttle = *p_rx_buffer;
+        p_rx_buffer++;
+
+        if(l2_vars.ui8_temperature_limit_feature_enabled)
+        {
+          l2_vars.ui8_motor_temperature = *p_rx_buffer;
+        }
+        else
+        {
+          l2_vars.ui8_throttle = *p_rx_buffer;
+        }
+        p_rx_buffer++;
+
+        l2_vars.ui8_adc_pedal_torque_sensor = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui8_pedal_torque_sensor = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui8_pedal_cadence = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui8_pedal_human_power = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui8_duty_cycle = *p_rx_buffer;
+        p_rx_buffer++;
+
+        l2_vars.ui16_motor_speed_erps = (uint16_t) *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui16_motor_speed_erps += ((uint16_t) *p_rx_buffer << 8);
+        p_rx_buffer++;
+
+        l2_vars.ui8_foc_angle = *p_rx_buffer;
+        p_rx_buffer++;
+
+        // error states
+        l2_vars.ui8_error_states = *p_rx_buffer;
+        p_rx_buffer++;
+
+        // temperature actual limiting value
+        l2_vars.ui8_temperature_current_limiting_value = *p_rx_buffer;
+        p_rx_buffer++;
+
+        // wheel_speed_sensor_tick_counter
+        uint32_t ui32_wheel_speed_sensor_tick_temp;
+        ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
+        p_rx_buffer++;
+        ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 8);
+        p_rx_buffer++;
+        ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 16);
+        l2_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
+        p_rx_buffer++;
+
+        // ui16_pedal_torque_x10
+        l2_vars.ui16_pedal_torque_x10 = (uint16_t) *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui16_pedal_torque_x10 += ((uint16_t) *p_rx_buffer << 8);
+        p_rx_buffer++;
+
+        // ui16_pedal_power_x10
+        l2_vars.ui16_pedal_power_x10 = (uint16_t) *p_rx_buffer;
+        p_rx_buffer++;
+        l2_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
+
+        // not needed with this implementation (and with ptr flipflop not needed eitehr)
+        // usart1_reset_received_package();
       }
-      else
-      {
-        l2_vars.ui8_throttle = *p_rx_buffer;
-      }
-      p_rx_buffer++;
+    }
 
-      l2_vars.ui8_adc_pedal_torque_sensor = *p_rx_buffer;
-      p_rx_buffer++;
+    // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
+    ui8_m_usart1_received_first_package++;
+    if(ui8_m_usart1_received_first_package > 10)
+      ui8_m_usart1_received_first_package = 10;
+  } else {
+    // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
+    // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
+    // and wait for 5 seconds of missed packets.
+    if(true || has_seen_motor) {
 
-      l2_vars.ui8_pedal_torque_sensor = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui8_pedal_cadence = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui8_pedal_human_power = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui8_duty_cycle = *p_rx_buffer;
-      p_rx_buffer++;
-
-      l2_vars.ui16_motor_speed_erps = (uint16_t) *p_rx_buffer;
-      p_rx_buffer++;
-      l2_vars.ui16_motor_speed_erps += ((uint16_t) *p_rx_buffer << 8);
-      p_rx_buffer++;
-
-      l2_vars.ui8_foc_angle = *p_rx_buffer;
-      p_rx_buffer++;
-
-      // error states
-      l2_vars.ui8_error_states = *p_rx_buffer;
-      p_rx_buffer++;
-
-      // temperature actual limiting value
-      l2_vars.ui8_temperature_current_limiting_value = *p_rx_buffer;
-      p_rx_buffer++;
-
-      // wheel_speed_sensor_tick_counter
-      uint32_t ui32_wheel_speed_sensor_tick_temp;
-      ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
-      p_rx_buffer++;
-      ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 8);
-      p_rx_buffer++;
-      ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 16);
-      l2_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
-      p_rx_buffer++;
-
-      // ui16_pedal_torque_x10
-      l2_vars.ui16_pedal_torque_x10 = (uint16_t) *p_rx_buffer;
-      p_rx_buffer++;
-      l2_vars.ui16_pedal_torque_x10 += ((uint16_t) *p_rx_buffer << 8);
-      p_rx_buffer++;
-
-      // ui16_pedal_power_x10
-      l2_vars.ui16_pedal_power_x10 = (uint16_t) *p_rx_buffer;
-      p_rx_buffer++;
-      l2_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
-
-      // not needed with this implementation (and with ptr flipflop not needed eitehr)
-      // usart1_reset_received_package();
+      // Note: we only declare failure on the 50th missed packet, not later ones to prevent redundant fault notifications
+      if(num_missed_packets++ == 50)
+        app_error_fault_handler(FAULT_LOSTRX, 0, 0);
     }
   }
 
-  // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
-  ui8_m_usart1_received_first_package++;
-  if(ui8_m_usart1_received_first_package > 10)
-    ui8_m_usart1_received_first_package = 10;
 }
 
 

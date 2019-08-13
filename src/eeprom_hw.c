@@ -37,6 +37,8 @@ static void fds_evt_handler(fds_evt_t const *const evt)
   case FDS_EVT_WRITE:
     write_done = true;
     break;
+  case FDS_EVT_DEL_RECORD:
+    break;
 
   default:
     break;
@@ -60,14 +62,22 @@ bool flash_read_words(void *dest, uint16_t length_words)
   // Loop until all records with the given key and file ID have been found.
   while (fds_record_find(FILE_ID, REC_KEY, &record_desc, &ftok) == FDS_SUCCESS)
   {
-    APP_ERROR_CHECK(fds_record_open(&record_desc, &flash_record));
+    if(!did_read) {
+      // Found our first match (there should be only one unless someone else screwed up)
 
-    // Access the record through the flash_record structure.
-    memcpy(dest, flash_record.p_data, length_words * sizeof(uint32_t));
-    did_read = true;
+      APP_ERROR_CHECK(fds_record_open(&record_desc, &flash_record));
 
-    // Close the record when done.
-    APP_ERROR_CHECK(fds_record_close(&record_desc));
+      // Access the record through the flash_record structure.
+      memcpy(dest, flash_record.p_data, length_words * sizeof(uint32_t));
+      did_read = true;
+
+      // Close the record when done.
+      APP_ERROR_CHECK(fds_record_close(&record_desc));
+    }
+    else {
+      // Found a second record with the same key, delete it to prevent confusion when we go to write
+      APP_ERROR_CHECK(fds_record_delete(&record_desc));
+    }
   }
 
   return did_read;

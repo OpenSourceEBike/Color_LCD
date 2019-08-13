@@ -200,6 +200,36 @@ static bool appwide_onpress(buttons_events_t events)
 }
 
 
+extern uint32_t __StackTop;
+extern uint32_t __StackLimit;
+
+// Returns # of unused bytes in stack
+uint32_t stack_overflow_debug(void)
+{
+    // uint32_t stack_usage = 0;
+    uint32_t offset = 0;
+    volatile uint32_t * value_addr = (uint32_t *) &__StackLimit;
+
+    for (; offset <  ((uint32_t)&__StackTop - (uint32_t)&__StackLimit); offset=offset+4)
+    {
+        uint32_t new_val = *(value_addr + offset);
+        if (new_val != 0xDEADBEEF )
+        {
+            break;
+        }
+    }
+    // stack_usage = ((uint32_t)&__StackTop - (uint32_t)&__StackLimit) - offset;
+
+    return offset;
+}
+
+// Standard app error codes
+#define FAULT_SOFTDEVICE 1
+#define FAULT_HARDFAULT 2
+#define FAULT_NRFASSERT 3
+#define FAULT_STACKOVERFLOW 4
+#define FAULT_GCC_ASSERT 10
+
 
 /**
  * @brief Application main entry.
@@ -271,10 +301,13 @@ int main(void)
       buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
 
       automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
+
+      if(stack_overflow_debug() < 128) // we are close to running out of stack
+        app_error_fault_handler(FAULT_STACKOVERFLOW, 0, 0);
     }
 
 
-    if(getCurrentScreen() == &bootScreen) {
+    if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
       uint16_t bvolt = battery_voltage_10x_get();
 
       is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
@@ -401,11 +434,6 @@ static inline void debugger_break(void)
   );
 }
 
-// Standard app error codes
-#define FAULT_SOFTDEVICE 1
-#define FAULT_HARDFAULT 2
-#define FAULT_NRFASSERT 3
-#define FAULT_GCC_ASSERT 10
 
 // handle standard gcc assert failures
 void __attribute__((noreturn)) __assert_func(const char *file, int line,
@@ -501,6 +529,9 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     break;
   case FAULT_SOFTDEVICE:
     fieldPrintf(&infoCode, "softdevice");
+    break;
+  case FAULT_STACKOVERFLOW:
+    fieldPrintf(&infoCode, "stack overflow");
     break;
   default:
     fieldPrintf(&infoCode, "%08lx", info);

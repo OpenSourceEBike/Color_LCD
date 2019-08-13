@@ -146,6 +146,16 @@ Reset_Handler:
     ORRS    R2, R1
     STR     R2, [R0]
 
+/* kevinh - prefill the main stack with deadbeef so we can check for stack overflow later */
+    LDR     R0, =__StackTop
+    LDR     R1, =Stack_Size
+    LDR     R2, =0xDEADBEEF
+.Fill:
+    SUBS    R0,#4
+    STR     R2, [R0]
+    SUBS    R1,#4
+    BNE     .Fill
+
     LDR     R0, =NRF_POWER_RAMONB_ADDRESS
     LDR     R2, [R0]
     ORRS    R2, R1

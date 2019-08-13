@@ -1,6 +1,7 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete, but functional and probably safe.
 
+* assist level not getting saved
 * include release notes: how to install (with openocd links), working features, not yet working features, etc...
 
 # TODO tasks for beta release
@@ -17,6 +18,7 @@ will declare beta.
 * show temp warnings on main screen
 * merge walk/brake into a single status line with other faults
 * show motor faults promenantly on main screen
+* suspend the 100ms timer tick during copy_layer_2_layer_3_vars
 * include units on speed
 * label assist on main screen
 * let user edit maxpower from the mainscreen 

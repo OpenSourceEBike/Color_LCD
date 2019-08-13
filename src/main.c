@@ -228,6 +228,7 @@ uint32_t stack_overflow_debug(void)
 #define FAULT_HARDFAULT 2
 #define FAULT_NRFASSERT 3
 #define FAULT_STACKOVERFLOW 4
+#define FAULT_MISSEDTICK 5
 #define FAULT_GCC_ASSERT 10
 
 /// Called every 20ms to check for button events and dispatch to our handlers
@@ -292,18 +293,24 @@ int main(void)
 
   // Enter main loop.
 
-  uint32_t lasttick = 0;
+  uint32_t lasttick = gui_ticks;
   uint32_t start_time = get_seconds();
   uint32_t tickshandled = 0; // we might miss ticks if running behind, so we use our own local count to figure out if we need to run our 100ms services
+  uint32_t ticksmissed = 0;
   while (1)
   {
     uint32_t tick = gui_ticks;
     if (tick != lasttick)
     {
+      if(tick != lasttick + 1) {
+        ticksmissed += (tick - lasttick - 1); // Error!  We fell behind and missed some ticks (probably due to screen draw taking more than 20 msec)
+
+        // if(is_sim_motor) app_error_fault_handler(FAULT_MISSEDTICK, 0, ticksmissed);
+      }
+
       lasttick = tick;
 
       if(tickshandled++ % (100 / MSEC_PER_TICK) == 0) { // every 100ms
-        layer_2();
 
         if(stack_overflow_debug() < 128) // we are close to running out of stack
           app_error_fault_handler(FAULT_STACKOVERFLOW, 0, 0);
@@ -390,6 +397,9 @@ static void gui_timer_timeout(void *p_context)
   UNUSED_PARAMETER(p_context);
 
   gui_ticks++;
+
+  if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
+    layer_2();
 
   if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
     seconds++;
@@ -535,6 +545,9 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     break;
   case FAULT_SOFTDEVICE:
     fieldPrintf(&infoCode, "softdevice");
+    break;
+  case FAULT_MISSEDTICK:
+    fieldPrintf(&infoCode, "missed tick");
     break;
   case FAULT_STACKOVERFLOW:
     fieldPrintf(&infoCode, "stack overflow");

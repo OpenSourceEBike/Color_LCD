@@ -41,7 +41,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 # Tasks for release 1.1
 * report pedal power via strava
 * fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
-* Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 
 # Tasks for future releases
 After the initial 1.0 release the following features can go into 1.1
@@ -119,6 +118,7 @@ the GUI thread.  Use two buffers + a ptr.
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
 * do eeprom GC if flash is full (currently only done at boot)
 * LowPerformer idea to only use the numbers for bigger fonts to save flash. (USE_FONT_24X40 costs 30KB of flash space for instance)
+* Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 
 # Misc notes from kevin not yet formatted
 

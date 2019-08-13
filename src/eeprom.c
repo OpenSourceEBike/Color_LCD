@@ -16,7 +16,7 @@
 
 static eeprom_data_t m_eeprom_data;
 
-eeprom_data_t m_eeprom_data_defaults =
+const eeprom_data_t m_eeprom_data_defaults =
     { .eeprom_version = EEPROM_VERSION,
         .ui8_assist_level = DEFAULT_VALUE_ASSIST_LEVEL, .ui16_wheel_perimeter =
         DEFAULT_VALUE_WHEEL_PERIMETER, .ui8_wheel_max_speed =
@@ -116,9 +116,18 @@ void eeprom_init()
 
   // read the values from EEPROM to array
   memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
-  if (!flash_read_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t)) || m_eeprom_data.eeprom_version != EEPROM_VERSION)
+  if (!flash_read_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t)) || m_eeprom_data.eeprom_version < EEPROM_MIN_COMPAT_VERSION)
     // If we are using default data it doesn't get written to flash until someone calls write
     memcpy(&m_eeprom_data, &m_eeprom_data_defaults, sizeof(m_eeprom_data_defaults));
+
+  // Perform whatever migrations we need to update old eeprom formats
+  if(m_eeprom_data.eeprom_version < EEPROM_VERSION) {
+
+    m_eeprom_data.ui8_lcd_backlight_on_brightness = m_eeprom_data_defaults.ui8_lcd_backlight_on_brightness;
+    m_eeprom_data.ui8_lcd_backlight_off_brightness = m_eeprom_data_defaults.ui8_lcd_backlight_off_brightness;
+
+    m_eeprom_data.eeprom_version = EEPROM_VERSION;
+  }
 
   eeprom_init_variables();
 }

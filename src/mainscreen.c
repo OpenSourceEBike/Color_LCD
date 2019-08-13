@@ -69,6 +69,23 @@ bool mainscreen_onpress(buttons_events_t events) {
     return true;
   }
 
+  // long up to turn on headlights
+  if(events & UP_LONG_CLICK)
+  {
+    if(l3_vars.ui8_lights == 0)
+    {
+      l3_vars.ui8_lights = 1;
+      lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_on_brightness);
+    }
+    else
+    {
+      l3_vars.ui8_lights = 0;
+      lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_off_brightness);
+    }
+
+    return true;
+  }
+
   if (events & UP_CLICK /* &&
       m_lcd_vars.ui8_lcd_menu_max_power == 0 */)
   {
@@ -135,8 +152,7 @@ Field maxPowerField = FIELD_DRAWTEXT(&FONT_10X16);
 Field humanPowerField = FIELD_DRAWTEXT(&FONT_5X12);
 Field whiteFillField = { .variant = FieldFill };
 Field meshFillField = { .variant = FieldMesh };
-Field brakeField = FIELD_DRAWTEXT(&FONT_5X12);
-Field lightField = FIELD_DRAWTEXT(&FONT_5X12);
+Field warnField = FIELD_DRAWTEXT(&FONT_5X12);
 
 Field tripTimeField = FIELD_DRAWTEXT(&FONT_5X12);
 Field tripDistanceField = FIELD_DRAWTEXT(&FONT_5X12);
@@ -151,13 +167,8 @@ Field motorTempField = FIELD_DRAWTEXT(&FONT_5X12);
 #define STATUS_BAR \
 { \
     .x = 4, .y = 114, \
-    .width = -3, .height = -1, \
-    .field = &brakeField \
-}, \
-{ \
-    .x = 34, .y = 114, \
-    .width = -4, .height = -1, \
-    .field = &lightField \
+    .width = 0, .height = -1, \
+    .field = &warnField \
 }
 
 #define BATTERY_BAR \
@@ -536,26 +547,10 @@ void brake(void)
     }
   }
 #endif
-  fieldPrintf(&brakeField, l3_vars.ui8_braking ? "BRK " : (l3_vars.ui8_walk_assist ? "WALK" : "    "));
+  fieldPrintf(&warnField, l3_vars.ui8_braking ? "BRAKE" : (l3_vars.ui8_walk_assist ? "WALK" : (l3_vars.ui8_lights ? "LIGH" : "")));
 }
 
-#if 0
-void lcd_set_backlight_intensity(uint8_t ui8_intensity)
-{
-  // force to be min of 20% and max of 100%
-  if(ui8_intensity < 4)
-  {
-    ui8_intensity = 4;
-  }
-  else if(ui8_intensity > 20)
-  {
-    ui8_intensity = 20;
-  }
 
-  TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-  TIM_CtrlPWMOutputs(TIM3, ENABLE);
-}
-#endif
 
 void lights_state(void)
 {
@@ -616,7 +611,6 @@ void lights_state(void)
     }
   }
 #endif
-  fieldPrintf(&lightField, l3_vars.ui8_lights ? "LIGH" : "");
 }
 
 

@@ -35,11 +35,12 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
+* save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
+
 
 # Tasks for release 1.1
 * report pedal power via strava
 * fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
-* Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 
 # Tasks for future releases
 After the initial 1.0 release the following features can go into 1.1
@@ -56,7 +57,6 @@ After the initial 1.0 release the following features can go into 1.1
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
-* LowPerformer idea to only use the numbers for bigger fonts to save flash. (USE_FONT_24X40 costs 30KB of flash space for instance)
 
 # Completed TODO work items
 
@@ -117,6 +117,8 @@ the GUI thread.  Use two buffers + a ptr.
 * add cadence back to main screen (if it fits readably, otherwise move the info screen)
 * investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
 * do eeprom GC if flash is full (currently only done at boot)
+* LowPerformer idea to only use the numbers for bigger fonts to save flash. (USE_FONT_24X40 costs 30KB of flash space for instance)
+* Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 
 # Misc notes from kevin not yet formatted
 

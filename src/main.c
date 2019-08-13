@@ -230,6 +230,25 @@ uint32_t stack_overflow_debug(void)
 #define FAULT_STACKOVERFLOW 4
 #define FAULT_GCC_ASSERT 10
 
+/// Called every 20ms to check for button events and dispatch to our handlers
+static void handle_buttons() {
+  if (buttons_events)
+  {
+    bool handled = false;
+
+    if (!handled)
+      handled |= screenOnPress(buttons_events);
+
+    // Note: this must be after the screen/menu handlers have had their shot
+    if (!handled)
+      handled |= appwide_onpress(buttons_events);
+
+    if (handled)
+      buttons_clear_all_events();
+  }
+
+  buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+}
 
 /**
  * @brief Application main entry.
@@ -275,53 +294,42 @@ int main(void)
 
   uint32_t lasttick = 0;
   uint32_t start_time = get_seconds();
+  uint32_t tickshandled = 0; // we might miss ticks if running behind, so we use our own local count to figure out if we need to run our 100ms services
   while (1)
   {
     uint32_t tick = gui_ticks;
     if (tick != lasttick)
     {
       lasttick = tick;
-      screen_clock();
 
-      if (buttons_events)
-      {
-        bool handled = false;
+      if(tickshandled++ % (100 / MSEC_PER_TICK) == 0) { // every 100ms
+        layer_2();
 
-        if (!handled)
-          handled |= screenOnPress(buttons_events);
-
-        // Note: this must be after the screen/menu handlers have had their shot
-        if (!handled)
-          handled |= appwide_onpress(buttons_events);
-
-        if (handled)
-          buttons_clear_all_events();
+        if(stack_overflow_debug() < 128) // we are close to running out of stack
+          app_error_fault_handler(FAULT_STACKOVERFLOW, 0, 0);
       }
 
-      buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+      screen_clock();
 
+      handle_buttons();
       automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
 
-      if(stack_overflow_debug() < 128) // we are close to running out of stack
-        app_error_fault_handler(FAULT_STACKOVERFLOW, 0, 0);
-    }
+      if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
+        uint16_t bvolt = battery_voltage_10x_get();
 
+        is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
 
-    if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
-      uint16_t bvolt = battery_voltage_10x_get();
+        if(is_sim_motor)
+          fieldPrintf(&bootStatus, "SIMULATING motor!");
+        else if(has_seen_motor)
+          fieldPrintf(&bootStatus, "Found motor");
+        else
+          fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
 
-      is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-
-      if(is_sim_motor)
-        fieldPrintf(&bootStatus, "SIMULATING motor!");
-      else if(has_seen_motor)
-        fieldPrintf(&bootStatus, "Found motor");
-      else
-        fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
-
-      // Stop showing the boot screen after a few seconds (once we've found a motor)
-      if(get_seconds() - start_time >= 5 && (has_seen_motor || is_sim_motor))
-        showNextScreen();
+        // Stop showing the boot screen after a few seconds (once we've found a motor)
+        if(get_seconds() - start_time >= 5 && (has_seen_motor || is_sim_motor))
+          showNextScreen();
+      }
     }
 
     sd_app_evt_wait(); // let OS threads have time to run
@@ -382,8 +390,6 @@ static void gui_timer_timeout(void *p_context)
   UNUSED_PARAMETER(p_context);
 
   gui_ticks++;
-  if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
-    layer_2();
 
   if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
     seconds++;

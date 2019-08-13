@@ -23,7 +23,7 @@ NRFUTIL := nrfutil
 OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
 
 # The integer build number for this release, MUST BE INCREMENTED FOR EACH RELEASE SO BOOTLOADER WILL INSTALL
-VERSION_NUM := 7
+VERSION_NUM := 8
 
 VERSION_STRING := 0.19.$(VERSION_NUM)
 
@@ -33,10 +33,12 @@ SRC_FILES += \
   $(PROJ_DIR)/src/lcd.c \
   $(PROJ_DIR)/src/ugui.c \
   $(PROJ_DIR)/src/button.c \
+  $(PROJ_DIR)/src/fault.c \
   $(PROJ_DIR)/src/buttons.c \
   $(PROJ_DIR)/src/ble_services.c \
   $(PROJ_DIR)/src/uart.c \
   $(PROJ_DIR)/src/utils.c \
+  $(PROJ_DIR)/src/state.c \
   $(PROJ_DIR)/src/adc.c \
   $(PROJ_DIR)/src/eeprom.c \
   $(PROJ_DIR)/src/eeprom_hw.c \
@@ -189,9 +191,9 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags release
-OPT = -Os -g3
-# Optimization flags debug
-#OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
+# OPT = -Os -g3
+# Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
+OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
 
 # C flags common to all targets
 CFLAGS += $(OPT)

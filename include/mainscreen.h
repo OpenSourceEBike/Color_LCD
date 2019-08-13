@@ -161,6 +161,8 @@ typedef struct l3_vars_struct
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
+
+  uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 } l3_vars_t;
 
 // deprecated FIXME, delete
@@ -172,4 +174,13 @@ void mainscreen_show();
 void screen_clock(); // call every 20ms
 void layer_2(void);
 
+/**
+ * Called from the main thread every 100ms
+ *
+ */
+void copy_layer_2_layer_3_vars(void);
+
 extern Screen mainScreen, infoScreen;
+
+extern uint16_t ui16_m_battery_soc_watts_hour;
+

@@ -37,6 +37,7 @@ static void fds_evt_handler(fds_evt_t const *const evt)
   case FDS_EVT_WRITE:
     write_done = true;
     break;
+
   default:
     break;
   }
@@ -72,12 +73,28 @@ bool flash_read_words(void *dest, uint16_t length_words)
   return did_read;
 }
 
+static bool wait_gc()
+{
+  gc_done = false;
+  fds_gc();
+  for (volatile int count = 0; count < 1000 && !gc_done; count++) {
+    sd_app_evt_wait();
+    nrf_delay_ms(1);
+  }
+  // Note: this can fail if the soft device is not enabled (normally performed in ble init)
+  // assert(gc_done);
+  return gc_done;
+}
+
+
 bool flash_write_words(const void *value, uint16_t length_words)
 {
   fds_record_t record;
   fds_record_desc_t record_desc;
   fds_record_chunk_t record_chunk;
   fds_find_token_t ftok;
+
+  wait_gc(); // Before writing we always GC (to ensure there is at least one free record we can use)
 
   // Do we already have one of these records?
   memset(&record_desc, 0x00, sizeof(record_desc));
@@ -111,18 +128,6 @@ bool flash_write_words(const void *value, uint16_t length_words)
   return write_done;
 }
 
-static bool wait_gc()
-{
-  gc_done = false;
-  fds_gc();
-  for (volatile int count = 0; count < 1000 && !gc_done; count++) {
-    sd_app_evt_wait();
-    nrf_delay_ms(1);
-  }
-  // Note: this can fail if the soft device is not enabled (normally performed in ble init)
-  // assert(gc_done);
-  return gc_done;
-}
 
 /**
  * @brief Init eeprom emulation system

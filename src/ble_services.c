@@ -18,6 +18,14 @@
 #include "ble_cscs.h"
 #include "ble_dis.h"
 #include "fds.h"
+#include "mainscreen.h"
+
+// define to enable the (not yet used) serial service
+// #define BLE_SERIAL
+// define to able reporting speed and cadence via bluetooth
+#define BLE_CSC
+// define to enable reporting battery SOC via bluetooth
+#define BLE_BAS
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -31,8 +39,7 @@
 #define PERIPHERAL_LINK_COUNT           1                                           /**< Number of peripheral links used by the application. When changing this number remember to adjust the RAM settings*/
 
 #define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
-#define MANUFACTURER_NAME               "github:OpenSource-EBike-firmware"
-#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+#define MANUFACTURER_NAME               "https://github.com/OpenSource-EBike-firmware"
 
 #define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
@@ -45,32 +52,27 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000, APP_TIMER_PRESCALER) /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
+#ifdef BLE_SERIAL
+#define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
+
 static ble_nus_t                        m_nus;                                      /**< Structure to identify the Nordic UART Service. */
+#endif
+
 static uint16_t                         m_conn_handle = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 
 static ble_uuid_t                       m_adv_uuids[] = {
+#ifdef BLE_CSC
     {BLE_UUID_CYCLING_SPEED_AND_CADENCE, BLE_UUID_TYPE_BLE},
+#endif
+#ifdef BLE_BAS
     {BLE_UUID_BATTERY_SERVICE, BLE_UUID_TYPE_BLE},
+#endif
     {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE},
+#ifdef BLE_SERIAL
     {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
+#endif
 };  /**< Universally unique service identifier. */
 
-static ble_bas_t  m_bas;                                                            /**< Structure used to identify the battery service. */
-static ble_cscs_t m_cscs;                                                           /**< Structure used to identify the cycling speed and cadence service. */
-
-static uint32_t m_cumulative_wheel_revs;                                            /**< Cumulative wheel revolutions. */
-static bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
-
-static ble_sensor_location_t supported_locations[] = {BLE_SENSOR_LOCATION_FRONT_WHEEL,
-                                                      BLE_SENSOR_LOCATION_LEFT_CRANK,
-                                                      BLE_SENSOR_LOCATION_RIGHT_CRANK,
-                                                      BLE_SENSOR_LOCATION_LEFT_PEDAL,
-                                                      BLE_SENSOR_LOCATION_RIGHT_PEDAL,
-                                                      BLE_SENSOR_LOCATION_FRONT_HUB,
-                                                      BLE_SENSOR_LOCATION_REAR_DROPOUT,
-                                                      BLE_SENSOR_LOCATION_CHAINSTAY,
-                                                      BLE_SENSOR_LOCATION_REAR_WHEEL,
-                                                      BLE_SENSOR_LOCATION_REAR_HUB}; /**< supported location for the sensor location. */
 
 
 /**@brief Function for the GAP initialization.
@@ -100,6 +102,7 @@ static void gap_params_init(void)
 }
 
 
+#ifdef BLE_SERIAL
 /**@brief Function for handling the data from the Nordic UART Service.
  *
  * @param[in] p_nus    Nordic UART Service structure.
@@ -108,7 +111,135 @@ static void gap_params_init(void)
  */
 static void nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t length)
 {
+ // fixme
+}
 
+// Init the serial port service
+static void serial_init()
+{
+  ble_nus_init_t nus_init;
+  memset(&nus_init, 0, sizeof(nus_init));
+
+  nus_init.data_handler = nus_data_handler;
+
+  APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
+}
+#endif
+
+#ifdef BLE_CSC
+
+#define SPEED_AND_CADENCE_MEAS_INTERVAL APP_TIMER_TICKS(1000, APP_TIMER_PRESCALER)  /**< Speed and cadence measurement interval (milliseconds). */
+
+
+APP_TIMER_DEF(m_csc_meas_timer_id);                                                 /**< CSC measurement timer. */
+
+static ble_sensor_location_t supported_locations[] = {BLE_SENSOR_LOCATION_FRONT_WHEEL,
+                                                      BLE_SENSOR_LOCATION_LEFT_CRANK,
+                                                      BLE_SENSOR_LOCATION_RIGHT_CRANK,
+                                                      BLE_SENSOR_LOCATION_LEFT_PEDAL,
+                                                      BLE_SENSOR_LOCATION_RIGHT_PEDAL,
+                                                      BLE_SENSOR_LOCATION_FRONT_HUB,
+                                                      BLE_SENSOR_LOCATION_REAR_DROPOUT,
+                                                      BLE_SENSOR_LOCATION_CHAINSTAY,
+                                                      BLE_SENSOR_LOCATION_REAR_WHEEL,
+                                                      BLE_SENSOR_LOCATION_REAR_HUB}; /**< supported location for the sensor location. */
+
+
+static ble_cscs_t m_cscs;                                                           /**< Structure used to identify the cycling speed and cadence service. */
+
+static uint32_t m_cumulative_wheel_revs;                                            /**< Cumulative wheel revolutions. */
+static bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
+
+
+#define KPH_TO_MM_PER_SEC               278                                         /**< Constant to convert kilometers per hour into millimeters per second. */
+
+#define DEGREES_PER_REVOLUTION          360                                         /**< Constant used in simulation for calculating crank speed. */
+#define RPM_TO_DEGREES_PER_SEC          6                                           /**< Constant to convert revolutions per minute into degrees per second. */
+
+static void csc_measurement(ble_cscs_meas_t * p_measurement)
+{
+    static uint16_t cumulative_crank_revs = 0;
+    static uint16_t event_time            = 0;
+    static uint16_t wheel_revolution_mm   = 0;
+    static uint16_t crank_rev_degrees     = 0;
+
+    uint16_t mm_per_sec;
+    uint16_t degrees_per_sec;
+    uint16_t event_time_inc;
+
+    // Per specification event time is in 1/1024th's of a second.
+    event_time_inc = (1024 * SPEED_AND_CADENCE_MEAS_INTERVAL) / 1000;
+
+    // Calculate simulated wheel revolution values.
+    p_measurement->is_wheel_rev_data_present = true;
+
+    mm_per_sec = KPH_TO_MM_PER_SEC * 20;
+
+    wheel_revolution_mm     += mm_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    m_cumulative_wheel_revs += wheel_revolution_mm / l3_vars.ui16_wheel_perimeter;
+    wheel_revolution_mm     %= l3_vars.ui16_wheel_perimeter;
+
+    p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
+    p_measurement->last_wheel_event_time =
+        event_time + (event_time_inc * (mm_per_sec - wheel_revolution_mm) / mm_per_sec);
+
+    // Calculate simulated cadence values.
+    p_measurement->is_crank_rev_data_present = true;
+
+    degrees_per_sec = RPM_TO_DEGREES_PER_SEC * 50;
+
+    crank_rev_degrees     += degrees_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    cumulative_crank_revs += crank_rev_degrees / DEGREES_PER_REVOLUTION;
+    crank_rev_degrees     %= DEGREES_PER_REVOLUTION;
+
+    p_measurement->cumulative_crank_revs = cumulative_crank_revs;
+    p_measurement->last_crank_event_time =
+        event_time + (event_time_inc * (degrees_per_sec - crank_rev_degrees) / degrees_per_sec);
+
+    event_time += event_time_inc;
+}
+
+/**@brief Function for handling the Cycling Speed and Cadence measurement timer timeouts.
+ *
+ * @details This function will be called each time the cycling speed and cadence
+ *          measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void csc_meas_timeout_handler(void * p_context)
+{
+    uint32_t        err_code;
+    ble_cscs_meas_t cscs_measurement;
+
+    UNUSED_PARAMETER(p_context);
+
+    csc_measurement(&cscs_measurement);
+
+    err_code = ble_cscs_measurement_send(&m_cscs, &cscs_measurement);
+    if ((err_code != NRF_SUCCESS) &&
+        (err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != BLE_ERROR_NO_TX_PACKETS) &&
+        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+       )
+    {
+        APP_ERROR_HANDLER(err_code);
+    }
+    if (m_auto_calibration_in_progress)
+    {
+        err_code = ble_sc_ctrlpt_rsp_send(&(m_cscs.ctrl_pt), BLE_SCPT_SUCCESS);
+        if ((err_code != NRF_SUCCESS) &&
+            (err_code != NRF_ERROR_INVALID_STATE) &&
+            (err_code != BLE_ERROR_NO_TX_PACKETS)
+           )
+        {
+            APP_ERROR_HANDLER(err_code);
+        }
+        if (err_code != BLE_ERROR_NO_TX_PACKETS)
+        {
+            m_auto_calibration_in_progress = false;
+        }
+    }
 }
 
 /**@brief Function for handling Speed and Cadence Control point events
@@ -137,69 +268,133 @@ ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
     return (BLE_SCPT_SUCCESS);
 }
 
+static void csc_init() {
+  ble_cscs_init_t       cscs_init;
+  ble_sensor_location_t sensor_location;
+
+  // Initialize Cycling Speed and Cadence Service.
+  memset(&cscs_init, 0, sizeof(cscs_init));
+
+  cscs_init.evt_handler = NULL;
+  cscs_init.feature     = BLE_CSCS_FEATURE_WHEEL_REV_BIT | BLE_CSCS_FEATURE_CRANK_REV_BIT |
+                          BLE_CSCS_FEATURE_MULTIPLE_SENSORS_BIT;
+
+  // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_meas_attr_md.cccd_write_perm);   // for the measurement characteristic, only the CCCD write permission can be set by the application, others are mandated by service specification
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_feature_attr_md.read_perm);      // for the feature characteristic, only the read permission can be set by the application, others are mandated by service specification
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.write_perm);      // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.cccd_write_perm); // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
+
+  cscs_init.ctrplt_supported_functions = /* BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED | */
+                                         BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
+                                         /* | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED */;
+  cscs_init.ctrlpt_evt_handler            = sc_ctrlpt_event_handler;
+  cscs_init.list_supported_locations      = supported_locations;
+  cscs_init.size_list_supported_locations = sizeof(supported_locations) /
+                                            sizeof(ble_sensor_location_t);
+
+  sensor_location           = BLE_SENSOR_LOCATION_FRONT_WHEEL;                 // initializes the sensor location to add the sensor location characteristic.
+  cscs_init.sensor_location = &sensor_location;
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_sensor_loc_attr_md.read_perm); // for the sensor location characteristic, only the read permission can be set by the application, others are mendated by service specification
+
+  APP_ERROR_CHECK(ble_cscs_init(&m_cscs, &cscs_init));
+
+  APP_ERROR_CHECK(app_timer_create(&m_csc_meas_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              csc_meas_timeout_handler));
+
+  APP_ERROR_CHECK(app_timer_start(m_csc_meas_timer_id, SPEED_AND_CADENCE_MEAS_INTERVAL, NULL));
+}
+
+#endif
+
+#ifdef BLE_BAS
+
+#define BATTERY_LEVEL_MEAS_INTERVAL     APP_TIMER_TICKS(2000, APP_TIMER_PRESCALER)  /**< Battery level measurement interval (ticks). */
+
+APP_TIMER_DEF(m_battery_timer_id);                                                  /**< Battery timer. */
+static ble_bas_t  m_bas;                                                            /**< Structure used to identify the battery service. */
+
+/**@brief Function for performing battery measurement and updating the Battery Level characteristic
+ *        in Battery Service.
+ */
+static void battery_level_update(void)
+{
+    uint32_t err_code;
+    uint8_t  battery_level = l3_vars.volt_based_soc; // from 0 to 100
+
+    err_code = ble_bas_battery_level_update(&m_bas, battery_level);
+    if ((err_code != NRF_SUCCESS) &&
+        (err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != BLE_ERROR_NO_TX_PACKETS) &&
+        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+       )
+    {
+        APP_ERROR_HANDLER(err_code);
+    }
+}
+
+
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the battery level measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void battery_level_meas_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    battery_level_update();
+}
+
+static void bas_init() {
+  // Initialize Battery Service.
+  ble_bas_init_t        bas_init;
+  memset(&bas_init, 0, sizeof(bas_init));
+
+  // Here the sec level for the Battery Service can be changed/increased.
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.cccd_write_perm);
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.read_perm);
+  BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bas_init.battery_level_char_attr_md.write_perm);
+
+  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_report_read_perm);
+
+  bas_init.evt_handler          = NULL;
+  bas_init.support_notification = true;
+  bas_init.p_report_ref         = NULL;
+  bas_init.initial_batt_level   = 100;
+
+  APP_ERROR_CHECK(ble_bas_init(&m_bas, &bas_init));
+
+  APP_ERROR_CHECK(app_timer_create(&m_battery_timer_id,
+                              APP_TIMER_MODE_REPEATED,
+                              battery_level_meas_timeout_handler));
+
+  APP_ERROR_CHECK(app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL));
+}
+#endif
+
+
+
 /**@brief Function for initializing services that will be used by the application.
  */
 static void services_init(void)
 {
-    // Init the serial port service
+#ifdef BLE_SERIAL
+    serial_init();
+#endif
 
-    ble_nus_init_t nus_init;
-    memset(&nus_init, 0, sizeof(nus_init));
+#ifdef BLE_CSC
+    csc_init();
+#endif
 
-    nus_init.data_handler = nus_data_handler;
-
-    APP_ERROR_CHECK(ble_nus_init(&m_nus, &nus_init));
-
-    ble_cscs_init_t       cscs_init;
-    ble_bas_init_t        bas_init;
-    ble_dis_init_t        dis_init;
-    ble_sensor_location_t sensor_location;
-
-    // Initialize Cycling Speed and Cadence Service.
-    memset(&cscs_init, 0, sizeof(cscs_init));
-
-    cscs_init.evt_handler = NULL;
-    cscs_init.feature     = BLE_CSCS_FEATURE_WHEEL_REV_BIT | BLE_CSCS_FEATURE_CRANK_REV_BIT |
-                            BLE_CSCS_FEATURE_MULTIPLE_SENSORS_BIT;
-
-    // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_meas_attr_md.cccd_write_perm);   // for the measurement characteristic, only the CCCD write permission can be set by the application, others are mandated by service specification
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_feature_attr_md.read_perm);      // for the feature characteristic, only the read permission can be set by the application, others are mandated by service specification
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.write_perm);      // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_ctrlpt_attr_md.cccd_write_perm); // for the SC control point characteristic, only the write permission and CCCD write can be set by the application, others are mandated by service specification
-
-    cscs_init.ctrplt_supported_functions = BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED
-                                           | BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
-                                           | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED;
-    cscs_init.ctrlpt_evt_handler            = sc_ctrlpt_event_handler;
-    cscs_init.list_supported_locations      = supported_locations;
-    cscs_init.size_list_supported_locations = sizeof(supported_locations) /
-                                              sizeof(ble_sensor_location_t);
-
-    sensor_location           = BLE_SENSOR_LOCATION_FRONT_WHEEL;                 // initializes the sensor location to add the sensor location characteristic.
-    cscs_init.sensor_location = &sensor_location;
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cscs_init.csc_sensor_loc_attr_md.read_perm); // for the sensor location characteristic, only the read permission can be set by the application, others are mendated by service specification
-
-    APP_ERROR_CHECK(ble_cscs_init(&m_cscs, &cscs_init));
-
-    // Initialize Battery Service.
-    memset(&bas_init, 0, sizeof(bas_init));
-
-    // Here the sec level for the Battery Service can be changed/increased.
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.cccd_write_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_char_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&bas_init.battery_level_char_attr_md.write_perm);
-
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&bas_init.battery_level_report_read_perm);
-
-    bas_init.evt_handler          = NULL;
-    bas_init.support_notification = true;
-    bas_init.p_report_ref         = NULL;
-    bas_init.initial_batt_level   = 100;
-
-    APP_ERROR_CHECK(ble_bas_init(&m_bas, &bas_init));
+#ifdef BLE_BAS
+    bas_init();
+#endif
 
     // Initialize Device Information Service.
+    ble_dis_init_t dis_init;
     memset(&dis_init, 0, sizeof(dis_init));
 
     ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, MANUFACTURER_NAME);
@@ -209,6 +404,8 @@ static void services_init(void)
 
     APP_ERROR_CHECK(ble_dis_init(&dis_init));
 }
+
+
 
 
 /**@brief Function for handling an event from the Connection Parameters Module.
@@ -380,7 +577,9 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
     ble_conn_params_on_ble_evt(p_ble_evt);
+#ifdef BLE_SERIAL
     ble_nus_on_ble_evt(&m_nus, p_ble_evt);
+#endif
     on_ble_evt(p_ble_evt);
     ble_advertising_on_ble_evt(p_ble_evt);
 }

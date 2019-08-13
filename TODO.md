@@ -1,6 +1,7 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete, but functional and probably safe.
 
+* assist level not getting saved on real bike
 * include release notes: how to install (with openocd links), working features, not yet working features, etc...
 
 # TODO tasks for beta release
@@ -17,16 +18,14 @@ will declare beta.
 * show temp warnings on main screen
 * merge walk/brake into a single status line with other faults
 * show motor faults promenantly on main screen
-* put speed back into main screen
-* add cadence back to main screen (if it fits readably, otherwise move the info screen)
+* suspend the 100ms timer tick during copy_layer_2_layer_3_vars
 * include units on speed
 * label assist on main screen
-* let user edit maxpower from the mainscreen
+* let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
 * uncomment offroad mode - and fix the config editing of the div25 field it use
 * to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
 * move font selection out of Field and into FieldLayout
-* investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
 * show motor temp alerts
 * show power limiting alerts (due to PWM or temp or whatever)
 * successful installation/usage report from at least one alpha user/dev
@@ -36,7 +35,10 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
-* do eeprom GC if flash is full (currently only done at boot)
+
+# Tasks for release 1.1
+* report pedal power via strava
+* fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
 * Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 
 # Tasks for future releases
@@ -111,6 +113,10 @@ the GUI thread.  Use two buffers + a ptr.
 * put secondary data on a new "info" screen
 * move trip distance to info screen
 * move motor temp to info screen
+* put speed back into main screen
+* add cadence back to main screen (if it fits readably, otherwise move the info screen)
+* investigate to see if OLED is pwmed, becuase it flickers in my camera.  i.e. if we change the pwm interval we can make it brighter
+* do eeprom GC if flash is full (currently only done at boot)
 
 # Misc notes from kevin not yet formatted
 

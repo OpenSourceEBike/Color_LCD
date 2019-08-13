@@ -61,9 +61,6 @@ void graphs_measurements_update(void);
 void trip_distance(void);
 void trip_time(void);
 
-void lcd_set_backlight_intensity(uint8_t level) {
-  // FIXME, implement
-}
 
 bool mainscreen_onpress(buttons_events_t events) {
   if((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled)
@@ -553,23 +550,7 @@ void brake(void)
   fieldPrintf(&warnField, l3_vars.ui8_braking ? "BRAKE" : (l3_vars.ui8_walk_assist ? "WALK" : (l3_vars.ui8_lights ? "LIGH" : "")));
 }
 
-#if 0
-void lcd_set_backlight_intensity(uint8_t ui8_intensity)
-{
-  // force to be min of 20% and max of 100%
-  if(ui8_intensity < 4)
-  {
-    ui8_intensity = 4;
-  }
-  else if(ui8_intensity > 20)
-  {
-    ui8_intensity = 20;
-  }
 
-  TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-  TIM_CtrlPWMOutputs(TIM3, ENABLE);
-}
-#endif
 
 void lights_state(void)
 {

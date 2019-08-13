@@ -6,10 +6,11 @@
  * Released under the GPL License, Version 3
  */
 
-#ifndef LCD_H_
-#define LCD_H_
+#pragma once
+
+#include "stdint.h"
 
 void lcd_init(void);
 void lcd_refresh(void); // Call to flush framebuffer to SPI device
+void lcd_set_backlight_intensity(uint8_t level);
 
-#endif /* LCD_H_ */

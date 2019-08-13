@@ -23,7 +23,6 @@
 /* Function prototype */
 static void set_cmd(void);
 static void set_data(void);
-static void send_cmd(uint8_t cmd);
 // static void send_byte(uint8_t byte);
 static void spi_init(void);
 static void pset(UG_S16 x, UG_S16 y, UG_COLOR col);
@@ -38,7 +37,7 @@ extern UG_GUI gui;
 uint8_t frameBuffer[16][64];
 
 /* Init sequence sampled by casainho from original SW102 display */
-const uint8_t init_array[] = {
+static const uint8_t init_array[] = {
     0xAE, // 11. display on
     0xA8, 0x3F, // set multiplex ratio 3f
     0xD5, 0x50, // set display divite/oscillator ratios
@@ -60,6 +59,27 @@ const uint8_t init_array[] = {
 /* SPI instance */
 const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(LCD_SPI_INSTANCE);
 
+static void set_cmd(void)
+{
+  nrf_gpio_pin_clear(LCD_COMMAND_DATA__PIN);
+  //nrf_delay_us(1);  // Max. setup time (~150 ns)
+}
+
+static void set_data(void)
+{
+  nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
+  //nrf_delay_us(1);  // Max. setup time (~150 ns)
+}
+
+/**
+ * @brief Sends single command byte
+ */
+static void send_cmd(const uint8_t *cmds, size_t numcmds)
+{
+  set_cmd();
+  APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, cmds, numcmds, NULL, 0));
+}
+
 
 /**
  * @brief LCD initialization including hardware layer.
@@ -77,14 +97,10 @@ void lcd_init(void)
   // Power On Sequence SH1107 data sheet p. 44
 
   // Set up initialization sequence
-  set_cmd();
-  nrf_drv_spi_transfer(&spi, init_array, ARRAY_SIZE(init_array), NULL, 0);
+ send_cmd(init_array, sizeof(init_array));
 
   // Clear internal RAM
   lcd_refresh(); // Is already initialized to zero in bss segment.
-
-  // Set display on
-  //send_cmd(0xAF); // Works also as part of initialization sequence
 
   // Wait 100 ms
   nrf_delay_ms(100);  // Doesn't have to be exact this delay.
@@ -96,36 +112,7 @@ void lcd_init(void)
   // UG_SetRefresh(lcd_refresh); // LCD refresh function
 }
 
-static void set_cmd(void)
-{
-  nrf_gpio_pin_clear(LCD_COMMAND_DATA__PIN);
-  //nrf_delay_us(1);  // Max. setup time (~150 ns)
-}
 
-static void set_data(void)
-{
-  nrf_gpio_pin_set(LCD_COMMAND_DATA__PIN);
-  //nrf_delay_us(1);  // Max. setup time (~150 ns)
-}
-
-/**
- * @brief Sends single command byte
- */
-static void send_cmd(uint8_t cmd)
-{
-  set_cmd();
-  nrf_drv_spi_transfer(&spi, &cmd, 1, NULL, 0);
-}
-
-/**
- * @brief Sends single data byte
-
-static void send_byte(uint8_t byte)
-{
-  set_data();
-  nrf_drv_spi_transfer(&spi, &byte, 1, NULL, 0);
-}
-*/
 
 /**
  * @brief Start transfer of frameBuffer to LCD
@@ -134,15 +121,17 @@ void lcd_refresh(void)
 {
   uint8_t addr = 0xB0;
 
+  static uint8_t pagecmd[] = { 0, 0x00, 0x10 };
+
   for (uint8_t i = 0; i < 16; i++)
   {
     // New page address
-    send_cmd(addr++); // set page address
-    send_cmd(0x00);
-    send_cmd(0x10);
+    pagecmd[0] = addr++;
+    send_cmd(pagecmd, sizeof(pagecmd));
+
     // send page data
     set_data();
-    nrf_drv_spi_transfer(&spi, &frameBuffer[i][0], 64, NULL, 0);
+    APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, &frameBuffer[i][0], 64, NULL, 0));
   }
 }
 
@@ -160,7 +149,7 @@ static void spi_init(void)
   spi_config.mode = NRF_SPI_MODE_0;
   spi_config.bit_order = NRF_SPI_BIT_ORDER_MSB_FIRST;
 
-  nrf_drv_spi_init(&spi, &spi_config, NULL);
+  APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, NULL));
 }
 
 /**
@@ -182,3 +171,31 @@ static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
   else
     CLR_BIT(frameBuffer[page][x], pixel);
 }
+
+#if 0
+void lcd_set_backlight_intensity(uint8_t ui8_intensity)
+{
+  // force to be min of 20% and max of 100%
+  if(ui8_intensity < 4)
+  {
+    ui8_intensity = 4;
+  }
+  else if(ui8_intensity > 20)
+  {
+    ui8_intensity = 20;
+  }
+
+  TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
+  TIM_CtrlPWMOutputs(TIM3, ENABLE);
+}
+#endif
+
+//SW102 version, we are an oled so if the user asks for lots of backlight we really want to dim instead
+void lcd_set_backlight_intensity(uint8_t pct) {
+
+  uint8_t level = 255 * (100 - pct);
+  uint8_t cmd[] = { 0x81, level };
+
+  send_cmd(cmd, sizeof(cmd));
+}
+

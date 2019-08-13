@@ -93,7 +93,6 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
     {
     /* End of bytewise RX */
     case 0:
-    {
       uart_rx_new_package = false;  // RX ongoing. Invalidate flag.
       if (uart_buffer0_rx[0] == 0x43) // see if we get start package byte
       {
@@ -104,10 +103,9 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       else
         APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1)); // Next bytewise RX to check for start byte
       break;
-    }
-      /* End of stream RX */
-    case 1:
-    {
+
+    /* End of stream RX */
+    case 1: {
       // validation of the package data
       // last byte is the checksum
       uint16_t ui16_crc_rx = 0xffff;
@@ -132,16 +130,17 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       // memcpy(ui8_rx_buffer, ui8_rx, UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1);
       //}
 
-      /* Start bytewise RX again */
+      /* Start bytewise RX again (regardless of if we liked the current packet or not) */
       APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1));
       uart_rx_state_machine = 0;
-      break;
     }
+    break;
 
     default:
       assert(0);
       break;
     }
+    break;
 
   default:
     break;

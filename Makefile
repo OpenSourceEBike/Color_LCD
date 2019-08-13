@@ -191,9 +191,9 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags release
-OPT = -Os -g3
-# Optimization flags debug (important to get line numbers for faults
-#OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
+# OPT = -Os -g3
+# Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
+OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
 
 # C flags common to all targets
 CFLAGS += $(OPT)

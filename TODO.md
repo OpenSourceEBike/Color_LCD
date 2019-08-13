@@ -2,7 +2,6 @@
 We define alpha releases as: Not feature complete, but functional and probably safe.
 
 * assist level not getting saved on real bike
-* lost rx occurred
 * include release notes: how to install (with openocd links), working features, not yet working features, etc...
 
 # TODO tasks for beta release

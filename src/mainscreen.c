@@ -129,8 +129,8 @@ void lcd_main_screen(void)
 Field socField = FIELD_DRAWTEXT(&FONT_5X12);
 Field batteryField = FIELD_DRAWTEXT(&MY_FONT_BATTERY);
 Field timeField = FIELD_DRAWTEXT(&FONT_5X12);
-Field speedField = FIELD_DRAWTEXT(&FONT_24X40);
-Field assistLevelField = FIELD_DRAWTEXT(&FONT_24X40);
+Field speedField = FIELD_DRAWTEXT(&MY_FONT_NUM_24X40);
+Field assistLevelField = FIELD_DRAWTEXT(&MY_FONT_NUM_24X40);
 Field maxPowerField = FIELD_DRAWTEXT(&FONT_10X16);
 Field humanPowerField = FIELD_DRAWTEXT(&FONT_5X12);
 Field whiteFillField = { .variant = FieldFill };

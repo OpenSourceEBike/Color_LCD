@@ -30,7 +30,7 @@
 // #define  USE_FONT_12X20
 // #define  USE_FONT_16X26
 //#define  USE_FONT_22X36
-#define  USE_FONT_24X40 // NOTE: this font burns 30K of of FLASH - huge.  @lowPerformer had the good idea that someday we can strip just the numbers
+//#define  USE_FONT_24X40 // NOTE: this font burns 30K of of FLASH - huge.  @lowPerformer had the good idea that someday we can strip just the numbers
 //#define  USE_FONT_32X53
 
 /* Specify platform-dependent integer types here */

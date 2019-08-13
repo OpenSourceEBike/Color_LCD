@@ -57,7 +57,6 @@ void l2_calc_wh(void);
 void l2_low_pass_filter_pedal_torque_and_power(void);
 //static void l2_low_pass_filter_pedal_cadence(void);
 void lights_state(void);
-void copy_layer_2_layer_3_vars(void);
 void graphs_measurements_update(void);
 void trip_distance(void);
 void trip_time(void);

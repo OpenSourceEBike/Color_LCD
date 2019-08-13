@@ -27,8 +27,8 @@ uint16_t ui16_m_battery_soc_watts_hour;
 // kevinh: removed volatile because I don't think it is needed
 uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
-// kevinh removed volatile
-l2_vars_t l2_vars;
+// kevinh: I don't think volatile is probably needed here
+volatile l2_vars_t l2_vars;
 
 l3_vars_t l3_vars;
 
@@ -118,7 +118,6 @@ void parse_simmotor() {
 
 void process_rx(void)
 {
-  static uint32_t ui32_wheel_speed_sensor_tick_temp;
   uint8_t ui8_temp;
 
   const uint8_t* p_rx_buffer = uart_get_rx_buffer_rdy();
@@ -200,6 +199,7 @@ void process_rx(void)
       p_rx_buffer++;
 
       // wheel_speed_sensor_tick_counter
+      uint32_t ui32_wheel_speed_sensor_tick_temp;
       ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
       p_rx_buffer++;
       ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer) << 8);
@@ -687,8 +687,8 @@ void layer_2(void)
 
 
 /**
- * Note: all of these copies can happen automically (and they seem independent of each other) so I don't think we need the following:
- * suspend the 100ms timer tick during copy_layer_2_layer_3_vars (FIXME - kevinh thinks unneeded)
+ * Called from the main thread every 100ms
+ *
  */
 void copy_layer_2_layer_3_vars(void)
 {

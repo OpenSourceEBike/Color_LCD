@@ -174,6 +174,12 @@ void mainscreen_show();
 void screen_clock(); // call every 20ms
 void layer_2(void);
 
+/**
+ * Called from the main thread every 100ms
+ *
+ */
+void copy_layer_2_layer_3_vars(void);
+
 extern Screen mainScreen, infoScreen;
 
 extern uint16_t ui16_m_battery_soc_watts_hour;

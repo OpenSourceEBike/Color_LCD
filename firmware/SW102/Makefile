@@ -27,6 +27,8 @@ VERSION_NUM := 9
 
 VERSION_STRING := 0.19.$(VERSION_NUM)
 
+COMMON_DIR := ../common
+
 # Source files common to all targets
 SRC_FILES += \
   $(PROJ_DIR)/src/sw102/main.c \
@@ -36,17 +38,17 @@ SRC_FILES += \
   $(PROJ_DIR)/src/sw102/adc.c \
   $(PROJ_DIR)/src/sw102/eeprom_hw.c \
   $(PROJ_DIR)/src/sw102/rtc.c \
-  $(PROJ_DIR)/src/common/ugui.c \
-  $(PROJ_DIR)/src/common/fault.c \
-  $(PROJ_DIR)/src/common/buttons.c \
-  $(PROJ_DIR)/src/common/uart.c \
-  $(PROJ_DIR)/src/common/utils.c \
-  $(PROJ_DIR)/src/common/state.c \
-  $(PROJ_DIR)/src/common/eeprom.c \
-  $(PROJ_DIR)/src/common/screen.c \
-  $(PROJ_DIR)/src/common/configscreen.c \
-  $(PROJ_DIR)/src/common/fonts.c \
-  $(PROJ_DIR)/src/common/mainscreen.c \
+  $(COMMON_DIR)/src/ugui.c \
+  $(COMMON_DIR)/src/fault.c \
+  $(COMMON_DIR)/src/buttons.c \
+  $(COMMON_DIR)/src/uart.c \
+  $(COMMON_DIR)/src/utils.c \
+  $(COMMON_DIR)/src/state.c \
+  $(COMMON_DIR)/src/eeprom.c \
+  $(COMMON_DIR)/src/screen.c \
+  $(COMMON_DIR)/src/configscreen.c \
+  $(COMMON_DIR)/src/fonts.c \
+  $(COMMON_DIR)/src/mainscreen.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \

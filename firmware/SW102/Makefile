@@ -41,7 +41,7 @@ SRC_FILES += \
   $(COMMON_DIR)/src/ugui.c \
   $(COMMON_DIR)/src/fault.c \
   $(COMMON_DIR)/src/buttons.c \
-  $(COMMON_DIR)/src/uart.c \
+  $(PROJ_DIR)/src/uart.c \
   $(COMMON_DIR)/src/utils.c \
   $(COMMON_DIR)/src/state.c \
   $(COMMON_DIR)/src/eeprom.c \
@@ -93,6 +93,7 @@ SRC_FILES += \
 # Include folders common to all targets
 INC_FOLDERS += \
   $(PROJ_DIR)/include \
+  $(COMMON_DIR)/include \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/components/boards \
   $(SDK_ROOT)/components/device \

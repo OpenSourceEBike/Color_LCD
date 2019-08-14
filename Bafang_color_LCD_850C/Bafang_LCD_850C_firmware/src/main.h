@@ -109,6 +109,7 @@ typedef enum
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 
 // *************************************************************************** //
 

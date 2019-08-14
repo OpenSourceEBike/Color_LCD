@@ -110,6 +110,7 @@ eeprom_data_t m_eeprom_data_defaults =
   },
   .graph_id = GRAPH_PEDAL_HUMAN_POWER,
   .ui8_battery_soc_increment_decrement = DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT,
+  .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
 };
 
 static void eeprom_erase_page(uint32_t ui32_eeprom_page);
@@ -286,6 +287,7 @@ void eeprom_init_variables(void)
   p_lcd_configurations_menu->ui8_battery_soc_power_used_state = m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state;
   p_l3_output_vars->graph_id = m_eeprom_data.graph_id;
   p_l3_output_vars->ui8_battery_soc_increment_decrement = m_eeprom_data.ui8_battery_soc_increment_decrement;
+  p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
 }
 
 void eeprom_write_variables(void)
@@ -371,6 +373,7 @@ void eeprom_write_variables(void)
   m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state = p_lcd_configurations_menu->ui8_battery_soc_power_used_state;
   m_eeprom_data.graph_id = p_l3_output_vars->graph_id;
   m_eeprom_data.ui8_battery_soc_increment_decrement = p_l3_output_vars->ui8_battery_soc_increment_decrement;
+  m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
 
   // eeprom structure to array
   memset(ui8_array, 0, sizeof(m_eeprom_data));

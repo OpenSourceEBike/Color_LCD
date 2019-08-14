@@ -168,13 +168,12 @@ typedef struct l3_vars_struct
   uint32_t ui32_odometer_x10;
   uint16_t ui16_distance_since_power_on_x10;
   uint32_t ui32_trip_x10;
-
   uint8_t ui8_lights;
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
-
   graphs_id_t graph_id;
+  uint8_t ui8_buttons_up_down_invert;
 } l3_vars_t;
 
 typedef enum

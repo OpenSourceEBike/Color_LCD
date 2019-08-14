@@ -145,6 +145,7 @@ void motor_temperature_max_limit(struct_menu_data *p_menu_data);
 void display_title(struct_menu_data *p_menu_data);
 void display_time_hours(struct_menu_data *p_menu_data);
 void display_time_minutes(struct_menu_data *p_menu_data);
+void display_buttons_up_down_invert(struct_menu_data *p_menu_data);
 void display_brightness_backlight_off(struct_menu_data *p_menu_data);
 void display_brightness_backlight_on(struct_menu_data *p_menu_data);
 void display_auto_power_off(struct_menu_data *p_menu_data);
@@ -232,6 +233,7 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   display_title,
   display_time_hours,
   display_time_minutes,
+  display_buttons_up_down_invert,
   display_brightness_backlight_off,
   display_brightness_backlight_on,
   display_auto_power_off,
@@ -312,11 +314,12 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
-  1,
+  1, // motor_temperature_title
   0,
   0,
   0,
-  1,
+  1, // display_title
+  0,
   0,
   0,
   0,
@@ -1580,6 +1583,23 @@ void display_time_minutes(struct_menu_data *p_menu_data)
     p_rtc_time->ui8_minutes = p_rtc_time_edited->ui8_minutes;
     rtc_set_time(p_rtc_time);
   }
+}
+
+void display_buttons_up_down_invert(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_m_l3_vars->ui8_buttons_up_down_invert,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Up down", "buttons", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "default\ninvert");
 }
 
 void display_brightness_backlight_off(struct_menu_data *p_menu_data)

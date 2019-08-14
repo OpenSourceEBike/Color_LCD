@@ -54,6 +54,17 @@ ODFLAGS = -S
 SOURCES=$(shell find ./ -type f -iname '*.c')
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
+# dev platform specific.
+# OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
+# OPENOCD_BIN := openocd.exe
+# NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
+
+OPENOCD_PATH := /usr/local/share/openocd/bin
+OPENOCD_BIN := openocd
+NRFUTIL := nrfutil
+
+OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/stm32f1x.cfg
+
 all: main.bin size
 
 clean: 
@@ -62,9 +73,12 @@ clean:
 	find spl/src/*.o | xargs rm
 	find spl/CMSIS/*.o | xargs rm
 
-flash: main.bin 
+flash_serial: main.bin 
 	$(STM32FLASH) main.bin
 
+flash_jtag: main.bin
+	$(OPENOCD) 
+	
 size:
 	@echo "Size:"
 	$(SIZE) main.elf

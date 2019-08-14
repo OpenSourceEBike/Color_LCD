@@ -29,24 +29,24 @@ VERSION_STRING := 0.19.$(VERSION_NUM)
 
 # Source files common to all targets
 SRC_FILES += \
-  $(PROJ_DIR)/src/main.c \
-  $(PROJ_DIR)/src/lcd.c \
-  $(PROJ_DIR)/src/ugui.c \
-  $(PROJ_DIR)/src/button.c \
-  $(PROJ_DIR)/src/fault.c \
-  $(PROJ_DIR)/src/buttons.c \
-  $(PROJ_DIR)/src/ble_services.c \
-  $(PROJ_DIR)/src/uart.c \
-  $(PROJ_DIR)/src/utils.c \
-  $(PROJ_DIR)/src/state.c \
-  $(PROJ_DIR)/src/adc.c \
-  $(PROJ_DIR)/src/eeprom.c \
-  $(PROJ_DIR)/src/eeprom_hw.c \
-  $(PROJ_DIR)/src/screen.c \
-  $(PROJ_DIR)/src/configscreen.c \
-  $(PROJ_DIR)/src/rtc.c \
-  $(PROJ_DIR)/src/fonts.c \
-  $(PROJ_DIR)/src/mainscreen.c \
+  $(PROJ_DIR)/src/sw102/main.c \
+  $(PROJ_DIR)/src/sw102/lcd.c \
+  $(PROJ_DIR)/src/sw102/button.c \
+  $(PROJ_DIR)/src/sw102/ble_services.c \
+  $(PROJ_DIR)/src/sw102/adc.c \
+  $(PROJ_DIR)/src/sw102/eeprom_hw.c \
+  $(PROJ_DIR)/src/sw102/rtc.c \
+  $(PROJ_DIR)/src/common/ugui.c \
+  $(PROJ_DIR)/src/common/fault.c \
+  $(PROJ_DIR)/src/common/buttons.c \
+  $(PROJ_DIR)/src/common/uart.c \
+  $(PROJ_DIR)/src/common/utils.c \
+  $(PROJ_DIR)/src/common/state.c \
+  $(PROJ_DIR)/src/common/eeprom.c \
+  $(PROJ_DIR)/src/common/screen.c \
+  $(PROJ_DIR)/src/common/configscreen.c \
+  $(PROJ_DIR)/src/common/fonts.c \
+  $(PROJ_DIR)/src/common/mainscreen.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \

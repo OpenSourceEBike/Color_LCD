@@ -96,9 +96,9 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       uart_rx_new_package = false;  // RX ongoing. Invalidate flag.
       if (uart_buffer0_rx[0] == 0x43) // see if we get start package byte
       {
+        uart_rx_state_machine = 1;
         APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[1],
             UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2)); // Start RX of the remaining stream at once
-        uart_rx_state_machine = 1;
       }
       else
         APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_buffer0_rx[0], 1)); // Next bytewise RX to check for start byte

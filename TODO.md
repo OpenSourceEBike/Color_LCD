@@ -1,9 +1,6 @@
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete, but functional and probably safe.
 
-* assist level not getting saved on real bike
-* include release notes: how to install (with openocd links), working features, not yet working features, etc...
-
 # TODO tasks for beta release
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
@@ -119,6 +116,8 @@ the GUI thread.  Use two buffers + a ptr.
 * do eeprom GC if flash is full (currently only done at boot)
 * LowPerformer idea to only use the numbers for bigger fonts to save flash. (USE_FONT_24X40 costs 30KB of flash space for instance)
 * Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
+* assist level not getting saved on real bike
+* include release notes: how to install (with openocd links), working features, not yet working features, etc...
 
 # Misc notes from kevin not yet formatted
 

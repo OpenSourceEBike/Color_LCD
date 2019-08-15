@@ -41,7 +41,7 @@ SRC_FILES += \
   $(COMMON_DIR)/src/ugui.c \
   $(COMMON_DIR)/src/fault.c \
   $(COMMON_DIR)/src/buttons.c \
-  $(PROJ_DIR)/src/uart.c \
+  $(PROJ_DIR)/src/sw102/uart.c \
   $(COMMON_DIR)/src/utils.c \
   $(COMMON_DIR)/src/state.c \
   $(COMMON_DIR)/src/eeprom.c \

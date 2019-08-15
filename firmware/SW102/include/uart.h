@@ -9,5 +9,7 @@ void uart_send_tx_buffer(uint8_t* tx_buffer);
 #define UART_NUMBER_DATA_BYTES_TO_RECEIVE   25  // change this value depending on how many data bytes there is to receive ( Package = one start byte + data bytes + two bytes 16 bit CRC )
 #define UART_NUMBER_DATA_BYTES_TO_SEND      6   // change this value depending on how many data bytes there is to send ( Package = one start byte + data bytes + two bytes 16 bit CRC )
 #define UART_MAX_NUMBER_MESSAGE_ID          8   // change this value depending on how many different packages there is to send
+#define UART_NUMBER_CRC_BYTES               2
+#define UART_NUMBER_START_BYTES             1
 
 #endif /* INCLUDE_UART_H_ */

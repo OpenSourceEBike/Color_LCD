@@ -57,13 +57,24 @@ const uint8_t* uart_get_rx_buffer_rdy(void)
   uint8_t* rx_rdy;
 
   // VERY paranoid but it is possible that uart_rx_data_rdy
-  // is set from IRQ during hand-over
+  // is set from IRQ during hand-over and gets NULLed right away.
   CRITICAL_REGION_ENTER();
   {
     rx_rdy = (uint8_t*) uart_rx_data_rdy;
     uart_rx_data_rdy = NULL;
   }
   CRITICAL_REGION_EXIT();
+
+  if (rx_rdy != NULL)
+  {
+    uint16_t crc_rx = 0xffff;
+    for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_RECEIVE; ui8_i++)
+      crc16(rx_rdy[ui8_i], &crc_rx);
+
+    if (((((uint16_t) rx_rdy[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2]) << 8)
+        + ((uint16_t) rx_rdy[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1])) != crc_rx)
+      rx_rdy = NULL;  // Invalidate buffer if CRC not OK
+  }
 
   return rx_rdy;
 }
@@ -82,7 +93,7 @@ uint8_t* uart_get_tx_buffer(void)
 void uart_send_tx_buffer(uint8_t *tx_buffer)
 {
   ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer,
-  UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND + UART_NUMBER_CRC_BYTES);
+      UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND + UART_NUMBER_CRC_BYTES);
 
   APP_ERROR_CHECK(err_code);
 }

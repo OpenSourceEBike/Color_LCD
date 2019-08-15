@@ -9,7 +9,21 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-//#define SIMULATION
+typedef enum
+{
+  GRAPH_PEDAL_HUMAN_POWER = 0,
+  GRAPH_PEDAL_CADENCE,
+  GRAPH_WHEEL_SPEED,
+  GRAPH_BATTERY_VOLTAGE,
+  GRAPH_BATTERY_CURRENT,
+  GRAPH_BATTERY_SOC,
+  GRAPH_MOTOR_POWER,
+  GRAPH_MOTOR_TEMPERATURE,
+  GRAPH_MOTOR_PWM_DUTY_CYCLE,
+  GRAPH_MOTOR_ERPS,
+  GRAPH_MOTOR_FOC_ANGLE,
+  NUMBER_OF_GRAPHS_ID,
+} graphs_id_t;
 
 // INTERRUPTS PRIORITIES
 // Define for the NVIC IRQChannel Preemption Priority
@@ -94,6 +108,8 @@
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_ENABLED                   0
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
+#define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 
 // *************************************************************************** //
 

@@ -10,6 +10,7 @@
 #define LCD_H_
 
 #include <stdint.h>
+#include "main.h"
 #include "ugui/ugui.h"
 #include "usart1.h"
 
@@ -167,11 +168,12 @@ typedef struct l3_vars_struct
   uint32_t ui32_odometer_x10;
   uint16_t ui16_distance_since_power_on_x10;
   uint32_t ui32_trip_x10;
-
   uint8_t ui8_lights;
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
+  graphs_id_t graph_id;
+  uint8_t ui8_buttons_up_down_invert;
 } l3_vars_t;
 
 typedef enum
@@ -180,13 +182,20 @@ typedef enum
   LCD_SCREEN_CONFIGURATIONS = 2
 } lcd_screen_states_t;
 
+typedef enum
+{
+  MAIN_SCREEN_STATE_MAIN = 0,
+  MAIN_SCREEN_STATE_POWER,
+  MAIN_SCREEN_STATE_CHANGE_GRAPH
+} lcd_main_screen_states_t;
+
 typedef struct lcd_vars_struct
 {
   uint32_t ui32_main_screen_draw_static_info;
   lcd_screen_states_t lcd_screen_state;
   uint8_t ui8_lcd_menu_counter_1000ms_state;
   uint8_t ui8_lcd_menu_counter_1000ms_trigger;
-  uint8_t ui8_lcd_menu_max_power;
+  lcd_main_screen_states_t main_screen_state;
 } lcd_vars_t;
 
 typedef struct _print_number
@@ -212,12 +221,13 @@ typedef struct _print_number
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 extern volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 extern volatile uint32_t ui32_g_graphs_data_array_over_255;
+extern volatile uint32_t ui32_g_first_time;
 
 void lcd_init(void);
 void lcd_clock(void);
 void layer_2(void);
-l3_vars_t* get_l3_vars(void);
-lcd_vars_t* get_lcd_vars(void);
+volatile l3_vars_t* get_l3_vars(void);
+volatile lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
 void lcd_draw_main_menu_mask(void);
 

@@ -33,16 +33,16 @@
 #define BATTERY_SOC_BAR_HEIGHT 24
 #define BATTERY_SOC_CONTOUR 1
 
-lcd_vars_t m_lcd_vars =
+volatile lcd_vars_t m_lcd_vars =
 {
   .ui32_main_screen_draw_static_info = 1,
   .lcd_screen_state = LCD_SCREEN_MAIN,
   .ui8_lcd_menu_counter_1000ms_state = 0,
-  .ui8_lcd_menu_max_power = 0,
+  .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
-volatile l2_vars_t l2_vars;
-static l3_vars_t l3_vars;
+static volatile l2_vars_t l2_vars;
+static volatile l3_vars_t l3_vars;
 
 static lcd_configurations_menu_t *p_lcd_configurations_vars;
 
@@ -59,6 +59,7 @@ static uint8_t ui8_lcd_menu_config_submenu_active = 0;
 volatile uint32_t ui32_g_layer_2_can_execute = 0;
 
 static uint16_t ui16_m_battery_soc_watts_hour = 0;
+static uint16_t ui16_m_battery_soc_watts_hour_fixed = 0;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
@@ -67,6 +68,8 @@ volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 static volatile graphs_t *m_p_graphs;
 static volatile uint32_t ui32_m_draw_graphs_1 = 0;
 static volatile uint32_t ui32_m_draw_graphs_2 = 0;
+
+volatile uint32_t ui32_g_first_time = 1;
 
 void lcd_main_screen(void);
 uint8_t first_time_management(void);
@@ -100,6 +103,7 @@ void copy_layer_2_layer_3_vars(void);
 void graphs_measurements_update(void);
 void trip_distance(void);
 void trip_time(void);
+void change_graph(void);
 
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
@@ -129,8 +133,10 @@ void lcd_clock(void)
     ui32_g_layer_2_can_execute = 1;
   }
 
-//  if(first_time_management())
-//    return;
+  if(first_time_management())
+  {
+    return;
+  }
 
   update_menu_flashing_state();
 
@@ -152,10 +158,12 @@ void lcd_clock(void)
   }
 
   // enter in menu set power: ONOFF + UP click event
-  if(buttons_get_onoff_state() && buttons_get_up_state())
+  if(m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
+      buttons_get_onoff_long_click_event() &&
+      buttons_get_up_long_click_event())
   {
     buttons_clear_all_events();
-    m_lcd_vars.ui8_lcd_menu_max_power = 1;
+    m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_POWER;
   }
 
   // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
@@ -179,7 +187,8 @@ void lcd_clock(void)
 
   // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs_2)
+  if(ui32_m_draw_graphs_1 &&
+      ui32_m_draw_graphs_2)
   {
     graphs_clock_2();
   }
@@ -224,12 +233,17 @@ void lcd_main_screen(void)
   trip_time();
   trip_distance();
 
+  change_graph();
+
   // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   if(ui32_m_draw_graphs_2 ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     graphs_draw(&m_lcd_vars);
   }
+
+  // this event is not used so we must clear it
+  buttons_get_onoff_click_long_click_event();
 
   m_lcd_vars.ui32_main_screen_draw_static_info = 0;
 }
@@ -476,7 +490,7 @@ void layer_2(void)
 
   l2_low_pass_filter_battery_voltage_current_power();
   l2_low_pass_filter_pedal_torque_and_power();
-//  l2_low_pass_filter_pedal_cadence();
+  l2_low_pass_filter_pedal_cadence();
   l2_calc_battery_voltage_soc();
 //  l2_calc_odometer();
   l2_calc_wh();
@@ -489,7 +503,15 @@ void layer_2(void)
 uint8_t first_time_management(void)
 {
   static uint8_t ui8_motor_controller_init = 1;
+  static uint32_t ui32_counter = 0;
   uint8_t ui8_status = 0;
+
+  // count 10 seconds
+  if(++ui32_counter > 500 &&
+      ui32_g_first_time == 1)
+  {
+    ui32_g_first_time = 0;
+  }
 
   // don't update LCD up to we get first communication package from the motor controller
   if(ui8_motor_controller_init &&
@@ -498,7 +520,8 @@ uint8_t first_time_management(void)
     ui8_status = 1;
   }
   // this will be executed only 1 time at startup
-  else if (ui8_motor_controller_init)
+  else if(ui8_motor_controller_init &&
+      ui32_g_first_time == 0)
   {
     ui8_motor_controller_init = 0;
 
@@ -542,14 +565,8 @@ void assist_level_state(void)
   }
 
   if (buttons_get_up_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
       buttons_clear_all_events();
 
     l3_vars.ui8_assist_level++;
@@ -559,14 +576,8 @@ void assist_level_state(void)
   }
 
   if (buttons_get_down_click_event() &&
-      m_lcd_vars.ui8_lcd_menu_max_power == 0)
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
-//    buttons_clear_up_click_event ();
-//    buttons_clear_up_click_long_click_event ();
-//    buttons_clear_up_long_click_event ();
-//    buttons_clear_down_click_event ();
-//    buttons_clear_down_click_long_click_event ();
-//    buttons_clear_down_long_click_event ();
       buttons_clear_all_events();
 
     if (l3_vars.ui8_assist_level > 0)
@@ -586,7 +597,7 @@ void assist_level_state(void)
   }
 }
 
-l3_vars_t* get_l3_vars(void)
+volatile l3_vars_t* get_l3_vars(void)
 {
   return &l3_vars;
 }
@@ -723,7 +734,9 @@ void trip_distance(void)
 void power_off_management(void)
 {
   if(buttons_get_onoff_long_click_event() &&
-    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
+    m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
+    buttons_get_up_state() == 0 &&
+    buttons_get_down_state() == 0)
   {
     lcd_power_off(1);
   }
@@ -835,53 +848,6 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
     l2_vars.ui16_pedal_power_filtered /= 10;
     l2_vars.ui16_pedal_power_filtered *= 10;
   }
-
-#ifdef SIMULATION
-  static uint16_t ui16_virtual_pedal_power = 0;
-  static uint8_t ui8_counter = 0;
-  static uint16_t ui16_index = 0;
-
-  ui8_counter++;
-  if(ui8_counter >= 2)
-  {
-    ui8_counter = 0;
-
-    if(ui16_index == 0)
-    {
-      ui16_virtual_pedal_power = 0;
-    }
-    else if(ui16_index > 0 && ui16_index <= 150)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 151)
-    {
-      ui16_virtual_pedal_power = 50;
-    }
-    else if(ui16_index > 151 && ui16_index <= 200)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 201)
-    {
-      ui16_virtual_pedal_power = 20;
-      ui16_index = 201;
-    }
-//    else if(ui16_index > 201 && ui16_index <= 254)
-//    {
-//      ui16_virtual_pedal_power++;
-//    }
-//    else if(ui16_index == 255)
-//    {
-//      ui16_virtual_pedal_power = 0;
-//      ui16_index = 0;
-//    }
-
-    ui16_index++;
-  }
-
-  l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
-#endif
 }
 
 static void l2_low_pass_filter_pedal_cadence(void)
@@ -997,12 +963,12 @@ void update_menu_flashing_state(void)
   static uint8_t ui8_lcd_menu_counter_1000ms = 0;
 
   // ***************************************************************************************************
-  // For flashing on menus, 0.5 seconds flash
-  if (ui8_lcd_menu_flash_counter++ > 25)
+  // For flashing on menus, 0.15 seconds flash
+  if (ui8_lcd_menu_flash_counter++ > 15)
   {
     ui8_lcd_menu_flash_counter = 0;
 
-    if (ui8_lcd_menu_flash_state)
+    if(ui8_lcd_menu_flash_state)
       ui8_lcd_menu_flash_state = 0;
     else
       ui8_lcd_menu_flash_state = 1;
@@ -1666,7 +1632,7 @@ void power(void)
     UG_PutString(183, 164, "motor power");
   }
 
-  if(!m_lcd_vars.ui8_lcd_menu_max_power)
+  if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
   {
     _ui16_battery_power_filtered = l3_vars.ui16_battery_power_filtered;
 
@@ -1689,23 +1655,18 @@ void power(void)
 
     }
   }
-  else
+  else if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_POWER)
   {
-    // because this click envent can happens and will block the detection of button_onoff_long_click_event
-    buttons_clear_onoff_click_event();
-
     // leave this menu with a button_onoff_long_click
     if(buttons_get_onoff_long_click_event())
     {
       buttons_clear_all_events();
-      m_lcd_vars.ui8_lcd_menu_max_power = 0;
+      m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_MAIN;
       ui8_target_max_battery_power_state = 0;
       power_number.ui8_refresh_all_digits = 1;
 
       // save the updated variables on EEPROM
       eeprom_write_variables();
-
-      buttons_clear_all_events();
       return;
     }
 
@@ -1726,7 +1687,7 @@ void power(void)
       if(l3_vars.ui8_target_max_battery_power > 100) { l3_vars.ui8_target_max_battery_power = 100; }
     }
 
-    if(buttons_get_down_click_event ())
+    if(buttons_get_down_click_event())
     {
       buttons_clear_all_events();
 
@@ -1906,11 +1867,19 @@ void calc_battery_soc_watts_hour(void)
       ui32_temp = 100;
 
     ui16_m_battery_soc_watts_hour = 100 - ui32_temp;
+    ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
   }
   else
   {
     ui16_m_battery_soc_watts_hour = ui32_temp;
   }
+
+  // fixed range
+  if (ui32_temp > 100)
+  {
+    ui32_temp = 100;
+  }
+  ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
 }
 
 void lcd_print_number(print_number_t* number)
@@ -2178,6 +2147,7 @@ void copy_layer_2_layer_3_vars(void)
   l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
   l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
   l3_vars.ui8_braking = l2_vars.ui8_braking;
+  l3_vars.ui8_foc_angle = l2_vars.ui8_foc_angle;
 
   l2_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10_offset;
   l2_vars.ui16_battery_pack_resistance_x1000 = l3_vars.ui16_battery_pack_resistance_x1000;
@@ -2235,7 +2205,7 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_offroad_power_limit_div25 = l3_vars.ui8_offroad_power_limit_div25;
 }
 
-lcd_vars_t* get_lcd_vars(void)
+volatile lcd_vars_t* get_lcd_vars(void)
 {
   return &m_lcd_vars;
 }
@@ -2243,68 +2213,109 @@ lcd_vars_t* get_lcd_vars(void)
 void graphs_measurements_update(void)
 {
   static uint32_t counter = 0;
-//  static uint8_t ui8_first_time = 1;
-  static uint8_t ui8_first_time = 0;
   static uint32_t ui32_pedal_power_accumulated = 0;
+  graphs_id_t graph_id = 0;
+  uint32_t ui32_temp;
 
-#ifndef SIMULATION
-  if(ui8_first_time &&
-      l2_vars.ui8_motor_temperature != 0)
+  // start update graphs only after a startup delay to avoid wrong values of the variables
+  if(ui32_g_first_time == 0)
   {
-    ui8_first_time = 0;
+    for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
+    {
+      switch(graph_id)
+      {
+        case GRAPH_WHEEL_SPEED:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_wheel_speed_x10;
+        break;
+
+        case GRAPH_PEDAL_HUMAN_POWER:
+          // apply the same low pass filter as for the value show to user
+          ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+          ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+
+          // sum the value
+          m_p_graphs[graph_id].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+        break;
+
+        case GRAPH_PEDAL_CADENCE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_pedal_cadence_filtered;
+        break;
+
+        case GRAPH_BATTERY_VOLTAGE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_voltage_filtered_x10;
+        break;
+
+        case GRAPH_BATTERY_CURRENT:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_current_filtered_x5 * 2; // x10
+        break;
+
+        case GRAPH_BATTERY_SOC:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              ui16_m_battery_soc_watts_hour_fixed;
+        break;
+
+        case GRAPH_MOTOR_POWER:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_battery_power_filtered;
+        break;
+
+        case GRAPH_MOTOR_TEMPERATURE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_motor_temperature;
+        break;
+
+        case GRAPH_MOTOR_PWM_DUTY_CYCLE:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui8_duty_cycle;
+        break;
+
+        case GRAPH_MOTOR_ERPS:
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              l3_vars.ui16_motor_speed_erps;
+        break;
+
+        case GRAPH_MOTOR_FOC_ANGLE:
+          ui32_temp = l3_vars.ui8_foc_angle * 140; // each 1 unit equals to 1.4 degrees
+          m_p_graphs[graph_id].measurement.ui32_sum_value +=
+              ui32_temp;
+        break;
+
+        default:
+        break;
+      }
+    }
   }
 
-  if(ui8_first_time == 0)
+  // every 3.5 seconds, update the graph array values
+  if(++counter >= 35)
   {
-    // apply the same low pass filter as for the value show to user
-    ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-    ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
-
-    // sum the value
-    m_p_graphs[0].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-
-    // every 3.5 seconds, update the graph array values
-    if(++counter >= 35)
+    for(graph_id = 0; graph_id < NUMBER_OF_GRAPHS_ID; graph_id++)
     {
-      if(m_p_graphs[0].measurement.ui32_sum_value)
+      if(m_p_graphs[graph_id].measurement.ui32_sum_value)
       {
         /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
+        m_p_graphs[graph_id].ui32_data_y_last_value = m_p_graphs[graph_id].measurement.ui32_sum_value / counter;
+        m_p_graphs[graph_id].measurement.ui32_sum_value = 0;
       }
       else
       {
         /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = 0;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
+        m_p_graphs[graph_id].ui32_data_y_last_value = 0;
+        m_p_graphs[graph_id].measurement.ui32_sum_value = 0;
       }
 
-      m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
-
-      counter = 0;
-
-      // signal to draw graphs on main loop
-      ui32_m_draw_graphs_1 = 1;
+      m_p_graphs[graph_id].ui32_data_y_last_value_previous = m_p_graphs[graph_id].ui32_data_y_last_value;
     }
-  }
-#else
-  // every 0.5 second
-  counter++;
-  if(counter >= 2)
-  {
-    m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_pedal_power_filtered;
 
-    if(l2_vars.ui16_pedal_power_filtered == 0)
-    {
-      m_p_graphs[0].ui32_data_y_last_value++;
-    }
+    counter = 0;
 
     // signal to draw graphs on main loop
     ui32_m_draw_graphs_1 = 1;
-
-    counter = 0;
   }
-#endif
 }
 
 void walk_assist_state(void)
@@ -2369,5 +2380,93 @@ void walk_assist_state(void)
       ui32_y2 = ui32_y1 + 16;
       UG_FillFrame(ui32_x1, ui32_y1, ui32_x2, ui32_y2, C_BLACK);
     }
+  }
+}
+
+void change_graph(void)
+{
+  // see if we should enter the MAIN_SCREEN_STATE_CHANGE_GRAPH
+  if(buttons_get_onoff_click_long_click_event() &&
+      m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_MAIN)
+  {
+    buttons_clear_all_events();
+    m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_CHANGE_GRAPH;
+  }
+
+  // enter the MAIN_SCREEN_STATE_CHANGE_GRAPH
+  if(m_lcd_vars.main_screen_state == MAIN_SCREEN_STATE_CHANGE_GRAPH)
+  {
+    // change the graph_id with UP and DOWN buttons
+    if(buttons_get_up_click_event())
+    {
+      buttons_clear_all_events();
+
+      l3_vars.graph_id++;
+      if(l3_vars.graph_id >= NUMBER_OF_GRAPHS_ID)
+      {
+        l3_vars.graph_id = 0;
+      }
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+    }
+
+    if(buttons_get_down_click_event())
+    {
+      buttons_clear_all_events();
+
+      if(l3_vars.graph_id > 0)
+      {
+        l3_vars.graph_id--;
+      }
+      else
+      {
+        l3_vars.graph_id = NUMBER_OF_GRAPHS_ID - 1;
+      }
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+    }
+
+    // draw or clean the title
+    if(ui8_lcd_menu_flash_state)
+    {
+      graphs_draw_title(&m_lcd_vars, 2);
+    }
+    else
+    {
+      graphs_draw_title(&m_lcd_vars, 1);
+    }
+
+    // leave this menu with a button_onoff_long_click
+    if(buttons_get_onoff_long_click_event())
+    {
+      buttons_clear_all_events();
+      m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_MAIN;
+
+      // force draw graph
+      ui32_m_draw_graphs_2 = 1;
+
+      // force draw the title
+      graphs_draw_title(&m_lcd_vars, 1);
+      graphs_draw_title(&m_lcd_vars, 2);
+    }
+
+    // clear the events that should not happen but can block the one we want to catch
+    buttons_get_onoff_click_event();
+    buttons_get_onoff_click_long_click_event();
+  }
+  // keep drawing tittle in default mode
+  else
+  {
+    graphs_draw_title(&m_lcd_vars, 0);
   }
 }

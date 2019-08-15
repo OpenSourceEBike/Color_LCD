@@ -12,6 +12,7 @@
 #include "eeprom.h"
 #include "main.h"
 #include "lcd_configurations.h"
+#include "lcd.h"
 
 // to make structures use only bytes and have no paddings
 #pragma pack(1)
@@ -107,6 +108,9 @@ eeprom_data_t m_eeprom_data_defaults =
     .ui8_refresh_full_menu_2 = 0,
     .ui8_battery_soc_power_used_state = 0,
   },
+  .graph_id = GRAPH_PEDAL_HUMAN_POWER,
+  .ui8_battery_soc_increment_decrement = DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT,
+  .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
 };
 
 static void eeprom_erase_page(uint32_t ui32_eeprom_page);
@@ -194,7 +198,7 @@ void eeprom_init_variables(void)
 {
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
-  l3_vars_t *p_l3_output_vars;
+  volatile l3_vars_t *p_l3_output_vars;
   lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
   p_lcd_configurations_menu = get_lcd_configurations_menu();
@@ -281,13 +285,16 @@ void eeprom_init_variables(void)
   p_lcd_configurations_menu->ui8_refresh_full_menu_1 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1;
   p_lcd_configurations_menu->ui8_refresh_full_menu_2 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2;
   p_lcd_configurations_menu->ui8_battery_soc_power_used_state = m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state;
+  p_l3_output_vars->graph_id = m_eeprom_data.graph_id;
+  p_l3_output_vars->ui8_battery_soc_increment_decrement = m_eeprom_data.ui8_battery_soc_increment_decrement;
+  p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
 }
 
 void eeprom_write_variables(void)
 {
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
-  l3_vars_t *p_l3_output_vars;
+  volatile l3_vars_t *p_l3_output_vars;
   volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
   p_lcd_configurations_menu = get_lcd_configurations_menu();
@@ -364,6 +371,9 @@ void eeprom_write_variables(void)
   m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1 = p_lcd_configurations_menu->ui8_refresh_full_menu_1;
   m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2 = p_lcd_configurations_menu->ui8_refresh_full_menu_2;
   m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state = p_lcd_configurations_menu->ui8_battery_soc_power_used_state;
+  m_eeprom_data.graph_id = p_l3_output_vars->graph_id;
+  m_eeprom_data.ui8_battery_soc_increment_decrement = p_l3_output_vars->ui8_battery_soc_increment_decrement;
+  m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
 
   // eeprom structure to array
   memset(ui8_array, 0, sizeof(m_eeprom_data));

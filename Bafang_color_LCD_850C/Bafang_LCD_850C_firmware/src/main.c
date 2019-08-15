@@ -42,18 +42,17 @@ int main(void)
   pins_init();
   system_power(1);
   systick_init();
-#ifndef SIMULATION
   usart1_init();
-#endif
   eeprom_init();
   rtc_init();
   timer3_init(); // drives LCD backlight
   lcd_init();
   timer4_init();
   graphs_init();
+  buttons_init();
 
   // block until user release the buttons
-  while (buttons_get_onoff_state() ||
+  while(buttons_get_onoff_state() ||
       buttons_get_down_state() ||
       buttons_get_up_state());
 

@@ -10,7 +10,6 @@
 #define LCD_CONFIGURATIONS_H_
 
 #include <stdint.h>
-#include "lcd.h"
 
 typedef struct lcd_configurations
 {

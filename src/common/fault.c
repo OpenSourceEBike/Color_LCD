@@ -9,23 +9,24 @@
 #include "nrf_nvic.h"
 #include "nrf_delay.h"
 
-Field faultHeading = FIELD_DRAWTEXT(&MY_FONT_8X12, .msg = "FAULT");
-Field faultCode = FIELD_DRAWTEXT(&FONT_5X12);
-Field addrHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "PC");
-Field addrCode = FIELD_DRAWTEXT(&FONT_5X12);
-Field infoHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "Info");
-Field infoCode = FIELD_DRAWTEXT(&FONT_5X12);
+Field faultHeading = FIELD_DRAWTEXT(.msg = "FAULT");
+Field faultCode = FIELD_DRAWTEXT();
+Field addrHeading = FIELD_DRAWTEXT(.msg = "PC");
+Field addrCode = FIELD_DRAWTEXT();
+Field infoHeading = FIELD_DRAWTEXT(.msg = "Info");
+Field infoCode = FIELD_DRAWTEXT();
 
 Screen faultScreen = {
     .fields = {
-    { .height = -1, .color = ColorInvert, .field = &faultHeading },
-    { .y = FONT12_Y, .height = -1, .color = ColorNormal, .field = &faultCode },
+    { .height = -1, .color = ColorInvert, .field = &faultHeading, .font = &MY_FONT_8X12 },
+
+    { .y = FONT12_Y, .height = -1, .color = ColorNormal, .field = &faultCode, .font = &FONT_5X12 },
     { .y = 2 * FONT12_Y, .height = -1, .color = ColorNormal,
-    .field = &addrHeading },
-    { .y = 3 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &addrCode },
+    .field = &addrHeading, .font = &FONT_5X12 },
+    { .y = 3 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &addrCode, .font = &FONT_5X12 },
     { .y = 4 * FONT12_Y,
-    .width = 0, .height = -1, .color = ColorNormal, .field = &infoHeading },
-    { .y = 5 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &infoCode },
+    .width = 0, .height = -1, .color = ColorNormal, .field = &infoHeading, .font = &FONT_5X12 },
+    { .y = 5 * FONT12_Y, .height = -1, .color = ColorNormal, .field = &infoCode, .font = &FONT_5X12 },
     { .field = NULL }
     } };
 

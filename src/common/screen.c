@@ -90,16 +90,11 @@ static bool renderDrawText(FieldLayout *layout)
 {
   Field *field = layout->field;
 
-  // Allow developer to use this shorthand for one row high text fields
-  if (layout->height == -1)
-    layout->height = field->drawText.font->char_height;
-
-  // if user specified width in terms of characters, change it to pixels
-  if(layout->width < 0)
-    layout->width = -layout->width * (field->drawText.font->char_width + gui.char_h_space);
+  const UG_FONT *font = layout->font;
+  assert(font); // dynamic font selection not yet supported
 
   // how many pixels does our rendered string
-  UG_S16 strwidth = (field->drawText.font->char_width + gui.char_h_space) * strlen(field->drawText.msg);
+  UG_S16 strwidth = (font->char_width + gui.char_h_space + 1) * strlen(field->drawText.msg);
 
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
@@ -108,7 +103,7 @@ static bool renderDrawText(FieldLayout *layout)
   if(strwidth < width) // If the user gave us more space than we need, center justify within that box
     x += (width - strwidth) / 2;
 
-  UG_FontSelect(field->drawText.font);
+  UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout);
   UG_SetBackcolor(back);
   UG_SetForecolor(getForeColor(layout));
@@ -183,6 +178,20 @@ static void drawBorder(FieldLayout *layout)
 
 const Coord screenWidth = 64, screenHeight = 128; // FIXME, for larger devices allow screen objcts to nest inside other screens
 
+/// Should we redraw this field this tick? We always render dirty items, or items that might need to show blink animations
+static bool needsRender(FieldLayout *layout) {
+  if(layout->field->dirty)
+    return true;
+
+  if(layout->field->blink && blinkChanged)
+    return true; // this field is doing a blink animation and it is time for that to update
+
+  if(layout->field->variant == FieldEditable)
+    return true; // Editables are smart enough to do their own rendering shortcuts based on cached values
+
+  return false;
+}
+
 const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 {
   bool didDraw = false; // we only render to hardware if something changed
@@ -193,14 +202,25 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
     // We always render dirty items, or items that might need to show blink animations
-    if (layout->field->dirty || (layout->field->blink && blinkChanged)
-        || forceRender)
+    if (needsRender(layout) || forceRender)
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;
 
       if (layout->height == 0)
         layout->height = screenHeight - layout->y;
+
+      // Allow developer to use this shorthand for one row high text fields
+      if (layout->height == -1) {
+        assert(layout->font); // you must specify a font to use this feature
+        layout->height = layout->font->char_height;
+      }
+
+      // if user specified width in terms of characters, change it to pixels
+      if(layout->width < 0) {
+        assert(layout->font); // you must specify a font to use this feature
+        layout->width = -layout->width * (layout->font->char_width + gui.char_h_space + 1);
+      }
 
       // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
       if(layout->y < 0)
@@ -296,7 +316,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     if (forceScrollableRelayout || blinkChanged)
     {
       static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
-      static Field heading = FIELD_DRAWTEXT(heading_font);
+      static Field heading = FIELD_DRAWTEXT();
 
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
@@ -317,6 +337,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           r->field = &heading;
           r->color = ColorNormal;
           r->border = BorderBottom | BorderFat;
+          r->font = heading_font;
         }
         else
         {
@@ -359,10 +380,11 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     r->height = layout->height;
     r->border = BorderNone;
 
-    static Field label = FIELD_DRAWTEXT(scrollable_font);
+    static Field label = FIELD_DRAWTEXT();
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
+    r->font = scrollable_font;
 
     // If we are inside a scrollable and selected, blink
     if (scrollable)
@@ -483,19 +505,24 @@ static void changeEditable(bool increment)
   }
 }
 
+/**
+ * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
+ * of what we are trying to render and if the same as last time, it will decide to not draw.
+ */
 static bool renderEditable(FieldLayout *layout)
 {
   Field *field = layout->field;
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
   bool isActive = curActiveEditable == field; // are we being edited right now?
+  bool dirty = field->dirty;
 
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetBackcolor(back);
   UG_SetForecolor(fore);
 
   // If we are blinking right now, that's a good place to poll our buttons so that the user can press and hold to change a series of values
-  if (isActive && blinkChanged)
+  if (isActive && blinkChanged && !field->editable.read_only)
   {
     if (buttons_get_up_state())
     {
@@ -508,18 +535,31 @@ static bool renderEditable(FieldLayout *layout)
     }
   }
 
-  UG_FontSelect(editable_label_font);
+  // Get the value we are trying to show (it might be a num or an enum)
+  uint32_t num = getEditableNumber(field);
 
-  // ug fonts include no blank space at the beginning, so we always include one col of padding
+  if(num != layout->old_editable) {
+    layout->old_editable = num;
+    dirty = true; // force a draw
+  }
+
+  if(!dirty)
+    return false; // We didn't actually change so don't try to draw anything
+
+  // fill our entire box with blankspace
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
 
-  UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
+  // Show the label
+  bool showLabel = layout->modifier != ModNoLabel;
+  if(showLabel) {
+    UG_FontSelect(editable_label_font);
+    UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
+    }
 
   // draw editable value
   char msgbuf[MAX_FIELD_LEN];
   const char *msg;
-  uint32_t num = getEditableNumber(field);
   switch (field->editable.typ)
   {
   case EditUInt:
@@ -548,20 +588,30 @@ static bool renderEditable(FieldLayout *layout)
     break;
   }
 
-  const UG_FONT *font = editable_value_font;
+  const UG_FONT *font = layout->font ? layout->font : editable_value_font;
   UG_FontSelect(font);
 
-  // right justify value on the second line
-  UG_S16 x = layout->x + width
-      - strlen(msg) * (font->char_width + gui.char_h_space);
-  UG_S16 y = layout->y + FONT12_Y;
+  // how many pixels does our rendered string
+  UG_S16 strwidth = (font->char_width + gui.char_h_space + 1) * strlen(msg);
+
+  UG_S16 x = layout->x;
+  UG_S16 y = layout->y;
+
+  if(showLabel) {
+    // right justify value on the second line
+    x += width - strwidth;
+    y += FONT12_Y;
+  }
+  else {
+    if(strwidth < width) // If the user gave us more space than we need, center justify within that box
+        x += (width - strwidth) / 2;
+  }
+
   UG_PutString(x, y, (char*) msg);
 
   // Blinking underline cursor when editing
   if (isActive)
   {
-    /* UG_SetBackcolor(fore);
-     UG_SetForecolor(back); */
     UG_S16 cursorY = y + font->char_height + 1;
     UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
   }
@@ -693,10 +743,12 @@ static bool onPressScrollable(buttons_events_t events)
     switch (clicked->variant)
     {
     case FieldEditable:
-      curActiveEditable = clicked;
-      curActiveEditable->dirty = true; // force redraw with highlighting
-      handled = true;
-      forceScrollableRender(); // FIXME, I'm not sure if this is really required
+      if(!clicked->editable.read_only) { // only start editing non read only fields
+        curActiveEditable = clicked;
+        curActiveEditable->dirty = true; // force redraw with highlighting
+        handled = true;
+        forceScrollableRender(); // FIXME, I'm not sure if this is really required
+      }
       break;
 
     case FieldScrollable:

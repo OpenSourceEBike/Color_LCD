@@ -110,10 +110,10 @@ typedef struct Field {
   bool dirty : 1; // true if this data has changed and needs to be rerendered
   bool blink : 1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
   bool is_selected : 1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
+  // bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
 
   union {
     struct {
-      const UG_FONT *font;
       char msg[MAX_FIELD_LEN];
     } drawText;
 
@@ -128,7 +128,8 @@ typedef struct Field {
       const char *label; // the label shown in the GUI for this item
       void *target; // the data we are showing/manipulating
       const EditableType typ;
-      const uint8_t size; // sizeof for the specified target - we support 1 or 2 or 4
+      const uint8_t size : 3; // sizeof for the specified target - we support 1 or 2 or 4
+      bool read_only : 1; // if true user can't really edit this
 
       // the following parameters are particular to the editable type
       union {
@@ -159,12 +160,16 @@ typedef struct Field {
   .editable = { .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
+#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
+  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
+      .number = { .units = unt, ##__VA_ARGS__ } } }
+
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
-#define FIELD_DRAWTEXT(fnt, ...) { .variant = FieldDrawText, .drawText = { .font = fnt, ##__VA_ARGS__  } }
+#define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 
 #define FIELD_END { .variant = FieldEnd }
 
@@ -183,6 +188,13 @@ typedef enum {
 } BorderOp;
 
 
+/// layouts can tell the field they are showing special rendering options
+typedef enum {
+  ModNone = 0,
+  ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units
+
+} LayoutModifier;
+
 /**
  * Defines the layout of a field on a particular screen
  */
@@ -197,10 +209,17 @@ typedef struct {
   // for other cases height is in pixels
   Coord height;
 
-  ColorOp color;
-  Field *field;
-
   BorderOp border; // an optional border to draw within this field
+
+  ColorOp color : 4;
+  LayoutModifier modifier : 4; // layouts can tell the field they are showing special rendering options
+
+  Field *field; // The field to render in this location
+
+  const UG_FONT *font; // If this field requires a font, use this.  Or if NULL auto select the biggest font that can hold the string
+
+  uint32_t old_editable; // a cache value only used for editable fields, used to compare against previous values and redraw if needed.
+
 } FieldLayout;
 
 

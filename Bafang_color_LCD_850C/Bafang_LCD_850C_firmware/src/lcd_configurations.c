@@ -1525,6 +1525,7 @@ void motor_temperature_min_limit(struct_menu_data *p_menu_data)
   lcd_var_number.ui8_number_digits = 3;
   lcd_var_number.ui8_decimal_digit = 0;
   lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui8_need_update = 0;
 
   if(p_m_l3_vars->ui8_units_type == 0)
   {
@@ -1559,6 +1560,7 @@ void motor_temperature_max_limit(struct_menu_data *p_menu_data)
   lcd_var_number.ui8_number_digits = 3;
   lcd_var_number.ui8_decimal_digit = 0;
   lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui8_need_update = 0;
 
   if(p_m_l3_vars->ui8_units_type == 0)
   {

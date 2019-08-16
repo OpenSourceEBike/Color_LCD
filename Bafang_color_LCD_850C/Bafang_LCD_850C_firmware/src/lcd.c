@@ -159,8 +159,8 @@ void lcd_clock(void)
 
   // enter in menu set power: ONOFF + UP click event
   if(m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN &&
-      buttons_get_onoff_long_click_event() &&
-      buttons_get_up_long_click_event())
+      buttons_get_onoff_click_event() &&
+      buttons_get_up_click_event())
   {
     buttons_clear_all_events();
     m_lcd_vars.main_screen_state = MAIN_SCREEN_STATE_POWER;

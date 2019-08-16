@@ -13,6 +13,11 @@
 #include "buttons.h"
 #include "lcd.h"
 
+#define TIME_1 2000
+#define TIME_2 200
+#define TIME_3 300
+#define TIME_4 1000
+
 #define BUTTONS_CLOCK_MS 20
 #define MS_TO_TICKS(a) ((a) / (BUTTONS_CLOCK_MS))
 
@@ -183,9 +188,6 @@ void buttons_clear_all_events(void)
 // assuming call every 20ms
 void buttons_clock(void)
 {
-  // needed if the event is not cleared anywhere else
-  buttons_clear_onoff_click_long_click_event();
-
   // exit if any button is pressed after clear event
   if((ui32_m_clear_event) &&
       (buttons_get_up_state() ||
@@ -213,7 +215,7 @@ void buttons_clock(void)
       ui32_onoff_button_state_counter++;
 
       // event long click
-      if(ui32_onoff_button_state_counter > MS_TO_TICKS(2000))
+      if(ui32_onoff_button_state_counter > MS_TO_TICKS(TIME_1))
       {
         buttons_set_events(ONOFF_LONG_CLICK);
         ui32_onoff_button_state = 2;
@@ -224,7 +226,7 @@ void buttons_clock(void)
       if(!buttons_get_onoff_state())
       {
         // let's validade if will be a quick click + long click
-        if(ui32_onoff_button_state_counter <= MS_TO_TICKS(300))
+        if(ui32_onoff_button_state_counter <= MS_TO_TICKS(TIME_2))
         {
           ui32_onoff_button_state_counter = 0;
           ui32_onoff_button_state = 3;
@@ -261,7 +263,7 @@ void buttons_clock(void)
       }
 
       // event click
-      if(ui32_onoff_button_state_counter > MS_TO_TICKS(400))
+      if(ui32_onoff_button_state_counter > MS_TO_TICKS(TIME_3))
       {
         buttons_set_events(ONOFF_CLICK);
         ui32_onoff_button_state = 0;
@@ -273,7 +275,7 @@ void buttons_clock(void)
       ui32_onoff_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if(ui32_onoff_button_state_counter > MS_TO_TICKS(1000))
+      if(ui32_onoff_button_state_counter > MS_TO_TICKS(TIME_4))
       {
         buttons_set_events(ONOFF_CLICK_LONG_CLICK);
         ui32_onoff_button_state = 2;
@@ -308,7 +310,7 @@ void buttons_clock(void)
       ui32_up_button_state_counter++;
 
       // event long click
-      if(ui32_up_button_state_counter > MS_TO_TICKS(2000))
+      if(ui32_up_button_state_counter > MS_TO_TICKS(TIME_1))
       {
         // up and down button click
         if(ui32_down_button_state == 1)
@@ -330,7 +332,7 @@ void buttons_clock(void)
       if(!buttons_get_up_state())
       {
         // let's validade if will be a quick click + long click
-        if(ui32_up_button_state_counter <= MS_TO_TICKS(300))
+        if(ui32_up_button_state_counter <= MS_TO_TICKS(TIME_2))
         {
           ui32_up_button_state_counter = 0;
           ui32_up_button_state = 3;
@@ -367,7 +369,7 @@ void buttons_clock(void)
       }
 
       // event click
-      if(ui32_up_button_state_counter > MS_TO_TICKS(400))
+      if(ui32_up_button_state_counter > MS_TO_TICKS(TIME_3))
       {
         buttons_set_events(UP_CLICK);
         ui32_up_button_state = 0;
@@ -379,7 +381,7 @@ void buttons_clock(void)
       ui32_up_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if(ui32_up_button_state_counter > MS_TO_TICKS(1000))
+      if(ui32_up_button_state_counter > MS_TO_TICKS(TIME_4))
       {
         buttons_set_events(UP_CLICK_LONG_CLICK);
         ui32_up_button_state = 2;
@@ -414,7 +416,7 @@ void buttons_clock(void)
       ui32_down_button_state_counter++;
 
       // event long click
-      if(ui32_down_button_state_counter > MS_TO_TICKS(2000))
+      if(ui32_down_button_state_counter > MS_TO_TICKS(TIME_1))
       {
         // up and down button click
         if (ui32_up_button_state == 1)
@@ -436,7 +438,7 @@ void buttons_clock(void)
       if(!buttons_get_down_state())
       {
         // let's validade if will be a quick click + long click
-        if(ui32_down_button_state_counter <= MS_TO_TICKS(300))
+        if(ui32_down_button_state_counter <= MS_TO_TICKS(TIME_2))
         {
           ui32_down_button_state_counter = 0;
           ui32_down_button_state = 3;
@@ -473,7 +475,7 @@ void buttons_clock(void)
       }
 
       // event click
-      if(ui32_down_button_state_counter > MS_TO_TICKS(400))
+      if(ui32_down_button_state_counter > MS_TO_TICKS(TIME_3))
       {
         buttons_set_events(DOWN_CLICK);
         ui32_down_button_state = 0;
@@ -485,7 +487,7 @@ void buttons_clock(void)
       ui32_down_button_state_counter++;
 
       // event click, but this time it is: click + long click
-      if(ui32_down_button_state_counter > MS_TO_TICKS(1000))
+      if(ui32_down_button_state_counter > MS_TO_TICKS(TIME_4))
       {
         buttons_set_events(DOWN_CLICK_LONG_CLICK);
         ui32_down_button_state = 2;

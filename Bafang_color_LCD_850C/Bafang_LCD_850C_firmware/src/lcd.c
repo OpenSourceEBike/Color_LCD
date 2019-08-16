@@ -254,6 +254,7 @@ void layer_2(void)
   static uint32_t ui32_wheel_speed_sensor_tick_temp;
   static uint8_t ui8_i;
   uint8_t ui8_temp;
+  uint16_t ui16_temp;
   uint16_t ui16_crc_tx;
   static uint8_t ui8_message_id = 0;
   static uint8_t ui8_state_machine = 0;
@@ -401,13 +402,31 @@ void layer_2(void)
 
     case 1:
       // wheel perimeter
-      ui8_g_usart1_tx_buffer[5] = (uint8_t) (l2_vars.ui16_wheel_perimeter & 0xff);
-      ui8_g_usart1_tx_buffer[6] = (uint8_t) (l2_vars.ui16_wheel_perimeter >> 8);
+      if(l2_vars.ui8_units_type == 0)
+      {
+        ui8_g_usart1_tx_buffer[5] = (uint8_t) (l2_vars.ui16_wheel_perimeter & 0xff);
+        ui8_g_usart1_tx_buffer[6] = (uint8_t) (l2_vars.ui16_wheel_perimeter >> 8);
+      }
+      else
+      {
+        // convert to imperial
+        ui16_temp = (l2_vars.ui16_wheel_perimeter_imperial_x10 * 254) / 10;
+        ui8_g_usart1_tx_buffer[5] = (uint8_t) (ui16_temp & 0xff);
+        ui8_g_usart1_tx_buffer[6] = (uint8_t) (ui16_temp >> 8);
+      }
     break;
 
     case 2:
       // wheel max speed
-      ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_wheel_max_speed;
+      if(l2_vars.ui8_units_type == 0)
+      {
+        ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_wheel_max_speed;
+      }
+      else
+      {
+        // convert to imperial
+        ui8_g_usart1_tx_buffer[5] = (uint8_t) (((uint16_t) l2_vars.ui8_wheel_max_speed_imperial * 16) / 10);
+      }
 
       // battery max current
       ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_battery_max_current;
@@ -436,8 +455,18 @@ void layer_2(void)
 
     case 6:
       // motor over temperature min and max values to limit
-      ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_motor_temperature_min_value_to_limit;
-      ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_motor_temperature_max_value_to_limit;
+      if(l2_vars.ui8_units_type == 0)
+      {
+        ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_motor_temperature_min_value_to_limit;
+        ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_motor_temperature_max_value_to_limit;
+      }
+      else
+      {
+        // convert to imperial
+        ui8_g_usart1_tx_buffer[5] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_min_value_to_limit_imperial) * 10) - 320) / 18;
+        ui8_g_usart1_tx_buffer[6] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_max_value_to_limit_imperial) * 10) - 320) / 18;
+      }
+
     break;
 
     case 7:
@@ -450,7 +479,7 @@ void layer_2(void)
 
     case 8:
       // motor temperature limit function or throttle
-      ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_temperature_limit_feature_enabled & 1;
+      ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_temperature_limit_feature_enabled & 3;
 
       // motor assistance without pedal rotation enable/disable when startup
       ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_motor_assistance_startup_without_pedal_rotation;
@@ -675,6 +704,7 @@ void trip_time(void)
 void trip_distance(void)
 {
   uint32_t ui32_temp;
+  uint16_t ui16_temp;
   static uint32_t ui32_trip_distance_previous = 0xffffffff;
   static uint32_t ui32_trip_distance;
 
@@ -702,7 +732,16 @@ void trip_distance(void)
   }
 
   // calculate how many revolutions since last reset and convert to distance traveled
-  ui32_temp = (l3_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset) * ((uint32_t) l3_vars.ui16_wheel_perimeter);
+  if(l2_vars.ui8_units_type == 0)
+  {
+    ui16_temp = l3_vars.ui16_wheel_perimeter;
+  }
+  else
+  {
+    ui16_temp = (l3_vars.ui16_wheel_perimeter_imperial_x10 * 254) / 10;
+  }
+
+  ui32_temp = (l3_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset) * ((uint32_t) ui16_temp);
 
   // if traveled distance is more than 100 meters update all distance variables and reset
   if (ui32_temp >= 100000) // 100000 -> 100000 mm -> 0.1 km
@@ -717,6 +756,13 @@ void trip_distance(void)
   }
 
   ui32_trip_distance = l3_vars.ui16_distance_since_power_on_x10;
+
+  // convert to imperial
+  if(l3_vars.ui8_units_type)
+  {
+    ui32_trip_distance = (ui32_trip_distance * 10) / 16;
+  }
+
   if((ui32_trip_distance != ui32_trip_distance_previous) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
@@ -1568,6 +1614,15 @@ void time(void)
   p_rtc_time_previous = &rtc_time_previous;
   p_rtc_time = rtc_get_time();
 
+  // force to be [0 - 12]
+  if(l3_vars.ui8_units_type)
+  {
+    if(p_rtc_time->ui8_hours > 12)
+    {
+      p_rtc_time->ui8_hours -= 12;
+    }
+  }
+
   if ((p_rtc_time->ui8_hours != p_rtc_time_previous->ui8_hours) ||
       (p_rtc_time->ui8_minutes != p_rtc_time_previous->ui8_minutes) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
@@ -1808,6 +1863,15 @@ void wheel_speed(void)
     .ui8_left_zero_paddig = 0,
   };
 
+  if(l3_vars.ui8_units_type == 0)
+  {
+    UG_PutString(257, 50 , "KM/H");
+  }
+  else
+  {
+    UG_PutString(262, 50 , "MPH");
+  }
+
   const uint32_t ui32_x_position_integer = 110;
   const uint32_t ui32_x_position_dot = 238;
   const uint32_t ui32_x_position_decimal = 246;
@@ -1815,12 +1879,28 @@ void wheel_speed(void)
   const uint32_t ui32_y_position_dot = 134;
   const uint32_t ui32_y_position_decimal = 81;
 
+  uint16_t ui16_wheel_speed_x10 = l3_vars.ui16_wheel_speed_x10;
+
+  // convert to imperial
+  if(l3_vars.ui8_units_type)
+  {
+    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
+  }
+
   if (m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
     UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
     UG_FontSelect(&FONT_10X16);
-    UG_PutString(257, 50 , "KM/H");
+
+    if(l3_vars.ui8_units_type == 0)
+    {
+      UG_PutString(257, 50 , "KM/H");
+    }
+    else
+    {
+      UG_PutString(262, 50 , "MPH");
+    }
 
     // print dot
     UG_FillCircle(ui32_x_position_dot, ui32_y_position_dot, 3, C_WHITE);
@@ -2179,7 +2259,9 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_target_max_battery_power = l3_vars.ui8_target_max_battery_power;
   l2_vars.ui16_battery_low_voltage_cut_off_x10 = l3_vars.ui16_battery_low_voltage_cut_off_x10;
   l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
+  l2_vars.ui16_wheel_perimeter_imperial_x10 = l3_vars.ui16_wheel_perimeter_imperial_x10;
   l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
+  l2_vars.ui8_wheel_max_speed_imperial = l3_vars.ui8_wheel_max_speed_imperial;
   l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
   l2_vars.ui8_motor_assistance_startup_without_pedal_rotation = l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
   l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
@@ -2197,7 +2279,9 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_startup_motor_power_boost_fade_time = l3_vars.ui8_startup_motor_power_boost_fade_time;
   l2_vars.ui8_startup_motor_power_boost_feature_enabled = l3_vars.ui8_startup_motor_power_boost_feature_enabled;
   l2_vars.ui8_motor_temperature_min_value_to_limit = l3_vars.ui8_motor_temperature_min_value_to_limit;
+  l2_vars.ui8_motor_temperature_min_value_to_limit_imperial = l3_vars.ui8_motor_temperature_min_value_to_limit_imperial;
   l2_vars.ui8_motor_temperature_max_value_to_limit = l3_vars.ui8_motor_temperature_max_value_to_limit;
+  l2_vars.ui8_motor_temperature_max_value_to_limit_imperial = l3_vars.ui8_motor_temperature_max_value_to_limit_imperial;
   l2_vars.ui8_offroad_feature_enabled = l3_vars.ui8_offroad_feature_enabled;
   l2_vars.ui8_offroad_enabled_on_startup = l3_vars.ui8_offroad_enabled_on_startup;
   l2_vars.ui8_offroad_speed_limit = l3_vars.ui8_offroad_speed_limit;
@@ -2264,8 +2348,16 @@ void graphs_measurements_update(void)
         break;
 
         case GRAPH_MOTOR_TEMPERATURE:
-          m_p_graphs[graph_id].measurement.ui32_sum_value +=
-              l3_vars.ui8_motor_temperature;
+          if(l2_vars.ui8_units_type == 0)
+          {
+            m_p_graphs[graph_id].measurement.ui32_sum_value +=
+                l3_vars.ui8_motor_temperature;
+          }
+          else
+          {
+            m_p_graphs[graph_id].measurement.ui32_sum_value +=
+                (uint8_t) ((((uint16_t) l3_vars.ui8_motor_temperature) * 10) - 320) / 18;
+          }
         break;
 
         case GRAPH_MOTOR_PWM_DUTY_CYCLE:

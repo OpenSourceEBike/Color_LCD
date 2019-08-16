@@ -13,7 +13,7 @@
 #include "lcd_configurations.h"
 
 #define ADDRESS_KEY 0
-#define KEY 5
+#define KEY 6
 
 typedef struct eeprom_data
 {

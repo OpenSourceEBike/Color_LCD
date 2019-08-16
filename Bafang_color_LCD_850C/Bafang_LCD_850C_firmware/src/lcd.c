@@ -464,11 +464,10 @@ void layer_2(void)
       }
       else
       {
-        // convert to imperial
-        ui8_g_usart1_tx_buffer[5] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_min_value_to_limit_imperial) * 10) - 320) / 18;
-        ui8_g_usart1_tx_buffer[6] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_max_value_to_limit_imperial) * 10) - 320) / 18;
+        // convert to SI
+        ui8_g_usart1_tx_buffer[5] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_min_value_to_limit_imperial) * 18) + 320) / 10;
+        ui8_g_usart1_tx_buffer[6] = (uint8_t) ((((uint16_t) l2_vars.ui8_motor_temperature_max_value_to_limit_imperial) * 18) + 320) / 10;
       }
-
     break;
 
     case 7:
@@ -1883,12 +1882,6 @@ void wheel_speed(void)
 
   uint16_t ui16_wheel_speed_x10 = l3_vars.ui16_wheel_speed_x10;
 
-  // convert to imperial
-  if(l3_vars.ui8_units_type)
-  {
-    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
-  }
-
   if (m_lcd_vars.ui32_main_screen_draw_static_info)
   {
     UG_SetBackcolor(C_BLACK);
@@ -1908,20 +1901,26 @@ void wheel_speed(void)
     UG_FillCircle(ui32_x_position_dot, ui32_y_position_dot, 3, C_WHITE);
   }
 
-  if ((l3_vars.ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous) ||
+  // convert to imperial
+  if(l3_vars.ui8_units_type)
+  {
+    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
+  }
+
+  if((ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous) ||
       m_lcd_vars.ui32_main_screen_draw_static_info)
   {
-    ui16_wheel_x10_speed_previous = l3_vars.ui16_wheel_speed_x10;
+    ui16_wheel_x10_speed_previous = ui16_wheel_speed_x10;
 
     wheel_speed_integer.ui32_x_position = ui32_x_position_integer;
     wheel_speed_integer.ui32_y_position = ui32_y_position_integer;
-    wheel_speed_integer.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 / 10);
+    wheel_speed_integer.ui32_number = (uint32_t) (ui16_wheel_speed_x10 / 10);
     wheel_speed_integer.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_integer);
 
     wheel_speed_decimal.ui32_x_position = ui32_x_position_decimal;
     wheel_speed_decimal.ui32_y_position = ui32_y_position_decimal;
-    wheel_speed_decimal.ui32_number = (uint32_t) (l3_vars.ui16_wheel_speed_x10 % 10);
+    wheel_speed_decimal.ui32_number = (uint32_t) (ui16_wheel_speed_x10 % 10);
     wheel_speed_decimal.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
     lcd_print_number(&wheel_speed_decimal);
   }

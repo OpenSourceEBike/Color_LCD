@@ -74,6 +74,8 @@ void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
 {
   uint32_t ui32_number_lines_to_draw;
   uint32_t ui32_temp;
+  uint32_t ui32_temp_1;
+  uint32_t ui32_temp_2;
   uint32_t ui32_y_amplitude;
   uint32_t ui32_y_amplitude_previous = 0;
   uint32_t ui32_y_amplitude_base_color;
@@ -253,11 +255,22 @@ void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
   switch(graph_id)
   {
     case GRAPH_WHEEL_SPEED:
+      if(p_m_l3_vars->ui8_units_type == 0)
+      {
+        ui32_temp_1 = graphs[graph_id].ui32_graph_data_y_max;
+        ui32_temp_2 = graphs[graph_id].ui32_graph_data_y_min;
+      }
+      else
+      {
+        ui32_temp_1 = (graphs[graph_id].ui32_graph_data_y_max * 10) / 16;
+        ui32_temp_2 = (graphs[graph_id].ui32_graph_data_y_min * 10) / 16;
+      }
+
       graph_max_value.ui32_x_position = 1;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui32_number = ui32_temp_1;
       graph_max_value.ui8_decimal_digits = 1;
       graph_min_value.ui32_x_position = 1;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui32_number = ui32_temp_2;
       graph_min_value.ui8_decimal_digits = 1;
     break;
 
@@ -318,11 +331,22 @@ void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
     break;
 
     case GRAPH_MOTOR_TEMPERATURE:
+      if(p_m_l3_vars->ui8_units_type == 0)
+      {
+        ui32_temp_1 = graphs[graph_id].ui32_graph_data_y_max;
+        ui32_temp_2 = graphs[graph_id].ui32_graph_data_y_min;
+      }
+      else
+      {
+        ui32_temp_1 = (((uint32_t) graphs[graph_id].ui32_graph_data_y_max * 18) + 320) / 10;
+        ui32_temp_2 = (((uint32_t) graphs[graph_id].ui32_graph_data_y_min * 18) + 320) / 10;
+      }
+
       graph_max_value.ui32_x_position = 7;
-      graph_max_value.ui32_number = graphs[graph_id].ui32_graph_data_y_max;
+      graph_max_value.ui32_number = ui32_temp_1;
       graph_max_value.ui8_decimal_digits = 0;
       graph_min_value.ui32_x_position = 7;
-      graph_min_value.ui32_number = graphs[graph_id].ui32_graph_data_y_min;
+      graph_min_value.ui32_number = ui32_temp_2;
       graph_min_value.ui8_decimal_digits = 0;
     break;
 

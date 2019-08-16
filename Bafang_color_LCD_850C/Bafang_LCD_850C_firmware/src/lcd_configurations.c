@@ -673,7 +673,7 @@ void display_units(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Units", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "SI\nimperial");
+  item_var_set_strings(&lcd_var_number, p_menu_data, "SI\nimperi");
 }
 
 void battery_title(struct_menu_data *p_menu_data)
@@ -1514,7 +1514,7 @@ void motor_temperature_enable(struct_menu_data *p_menu_data)
   };
 
   item_set_strings("Feature", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\ntemp. sensor\nthrottle");
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\ntempera\nthrottl");
 }
 
 void motor_temperature_min_limit(struct_menu_data *p_menu_data)
@@ -1553,16 +1553,25 @@ void motor_temperature_min_limit(struct_menu_data *p_menu_data)
 
 void motor_temperature_max_limit(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
+  var_number_t lcd_var_number;
+
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 3;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_increment_step = 1;
+
+  if(p_m_l3_vars->ui8_units_type == 0)
   {
-    .p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit,
-    .ui8_size = 8,
-    .ui8_number_digits = 3,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 125,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit;
+    lcd_var_number.ui32_min_value = 0;
+    lcd_var_number.ui32_max_value = 125;
+  }
+  else
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit_imperial;
+    lcd_var_number.ui32_min_value = 32;
+    lcd_var_number.ui32_max_value = 255;
+  }
 
   if(p_m_l3_vars->ui8_units_type == 0)
   {
@@ -1598,6 +1607,7 @@ void display_time_hours(struct_menu_data *p_menu_data)
     if(p_rtc_time_edited->ui8_hours > 12)
     {
       p_rtc_time_edited->ui8_hours -= 12;
+      p_rtc_time->ui8_hours = p_rtc_time_edited->ui8_hours;
     }
   }
 
@@ -1606,6 +1616,7 @@ void display_time_hours(struct_menu_data *p_menu_data)
   lcd_var_number.ui8_decimal_digit = 0;
   lcd_var_number.ui32_min_value = 0;
   lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_hours;
 
   if(p_m_l3_vars->ui8_units_type == 0)
   {

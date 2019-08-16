@@ -168,7 +168,8 @@ void lcd_clock(void)
 
   // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run before lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs_1)
+  if(ui32_m_draw_graphs_1 &&
+      ui32_g_first_time == 0) // start update graphs only after a startup delay to avoid wrong values of the variables
   {
     ui32_m_draw_graphs_2 = 1;
     graphs_clock_1();
@@ -188,7 +189,8 @@ void lcd_clock(void)
   // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
   // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
   if(ui32_m_draw_graphs_1 &&
-      ui32_m_draw_graphs_2)
+      ui32_m_draw_graphs_2 &&
+      ui32_g_first_time == 0) // start update graphs only after a startup delay to avoid wrong values of the variables
   {
     graphs_clock_2();
   }

@@ -59,6 +59,8 @@ static bool blinkOn;
 
 static const UG_FONT const *editable_label_font = &FONT_5X12;
 static const UG_FONT const *editable_value_font = &FONT_5X12;
+static const UG_FONT const *editable_units_font = &FONT_5X12;
+
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -94,7 +96,7 @@ static bool renderDrawText(FieldLayout *layout)
   assert(font); // dynamic font selection not yet supported
 
   // how many pixels does our rendered string
-  UG_S16 strwidth = (font->char_width + gui.char_h_space + 1) * strlen(field->drawText.msg);
+  UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(field->drawText.msg);
 
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
@@ -105,12 +107,12 @@ static bool renderDrawText(FieldLayout *layout)
 
   UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout);
-  UG_SetBackcolor(back);
   UG_SetForecolor(getForeColor(layout));
 
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
+  UG_SetBackcolor(C_TRANSPARENT);
   UG_PutString(x + 1, layout->y, field->drawText.msg);
   return true;
 }
@@ -201,8 +203,11 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
+    if(forceRender) // tell the field it must redraw itself
+      layout->field->dirty = true;
+
     // We always render dirty items, or items that might need to show blink animations
-    if (needsRender(layout) || forceRender)
+    if (needsRender(layout))
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;
@@ -219,7 +224,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       // if user specified width in terms of characters, change it to pixels
       if(layout->width < 0) {
         assert(layout->font); // you must specify a font to use this feature
-        layout->width = -layout->width * (layout->font->char_width + gui.char_h_space + 1);
+        layout->width = -layout->width * (layout->font->char_width + gui.char_h_space);
       }
 
       // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
@@ -518,7 +523,6 @@ static bool renderEditable(FieldLayout *layout)
   bool dirty = field->dirty;
 
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
-  UG_SetBackcolor(back);
   UG_SetForecolor(fore);
 
   // If we are blinking right now, that's a good place to poll our buttons so that the user can press and hold to change a series of values
@@ -549,6 +553,7 @@ static bool renderEditable(FieldLayout *layout)
   // fill our entire box with blankspace
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
+  UG_SetBackcolor(C_TRANSPARENT); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label
   bool showLabel = layout->modifier != ModNoLabel;
@@ -591,32 +596,48 @@ static bool renderEditable(FieldLayout *layout)
     break;
   }
 
-  const UG_FONT *font = layout->font ? layout->font : editable_value_font;
-  UG_FontSelect(font);
+  bool showValue = true;
+  if(showValue) {
+    const UG_FONT *font = layout->font ? layout->font : editable_value_font;
+    UG_FontSelect(font);
 
-  // how many pixels does our rendered string
-  UG_S16 strwidth = (font->char_width + gui.char_h_space + 1) * strlen(msg);
+    // how many pixels does our rendered string
+    UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(msg);
 
-  UG_S16 x = layout->x;
-  UG_S16 y = layout->y;
+    UG_S16 x = layout->x;
+    UG_S16 y = layout->y;
 
-  if(showLabel) {
-    // right justify value on the second line
-    x += width - strwidth;
-    y += FONT12_Y;
+    if(showLabel) {
+      // right justify value on the second line
+      x += width - strwidth;
+      y += FONT12_Y;
+    }
+    else {
+      if(strwidth < width) // If the user gave us more space than we need, center justify within that box
+          x += (width - strwidth) / 2;
+    }
+
+    UG_PutString(x, y, (char*) msg);
+
+    // Blinking underline cursor when editing
+    if (isActive)
+    {
+      UG_S16 cursorY = y + font->char_height + 1;
+      UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
+    }
   }
-  else {
-    if(strwidth < width) // If the user gave us more space than we need, center justify within that box
-        x += (width - strwidth) / 2;
-  }
 
-  UG_PutString(x, y, (char*) msg);
+  // Put units in bottom right (unless we are showing the label)
+  bool showUnits = field->editable.typ == EditUInt && !showLabel;
+  if(showUnits) {
+    int ulen = strlen(field->editable.number.units);
+    if(ulen) {
+      const UG_FONT *font = editable_units_font;
+      UG_S16 uwidth = (font->char_width + gui.char_h_space) * ulen;
 
-  // Blinking underline cursor when editing
-  if (isActive)
-  {
-    UG_S16 cursorY = y + font->char_height + 1;
-    UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
+      UG_FontSelect(editable_units_font);
+      UG_PutString(layout->x + width - uwidth, layout->y + layout->height - font->char_height - 1, (char*) field->editable.number.units);
+    }
   }
 
   return true;

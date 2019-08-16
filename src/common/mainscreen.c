@@ -192,6 +192,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &motorTempField,
         .font = &FONT_5X12,
+        .modifier = ModNoLabel,
         .border = BorderBottom
     },
     {
@@ -199,6 +200,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &humanPowerField,
         .font = &FONT_5X12,
+        .modifier = ModNoLabel,
         .border = BorderBottom
     },
     {
@@ -206,6 +208,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &tripDistanceField,
         .font = &FONT_5X12,
+        .modifier = ModNoLabel,
         .border = BorderBottom
     },
     {
@@ -213,6 +216,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &odoField,
         .font = &FONT_5X12,
+        .modifier = ModNoLabel,
         .border = BorderBottom
     },
     STATUS_BAR,

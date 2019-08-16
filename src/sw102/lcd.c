@@ -157,6 +157,9 @@ static void spi_init(void)
  */
 static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
 {
+  if(col == C_TRANSPARENT)
+    return;
+
   if (x > 63 || x < 0)
     return;
 

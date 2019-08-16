@@ -107,12 +107,12 @@ static bool renderDrawText(FieldLayout *layout)
 
   UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout);
-  UG_SetBackcolor(back);
   UG_SetForecolor(getForeColor(layout));
 
   // ug fonts include no blank space at the beginning, so we always include one col of padding
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
+  UG_SetBackcolor(C_TRANSPARENT);
   UG_PutString(x + 1, layout->y, field->drawText.msg);
   return true;
 }
@@ -520,7 +520,6 @@ static bool renderEditable(FieldLayout *layout)
   bool dirty = field->dirty;
 
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
-  UG_SetBackcolor(back);
   UG_SetForecolor(fore);
 
   // If we are blinking right now, that's a good place to poll our buttons so that the user can press and hold to change a series of values
@@ -551,6 +550,7 @@ static bool renderEditable(FieldLayout *layout)
   // fill our entire box with blankspace
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
+  UG_SetBackcolor(C_TRANSPARENT); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label
   bool showLabel = layout->modifier != ModNoLabel;

@@ -6,6 +6,7 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
+* show units
 * test with 0.20 motor code
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
 * display faults shouldn't mess up a running bike (i.e. in cruise mode or walk assist mode) - we should have the motor controller stop the motor if it doesn't hear from the display for X seconds?

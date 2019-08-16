@@ -136,7 +136,8 @@ typedef struct Field {
 
         struct {
           const char *units;
-          const uint8_t div_digits; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
+          const uint8_t div_digits: 4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
+          const bool hide_fraction: 1; // if set, don't ever show the fractional part
           const uint32_t max_value, min_value; // min/max
           const uint32_t inc_step; // if zero, then 1 is assumed
         } number;

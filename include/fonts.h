@@ -7,7 +7,7 @@
 
 /* Enable needed fonts here */
 #define  USE_MY_FONT_8X12
-// #define  USE_MY_FONT_NUM_10X16
+#define  USE_MY_FONT_NUM_10X16
 #define  USE_MY_FONT_NUM_24X40
 #define  USE_MY_FONT_BATTERY
 

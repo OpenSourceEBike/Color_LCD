@@ -164,7 +164,7 @@ Screen mainScreen = {
         .x = 0, .y = -3,
         .width = 0, .height = 19,
         .field = &maxPowerField,
-        .font = &FONT_10X16,
+        .font = &MY_FONT_NUM_10X16,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },

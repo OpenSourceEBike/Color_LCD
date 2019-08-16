@@ -6,7 +6,7 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
-* show units
+* Figure out how to protect github repos from accidental pushes
 * test with 0.20 motor code
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
 * display faults shouldn't mess up a running bike (i.e. in cruise mode or walk assist mode) - we should have the motor controller stop the motor if it doesn't hear from the display for X seconds?
@@ -15,7 +15,6 @@ will declare beta.
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
 * suspend the 100ms timer tick during copy_layer_2_layer_3_vars
-* include units on speed
 * label assist on main screen
 * let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
@@ -29,8 +28,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
-* save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
-
 
 # Tasks for release 1.1
 * report pedal power via strava
@@ -119,6 +116,9 @@ the GUI thread.  Use two buffers + a ptr.
 * move font selection out of Field and into FieldLayout
 * delete dead code in mainscreen.c
 * merge walk/brake into a single status line with other faults
+* show units
+* include units on speed
+* save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
 
 # Misc notes from kevin not yet formatted
 

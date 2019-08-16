@@ -12,7 +12,4 @@ void uart_send_tx_buffer(uint8_t* tx_buffer);
 #define UART_NUMBER_CRC_BYTES               2
 #define UART_NUMBER_START_BYTES             1
 
-// Public only for debugging/fault messages
-extern uint8_t uart_rx_state_machine;
-
 #endif /* INCLUDE_UART_H_ */

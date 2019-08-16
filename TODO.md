@@ -9,13 +9,11 @@ will declare beta.
 * Figure out how to protect github repos from accidental pushes
 * test with 0.20 motor code
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
-* display faults shouldn't mess up a running bike (i.e. in cruise mode or walk assist mode) - we should have the motor controller stop the motor if it doesn't hear from the display for X seconds?
 * Implement cruise mode (also missing in 850C)
 * Implement offroad mode(also missing in 850C)
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
 * suspend the 100ms timer tick during copy_layer_2_layer_3_vars
-* label assist on main screen
 * let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
 * uncomment offroad mode - and fix the config editing of the div25 field it use
@@ -119,6 +117,7 @@ the GUI thread.  Use two buffers + a ptr.
 * show units
 * include units on speed
 * save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
+* label assist on main screen (#26)
 
 # Misc notes from kevin not yet formatted
 

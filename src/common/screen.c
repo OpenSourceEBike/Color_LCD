@@ -180,6 +180,12 @@ static void drawBorder(FieldLayout *layout)
 
 const Coord screenWidth = 64, screenHeight = 128; // FIXME, for larger devices allow screen objcts to nest inside other screens
 
+// True while the user is holding down the m key and but not trying to edit anything
+// We use a static so we can detect when state changes
+// We do all this calculation only once in the main render loop, so that all fields change at once
+static bool oldForceLabels;
+static bool forceLabels;
+
 /// Should we redraw this field this tick? We always render dirty items, or items that might need to show blink animations
 static bool needsRender(FieldLayout *layout) {
   if(layout->field->dirty)
@@ -200,11 +206,19 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 
   Coord maxy = 0;
 
+  bool didChangeForceLabels = false; // if we did label force/unforce we need to remember for the next render
+  bool mpressed = buttons_get_m_state();
+
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
     if(forceRender) // tell the field it must redraw itself
       layout->field->dirty = true;
+
+    if(layout->field->variant == FieldEditable) {
+      forceLabels = mpressed && layout->modifier == ModNoLabel;
+      didChangeForceLabels = true;
+    }
 
     // We always render dirty items, or items that might need to show blink animations
     if (needsRender(layout))
@@ -247,6 +261,9 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   {
     layout->field->dirty = false;
   }
+
+  if(didChangeForceLabels)
+    oldForceLabels = forceLabels;
 
   return didDraw;
 }
@@ -510,6 +527,8 @@ static void changeEditable(bool increment)
   }
 }
 
+
+
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
  * of what we are trying to render and if the same as last time, it will decide to not draw.
@@ -547,6 +566,9 @@ static bool renderEditable(FieldLayout *layout)
     dirty = true; // force a draw
   }
 
+  if(forceLabels != oldForceLabels)
+    dirty = true;
+
   if(!dirty)
     return false; // We didn't actually change so don't try to draw anything
 
@@ -555,11 +577,18 @@ static bool renderEditable(FieldLayout *layout)
       layout->y + height - 1, back);
   UG_SetBackcolor(C_TRANSPARENT); // we just cleared the background ourself, from now on allow fonts to overlap
 
-  // Show the label
+  // Show the label (if showing the conventional way - i.e. small and off to the top left.
   bool showLabel = layout->modifier != ModNoLabel;
   if(showLabel) {
     UG_FontSelect(editable_label_font);
     UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
+    }
+
+  // Show the label in the middle of the box
+  if(forceLabels) {
+    UG_FontSelect(editable_label_font);
+    UG_S16 strwidth = (editable_label_font->char_width + gui.char_h_space) * strlen(field->editable.label);
+    UG_PutString(layout->x + (width - strwidth) / 2, layout->y + (height - editable_label_font->char_height) / 2, (char*) field->editable.label);
     }
 
   // draw editable value
@@ -596,7 +625,7 @@ static bool renderEditable(FieldLayout *layout)
     break;
   }
 
-  bool showValue = true;
+  bool showValue = !forceLabels;
   if(showValue) {
     const UG_FONT *font = layout->font ? layout->font : editable_value_font;
     UG_FontSelect(font);
@@ -628,7 +657,7 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   // Put units in bottom right (unless we are showing the label)
-  bool showUnits = field->editable.typ == EditUInt && !showLabel;
+  bool showUnits = field->editable.typ == EditUInt && !showLabel && !forceLabels;
   if(showUnits) {
     int ulen = strlen(field->editable.number.units);
     if(ulen) {

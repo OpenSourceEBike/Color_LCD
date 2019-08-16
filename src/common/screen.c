@@ -203,8 +203,11 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
+    if(forceRender) // tell the field it must redraw itself
+      layout->field->dirty = true;
+
     // We always render dirty items, or items that might need to show blink animations
-    if (needsRender(layout) || forceRender)
+    if (needsRender(layout))
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;

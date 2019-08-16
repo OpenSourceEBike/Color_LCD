@@ -1864,15 +1864,6 @@ void wheel_speed(void)
     .ui8_left_zero_paddig = 0,
   };
 
-  if(l3_vars.ui8_units_type == 0)
-  {
-    UG_PutString(257, 50 , "KM/H");
-  }
-  else
-  {
-    UG_PutString(262, 50 , "MPH");
-  }
-
   const uint32_t ui32_x_position_integer = 110;
   const uint32_t ui32_x_position_dot = 238;
   const uint32_t ui32_x_position_decimal = 246;

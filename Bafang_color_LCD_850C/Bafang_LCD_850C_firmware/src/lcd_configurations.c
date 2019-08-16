@@ -1592,6 +1592,7 @@ void display_title(struct_menu_data *p_menu_data)
 
 void display_time_hours(struct_menu_data *p_menu_data)
 {
+  static uint8_t ui8_var_previous = 0;
   var_number_t lcd_var_number;
   struct_rtc_time_t *p_rtc_time;
   struct_rtc_time_t rtc_time_edited;
@@ -1611,12 +1612,12 @@ void display_time_hours(struct_menu_data *p_menu_data)
     }
   }
 
+  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_hours;
   lcd_var_number.ui8_size = 8;
   lcd_var_number.ui8_number_digits = 2;
   lcd_var_number.ui8_decimal_digit = 0;
   lcd_var_number.ui32_min_value = 0;
   lcd_var_number.ui32_increment_step = 1;
-  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_hours;
 
   if(p_m_l3_vars->ui8_units_type == 0)
   {
@@ -1625,6 +1626,16 @@ void display_time_hours(struct_menu_data *p_menu_data)
   else
   {
     lcd_var_number.ui32_max_value = 12;
+  }
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_rtc_time_edited->ui8_hours != ui8_var_previous)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
   }
 
   item_set_strings("Clock", "hours", p_menu_data);
@@ -1636,10 +1647,14 @@ void display_time_hours(struct_menu_data *p_menu_data)
     p_rtc_time->ui8_hours = p_rtc_time_edited->ui8_hours;
     rtc_set_time(p_rtc_time);
   }
+
+  ui8_var_previous = p_rtc_time_edited->ui8_hours;
 }
 
 void display_time_minutes(struct_menu_data *p_menu_data)
 {
+  static uint8_t ui8_var_previous = 0;
+  var_number_t lcd_var_number;
   struct_rtc_time_t *p_rtc_time;
   struct_rtc_time_t rtc_time_edited;
   struct_rtc_time_t *p_rtc_time_edited;
@@ -1648,16 +1663,23 @@ void display_time_minutes(struct_menu_data *p_menu_data)
   p_rtc_time = rtc_get_time();
   p_rtc_time_edited->ui8_minutes = p_rtc_time->ui8_minutes;
 
-  var_number_t lcd_var_number =
+  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_minutes;
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 2;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_min_value = 0;
+  lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui32_max_value = 59;
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_rtc_time_edited->ui8_minutes != ui8_var_previous)
   {
-    .p_var_number = &p_rtc_time_edited->ui8_minutes,
-    .ui8_size = 8,
-    .ui8_number_digits = 2,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 59,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
 
   item_set_strings("Clock", "minutes", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
@@ -1668,6 +1690,8 @@ void display_time_minutes(struct_menu_data *p_menu_data)
     p_rtc_time->ui8_minutes = p_rtc_time_edited->ui8_minutes;
     rtc_set_time(p_rtc_time);
   }
+
+  ui8_var_previous = p_rtc_time_edited->ui8_minutes;
 }
 
 void display_buttons_up_down_invert(struct_menu_data *p_menu_data)

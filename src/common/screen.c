@@ -652,7 +652,7 @@ static bool renderEditable(FieldLayout *layout)
     if (isActive)
     {
       UG_S16 cursorY = y + font->char_height + 1;
-      UG_DrawLine(x, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
+      UG_DrawLine(x - 1, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
     }
   }
 

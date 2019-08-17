@@ -118,6 +118,7 @@ the GUI thread.  Use two buffers + a ptr.
 * include units on speed
 * save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
 * label assist on main screen (#26)
+* Stop using the redundent tx buffer #24 
 
 # Misc notes from kevin not yet formatted
 

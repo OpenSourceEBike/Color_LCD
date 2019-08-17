@@ -80,6 +80,98 @@ static void send_cmd(const uint8_t *cmds, size_t numcmds)
   APP_ERROR_CHECK(nrf_drv_spi_transfer(&spi, cmds, numcmds, NULL, 0));
 }
 
+/// Heavily borrowed from https://github.com/adafruit/Adafruit_SSD1306/blob/master/Adafruit_SSD1306.cpp, because this display controller is basically the same
+/// and the frame buffer layout is identical (if you assume rotation 0 in the very old/heavily tested code)
+// Note: all drawing is from left to right, if you want from right to left, you'll need to pick a different start  x
+void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, UG_COLOR color) {
+
+  if((y >= 0) && (y < SCREEN_HEIGHT)) { // Y coord in bounds?
+    if(x < 0) { // Clip left
+      w += x;
+      x  = 0;
+    }
+    if((x + w) > SCREEN_WIDTH) { // Clip right
+      w = (SCREEN_WIDTH - x);
+    }
+    if(w > 0) { // Proceed only if width is positive
+      uint8_t *pBuf = &frameBuffer[(y / 8)][x],
+               mask = 1 << (y & 7);
+      if(color)
+        while(w--) { *pBuf++ |= mask; } // white
+      else { // black
+        mask = ~mask;
+        while(w--) { *pBuf++ &= mask; };
+      }
+      // case INVERSE:             while(w--) { *pBuf++ ^= mask; }; break;
+    }
+  }
+}
+
+
+#define ssd1306_swap(a, b) \
+  (((a) ^= (b)), ((b) ^= (a)), ((a) ^= (b))) ///< No-temp-var swap operation
+
+static UG_RESULT accel_fill_frame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
+  if(c == C_TRANSPARENT) // This happens a lot when drawing fonts and we don't need to bother drawing the background
+    return UG_RESULT_OK;
+
+  int16_t w;
+  if(x1 <= x2) {
+    w = x2 - x1 + 1;
+  }
+  else {
+    w = x1 - x2 + 1; // swap around so we always draw left to right
+    ssd1306_swap(x1, x2);
+  }
+
+  if(y2 < y1)
+    ssd1306_swap(y1, y2); // Always draw top to bottom
+
+  while(y1 <= y2) {
+    drawFastHLineInternal(x1, y1, w, c);
+    y1++;
+  }
+
+  return UG_RESULT_OK;
+}
+
+static UG_RESULT accel_draw_line(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
+  if(c == C_TRANSPARENT) // Probably won't happen but a cheap optimization
+    return UG_RESULT_OK;
+
+  if(y1 == y2)  {
+    if(x1 <= x2)
+      drawFastHLineInternal(x1, y1, x2 - x1 + 1, c);
+    else
+      drawFastHLineInternal(x2, y1, x1 - x2 + 1, c);
+
+    return UG_RESULT_OK;
+  }
+  return UG_RESULT_FAIL;
+}
+
+/**
+ * @brief �GUI pset function. This writes to a frameBuffer in SRAM.
+ */
+static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
+{
+  if(col == C_TRANSPARENT)
+    return;
+
+  if (x > 63 || x < 0)
+    return;
+
+  if (y > 127 || y < 0)
+    return;
+
+  uint8_t page = y / 8;
+  uint8_t pixel = y % 8;
+
+  if (col > 0)
+    SET_BIT(frameBuffer[page][x], pixel);
+  else
+    CLR_BIT(frameBuffer[page][x], pixel);
+}
 
 /**
  * @brief LCD initialization including hardware layer.
@@ -97,7 +189,7 @@ void lcd_init(void)
   // Power On Sequence SH1107 data sheet p. 44
 
   // Set up initialization sequence
- send_cmd(init_array, sizeof(init_array));
+  send_cmd(init_array, sizeof(init_array));
 
   // Clear internal RAM
   lcd_refresh(); // Is already initialized to zero in bss segment.
@@ -107,6 +199,9 @@ void lcd_init(void)
 
   // Setup �GUI library
   UG_Init(&gui, pset, 64, 128); // Pixel set function
+
+  UG_DriverRegister(DRIVER_DRAW_LINE, (void *) accel_draw_line);
+  UG_DriverRegister(DRIVER_FILL_FRAME, (void *) accel_fill_frame);
 
   // kevinh - I've moved this to be an explicit call, because calling lcd_refresh on each operation is super expensive
   // UG_SetRefresh(lcd_refresh); // LCD refresh function
@@ -152,25 +247,7 @@ static void spi_init(void)
   APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, NULL));
 }
 
-/**
- * @brief �GUI pset function. This writes to a frameBuffer in SRAM.
- */
-static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
-{
-  if (x > 63 || x < 0)
-    return;
 
-  if (y > 127 || y < 0)
-    return;
-
-  uint8_t page = y / 8;
-  uint8_t pixel = y % 8;
-
-  if (col > 0)
-    SET_BIT(frameBuffer[page][x], pixel);
-  else
-    CLR_BIT(frameBuffer[page][x], pixel);
-}
 
 #if 0
 void lcd_set_backlight_intensity(uint8_t ui8_intensity)

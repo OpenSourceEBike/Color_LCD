@@ -52,9 +52,9 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 volatile uint32_t gui_ticks;
 
 
-Field bootHeading = FIELD_DRAWTEXT(&FONT_5X12, .msg = "OpenSource EBike");
-Field bootVersion = FIELD_DRAWTEXT(&FONT_5X12, .msg = VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(&FONT_5X12, .msg = "Booting...");
+Field bootHeading = FIELD_DRAWTEXT(.msg = "OpenSource EBike");
+Field bootVersion = FIELD_DRAWTEXT(.msg = VERSION_STRING);
+Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
 
 
@@ -62,15 +62,18 @@ Screen bootScreen = {
     .fields = {
     {
         .x = 0, .y = 0,
-        .field = &bootHeading
+        .field = &bootHeading,
+        .font = &FONT_5X12,
     },
     {
         .x = 0, .y = 32,
-        .field = &bootVersion
+        .field = &bootVersion,
+        .font = &FONT_5X12,
     },
     {
         .x = 0, .y = 80,
-        .field = &bootStatus
+        .field = &bootStatus,
+        .font = &FONT_5X12,
     },
     {
         .field = NULL

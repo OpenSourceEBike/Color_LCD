@@ -16,7 +16,7 @@ static Field batteryMenus[] = {
     FIELD_EDITABLE_UINT("Low cut-off", &l3_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
     FIELD_EDITABLE_UINT("Number of cells", &l3_vars.ui8_battery_cells_number, "", 7, 14),
     FIELD_EDITABLE_UINT("Resistance", &l3_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
-    FIELD_EDITABLE_UINT("Voltage", &l3_vars.ui16_battery_voltage_soc_x10, "volts", 0, 999, .div_digits = 1), // FIXME, add notion of 'read-only'
+    FIELD_READONLY_UINT("Voltage", &l3_vars.ui16_battery_voltage_soc_x10, "volts", .div_digits = 1),
     FIELD_END
 };
 
@@ -106,15 +106,15 @@ static Field variousMenus[] = {
 };
 
 static Field technicalMenus[] = {
-    FIELD_EDITABLE_UINT("ADC throttle", &l3_vars.ui8_adc_throttle, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Throttle", &l3_vars.ui8_throttle, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("ADC Torque", &l3_vars.ui8_adc_pedal_torque_sensor, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Torque", &l3_vars.ui8_pedal_torque_sensor, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Human power", &l3_vars.ui16_pedal_power_x10, "watt", 0, 999, .div_digits = 1), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "", 0, 255), // FIXME, add notion of read only
-    FIELD_EDITABLE_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "", 0, 255), // FIXME, add notion of read only
+    FIELD_READONLY_UINT("ADC throttle", &l3_vars.ui8_adc_throttle, ""),
+    FIELD_READONLY_UINT("Throttle", &l3_vars.ui8_throttle, ""),
+    FIELD_READONLY_UINT("ADC Torque", &l3_vars.ui8_adc_pedal_torque_sensor, ""),
+    FIELD_READONLY_UINT("Torque", &l3_vars.ui8_pedal_torque_sensor, ""),
+    FIELD_READONLY_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
+    FIELD_READONLY_UINT("Human power", &l3_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
+    FIELD_READONLY_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, ""),
+    FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, ""),
+    FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, ""),
     FIELD_END
 };
 

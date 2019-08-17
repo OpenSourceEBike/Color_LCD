@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SW102_LCD_Bluetooth</name>
+	<name>SW102-new</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -27,7 +27,13 @@
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/common</locationURI>
+			<locationURI>copy_PARENT/common</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/ebike/Color_LCD/firmware</value>
+		</variable>
+	</variableList>
 </projectDescription>

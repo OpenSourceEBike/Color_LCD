@@ -25,9 +25,6 @@
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
 
-// kevinh: removed volatile because I don't think it is needed
-uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
-
 // kevinh: I don't think volatile is probably needed here
 volatile l2_vars_t l2_vars;
 
@@ -245,6 +242,8 @@ void process_rx(void)
 void send_tx_package(void)
 {
   static uint8_t ui8_message_id = 0;
+
+  uint8_t* ui8_g_usart1_tx_buffer = uart_get_tx_buffer();
 
   /************************************************************************************************/
   // send tx package

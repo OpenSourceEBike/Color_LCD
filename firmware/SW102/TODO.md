@@ -6,23 +6,17 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
+* Figure out how to protect github repos from accidental pushes
 * test with 0.20 motor code
-* delete dead code in mainscreen.c
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
-* display faults shouldn't mess up a running bike (i.e. in cruise mode or walk assist mode) - we should have the motor controller stop the motor if it doesn't hear from the display for X seconds?
 * Implement cruise mode (also missing in 850C)
 * Implement offroad mode(also missing in 850C)
 * show temp warnings on main screen
-* merge walk/brake into a single status line with other faults
 * show motor faults promenantly on main screen
 * suspend the 100ms timer tick during copy_layer_2_layer_3_vars
-* include units on speed
-* label assist on main screen
 * let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
 * uncomment offroad mode - and fix the config editing of the div25 field it use
-* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
-* move font selection out of Field and into FieldLayout
 * show motor temp alerts
 * show power limiting alerts (due to PWM or temp or whatever)
 * successful installation/usage report from at least one alpha user/dev
@@ -32,8 +26,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
-* save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
-
 
 # Tasks for release 1.1
 * report pedal power via strava
@@ -118,6 +110,15 @@ the GUI thread.  Use two buffers + a ptr.
 * Currently we run OLED at 100% brightness, lower it back to 0xbf by default and let the user have a setting to select what they want.  Or possibly dim the screen if the headlight is on.
 * assist level not getting saved on real bike
 * include release notes: how to install (with openocd links), working features, not yet working features, etc...
+* to support readonly (but dynamic) config values, if value changes set dirty on the field (only need to check the small number of visible editables)
+* move font selection out of Field and into FieldLayout
+* delete dead code in mainscreen.c
+* merge walk/brake into a single status line with other faults
+* show units
+* include units on speed
+* save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
+* label assist on main screen (#26)
+* Stop using the redundent tx buffer #24 
 
 # Misc notes from kevin not yet formatted
 

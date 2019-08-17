@@ -178,7 +178,7 @@ static void drawBorder(FieldLayout *layout)
 
 #define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
 
-const Coord screenWidth = 64, screenHeight = 128; // FIXME, for larger devices allow screen objcts to nest inside other screens
+const Coord screenWidth = SCREEN_WIDTH, screenHeight = SCREEN_HEIGHT; // FIXME, for larger devices allow screen objcts to nest inside other screens
 
 // True while the user is holding down the m key and but not trying to edit anything
 // We use a static so we can detect when state changes

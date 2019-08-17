@@ -47,16 +47,23 @@ void pins_init (void)
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
   GPIO_Init(LCD_BACKLIGHT__PORT, &GPIO_InitStructure);
+
+  GPIO_InitStructure.GPIO_Pin = USB_CHARGE__PIN;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_Init(USB_CHARGE__PORT, &GPIO_InitStructure);
 }
 
-void system_power (uint32_t ui32_state)
+void system_power(uint32_t ui32_state)
 {
   if(ui32_state)
   {
     GPIO_SetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+    GPIO_SetBits(USB_CHARGE__PORT, USB_CHARGE__PIN);
   }
   else
   {
     GPIO_ResetBits(SYSTEM_POWER_ON_OFF__PORT, SYSTEM_POWER_ON_OFF__PIN);
+    GPIO_ResetBits(USB_CHARGE__PORT, USB_CHARGE__PIN);
   }
 }

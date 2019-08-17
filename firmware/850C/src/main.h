@@ -50,7 +50,9 @@ typedef enum
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3
 #define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       5
 #define DEFAULT_VALUE_WHEEL_PERIMETER                               2050 // 26'' wheel: 2050mm perimeter
+#define DEFAULT_VALUE_WHEEL_PERIMETER_IMPERIAL_X10                  810 // 2050 / 25.4
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
+#define DEFAULT_VALUE_WHEEL_MAX_SPEED_IMPERIAL                      31
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
@@ -96,7 +98,9 @@ typedef enum
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
-#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT_IMPERIAL    167
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85 // 85 degrees celsius
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT_IMPERIAL    185
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   8 // 8 = 40%
@@ -109,6 +113,7 @@ typedef enum
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 
 // *************************************************************************** //
 

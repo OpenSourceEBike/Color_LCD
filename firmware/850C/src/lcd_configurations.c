@@ -87,7 +87,6 @@ void item_visible_manage(struct_menu_data *p_menu_data);
 void wheel_speed_title(struct_menu_data *p_menu_data);
 void wheel_max_speed(struct_menu_data *p_menu_data);
 void wheel_perimeter(struct_menu_data *p_menu_data);
-void wheel_speed_units(struct_menu_data *p_menu_data);
 void battery_title(struct_menu_data *p_menu_data);
 void battery_max_current(struct_menu_data *p_menu_data);
 void battery_current_ramp(struct_menu_data *p_menu_data);
@@ -145,6 +144,8 @@ void motor_temperature_max_limit(struct_menu_data *p_menu_data);
 void display_title(struct_menu_data *p_menu_data);
 void display_time_hours(struct_menu_data *p_menu_data);
 void display_time_minutes(struct_menu_data *p_menu_data);
+void display_units(struct_menu_data *p_menu_data);
+void display_buttons_up_down_invert(struct_menu_data *p_menu_data);
 void display_brightness_backlight_off(struct_menu_data *p_menu_data);
 void display_brightness_backlight_on(struct_menu_data *p_menu_data);
 void display_auto_power_off(struct_menu_data *p_menu_data);
@@ -174,7 +175,6 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   wheel_speed_title,
   wheel_max_speed,
   wheel_perimeter,
-  wheel_speed_units,
   battery_title,
   battery_max_current,
   battery_current_ramp,
@@ -232,6 +232,8 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
   display_title,
   display_time_hours,
   display_time_minutes,
+  display_units,
+  display_buttons_up_down_invert,
   display_brightness_backlight_off,
   display_brightness_backlight_on,
   display_auto_power_off,
@@ -259,7 +261,6 @@ void (*p_items_array[])(struct_menu_data *p_menu_data) =
 uint8_t items_array_is_title[] =
 {
   0, // exception: first must always be a title but let's signal it is not
-  0,
   0,
   0,
   1, // battery_title
@@ -312,11 +313,13 @@ uint8_t items_array_is_title[] =
   0,
   0,
   0,
-  1,
+  1, // motor_temperature_title
   0,
   0,
   0,
-  1,
+  1, // display_title
+  0,
+  0,
   0,
   0,
   0,
@@ -589,39 +592,74 @@ void wheel_speed_title(struct_menu_data *p_menu_data)
 
 void wheel_max_speed(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
-  {
-    .p_var_number = &p_m_l3_vars->ui8_wheel_max_speed,
-    .ui8_size = 8,
-    .ui8_number_digits = 2,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 99,
-    .ui32_min_value = 1,
-    .ui32_increment_step = 1
-  };
+  var_number_t lcd_var_number;
 
-  item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 2;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_max_value = 99;
+  lcd_var_number.ui32_min_value = 1;
+  lcd_var_number.ui32_increment_step = 1;
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_wheel_max_speed;
+  }
+  else
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_wheel_max_speed_imperial;
+  }
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    item_set_strings("Max wheel speed", "(km/h)", p_menu_data);
+  }
+  else
+  {
+    item_set_strings("Max wheel speed", "(mph)", p_menu_data);
+  }
+
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void wheel_perimeter(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
-  {
-    .p_var_number = &p_m_l3_vars->ui16_wheel_perimeter,
-    .ui8_size = 16,
-    .ui8_number_digits = 4,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 3000,
-    .ui32_min_value = 750,
-    .ui32_increment_step = 10
-  };
+  var_number_t lcd_var_number;
 
-  item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui16_wheel_perimeter;
+    lcd_var_number.ui8_size = 16;
+    lcd_var_number.ui8_number_digits = 4;
+    lcd_var_number.ui8_decimal_digit = 0;
+    lcd_var_number.ui32_max_value = 3000;
+    lcd_var_number.ui32_min_value = 750;
+    lcd_var_number.ui32_increment_step = 10;
+  }
+  else
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui16_wheel_perimeter_imperial_x10;
+    lcd_var_number.ui8_size = 16;
+    lcd_var_number.ui8_number_digits = 4;
+    lcd_var_number.ui8_decimal_digit = 1;
+    lcd_var_number.ui32_max_value = 1200;
+    lcd_var_number.ui32_min_value = 280;
+    lcd_var_number.ui32_increment_step = 1;
+  }
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    item_set_strings("Wheel perimeter", "(millimeters)", p_menu_data);
+  }
+  else
+  {
+    item_set_strings("Wheel perimeter", "(inches)", p_menu_data);
+  }
+
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
-void wheel_speed_units(struct_menu_data *p_menu_data)
+void display_units(struct_menu_data *p_menu_data)
 {
   var_number_t lcd_var_number =
   {
@@ -634,8 +672,8 @@ void wheel_speed_units(struct_menu_data *p_menu_data)
     .ui32_increment_step = 1
   };
 
-  item_set_strings("Speed units", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "km/h\nmph");
+  item_set_strings("Units", "", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "SI\nimperi");
 }
 
 void battery_title(struct_menu_data *p_menu_data)
@@ -1470,46 +1508,82 @@ void motor_temperature_enable(struct_menu_data *p_menu_data)
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
-    .ui32_max_value = 1,
+    .ui32_max_value = 2,
     .ui32_min_value = 0,
     .ui32_increment_step = 1
   };
 
   item_set_strings("Feature", "", p_menu_data);
-  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\nenable");
+  item_var_set_strings(&lcd_var_number, p_menu_data, "disable\ntempera\nthrottl");
 }
 
 void motor_temperature_min_limit(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
-  {
-    .p_var_number = &p_m_l3_vars->ui8_motor_temperature_min_value_to_limit,
-    .ui8_size = 8,
-    .ui8_number_digits = 3,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 125,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+  var_number_t lcd_var_number;
 
-  item_set_strings("Min limit", "(celsius degrees)", p_menu_data);
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 3;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui8_need_update = 0;
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_min_value_to_limit;
+    lcd_var_number.ui32_min_value = 0;
+    lcd_var_number.ui32_max_value = 125;
+  }
+  else
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_min_value_to_limit_imperial;
+    lcd_var_number.ui32_min_value = 32;
+    lcd_var_number.ui32_max_value = 255;
+  }
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    item_set_strings("Min limit", "(celsius)", p_menu_data);
+  }
+  else
+  {
+    item_set_strings("Min limit", "(fahrenheit)", p_menu_data);
+  }
+
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
 void motor_temperature_max_limit(struct_menu_data *p_menu_data)
 {
-  var_number_t lcd_var_number =
-  {
-    .p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit,
-    .ui8_size = 8,
-    .ui8_number_digits = 3,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 125,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+  var_number_t lcd_var_number;
 
-  item_set_strings("Max limit", "(celsius degrees)", p_menu_data);
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 3;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui8_need_update = 0;
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit;
+    lcd_var_number.ui32_min_value = 0;
+    lcd_var_number.ui32_max_value = 125;
+  }
+  else
+  {
+    lcd_var_number.p_var_number = &p_m_l3_vars->ui8_motor_temperature_max_value_to_limit_imperial;
+    lcd_var_number.ui32_min_value = 32;
+    lcd_var_number.ui32_max_value = 255;
+  }
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    item_set_strings("Max limit", "(celsius)", p_menu_data);
+  }
+  else
+  {
+    item_set_strings("Max limit", "(fahrenheit)", p_menu_data);
+  }
+
   item_var_set_number(&lcd_var_number, p_menu_data);
 }
 
@@ -1520,6 +1594,8 @@ void display_title(struct_menu_data *p_menu_data)
 
 void display_time_hours(struct_menu_data *p_menu_data)
 {
+  static uint8_t ui8_var_previous = 0;
+  var_number_t lcd_var_number;
   struct_rtc_time_t *p_rtc_time;
   struct_rtc_time_t rtc_time_edited;
   struct_rtc_time_t *p_rtc_time_edited;
@@ -1528,16 +1604,41 @@ void display_time_hours(struct_menu_data *p_menu_data)
   p_rtc_time = rtc_get_time();
   p_rtc_time_edited->ui8_hours = p_rtc_time->ui8_hours;
 
-  var_number_t lcd_var_number =
+  // force to be [0 - 12]
+  if(p_m_l3_vars->ui8_units_type)
   {
-    .p_var_number = &p_rtc_time_edited->ui8_hours,
-    .ui8_size = 8,
-    .ui8_number_digits = 2,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 59,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+    if(p_rtc_time_edited->ui8_hours > 12)
+    {
+      p_rtc_time_edited->ui8_hours -= 12;
+      p_rtc_time->ui8_hours = p_rtc_time_edited->ui8_hours;
+    }
+  }
+
+  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_hours;
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 2;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_min_value = 0;
+  lcd_var_number.ui32_increment_step = 1;
+
+  if(p_m_l3_vars->ui8_units_type == 0)
+  {
+    lcd_var_number.ui32_max_value = 23;
+  }
+  else
+  {
+    lcd_var_number.ui32_max_value = 12;
+  }
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_rtc_time_edited->ui8_hours != ui8_var_previous)
+  {
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
 
   item_set_strings("Clock", "hours", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
@@ -1548,10 +1649,14 @@ void display_time_hours(struct_menu_data *p_menu_data)
     p_rtc_time->ui8_hours = p_rtc_time_edited->ui8_hours;
     rtc_set_time(p_rtc_time);
   }
+
+  ui8_var_previous = p_rtc_time_edited->ui8_hours;
 }
 
 void display_time_minutes(struct_menu_data *p_menu_data)
 {
+  static uint8_t ui8_var_previous = 0;
+  var_number_t lcd_var_number;
   struct_rtc_time_t *p_rtc_time;
   struct_rtc_time_t rtc_time_edited;
   struct_rtc_time_t *p_rtc_time_edited;
@@ -1560,16 +1665,23 @@ void display_time_minutes(struct_menu_data *p_menu_data)
   p_rtc_time = rtc_get_time();
   p_rtc_time_edited->ui8_minutes = p_rtc_time->ui8_minutes;
 
-  var_number_t lcd_var_number =
+  lcd_var_number.p_var_number = &p_rtc_time_edited->ui8_minutes;
+  lcd_var_number.ui8_size = 8;
+  lcd_var_number.ui8_number_digits = 2;
+  lcd_var_number.ui8_decimal_digit = 0;
+  lcd_var_number.ui32_min_value = 0;
+  lcd_var_number.ui32_increment_step = 1;
+  lcd_var_number.ui32_max_value = 59;
+
+  // see if value is different from previous one and if it is, force draw
+  if(p_rtc_time_edited->ui8_minutes != ui8_var_previous)
   {
-    .p_var_number = &p_rtc_time_edited->ui8_minutes,
-    .ui8_size = 8,
-    .ui8_number_digits = 2,
-    .ui8_decimal_digit = 0,
-    .ui32_max_value = 59,
-    .ui32_min_value = 0,
-    .ui32_increment_step = 1
-  };
+    lcd_var_number.ui8_need_update = 1;
+  }
+  else
+  {
+    lcd_var_number.ui8_need_update = 0;
+  }
 
   item_set_strings("Clock", "minutes", p_menu_data);
   item_var_set_number(&lcd_var_number, p_menu_data);
@@ -1580,6 +1692,25 @@ void display_time_minutes(struct_menu_data *p_menu_data)
     p_rtc_time->ui8_minutes = p_rtc_time_edited->ui8_minutes;
     rtc_set_time(p_rtc_time);
   }
+
+  ui8_var_previous = p_rtc_time_edited->ui8_minutes;
+}
+
+void display_buttons_up_down_invert(struct_menu_data *p_menu_data)
+{
+  var_number_t lcd_var_number =
+  {
+    .p_var_number = &p_m_l3_vars->ui8_buttons_up_down_invert,
+    .ui8_size = 8,
+    .ui8_number_digits = 1,
+    .ui8_decimal_digit = 0,
+    .ui32_max_value = 1,
+    .ui32_min_value = 0,
+    .ui32_increment_step = 1
+  };
+
+  item_set_strings("Up down", "buttons", p_menu_data);
+  item_var_set_strings(&lcd_var_number, p_menu_data, "default\ninvert");
 }
 
 void display_brightness_backlight_off(struct_menu_data *p_menu_data)

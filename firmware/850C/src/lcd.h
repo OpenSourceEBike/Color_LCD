@@ -51,7 +51,9 @@ typedef struct l2_vars_struct
   uint8_t ui8_assist_level;
   uint8_t ui8_number_of_assist_levels;
   uint16_t ui16_wheel_perimeter;
+  uint16_t ui16_wheel_perimeter_imperial_x10;
   uint8_t ui8_wheel_max_speed;
+  uint8_t ui8_wheel_max_speed_imperial;
   uint8_t ui8_units_type;
   uint32_t ui32_wh_x10_offset;
   uint32_t ui32_wh_x10_100_percent;
@@ -76,7 +78,9 @@ typedef struct l2_vars_struct
   uint8_t ui8_startup_motor_power_boost_factor[10];
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
+  uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
   uint8_t ui8_motor_temperature_max_value_to_limit;
+  uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
   uint8_t ui8_lcd_power_off_time_minutes;
   uint8_t ui8_lcd_backlight_on_brightness;
   uint8_t ui8_lcd_backlight_off_brightness;
@@ -130,7 +134,9 @@ typedef struct l3_vars_struct
   uint8_t ui8_assist_level;
   uint8_t ui8_number_of_assist_levels;
   uint16_t ui16_wheel_perimeter;
+  uint16_t ui16_wheel_perimeter_imperial_x10;
   uint8_t ui8_wheel_max_speed;
+  uint8_t ui8_wheel_max_speed_imperial;
   uint8_t ui8_units_type;
   uint32_t ui32_wh_x10_offset;
   uint32_t ui32_wh_x10_100_percent;
@@ -155,7 +161,9 @@ typedef struct l3_vars_struct
   uint8_t ui8_startup_motor_power_boost_factor[10];
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
+  uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
   uint8_t ui8_motor_temperature_max_value_to_limit;
+  uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
   uint8_t ui8_lcd_power_off_time_minutes;
   uint8_t ui8_lcd_backlight_on_brightness;
   uint8_t ui8_lcd_backlight_off_brightness;
@@ -168,13 +176,12 @@ typedef struct l3_vars_struct
   uint32_t ui32_odometer_x10;
   uint16_t ui16_distance_since_power_on_x10;
   uint32_t ui32_trip_x10;
-
   uint8_t ui8_lights;
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
-
   graphs_id_t graph_id;
+  uint8_t ui8_buttons_up_down_invert;
 } l3_vars_t;
 
 typedef enum

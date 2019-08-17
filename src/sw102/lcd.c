@@ -81,6 +81,43 @@ static void send_cmd(const uint8_t *cmds, size_t numcmds)
 }
 
 
+static UG_RESULT accel_fill_frame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
+  if(c == C_TRANSPARENT) // This happens a lot when drawing fonts and we don't need to bother drawing the background
+    return UG_RESULT_OK;
+
+  return UG_RESULT_FAIL;
+}
+
+static UG_RESULT accel_draw_line(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
+  if(c == C_TRANSPARENT) // Probably won't happen but a cheap optimization
+    return UG_RESULT_OK;
+
+  return UG_RESULT_FAIL;
+}
+
+/**
+ * @brief �GUI pset function. This writes to a frameBuffer in SRAM.
+ */
+static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
+{
+  if(col == C_TRANSPARENT)
+    return;
+
+  if (x > 63 || x < 0)
+    return;
+
+  if (y > 127 || y < 0)
+    return;
+
+  uint8_t page = y / 8;
+  uint8_t pixel = y % 8;
+
+  if (col > 0)
+    SET_BIT(frameBuffer[page][x], pixel);
+  else
+    CLR_BIT(frameBuffer[page][x], pixel);
+}
+
 /**
  * @brief LCD initialization including hardware layer.
  */
@@ -97,7 +134,7 @@ void lcd_init(void)
   // Power On Sequence SH1107 data sheet p. 44
 
   // Set up initialization sequence
- send_cmd(init_array, sizeof(init_array));
+  send_cmd(init_array, sizeof(init_array));
 
   // Clear internal RAM
   lcd_refresh(); // Is already initialized to zero in bss segment.
@@ -107,6 +144,9 @@ void lcd_init(void)
 
   // Setup �GUI library
   UG_Init(&gui, pset, 64, 128); // Pixel set function
+
+  UG_DriverRegister(DRIVER_DRAW_LINE, (void *) accel_draw_line);
+  UG_DriverRegister(DRIVER_FILL_FRAME, (void *) accel_fill_frame);
 
   // kevinh - I've moved this to be an explicit call, because calling lcd_refresh on each operation is super expensive
   // UG_SetRefresh(lcd_refresh); // LCD refresh function
@@ -152,28 +192,7 @@ static void spi_init(void)
   APP_ERROR_CHECK(nrf_drv_spi_init(&spi, &spi_config, NULL));
 }
 
-/**
- * @brief �GUI pset function. This writes to a frameBuffer in SRAM.
- */
-static void pset(UG_S16 x, UG_S16 y, UG_COLOR col)
-{
-  if(col == C_TRANSPARENT)
-    return;
 
-  if (x > 63 || x < 0)
-    return;
-
-  if (y > 127 || y < 0)
-    return;
-
-  uint8_t page = y / 8;
-  uint8_t pixel = y % 8;
-
-  if (col > 0)
-    SET_BIT(frameBuffer[page][x], pixel);
-  else
-    CLR_BIT(frameBuffer[page][x], pixel);
-}
 
 #if 0
 void lcd_set_backlight_intensity(uint8_t ui8_intensity)

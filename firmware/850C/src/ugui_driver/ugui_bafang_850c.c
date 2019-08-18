@@ -25,7 +25,7 @@
 * This driver follows the same license than the uGui library.
 *******************************************************************************/
 
-#include "../ugui/ugui.h"
+#include "ugui.h"
 #include "../ugui_driver/ugui_bafang_850c.h"
 #include "../pins.h"
 #include "../timers.h"

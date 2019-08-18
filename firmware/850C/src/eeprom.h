@@ -9,8 +9,8 @@
 #ifndef _EEPROM_H_
 #define _EEPROM_H_
 
-#include "main.h"
 #include "lcd_configurations.h"
+#include "state.h"
 
 #define ADDRESS_KEY 0
 #define KEY 6

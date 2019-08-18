@@ -34,10 +34,6 @@ UG_GUI gui;
 /* Buttons */
 Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
-bool has_seen_motor; // true once we've received a packet from a real motor
-bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
-
-
 /* App Timer */
 APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)

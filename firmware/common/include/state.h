@@ -1,22 +1,24 @@
-/*
- * Bafang LCD 850C firmware
- *
- * Copyright (C) Casainho, 2018.
- *
- * Released under the GPL License, Version 3
- */
+#pragma once
 
-#ifndef LCD_H_
-#define LCD_H_
+#include <stdbool.h>
 
-#include <stdint.h>
-#include "main.h"
-#include "ugui.h"
-#include "usart1.h"
+typedef enum
+{
+  GRAPH_PEDAL_HUMAN_POWER = 0,
+  GRAPH_PEDAL_CADENCE,
+  GRAPH_WHEEL_SPEED,
+  GRAPH_BATTERY_VOLTAGE,
+  GRAPH_BATTERY_CURRENT,
+  GRAPH_BATTERY_SOC,
+  GRAPH_MOTOR_POWER,
+  GRAPH_MOTOR_TEMPERATURE,
+  GRAPH_MOTOR_PWM_DUTY_CYCLE,
+  GRAPH_MOTOR_ERPS,
+  GRAPH_MOTOR_FOC_ANGLE,
+  NUMBER_OF_GRAPHS_ID,
+} graphs_id_t;
 
-#define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 
-#if 0
 typedef struct l2_vars_struct
 {
   uint16_t ui16_adc_battery_voltage;
@@ -73,7 +75,8 @@ typedef struct l2_vars_struct
   uint8_t ui8_walk_assist_feature_enabled;
   uint8_t ui8_walk_assist_level_factor[10];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
-  uint8_t ui8_startup_motor_power_boost_state;
+  uint8_t ui8_startup_motor_power_boost_always;
+  uint8_t ui8_startup_motor_power_boost_limit_power;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
   uint8_t ui8_startup_motor_power_boost_factor[10];
@@ -82,7 +85,7 @@ typedef struct l2_vars_struct
   uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
   uint8_t ui8_motor_temperature_max_value_to_limit;
   uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
-  uint8_t ui8_lcd_power_off_time_minutes;
+  // uint8_t ui8_lcd_power_off_time_minutes;
   uint8_t ui8_lcd_backlight_on_brightness;
   uint8_t ui8_lcd_backlight_off_brightness;
   uint8_t ui8_offroad_feature_enabled;
@@ -90,7 +93,7 @@ typedef struct l2_vars_struct
   uint8_t ui8_offroad_speed_limit;
   uint8_t ui8_offroad_power_limit_enabled;
   uint8_t ui8_offroad_power_limit_div25;
-  uint16_t ui16_odometer_distance_x10;
+  // uint16_t ui16_odometer_distance_x10;
   uint32_t ui32_odometer_x10;
 
   uint8_t ui8_lights;
@@ -152,14 +155,15 @@ typedef struct l3_vars_struct
   uint16_t ui16_battery_pack_resistance_x1000;
   uint8_t ui8_motor_type;
   uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-  uint8_t ui8_assist_level_factor[10];
+  uint8_t ui8_assist_level_factor[9];
   uint8_t ui8_walk_assist_feature_enabled;
-  uint8_t ui8_walk_assist_level_factor[10];
+  uint8_t ui8_walk_assist_level_factor[9];
   uint8_t ui8_startup_motor_power_boost_feature_enabled;
-  uint8_t ui8_startup_motor_power_boost_state;
+  uint8_t ui8_startup_motor_power_boost_always;
+  uint8_t ui8_startup_motor_power_boost_limit_power;
   uint8_t ui8_startup_motor_power_boost_time;
   uint8_t ui8_startup_motor_power_boost_fade_time;
-  uint8_t ui8_startup_motor_power_boost_factor[10];
+  uint8_t ui8_startup_motor_power_boost_factor[9];
   uint8_t ui8_temperature_limit_feature_enabled;
   uint8_t ui8_motor_temperature_min_value_to_limit;
   uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
@@ -173,69 +177,40 @@ typedef struct l3_vars_struct
   uint8_t ui8_offroad_speed_limit;
   uint8_t ui8_offroad_power_limit_enabled;
   uint8_t ui8_offroad_power_limit_div25;
-  uint16_t ui16_odometer_distance_x10;
+  // uint16_t ui16_odometer_distance_x10;
   uint32_t ui32_odometer_x10;
-  uint16_t ui16_distance_since_power_on_x10;
+  // uint16_t ui16_distance_since_power_on_x10;
   uint32_t ui32_trip_x10;
+
   uint8_t ui8_lights;
   uint8_t ui8_braking;
   uint8_t ui8_walk_assist;
   uint8_t ui8_offroad_mode;
   graphs_id_t graph_id;
   uint8_t ui8_buttons_up_down_invert;
+
+  uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 } l3_vars_t;
-#endif
 
-typedef enum
-{
-  LCD_SCREEN_MAIN = 1,
-  LCD_SCREEN_CONFIGURATIONS = 2
-} lcd_screen_states_t;
+// deprecated FIXME, delete
+l3_vars_t* get_l3_vars(void);
 
-typedef enum
-{
-  MAIN_SCREEN_STATE_MAIN = 0,
-  MAIN_SCREEN_STATE_POWER,
-  MAIN_SCREEN_STATE_CHANGE_GRAPH
-} lcd_main_screen_states_t;
+extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
+extern l3_vars_t l3_vars;
 
-typedef struct lcd_vars_struct
-{
-  uint32_t ui32_main_screen_draw_static_info;
-  lcd_screen_states_t lcd_screen_state;
-  uint8_t ui8_lcd_menu_counter_1000ms_state;
-  uint8_t ui8_lcd_menu_counter_1000ms_trigger;
-  lcd_main_screen_states_t main_screen_state;
-} lcd_vars_t;
+void layer_2(void);
 
-typedef struct _print_number
-{
-  const UG_FONT* font;
-  UG_COLOR fore_color;
-  UG_COLOR back_color;
-  uint32_t ui32_x_position;
-  uint32_t ui32_y_position;
-  uint32_t ui32_x_final_position;
-  uint32_t ui32_y_final_position;
-  uint8_t ui8_previous_digits_array[MAX_NUMBER_DIGITS];
-  uint8_t ui8_field_number_of_digits;
-  uint8_t ui8_left_zero_paddig;
-  uint8_t ui8_left_paddig;
-  uint8_t ui8_refresh_all_digits;
-  uint32_t ui32_number;
-  uint8_t ui8_digit_number_start_previous;
-  uint8_t ui8_clean_area_all_digits;
-  uint8_t ui8_decimal_digits;
-} print_number_t;
+/**
+ * Called from the main thread every 100ms
+ *
+ */
+void copy_layer_2_layer_3_vars(void);
 
-extern volatile uint32_t ui32_g_layer_2_can_execute;
-extern volatile uint32_t ui32_g_graphs_data_array_over_255;
-extern volatile uint32_t ui32_g_first_time;
 
-void lcd_init(void);
-void lcd_clock(void);
-volatile lcd_vars_t* get_lcd_vars(void);
-void lcd_print_number(print_number_t* number);
-void lcd_draw_main_menu_mask(void);
+extern uint16_t ui16_m_battery_soc_watts_hour;
+extern uint16_t ui16_m_battery_soc_watts_hour_fixed;
 
-#endif /* LCD_H_ */
+extern bool has_seen_motor; // true once we've received a packet from a real motor
+extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+
+

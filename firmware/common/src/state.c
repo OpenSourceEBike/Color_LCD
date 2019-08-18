@@ -6,7 +6,6 @@
  * Released under the GPL License, Version 3
  */
 
-#include <eeprom_hw.h>
 #include <math.h>
 #include "stdio.h"
 #include "main.h"
@@ -19,11 +18,15 @@
 #include "mainscreen.h"
 #include "eeprom.h"
 #include "buttons.h"
-#include "adc.h"
+// #include "adc.h"
 #include "fault.h"
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
+uint16_t ui16_m_battery_soc_watts_hour_fixed; // temp hack during merge
+
+bool has_seen_motor; // true once we've received a packet from a real motor
+bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 
 // kevinh: I don't think volatile is probably needed here
 volatile l2_vars_t l2_vars;
@@ -455,53 +458,6 @@ void l2_low_pass_filter_pedal_torque_and_power(void)
     l2_vars.ui16_pedal_power_filtered /= 10;
     l2_vars.ui16_pedal_power_filtered *= 10;
   }
-
-#ifdef SIMULATION
-  static uint16_t ui16_virtual_pedal_power = 0;
-  static uint8_t ui8_counter = 0;
-  static uint16_t ui16_index = 0;
-
-  ui8_counter++;
-  if(ui8_counter >= 2)
-  {
-    ui8_counter = 0;
-
-    if(ui16_index == 0)
-    {
-      ui16_virtual_pedal_power = 0;
-    }
-    else if(ui16_index > 0 && ui16_index <= 150)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 151)
-    {
-      ui16_virtual_pedal_power = 50;
-    }
-    else if(ui16_index > 151 && ui16_index <= 200)
-    {
-      ui16_virtual_pedal_power++;
-    }
-    else if(ui16_index == 201)
-    {
-      ui16_virtual_pedal_power = 20;
-      ui16_index = 201;
-    }
-//    else if(ui16_index > 201 && ui16_index <= 254)
-//    {
-//      ui16_virtual_pedal_power++;
-//    }
-//    else if(ui16_index == 255)
-//    {
-//      ui16_virtual_pedal_power = 0;
-//      ui16_index = 0;
-//    }
-
-    ui16_index++;
-  }
-
-  l2_vars.ui16_pedal_power_filtered = ui16_virtual_pedal_power;
-#endif
 }
 
 
@@ -650,18 +606,21 @@ void calc_battery_soc_watts_hour(void)
     ui32_temp = 0;
   }
 
+  if (ui32_temp > 100)
+    ui32_temp = 100;
+
   // 100% - current SOC or just current SOC
   if (!l3_vars.ui8_battery_soc_increment_decrement)
   {
-    if (ui32_temp > 100)
-      ui32_temp = 100;
-
     ui16_m_battery_soc_watts_hour = 100 - ui32_temp;
   }
   else
   {
     ui16_m_battery_soc_watts_hour = ui32_temp;
   }
+
+  // fixed range
+  ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
 }
 
 
@@ -728,6 +687,7 @@ void copy_layer_2_layer_3_vars(void)
   l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
   l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
   l3_vars.ui8_braking = l2_vars.ui8_braking;
+  l3_vars.ui8_foc_angle = l2_vars.ui8_foc_angle;
 
   l2_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10_offset;
   l2_vars.ui16_battery_pack_resistance_x1000 = l3_vars.ui16_battery_pack_resistance_x1000;
@@ -759,7 +719,9 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_target_max_battery_power = l3_vars.ui8_target_max_battery_power;
   l2_vars.ui16_battery_low_voltage_cut_off_x10 = l3_vars.ui16_battery_low_voltage_cut_off_x10;
   l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
+  l2_vars.ui16_wheel_perimeter_imperial_x10 = l3_vars.ui16_wheel_perimeter_imperial_x10;
   l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
+  l2_vars.ui8_wheel_max_speed_imperial = l3_vars.ui8_wheel_max_speed_imperial;
   l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
   l2_vars.ui8_motor_assistance_startup_without_pedal_rotation = l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
   l2_vars.ui8_temperature_limit_feature_enabled = l3_vars.ui8_temperature_limit_feature_enabled;
@@ -778,7 +740,9 @@ void copy_layer_2_layer_3_vars(void)
   l2_vars.ui8_startup_motor_power_boost_fade_time = l3_vars.ui8_startup_motor_power_boost_fade_time;
   l2_vars.ui8_startup_motor_power_boost_feature_enabled = l3_vars.ui8_startup_motor_power_boost_feature_enabled;
   l2_vars.ui8_motor_temperature_min_value_to_limit = l3_vars.ui8_motor_temperature_min_value_to_limit;
+  l2_vars.ui8_motor_temperature_min_value_to_limit_imperial = l3_vars.ui8_motor_temperature_min_value_to_limit_imperial;
   l2_vars.ui8_motor_temperature_max_value_to_limit = l3_vars.ui8_motor_temperature_max_value_to_limit;
+  l2_vars.ui8_motor_temperature_max_value_to_limit_imperial = l3_vars.ui8_motor_temperature_max_value_to_limit_imperial;
   l2_vars.ui8_offroad_feature_enabled = l3_vars.ui8_offroad_feature_enabled;
   l2_vars.ui8_offroad_enabled_on_startup = l3_vars.ui8_offroad_enabled_on_startup;
   l2_vars.ui8_offroad_speed_limit = l3_vars.ui8_offroad_speed_limit;

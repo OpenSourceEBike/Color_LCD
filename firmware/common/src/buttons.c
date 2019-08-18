@@ -9,7 +9,7 @@
 #include "stdio.h"
 
 #include "buttons.h"
-#include "lcd.h"
+#include "state.h"
 
 #define TIME_1 2000
 #define TIME_2 200
@@ -35,16 +35,9 @@ buttons_events_t buttons_events = 0;
 #include "stm32f10x_gpio.h"
 #include "pins.h"
 
-volatile l3_vars_t *p_l3_output_vars;
-
-void buttons_init(void)
-{
-  p_l3_output_vars = get_l3_vars();
-}
-
 uint32_t buttons_get_up_state (void)
 {
-  if(p_l3_output_vars->ui8_buttons_up_down_invert)
+  if(l3_vars.ui8_buttons_up_down_invert)
   {
     return GPIO_ReadInputDataBit(BUTTON_DOWN__PORT, BUTTON_DOWN__PIN) != 0 ? 0: 1;
   }
@@ -56,7 +49,7 @@ uint32_t buttons_get_up_state (void)
 
 uint32_t buttons_get_down_state (void)
 {
-  if(p_l3_output_vars->ui8_buttons_up_down_invert)
+  if(l3_vars.ui8_buttons_up_down_invert)
   {
     return GPIO_ReadInputDataBit(BUTTON_UP__PORT, BUTTON_UP__PIN) != 0 ? 0: 1;
   }
@@ -80,12 +73,26 @@ uint32_t buttons_get_m_state (void)
 
 uint32_t buttons_get_up_state (void)
 {
-  return PollButton(&buttonUP);
+  if(!l3_vars.ui8_buttons_up_down_invert)
+  {
+    return PollButton(&buttonUP);
+  }
+  else
+  {
+    return PollButton(&buttonDWN);
+  }
 }
 
 uint32_t buttons_get_down_state (void)
 {
-  return PollButton(&buttonDWN);
+  if(l3_vars.ui8_buttons_up_down_invert)
+  {
+    return PollButton(&buttonUP);
+  }
+  else
+  {
+    return PollButton(&buttonDWN);
+  }
 }
 
 uint32_t buttons_get_onoff_state (void)

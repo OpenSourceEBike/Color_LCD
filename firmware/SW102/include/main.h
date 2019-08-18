@@ -29,7 +29,4 @@ uint32_t get_msecs();
 
 extern Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
-extern bool has_seen_motor; // true once we've received a packet from a real motor
-extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
-
 #endif /* INCLUDE_MAIN_H_ */

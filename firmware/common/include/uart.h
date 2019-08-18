@@ -1,5 +1,6 @@
-#ifndef INCLUDE_UART_H_
-#define INCLUDE_UART_H_
+#pragma once
+
+#include <stdint.h>
 
 void uart_init(void);
 const uint8_t* uart_get_rx_buffer_rdy(void);
@@ -11,5 +12,3 @@ void uart_send_tx_buffer(uint8_t* tx_buffer);
 #define UART_MAX_NUMBER_MESSAGE_ID          8   // change this value depending on how many different packages there is to send
 #define UART_NUMBER_CRC_BYTES               2
 #define UART_NUMBER_START_BYTES             1
-
-#endif /* INCLUDE_UART_H_ */

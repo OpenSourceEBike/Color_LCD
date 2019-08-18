@@ -1,6 +1,12 @@
 #pragma once
 
+#ifdef SW102
 #include "app_error.h"
+#else
+
+#define APP_ERROR_HANDLER(code) // FIXME - implement for 850c
+
+#endif
 
 // Standard app error codes
 #define FAULT_SOFTDEVICE 1

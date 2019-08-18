@@ -84,6 +84,7 @@ void TIM4_IRQHandler(void)
     if(ui32_g_layer_2_can_execute)
     {
       layer_2();
+      graphs_measurements_update();
     }
   }
 }

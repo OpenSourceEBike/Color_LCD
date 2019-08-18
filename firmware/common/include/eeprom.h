@@ -10,8 +10,11 @@
 #define _EEPROM_H_
 
 #include "lcd.h"
-// #include "lcd_configurations.h"
-#include "main.h"
+#include "state.h"
+
+#ifndef SW102
+#include "lcd_configurations.h"
+#endif
 
 #define ADDRESS_KEY 0
 #define KEY 1
@@ -62,7 +65,17 @@ typedef struct eeprom_data
   uint32_t ui32_odometer_x10;
   uint8_t ui8_walk_assist_feature_enabled;
   uint8_t ui8_walk_assist_level_factor[9];
-  //lcd_configurations_menu_t lcd_configurations_menu;
+
+  uint8_t ui8_battery_soc_increment_decrement;
+  uint8_t ui8_buttons_up_down_invert;
+  uint16_t ui16_wheel_perimeter_imperial_x10;
+  uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
+  uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
+
+#ifndef SW102
+  lcd_configurations_menu_t lcd_configurations_menu;
+  graphs_id_t graph_id;
+#endif
 
   // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -77,7 +90,9 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3
 #define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       5
 #define DEFAULT_VALUE_WHEEL_PERIMETER                               2050 // 26'' wheel: 2050mm perimeter
+#define DEFAULT_VALUE_WHEEL_PERIMETER_IMPERIAL_X10                  810 // 2050 / 25.4
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
+#define DEFAULT_VALUE_WHEEL_MAX_SPEED_IMPERIAL                      31
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
@@ -109,7 +124,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    18
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    20
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED     0
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS              1
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE               1
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      4
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_2      7
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_3      10
@@ -123,11 +138,18 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
-#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT_IMPERIAL    167
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85 // 85 degrees celsius
+#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT_IMPERIAL    185
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
+#ifdef SW102
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   100 // 8 = 40% 850C
 #define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  20 // 20 = 100% 850C
+#else
+#define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   8 // 8 = 40%
+#define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  20 // 20 = 100%
+#endif
 #define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       130 // 48v battery, 13S5P measured 130 milli ohms
 #define DEFAULT_VALUE_OFFROAD_FEATURE_ENABLED                       0
 #define DEFAULT_VALUE_OFFROAD_MODE_ENABLED_ON_STARTUP               0
@@ -135,6 +157,8 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_ENABLED                   0
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
+#define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 
 // *************************************************************************** //
 

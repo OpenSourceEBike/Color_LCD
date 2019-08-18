@@ -49,7 +49,6 @@ int main(void)
   lcd_init();
   timer4_init();
   graphs_init();
-  buttons_init();
 
   // block until user release the buttons
   while(buttons_get_onoff_state() ||

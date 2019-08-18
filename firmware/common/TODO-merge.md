@@ -2,13 +2,19 @@
 
 * ugui
 * fonts
-* utils
-* buttons
 * state
 * eeprom
 * fault
 * screen
 * rtc
+
+## Mostly done
+
+* buttons - test in sw102, add call to buttons_init
+
+## done
+
+* utils
 
 ## Hard merges:
 
@@ -24,3 +30,4 @@
 * use colors in the 850C gui
 * add instrumentation to measure times of key operations (main loop, frame update etc)
 * check that linker is stripping all unused functions (for both platforms)
+* dramatically shrink the buttons.c code

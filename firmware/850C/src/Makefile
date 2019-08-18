@@ -51,7 +51,8 @@ LFLAGS  = -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm 
 CPFLAGS = -Obinary 
 ODFLAGS = -S
 
-SOURCES=$(shell find ./ -type f -iname '*.c') ../../common/src/buttons.c
+COMMONSRC = ../../common/src
+SOURCES=$(shell find ./ -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.

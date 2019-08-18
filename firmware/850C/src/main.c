@@ -11,6 +11,7 @@
 #include "stm32f10x_gpio.h"
 #include "system_stm32f10x.h"
 #include "stdio.h"
+#include "stdbool.h"
 
 #include "main.h"
 #include "pins.h"
@@ -38,6 +39,8 @@ int main(void)
 
   SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
+
+  is_sim_motor = true; // kevinh FIXME temp hack till ADC
 
   pins_init();
   system_power(1);

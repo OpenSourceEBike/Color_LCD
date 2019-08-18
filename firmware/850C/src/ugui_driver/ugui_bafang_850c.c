@@ -180,6 +180,9 @@ void lcd_window_set(unsigned int s_x,unsigned int e_x,unsigned int s_y,unsigned 
 
 void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color)
 {
+	if(ui32_color == C_TRANSPARENT)
+		return;
+
   uint32_t ui32_x_high;
   uint32_t ui32_x_low;
   uint32_t ui32_y_high;
@@ -272,6 +275,9 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color)
 
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32_color)
 {
+	if(ui32_color == C_TRANSPARENT)
+		return UG_RESULT_OK;
+
   uint32_t ui32_pixels;
   int32_t i32_dx, i32_dy;
   UG_S16 temp;
@@ -371,6 +377,9 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
 
 UG_RESULT HW_DrawLine( UG_S16 x1 , UG_S16 y1 , UG_S16 x2 , UG_S16 y2 , UG_COLOR c )
 {
+	if(c == C_TRANSPARENT)
+		return UG_RESULT_OK;
+
     if((x1 < 0) ||(x1 >= DISPLAY_WIDTH) || (y1 < 0) || (y1 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
     if((x2 < 0) ||(x2 >= DISPLAY_WIDTH) || (y2 < 0) || (y2 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
     

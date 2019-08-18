@@ -18,7 +18,7 @@
 #include "ble_cscs.h"
 #include "ble_dis.h"
 #include "fds.h"
-#include "mainscreen.h"
+#include "state.h"
 
 // define to enable the (not yet used) serial service
 // #define BLE_SERIAL

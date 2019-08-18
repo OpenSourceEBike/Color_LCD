@@ -5,7 +5,7 @@
 #include "fonts.h"
 #include "stdlib.h"
 #include "fault.h"
-#include "main.h"
+#include "state.h"
 #include "nrf_nvic.h"
 #include "nrf_delay.h"
 

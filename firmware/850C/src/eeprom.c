@@ -61,8 +61,8 @@ eeprom_data_t m_eeprom_data_defaults =
   },
   .ui8_number_of_assist_levels = DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS,
   .ui8_startup_motor_power_boost_feature_enabled = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED,
-  .ui8_startup_motor_power_boost_always = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
-  .ui8_startup_motor_power_boost_limit_power = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
+  .ui8_startup_motor_power_boost_always = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS,
+  .ui8_startup_motor_power_boost_limit_power = 0,
   .ui8_startup_motor_power_boost_factor = {
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,

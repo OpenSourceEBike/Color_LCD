@@ -1,7 +1,6 @@
 ## Easy merges (sequence, listing source files):
 
 * eeprom
-* screen
 * rtc
 
 ## Mostly done
@@ -17,6 +16,7 @@
 * state
 * uart
 * fault
+* screen
 
 ## Hard merges:
 
@@ -39,3 +39,4 @@
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C
 * implement fault.c for 850C
+* 850C doesn't seem to do proper dependency checking - changes to .h files should cause new builds

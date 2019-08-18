@@ -125,8 +125,8 @@ void crc16(uint8_t ui8_data, uint16_t* ui16_crc)
 uint8_t *itoa(uint32_t ui32_i)
 {
   /* Room for INT_DIGITS digits, - and '\0' */
-  static char buf[INT_DIGITS + 2];
-  char *p = buf + INT_DIGITS + 1; /* points to terminating '\0' */
+  static uint8_t buf[INT_DIGITS + 2];
+  uint8_t *p = buf + INT_DIGITS + 1; /* points to terminating '\0' */
   if (ui32_i >= 0) {
     do {
       *--p = '0' + (ui32_i % 10);

@@ -9,6 +9,12 @@
 #include "nrf_nvic.h"
 #include "nrf_delay.h"
 
+/* Note: we currently don't use-funwind-tables because it adds about 8K to text.  But if we ever need better crash reports, turn them on and use the functions
+ * in unwind.h to derive the PC of the failing function and a stack trace.
+
+#include <unwind.h>
+*/
+
 Field faultHeading = FIELD_DRAWTEXT(.msg = "FAULT");
 Field faultCode = FIELD_DRAWTEXT();
 Field addrHeading = FIELD_DRAWTEXT(.msg = "PC");

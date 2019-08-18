@@ -23,7 +23,7 @@ NRFUTIL := nrfutil
 OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
 
 # The integer build number for this release, MUST BE INCREMENTED FOR EACH RELEASE SO BOOTLOADER WILL INSTALL
-VERSION_NUM := 11
+VERSION_NUM := 12
 
 VERSION_STRING := 0.19.$(VERSION_NUM)
 
@@ -190,10 +190,10 @@ INC_FOLDERS += \
 # Libraries common to all targets
 LIB_FILES += \
 
-# Optimization flags release
-# OPT = -Os -g3
+# Optimization flags release (note - we use -funwind-tables so our app fault handler can reverse engineer the PC of the caller when unsupplied)
+OPT = -Os -g3 
 # Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
-OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
+# OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG 
 
 # C flags common to all targets
 CFLAGS += $(OPT)

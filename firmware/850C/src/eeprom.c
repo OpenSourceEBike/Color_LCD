@@ -61,7 +61,8 @@ eeprom_data_t m_eeprom_data_defaults =
   },
   .ui8_number_of_assist_levels = DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS,
   .ui8_startup_motor_power_boost_feature_enabled = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED,
-  .ui8_startup_motor_power_boost_state = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
+  .ui8_startup_motor_power_boost_always = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
+  .ui8_startup_motor_power_boost_limit_power = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_STATE,
   .ui8_startup_motor_power_boost_factor = {
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
       DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,
@@ -248,7 +249,8 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui8_assist_level_factor[9] = m_eeprom_data.ui8_assist_level_factor[9];
   p_l3_output_vars->ui8_number_of_assist_levels = m_eeprom_data.ui8_number_of_assist_levels;
   p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled = m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled;
-  p_l3_output_vars->ui8_startup_motor_power_boost_state = m_eeprom_data.ui8_startup_motor_power_boost_state;
+  p_l3_output_vars->ui8_startup_motor_power_boost_always = m_eeprom_data.ui8_startup_motor_power_boost_always;
+  p_l3_output_vars->ui8_startup_motor_power_boost_limit_power = m_eeprom_data.ui8_startup_motor_power_boost_limit_power;
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[0] = m_eeprom_data.ui8_startup_motor_power_boost_factor[0];
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[1] = m_eeprom_data.ui8_startup_motor_power_boost_factor[1];
   p_l3_output_vars->ui8_startup_motor_power_boost_factor[2] = m_eeprom_data.ui8_startup_motor_power_boost_factor[2];
@@ -338,7 +340,8 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui8_assist_level_factor[9] = p_l3_output_vars->ui8_assist_level_factor[9];
   m_eeprom_data.ui8_number_of_assist_levels = p_l3_output_vars->ui8_number_of_assist_levels;
   m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled = p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled;
-  m_eeprom_data.ui8_startup_motor_power_boost_state = p_l3_output_vars->ui8_startup_motor_power_boost_state;
+  m_eeprom_data.ui8_startup_motor_power_boost_always = p_l3_output_vars->ui8_startup_motor_power_boost_always;
+  m_eeprom_data.ui8_startup_motor_power_boost_limit_power = p_l3_output_vars->ui8_startup_motor_power_boost_limit_power;
   m_eeprom_data.ui8_startup_motor_power_boost_factor[0] = p_l3_output_vars->ui8_startup_motor_power_boost_factor[0];
   m_eeprom_data.ui8_startup_motor_power_boost_factor[1] = p_l3_output_vars->ui8_startup_motor_power_boost_factor[1];
   m_eeprom_data.ui8_startup_motor_power_boost_factor[2] = p_l3_output_vars->ui8_startup_motor_power_boost_factor[2];

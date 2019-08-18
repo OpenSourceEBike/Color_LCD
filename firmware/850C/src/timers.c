@@ -11,6 +11,7 @@
 #include "lcd.h"
 #include "main.h"
 #include "pins.h"
+#include "state.h"
 
 static volatile uint32_t _ms;
 volatile uint32_t time_base_counter_1ms = 0;

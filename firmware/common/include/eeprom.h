@@ -68,6 +68,7 @@ typedef struct eeprom_data
 
   uint8_t ui8_battery_soc_increment_decrement;
   uint8_t ui8_buttons_up_down_invert;
+  uint8_t ui8_wheel_max_speed_imperial;
   uint16_t ui16_wheel_perimeter_imperial_x10;
   uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
   uint8_t ui8_motor_temperature_max_value_to_limit_imperial;

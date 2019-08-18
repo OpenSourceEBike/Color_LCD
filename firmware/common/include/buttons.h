@@ -54,6 +54,7 @@ void buttons_clock (void);
 buttons_events_t buttons_get_events (void);
 void buttons_clear_all_events(void);
 void buttons_set_events (buttons_events_t events);
+void buttons_init(void);
 
 extern buttons_events_t buttons_events;
 

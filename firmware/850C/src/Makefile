@@ -40,7 +40,7 @@ OPT = 0
 # -mfix-cortex-m3-ldrd should be enabled by default for Cortex M3.
 # CFLAGS -H show header files
 AFLAGS  = -I./GD32F10x_standard_peripheral/Include -I -Ispl/CMSIS -Ispl/inc -c -g -mcpu=cortex-m3 -mthumb -l libgcc
-CFLAGS  = -I./GD32F10x_standard_peripheral/Include -I./ -I./spl/CMSIS -I./spl/CMSIS/inc -I./spl/inc -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER -c -fno-common -O$(OPT) -g -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections -l libgcc -DUSE_COLOR_RGB565
+CFLAGS  = -I../../common/include -I./GD32F10x_standard_peripheral/Include -I./ -I./spl/CMSIS -I./spl/CMSIS/inc -I./spl/inc -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER -c -fno-common -O$(OPT) -g -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections -l libgcc -DUSE_COLOR_RGB565
 # Need following option for LTO as LTO will treat retarget functions as
 # unused without following option
 CFLAGS+ = -fno-builtin
@@ -51,7 +51,7 @@ LFLAGS  = -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm 
 CPFLAGS = -Obinary 
 ODFLAGS = -S
 
-SOURCES=$(shell find ./ -type f -iname '*.c')
+SOURCES=$(shell find ./ -type f -iname '*.c') ../../common/src/buttons.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.
@@ -84,7 +84,7 @@ flash_jtag: main.bin
 	$(OPENOCD) -c "init; reset halt; stm32f1x mass_erase 0; flash write_bank 0 main.bin 0; shutdown"
 
 run_jtag: flash_jtag
-	$(OPENOCD) -c "reset run; shutdown"
+	$(OPENOCD) -c "init; reset halt; reset run; shutdown"
 
 # Just start an openocd session
 openocd:

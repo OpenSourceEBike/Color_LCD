@@ -54,7 +54,6 @@
 //
 /* -------------------------------------------------------------------------------- */
 #include "ugui.h"
-#include "common.h"
 
 /* SW102 Extensions */
 static void (*p_refresh)( void ) = (void *)0;
@@ -4982,7 +4981,7 @@ void UG_DrawLine( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
      _UG_Refresh();
 }
 
-void UG_PutString( UG_S16 x, UG_S16 y, char* str )
+void UG_PutString_with_length( UG_S16 x, UG_S16 y, char* str, uint32_t ui8_length)
 {
    UG_S16 xp,yp;
    UG_U8 cw;
@@ -4992,16 +4991,16 @@ void UG_PutString( UG_S16 x, UG_S16 y, char* str )
    xp=x;
    yp=y;
 
-   while ( *str != 0 )
+   while ( *str != 0 && ui8_length-- > 0)
    {
       chr = *str++;
-	  if (chr < gui->font.start_char || chr > gui->font.end_char) continue;
+    if (chr < gui->font.start_char || chr > gui->font.end_char) continue;
       if ( chr == '\n' )
       {
          xp = gui->x_dim;
          continue;
       }
-	  cw = gui->font.widths ? gui->font.widths[chr - gui->font.start_char] : gui->font.char_width;
+    cw = gui->font.widths ? gui->font.widths[chr - gui->font.start_char] : gui->font.char_width;
 
       if ( xp + cw > gui->x_dim - 1 )
       {
@@ -5015,6 +5014,11 @@ void UG_PutString( UG_S16 x, UG_S16 y, char* str )
    }
 
    _UG_Refresh();
+}
+
+void UG_PutString( UG_S16 x, UG_S16 y, char* str )
+{
+   UG_PutString_with_length(x, y, str, UINT32_MAX);
 }
 
 void UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc )
@@ -5320,14 +5324,14 @@ void _UG_PutChar( char chr, UG_S16 x, UG_S16 y, UG_COLOR fc, UG_COLOR bc, const 
 
    switch ( bt )
    {
-      case 0xF6: bt = 0x94; break; // ö
-      case 0xD6: bt = 0x99; break; // Ö
-      case 0xFC: bt = 0x81; break; // ü
-      case 0xDC: bt = 0x9A; break; // Ü
-      case 0xE4: bt = 0x84; break; // ä
-      case 0xC4: bt = 0x8E; break; // Ä
-      case 0xB5: bt = 0xE6; break; // µ
-      case 0xB0: bt = 0xF8; break; // °
+      case 0xF6: bt = 0x94; break; // ï¿½
+      case 0xD6: bt = 0x99; break; // ï¿½
+      case 0xFC: bt = 0x81; break; // ï¿½
+      case 0xDC: bt = 0x9A; break; // ï¿½
+      case 0xE4: bt = 0x84; break; // ï¿½
+      case 0xC4: bt = 0x8E; break; // ï¿½
+      case 0xB5: bt = 0xE6; break; // ï¿½
+      case 0xB0: bt = 0xF8; break; // ï¿½
    }
 
    if (bt < font->start_char || bt > font->end_char) return;

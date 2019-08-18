@@ -13,7 +13,7 @@
 #include "main.h"
 #include "config.h"
 #include "ugui_driver/ugui_bafang_850c.h"
-#include "ugui/ugui.h"
+#include "ugui.h"
 #include "lcd.h"
 #include "graphs.h"
 

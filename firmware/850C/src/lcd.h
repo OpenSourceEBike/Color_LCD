@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 #include "main.h"
-#include "ugui/ugui.h"
+#include "ugui.h"
 #include "usart1.h"
 
 #define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345

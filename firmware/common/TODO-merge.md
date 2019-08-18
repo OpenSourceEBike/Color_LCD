@@ -1,7 +1,5 @@
 ## Easy merges (sequence, listing source files):
 
-* ugui
-* fonts
 * state
 * eeprom
 * fault
@@ -15,6 +13,9 @@
 ## done
 
 * utils
+* remove UG_PutString_with_length copypasta
+* ugui
+* fonts BITS_FONT_61X99 BITS_FONT_45X72
 
 ## Hard merges:
 
@@ -31,3 +32,4 @@
 * add instrumentation to measure times of key operations (main loop, frame update etc)
 * check that linker is stripping all unused functions (for both platforms)
 * dramatically shrink the buttons.c code
+

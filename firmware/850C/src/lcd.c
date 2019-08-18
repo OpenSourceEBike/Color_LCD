@@ -20,9 +20,10 @@
 #include "eeprom.h"
 #include "usart1.h"
 #include "ugui_driver/ugui_bafang_850c.h"
-#include "ugui/ugui.h"
+#include "ugui.h"
 #include "rtc.h"
 #include "graphs.h"
+#include "fonts.h"
 
 // Battery SOC symbol:
 // 10 bars, each bar: with = 7, height = 24

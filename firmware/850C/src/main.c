@@ -21,7 +21,7 @@
 #include "usart1.h"
 #include "eeprom.h"
 #include "graphs.h"
-#include "ugui/ugui.h"
+#include "ugui.h"
 #include "ugui_driver/ugui_bafang_850c.h"
 #include "utils.h"
 #include "rtc.h"

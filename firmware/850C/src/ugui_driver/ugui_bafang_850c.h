@@ -1,7 +1,7 @@
 #ifndef UGUI_BAFANG_850C
 #define UGUI_BAFANG_850C
 
-#include "../ugui/ugui.h"
+#include "ugui.h"
     
 /* *** Configuration. *** */
     

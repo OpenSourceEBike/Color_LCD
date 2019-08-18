@@ -10,7 +10,7 @@
 #include <string.h>
 #include "stm32f10x_flash.h"
 #include "eeprom.h"
-#include "main.h"
+#include "state.h"
 #include "lcd_configurations.h"
 #include "lcd.h"
 

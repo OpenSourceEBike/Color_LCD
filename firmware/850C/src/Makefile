@@ -52,7 +52,7 @@ CPFLAGS = -Obinary
 ODFLAGS = -S
 
 COMMONSRC = ../../common/src
-SOURCES=$(shell find ./ -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c
+SOURCES=$(shell find ./ -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.

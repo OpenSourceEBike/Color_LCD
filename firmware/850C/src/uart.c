@@ -2,7 +2,7 @@
 #include "uart.h"
 #include "usart1.h"
 
-volatile uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
+uint8_t ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
 
 /**
  * @brief Init UART peripheral
@@ -21,7 +21,7 @@ const uint8_t* uart_get_rx_buffer_rdy(void)
 		return NULL;
 	}
 
-	uint8_t r = usart1_get_rx_buffer();
+	uint8_t *r = usart1_get_rx_buffer();
 	usart1_reset_received_package();
 	return r;
 }

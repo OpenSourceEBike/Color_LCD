@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "usart1.h"
 #include "main.h"
+#include "uart.h"
 
 uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
 volatile uint8_t ui8_received_package_flag = 0;
@@ -33,7 +34,7 @@ void usart1_init(void)
 
   DMA_DeInit(DMA1_Channel4);
   DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART1->DR);
-  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) &ui8_g_usart1_tx_buffer;
+  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) uart_get_tx_buffer();
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
   DMA_InitStructure.DMA_BufferSize = UART_NUMBER_DATA_BYTES_TO_SEND + 3;
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;

@@ -1266,11 +1266,9 @@ void startup_power_boost_enable(struct_menu_data *p_menu_data)
 
 void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_temp = (p_m_l3_vars->ui8_startup_motor_power_boost_state & 1);
-
   var_number_t lcd_var_number =
   {
-    .p_var_number = &ui8_temp,
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_always,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1281,18 +1279,13 @@ void startup_power_boost_startup_everytime(struct_menu_data *p_menu_data)
 
   item_set_strings("Active on", "", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "startup\nalways");
-
-  if(ui8_temp) { p_m_l3_vars->ui8_startup_motor_power_boost_state |= 1; }
-  else { p_m_l3_vars->ui8_startup_motor_power_boost_state &= ~1; }
 }
 
 void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data)
 {
-  uint8_t ui8_temp = (p_m_l3_vars->ui8_startup_motor_power_boost_state & 2) >> 1;
-
   var_number_t lcd_var_number =
   {
-    .p_var_number = &ui8_temp,
+    .p_var_number = &p_m_l3_vars->ui8_startup_motor_power_boost_limit_power,
     .ui8_size = 8,
     .ui8_number_digits = 1,
     .ui8_decimal_digit = 0,
@@ -1303,9 +1296,6 @@ void startup_power_boost_limit_max_power(struct_menu_data *p_menu_data)
 
   item_set_strings("Limit to max", "power", p_menu_data);
   item_var_set_strings(&lcd_var_number, p_menu_data, "no\nyes");
-
-  if(ui8_temp) { p_m_l3_vars->ui8_startup_motor_power_boost_state |= 2; }
-  else { p_m_l3_vars->ui8_startup_motor_power_boost_state &= ~2; }
 }
 
 void startup_power_boost_duration(struct_menu_data *p_menu_data)

@@ -10,7 +10,7 @@
 #include <string.h>
 #include "stm32f10x.h"
 #include "stdio.h"
-#include "main.h"
+#include "state.h"
 #include "config.h"
 #include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui.h"

@@ -54,13 +54,21 @@ static const FieldRenderFn renderers[];
 static bool blinkChanged;
 static bool blinkOn;
 
+#ifdef SW102
 #define heading_font &FONT_5X12
 #define scrollable_font &FONT_5X12
 
 static const UG_FONT const *editable_label_font = &FONT_5X12;
 static const UG_FONT const *editable_value_font = &FONT_5X12;
 static const UG_FONT const *editable_units_font = &FONT_5X12;
+#else
+#define heading_font &FONT_10X16
+#define scrollable_font &FONT_10X16
 
+static const UG_FONT const *editable_label_font = &FONT_10X16;
+static const UG_FONT const *editable_value_font = &FONT_10X16;
+static const UG_FONT const *editable_units_font = &FONT_10X16;
+#endif
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -896,11 +904,13 @@ void screenUpdate()
   // For each field if that field is dirty (or the screen is) redraw it
   didDraw |= renderLayouts(curScreen->fields, screenDirty);
 
+#ifdef SW102
   // flush the screen to the hardware
   if (didDraw)
   {
     lcd_refresh();
   }
+#endif
 
   screenDirty = false;
 }

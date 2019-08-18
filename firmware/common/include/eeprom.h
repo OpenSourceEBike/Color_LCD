@@ -17,7 +17,7 @@
 #endif
 
 #define ADDRESS_KEY 0
-#define KEY 1
+#define KEY 7
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.

@@ -14,6 +14,9 @@
 //#define USE_COLOR_RGB888   // RGB = 0xFF,0xFF,0xFF
 #define USE_COLOR_RGB565   // RGB = 0bRRRRRGGGGGGBBBBB
 
+// A special color which means "do not draw", used to let fonts have transparent backgrounds (also to save the cost of rendering when we know the area is already blank)
+#define C_TRANSPARENT 0xC1C2
+
 /* Enable needed fonts here */
 #ifdef SW102
 #define  USE_MY_FONT_8X12
@@ -21,6 +24,9 @@
 #define  USE_MY_FONT_NUM_24X40
 #define  USE_MY_FONT_BATTERY
 #define  USE_FONT_5X12
+
+#define SCREEN_WIDTH 64
+#define SCREEN_HEIGHT 128
 #else
 #define USE_FONT_10X16
 #define USE_FONT_12X20
@@ -29,6 +35,9 @@
 #define USE_FONT_32X53
 #define USE_FONT_45X72
 #define USE_FONT_61X99
+
+#define SCREEN_WIDTH 320 // FIXME - merge with DISPLAY_WIDTH
+#define SCREEN_HEIGHT 480
 #endif
 
 

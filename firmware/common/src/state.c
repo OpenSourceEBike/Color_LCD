@@ -766,3 +766,38 @@ void copy_layer_2_layer_3_vars(void)
   else { volt_based_soc = 0; }
   l3_vars.volt_based_soc = volt_based_soc;
 }
+
+
+/// must be called from main() idle loop
+void automatic_power_off_management(void)
+{
+  static uint32_t ui16_lcd_power_off_time_counter = 0;
+
+  if(l3_vars.ui8_lcd_power_off_time_minutes != 0)
+  {
+    // see if we should reset the automatic power off minutes counter
+    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
+        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
+        (l3_vars.ui8_braking) ||                // braking
+        buttons_get_events())                                 // any button active
+    {
+      ui16_lcd_power_off_time_counter = 0;
+    }
+    else
+    {
+      // increment the automatic power off ticks counter
+      ui16_lcd_power_off_time_counter++;
+
+      // check if we should power off the LCD
+      if(ui16_lcd_power_off_time_counter >= (l3_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) // have we passed our timeout?
+      {
+        lcd_power_off(1);
+      }
+    }
+  }
+  else
+  {
+    ui16_lcd_power_off_time_counter = 0;
+  }
+}
+

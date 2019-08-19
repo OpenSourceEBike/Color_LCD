@@ -12,10 +12,6 @@
 #include "lcd.h"
 #include "state.h"
 
-#ifndef SW102
-#include "lcd_configurations.h"
-#endif
-
 #define ADDRESS_KEY 0
 #define KEY 7
 
@@ -74,7 +70,6 @@ typedef struct eeprom_data
   uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
 
 #ifndef SW102
-  lcd_configurations_menu_t lcd_configurations_menu;
   graphs_id_t graph_id;
 #endif
 

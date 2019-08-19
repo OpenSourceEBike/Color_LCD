@@ -6,7 +6,6 @@
  * Released under the GPL License, Version 3
  */
 
-#include <eeprom_hw.h>
 #include <math.h>
 #include "stdio.h"
 #include "main.h"
@@ -19,7 +18,8 @@
 #include "mainscreen.h"
 #include "eeprom.h"
 #include "buttons.h"
-#include "adc.h"
+#include "lcd.h"
+
 //
 // Fields - these might be shared my multiple screens
 //
@@ -100,7 +100,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 }
 
 
-
+#ifdef SW102
 
 /**
  * Appears at the bottom of all screens, includes status msgs or critical fault alerts
@@ -225,6 +225,7 @@ Screen infoScreen = {
     } }
 };
 
+#endif
 
 
 void lcd_main_screen(void)
@@ -238,15 +239,6 @@ void lcd_main_screen(void)
   battery_display();
   brake();
   trip_time();
-
-#if 0
-  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
-  if(ui32_m_draw_graphs_2 ||
-      m_lcd_vars.ui32_main_screen_draw_static_info)
-  {
-    graphs_draw(&m_lcd_vars);
-  }
-#endif
 }
 
 
@@ -383,59 +375,7 @@ void screen_clock(void)
     copy_layer_2_layer_3_vars();
   }
 
-  // update_menu_flashing_state();
-
-#if 0
-  // enter menu configurations: UP + DOWN click event
-  if(buttons_get_up_down_click_event() &&
-      m_lcd_vars.lcd_screen_state == LCD_SCREEN_MAIN)
-  {
-    buttons_clear_all_events();
-
-    // reset needed variables of configurations screen
-    p_lcd_configurations_vars->ui8_refresh_full_menu_1 = 1;
-
-    // need to track start configuration
-    p_lcd_configurations_vars->ui8_battery_soc_power_used_state = 1;
-
-    m_lcd_vars.lcd_screen_state = LCD_SCREEN_CONFIGURATIONS;
-  }
-
-  // enter in menu set power: ONOFF + UP click event
-  if(buttons_get_onoff_state() && buttons_get_up_state())
-  {
-    buttons_clear_all_events();
-    m_lcd_vars.ui8_lcd_menu_max_power = 1;
-  }
-
-  // ui32_m_draw_graphs_1 == 1 every 3.5 seconds, set on timer interrupt
-  // note: this piece of code must run before lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs_1)
-  {
-    ui32_m_draw_graphs_2 = 1;
-    graphs_clock_1();
-  }
-
-  switch(m_lcd_vars.lcd_screen_state)
-  {
-    case LCD_SCREEN_MAIN:
-      lcd_main_screen();
-    break;
-
-    case LCD_SCREEN_CONFIGURATIONS:
-      lcd_configurations_screen();
-    break;
-  }
-
-  // ui32_m_draw_graphs_2 == 1 every 3.5 seconds, set on timer interrupt
-  // note: this piece of code must run after lcd_main_screen() -> graphs_draw()
-  if(ui32_m_draw_graphs_2)
-  {
-    graphs_clock_2();
-  }
-#else
   lcd_main_screen();
-#endif
   screenUpdate();
 
 #if 0
@@ -497,8 +437,16 @@ void time(void)
 {
   struct_rtc_time_t *p_rtc_time = rtc_get_time();
 
-  fieldPrintf(&timeField, "%02d:%02d",  p_rtc_time->ui8_hours,  p_rtc_time->ui8_minutes);
+  // force to be [0 - 12]
+  if(l3_vars.ui8_units_type)
+  {
+    if(p_rtc_time->ui8_hours > 12)
+    {
+      p_rtc_time->ui8_hours -= 12;
+    }
+  }
 
+  fieldPrintf(&timeField, "%02d:%02d",  p_rtc_time->ui8_hours,  p_rtc_time->ui8_minutes);
 }
 
 

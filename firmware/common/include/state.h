@@ -206,6 +206,10 @@ void layer_2(void);
  */
 void copy_layer_2_layer_3_vars(void);
 
+/// must be called from main() idle loop
+void automatic_power_off_management(void);
+
+void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 
 extern uint16_t ui16_m_battery_soc_watts_hour;
 extern uint16_t ui16_m_battery_soc_watts_hour_fixed;

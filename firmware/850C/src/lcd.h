@@ -67,5 +67,6 @@ volatile lcd_vars_t* get_lcd_vars(void);
 void lcd_print_number(print_number_t* number);
 void lcd_draw_main_menu_mask(void);
 void graphs_measurements_update(void);
+void lcd_set_backlight_intensity(uint8_t ui8_intensity);
 
 #endif /* LCD_H_ */

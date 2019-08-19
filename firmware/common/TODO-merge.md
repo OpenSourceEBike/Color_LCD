@@ -1,15 +1,16 @@
 ## Hard merges:
 
-* make sim motor work
 * mainscreen (excluding graphs)
 * final layout for mainscreen
 * configscreen
 * use the 850C battery graphic case as a new renderBattery function
 * adc
-* boot screen
+* make sim motor work (based on adc voltage detection)
+* boot screen 
 * add graphs
 * add fault screen
-* use a slightly smaller font for the digits after the dot
+* fix my breaking of imperial units
+* use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
 
 ## Mostly done
 

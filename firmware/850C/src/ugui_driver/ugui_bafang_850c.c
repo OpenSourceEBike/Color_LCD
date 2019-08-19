@@ -33,7 +33,7 @@
 #define HDP (DISPLAY_WIDTH - 1)
 #define VDP (DISPLAY_HEIGHT - 1)
 
-UG_GUI ugui_lcd;
+UG_GUI gui;
 
 void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2);
 
@@ -147,7 +147,7 @@ void bafang_500C_lcd_init()
   lcd_write_data_8bits(0x0A);
 
   // Initialize global structure and set PSET to this.PSET.
-  UG_Init(&ugui_lcd, lcd_pixel_set, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  UG_Init(&gui, lcd_pixel_set, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
   // Register acceleratos.
   UG_DriverRegister(DRIVER_FILL_FRAME, (void*)HW_FillFrame);

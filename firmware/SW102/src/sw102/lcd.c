@@ -249,23 +249,6 @@ static void spi_init(void)
 
 
 
-#if 0
-void lcd_set_backlight_intensity(uint8_t ui8_intensity)
-{
-  // force to be min of 20% and max of 100%
-  if(ui8_intensity < 4)
-  {
-    ui8_intensity = 4;
-  }
-  else if(ui8_intensity > 20)
-  {
-    ui8_intensity = 20;
-  }
-
-  TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-  TIM_CtrlPWMOutputs(TIM3, ENABLE);
-}
-#endif
 
 //SW102 version, we are an oled so if the user asks for lots of backlight we really want to dim instead
 void lcd_set_backlight_intensity(uint8_t pct) {

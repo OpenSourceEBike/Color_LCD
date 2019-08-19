@@ -27,6 +27,7 @@
 #include "utils.h"
 #include "rtc.h"
 #include "stm32f10x_usart.h"
+#include "mainscreen.h"
 
 void SetSysClockTo128Mhz(void);
 
@@ -69,7 +70,7 @@ int main(void)
 
       // next 2 lines takes about 11ms to execute (main menu). Measured on 2019.03.04.
       buttons_clock();
-      lcd_clock();
+      screen_clock();
       continue;
     }
   }

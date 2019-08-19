@@ -11,7 +11,6 @@
 #include "stm32f10x_flash.h"
 #include "eeprom.h"
 #include "state.h"
-#include "lcd_configurations.h"
 #include "lcd.h"
 
 // to make structures use only bytes and have no paddings
@@ -104,15 +103,6 @@ eeprom_data_t m_eeprom_data_defaults =
       DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
       DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9
   },
-  .lcd_configurations_menu = {
-    .ui8_item_number = 1,
-    .ui8_previous_item_number = 0xff,
-    .ui8_item_visible_start_index = 0,
-    .ui8_item_visible_index = 1,
-    .ui8_refresh_full_menu_1 = 0,
-    .ui8_refresh_full_menu_2 = 0,
-    .ui8_battery_soc_power_used_state = 0,
-  },
   .graph_id = GRAPH_PEDAL_HUMAN_POWER,
   .ui8_battery_soc_increment_decrement = DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT,
   .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
@@ -204,9 +194,7 @@ void eeprom_init_variables(void)
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
   volatile l3_vars_t *p_l3_output_vars;
-  lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
-  p_lcd_configurations_menu = get_lcd_configurations_menu();
 
   // read the values from EEPROM to array
   memset(ui8_array, 0, sizeof(m_eeprom_data));
@@ -289,12 +277,6 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui8_walk_assist_level_factor[7] = m_eeprom_data.ui8_walk_assist_level_factor[7];
   p_l3_output_vars->ui8_walk_assist_level_factor[8] = m_eeprom_data.ui8_walk_assist_level_factor[8];
   p_l3_output_vars->ui8_walk_assist_level_factor[9] = m_eeprom_data.ui8_walk_assist_level_factor[9];
-  p_lcd_configurations_menu->ui8_item_number = m_eeprom_data.lcd_configurations_menu.ui8_item_number;
-  p_lcd_configurations_menu->ui8_item_visible_start_index = m_eeprom_data.lcd_configurations_menu.ui8_item_visible_start_index;
-  p_lcd_configurations_menu->ui8_item_visible_index = m_eeprom_data.lcd_configurations_menu.ui8_item_visible_index;
-  p_lcd_configurations_menu->ui8_refresh_full_menu_1 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1;
-  p_lcd_configurations_menu->ui8_refresh_full_menu_2 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2;
-  p_lcd_configurations_menu->ui8_battery_soc_power_used_state = m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state;
   p_l3_output_vars->graph_id = m_eeprom_data.graph_id;
   p_l3_output_vars->ui8_battery_soc_increment_decrement = m_eeprom_data.ui8_battery_soc_increment_decrement;
   p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
@@ -305,9 +287,7 @@ void eeprom_write_variables(void)
   uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
   volatile l3_vars_t *p_l3_output_vars;
-  volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
   p_l3_output_vars = get_l3_vars();
-  p_lcd_configurations_menu = get_lcd_configurations_menu();
   uint32_t ui32_eeprom_write_id;
 
   // write vars to eeprom struct
@@ -380,12 +360,6 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui8_walk_assist_level_factor[7] = p_l3_output_vars->ui8_walk_assist_level_factor[7];
   m_eeprom_data.ui8_walk_assist_level_factor[8] = p_l3_output_vars->ui8_walk_assist_level_factor[8];
   m_eeprom_data.ui8_walk_assist_level_factor[9] = p_l3_output_vars->ui8_walk_assist_level_factor[9];
-  m_eeprom_data.lcd_configurations_menu.ui8_item_number = p_lcd_configurations_menu->ui8_item_number;
-  m_eeprom_data.lcd_configurations_menu.ui8_item_visible_start_index = p_lcd_configurations_menu->ui8_item_visible_start_index;
-  m_eeprom_data.lcd_configurations_menu.ui8_item_visible_index = p_lcd_configurations_menu->ui8_item_visible_index;
-  m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1 = p_lcd_configurations_menu->ui8_refresh_full_menu_1;
-  m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2 = p_lcd_configurations_menu->ui8_refresh_full_menu_2;
-  m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state = p_lcd_configurations_menu->ui8_battery_soc_power_used_state;
   m_eeprom_data.graph_id = p_l3_output_vars->graph_id;
   m_eeprom_data.ui8_battery_soc_increment_decrement = p_l3_output_vars->ui8_battery_soc_increment_decrement;
   m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;

@@ -38,6 +38,10 @@ l3_vars_t* get_l3_vars(void)
   return &l3_vars;
 }
 
+/// Set correct backlight brightness for current headlight state
+void set_lcd_backlight() {
+  lcd_set_backlight_intensity(!l3_vars.ui8_lights ? l3_vars.ui8_lcd_backlight_on_brightness : l3_vars.ui8_lcd_backlight_off_brightness);
+}
 
 static uint16_t fake(uint16_t minv, uint16_t maxv) {
   static uint16_t seed = 1; // Just generate some slightly increasing data, scaled to fit the required range
@@ -586,6 +590,8 @@ uint8_t first_time_management(void)
     {
       l3_vars.ui8_offroad_mode = 1;
     }
+
+    set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
   }
 
   return ui8_status;

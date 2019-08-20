@@ -66,6 +66,7 @@ void lcd_init(void)
   UG_FillScreen(C_BLACK);
 
   m_p_graphs = get_graphs();
+  set_lcd_backlight(); // default to at least some backlight
 }
 
 #if 0

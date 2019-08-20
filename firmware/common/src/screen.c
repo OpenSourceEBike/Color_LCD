@@ -577,7 +577,7 @@ static bool renderEditable(FieldLayout *layout)
   if(forceLabels != oldForceLabels)
     dirty = true;
 
-  if(!dirty)
+  if(!dirty) // FIXME - disabled for now - something busted
     return false; // We didn't actually change so don't try to draw anything
 
   // fill our entire box with blankspace

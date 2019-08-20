@@ -27,7 +27,19 @@
 
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 128
+
+// Standard default font selections used most of the time
+#define  SMALL_TEXT_FONT              FONT_5X12
+#define  REGULAR_TEXT_FONT            FONT_5X12
+
+#define  TITLE_TEXT_FONT              MY_FONT_8X12
+#define  MEDIUM_NUMBERS_TEXT_FONT     MY_FONT_NUM_10X16
+#define  BIG_NUMBERS_TEXT_FONT        MY_FONT_NUM_24X40
+
 #else
+
+#define  USE_MY_FONT_BATTERY // temp merge hack FIXME, stop using battery font on 850C
+
 #define USE_FONT_10X16
 #define USE_FONT_12X20
 #define USE_FONT_16X26
@@ -38,6 +50,18 @@
 
 #define SCREEN_WIDTH 320 // FIXME - merge with DISPLAY_WIDTH
 #define SCREEN_HEIGHT 480
+
+// Standard default font selections used most of the time
+
+#define  SMALL_TEXT_FONT              FONT_10X16
+#define  REGULAR_TEXT_FONT            FONT_16X26
+
+#define  TITLE_TEXT_FONT              FONT_16X26
+#define  MEDIUM_NUMBERS_TEXT_FONT     FONT_24X40
+#define  BIG_NUMBERS_TEXT_FONT        FONT_32X53
+
+#define  CONFIGURATIONS_TEXT_FONT     FONT_12X20
+
 #endif
 
 

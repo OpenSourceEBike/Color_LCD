@@ -59,6 +59,8 @@ int main(void)
       buttons_get_down_state() ||
       buttons_get_up_state());
 
+  mainscreen_show(); // FIXME, use loop through all the screen types
+
   while(1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,

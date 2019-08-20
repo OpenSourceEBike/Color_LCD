@@ -211,6 +211,9 @@ void automatic_power_off_management(void);
 
 void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 
+/// Set correct backlight brightness for current headlight state
+void set_lcd_backlight();
+
 extern uint16_t ui16_m_battery_soc_watts_hour;
 extern uint16_t ui16_m_battery_soc_watts_hour_fixed;
 

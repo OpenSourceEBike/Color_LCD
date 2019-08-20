@@ -52,6 +52,8 @@ void battery_soc(void), battery_display();
 void trip_time(void);
 
 
+
+
 bool mainscreen_onpress(buttons_events_t events) {
   if((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled)
   {
@@ -62,16 +64,8 @@ bool mainscreen_onpress(buttons_events_t events) {
   // long up to turn on headlights
   if(events & UP_LONG_CLICK)
   {
-    if(l3_vars.ui8_lights == 0)
-    {
-      l3_vars.ui8_lights = 1;
-      lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_on_brightness);
-    }
-    else
-    {
-      l3_vars.ui8_lights = 0;
-      lcd_set_backlight_intensity(l3_vars.ui8_lcd_backlight_off_brightness);
-    }
+	  l3_vars.ui8_lights = !l3_vars.ui8_lights;
+	set_lcd_backlight();
 
     return true;
   }
@@ -100,7 +94,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 }
 
 
-#ifdef SW102
+#ifndef SW102
 
 /**
  * Appears at the bottom of all screens, includes status msgs or critical fault alerts
@@ -112,7 +106,7 @@ bool mainscreen_onpress(buttons_events_t events) {
     .x = 4, .y = 114, \
     .width = 0, .height = -1, \
     .field = &warnField, \
-    .font = &FONT_5X12, \
+    .font = &REGULAR_TEXT_FONT, \
 }
 
 #define BATTERY_BAR \
@@ -125,7 +119,7 @@ bool mainscreen_onpress(buttons_events_t events) {
     { \
         .x = 32, .y = 0, \
         .width = -5, .height = -1, \
-        .font = &FONT_5X12, \
+        .font = &REGULAR_TEXT_FONT, \
         .field = &socField \
     }
 /*
@@ -148,7 +142,7 @@ Screen mainScreen = {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &assistLevelField,
-        .font = &MY_FONT_NUM_24X40,
+        .font = &BIG_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -164,7 +158,7 @@ Screen mainScreen = {
         .x = 0, .y = -3,
         .width = 0, .height = 19,
         .field = &maxPowerField,
-        .font = &MY_FONT_NUM_10X16,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -172,7 +166,7 @@ Screen mainScreen = {
         .x = 0, .y = -3,
         .width = 0, .height = -1,
         .field = &speedField,
-        .font = &MY_FONT_NUM_24X40,
+        .font = &BIG_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderNone
     },
@@ -191,7 +185,7 @@ Screen infoScreen = {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &motorTempField,
-        .font = &FONT_5X12,
+        .font = &REGULAR_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -199,7 +193,7 @@ Screen infoScreen = {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &humanPowerField,
-        .font = &FONT_5X12,
+        .font = &REGULAR_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -207,7 +201,7 @@ Screen infoScreen = {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &tripDistanceField,
-        .font = &FONT_5X12,
+        .font = &REGULAR_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -215,7 +209,133 @@ Screen infoScreen = {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
         .field = &odoField,
-        .font = &FONT_5X12,
+        .font = &REGULAR_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    STATUS_BAR,
+    {
+        .field = NULL
+    } }
+};
+
+#else
+
+
+/**
+ * Appears at the bottom of all screens, includes status msgs or critical fault alerts
+ * FIXME - get rid of this nasty define - instead add the concept of Subscreens, so that the battery bar
+ * at the top and the status bar at the bottom can be shared across all screens
+ */
+#define STATUS_BAR \
+{ \
+    .x = 4, .y = 114, \
+    .width = 0, .height = -1, \
+    .field = &warnField, \
+    .font = &REGULAR_TEXT_FONT, \
+}
+
+#define BATTERY_BAR \
+    { \
+        .x = 0, .y = 0, \
+        .width = -1, .height = -1, \
+        .field = &batteryField, \
+        .font = &MY_FONT_BATTERY, \
+    }, \
+    { \
+        .x = 32, .y = 0, \
+        .width = -5, .height = -1, \
+        .font = &REGULAR_TEXT_FONT, \
+        .field = &socField \
+    }
+/*
+{
+    .x = 32, .y = 0,
+    .width = -5, .height = -1,
+    .field = &tripTimeField
+},
+*/
+
+//
+// Screens
+//
+Screen mainScreen = {
+    .onPress = mainscreen_onpress,
+
+    .fields = {
+    BATTERY_BAR,
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &assistLevelField,
+        .font = &BIG_NUMBERS_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    /*
+    {
+        .x = 19, .y = 16,
+        .width = -2, .height = -1,
+        // .color = ColorInvert,
+        .field = &speedField,
+        .border = BorderNone
+    }, */
+    {
+        .x = 0, .y = -3,
+        .width = 0, .height = 19,
+        .field = &maxPowerField,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -3,
+        .width = 0, .height = -1,
+        .field = &speedField,
+        .font = &BIG_NUMBERS_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderNone
+    },
+    STATUS_BAR,
+    {
+        .field = NULL
+    } }
+};
+
+Screen infoScreen = {
+    // .onPress = mainscreen_onpress,
+
+    .fields = {
+    BATTERY_BAR,
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &motorTempField,
+        .font = &REGULAR_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &humanPowerField,
+        .font = &REGULAR_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &tripDistanceField,
+        .font = &REGULAR_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
+    },
+    {
+        .x = 0, .y = -1,
+        .width = 0, .height = -1,
+        .field = &odoField,
+        .font = &REGULAR_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
@@ -372,7 +492,9 @@ void screen_clock(void)
 
     // receive data from layer 2 to layer 3
     // send data from layer 3 to layer 2
+    ui32_g_layer_2_can_execute = 0;
     copy_layer_2_layer_3_vars();
+    ui32_g_layer_2_can_execute = 1;
   }
 
   lcd_main_screen();

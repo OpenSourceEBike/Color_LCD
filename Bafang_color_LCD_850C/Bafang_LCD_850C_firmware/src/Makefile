@@ -13,6 +13,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# uncomment next lines to build for bootloader
+CFLAGS = -DUSE_WITH_BOOTLOADER
+LFLAGS = -Xlinker --defsym=USE_WITH_BOOTLOADER=1
 
 TCPREFIX  = arm-none-eabi-
 CC      = $(TCPREFIX)gcc
@@ -40,11 +43,11 @@ OPT = 0
 # -mfix-cortex-m3-ldrd should be enabled by default for Cortex M3.
 # CFLAGS -H show header files
 AFLAGS  = -I./GD32F10x_standard_peripheral/Include -I -Ispl/CMSIS -Ispl/inc -c -g -mcpu=cortex-m3 -mthumb -l libgcc
-CFLAGS  = -I./GD32F10x_standard_peripheral/Include -I./ -I./spl/CMSIS -I./spl/CMSIS/inc -I./spl/inc -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER -c -fno-common -O$(OPT) -g -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections -l libgcc -DUSE_COLOR_RGB565
+CFLAGS  += -I./GD32F10x_standard_peripheral/Include -I./ -I./spl/CMSIS -I./spl/CMSIS/inc -I./spl/inc -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER -c -fno-common -O$(OPT) -g -mcpu=cortex-m3 -mthumb -ffunction-sections -fdata-sections -l libgcc -DUSE_COLOR_RGB565
 # Need following option for LTO as LTO will treat retarget functions as
 # unused without following option
 CFLAGS+ = -fno-builtin
-LFLAGS  = -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm -nostartfiles -lnosys -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
+LFLAGS  += -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm -nostartfiles -lnosys -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
 #LFLAGS += --specs=nano.specs # to use newlib nano
 #LFLAGS += -u _printf_float # newlib nano printf use floats
 #LFLAGS += -u _scanf_float # newlib nano scanf use floats

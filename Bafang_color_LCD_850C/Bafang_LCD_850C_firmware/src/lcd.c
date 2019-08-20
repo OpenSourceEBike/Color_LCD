@@ -80,7 +80,7 @@ void l2_low_pass_filter_battery_voltage_current_power(void);
 void update_menu_flashing_state(void);
 void calc_battery_soc_watts_hour(void);
 void l2_calc_odometer(void);
-static void l2_automatic_power_off_management(void);
+static void automatic_power_off_management(void);
 void brake(void);
 void walk_assist_state(void);
 void wheel_speed(void);
@@ -109,6 +109,7 @@ void change_graph(void);
 void lcd_init(void)
 {
   bafang_500C_lcd_init();
+  lcd_set_backlight_intensity(20); // need otherwise no image will be shownbefore this
   UG_FillScreen(C_BLACK);
 
   lcd_configurations_screen_init();
@@ -195,6 +196,7 @@ void lcd_clock(void)
     graphs_clock_2();
   }
 
+  automatic_power_off_management();
   power_off_management();
 
   // must be reset after a full cycle of lcd_clock()
@@ -965,43 +967,44 @@ void l2_calc_odometer(void)
 //  }
 }
 
-static void l2_automatic_power_off_management(void)
+static void automatic_power_off_management(void)
 {
-//  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
-//  static uint16_t ui16_lcd_power_off_time_counter = 0;
-//
-//  if(configuration_variables.ui8_lcd_power_off_time_minutes != 0)
-//  {
-//    // see if we should reset the automatic power off minutes counter
-//    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
-//        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
-//        (l3_vars.ui8_braking) ||                // braking
-//        buttons_get_events())                                 // any button active
-//    {
-//      ui16_lcd_power_off_time_counter = 0;
-//      ui8_lcd_power_off_time_counter_minutes = 0;
-//    }
-//
-//    // increment the automatic power off minutes counter
-//    ui16_lcd_power_off_time_counter++;
-//
-//    // check if we should power off the LCD
-//    if(ui16_lcd_power_off_time_counter >= (10 * 60)) // 1 minute passed
-//    {
-//      ui16_lcd_power_off_time_counter = 0;
-//
-//      ui8_lcd_power_off_time_counter_minutes++;
-//      if(ui8_lcd_power_off_time_counter_minutes >= configuration_variables.ui8_lcd_power_off_time_minutes)
-//      {
-//        lcd_power_off(1);
-//      }
-//    }
-//  }
-//  else
-//  {
-//    ui16_lcd_power_off_time_counter = 0;
-//    ui8_lcd_power_off_time_counter_minutes = 0;
-//  }
+  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
+  static uint16_t ui16_lcd_power_off_time_counter = 0;
+
+  if(l3_vars.ui8_lcd_power_off_time_minutes != 0)
+  {
+    // see if we should reset the automatic power off minutes counter
+    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
+        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
+        (l3_vars.ui8_braking) ||                // braking
+        buttons_get_events())                   // any button active
+    {
+      ui16_lcd_power_off_time_counter = 0;
+      ui8_lcd_power_off_time_counter_minutes = 0;
+    }
+
+    // increment the automatic power off minutes counter
+    ui16_lcd_power_off_time_counter++;
+
+    // check if we should power off the LCD
+    if(ui16_lcd_power_off_time_counter >= (50 * 60)) // 1 minute passed
+    {
+      ui16_lcd_power_off_time_counter = 0;
+
+      ui8_lcd_power_off_time_counter_minutes++;
+      if(ui8_lcd_power_off_time_counter_minutes >= l3_vars.ui8_lcd_power_off_time_minutes)
+      {
+        lcd_power_off(1);
+      }
+    }
+  }
+  // keep automatic_power_off_management disabled
+  else
+  {
+    ui16_lcd_power_off_time_counter = 0;
+    ui8_lcd_power_off_time_counter_minutes = 0;
+  }
 }
 
 void update_menu_flashing_state(void)

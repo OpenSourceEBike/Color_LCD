@@ -39,6 +39,11 @@ int main(void)
   SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
+  // if building for original bootloader (from manufacturer), relocate flash after 20K (0x5000) that is the space that bootloader uses
+#ifdef USE_WITH_BOOTLOADER
+  NVIC_SetVectorTable(NVIC_VectTab_FLASH, (uint32_t) 0x5000);
+#endif
+
   pins_init();
   system_power(1);
   systick_init();
@@ -50,6 +55,17 @@ int main(void)
   timer4_init();
   graphs_init();
   buttons_init();
+
+  // print firmware version on LCD
+  UG_SetBackcolor(C_BLACK);
+  UG_SetForecolor(C_WHITE);
+  UG_FontSelect(&TITLE_TEXT_FONT);
+  UG_PutString(92, 75, "Flexible");
+  UG_PutString(24, 111, "OpenSource ebike");
+  UG_FontSelect(&SMALL_TEXT_FONT);
+  UG_PutString(61, 192, "https://github.com");
+  UG_PutString(14, 214, "/OpenSource-EBike-firmware");
+  UG_PutString(78, 344, "firmware v0.4.0");
 
   // block until user release the buttons
   while(buttons_get_onoff_state() ||

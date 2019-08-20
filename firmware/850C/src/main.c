@@ -28,6 +28,7 @@
 #include "rtc.h"
 #include "stm32f10x_usart.h"
 #include "mainscreen.h"
+#include "configscreen.h"
 
 void SetSysClockTo128Mhz(void);
 
@@ -60,6 +61,7 @@ int main(void)
       buttons_get_up_state());
 
   mainscreen_show(); // FIXME, use loop through all the screen types
+  configscreen_show();
 
   while(1)
   {

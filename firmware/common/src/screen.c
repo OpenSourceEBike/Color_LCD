@@ -184,7 +184,8 @@ static void drawBorder(FieldLayout *layout)
             layout->x + layout->width - 1, layout->y + layout->height - 1, color); // right
 }
 
-#define MAX_SCROLLABLE_ROWS 4 // Max number of rows we can show on one screen (including header)
+#define SCROLLABLE_ROW_HEIGHT 32
+#define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
 
 const Coord screenWidth = SCREEN_WIDTH, screenHeight = SCREEN_HEIGHT; // FIXME, for larger devices allow screen objcts to nest inside other screens
 
@@ -330,9 +331,9 @@ static bool exitScrollable()
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
-  const Coord rowHeight = 32; // 3 data rows 32 pixels tall + one 32 pixel header
+  const Coord rowHeight = SCROLLABLE_ROW_HEIGHT; // 3 data rows 32 pixels tall + one 32 pixel header
 
-  static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading
+  static FieldLayout rows[MAX_SCROLLABLE_ROWS]; // Used to layout each of the currently visible rows + heading
 
   Field *scrollable = getActiveScrollable();
   bool weAreExpanded = scrollable == field;

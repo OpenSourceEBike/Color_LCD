@@ -52,7 +52,7 @@ CPFLAGS = -Obinary
 ODFLAGS = -S
 
 COMMONSRC = ../../common/src
-SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c
+SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c $(COMMONSRC)/configscreen.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.

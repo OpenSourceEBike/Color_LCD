@@ -1,8 +1,9 @@
 ## Hard merges:
 
-* mainscreen (excluding graphs)
+* fix button press handling
+* add screen looping
+* fix configscreen layout
 * final layout for mainscreen
-* configscreen
 * use the 850C battery graphic case as a new renderBattery function
 * adc
 * make sim motor work (based on adc voltage detection)
@@ -29,11 +30,12 @@
 * implement C_TRANSPARENT on 850C
 * rtc
 * buttons - test in sw102
-
+* mainscreen (excluding graphs)
+* configscreen
 
 ## other work items:
 
-* use colors in the 850C gui
+* use colors in the 850C gui (and make menus prettier)
 * make trip distance work with imperial again (see FIXME in lcd.c)
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C

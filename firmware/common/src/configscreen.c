@@ -163,7 +163,7 @@ Screen configScreen = {
 
 
 void configscreen_show(void) {
-  configRoot.scrollable.entries = wheelMenus; // temp for testing
+  configRoot.scrollable.entries = topMenus; // temp for testing
 
   screenShow(&configScreen);
 }

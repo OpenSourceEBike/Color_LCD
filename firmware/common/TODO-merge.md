@@ -12,12 +12,13 @@
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
 
 ## other work items:
+* we are redrawing menus when we should not (due to blink event handling probably?)
 * use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
 * make trip distance work with imperial again (see FIXME in lcd.c)
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C
 *     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-* switch to gcc 7.3.1
+* switch to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules)
 
 ## Mostly done
 

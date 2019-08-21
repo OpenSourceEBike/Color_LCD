@@ -1,16 +1,23 @@
-## Hard merges:
+## Remaining merge tasks:
 
 * fix button press handling
-* add screen looping
 * fix configscreen layout
 * final layout for mainscreen
+* make a renderDrawPtrText, change most usages to use it.
 * use the 850C battery graphic case as a new renderBattery function
 * add graphs
-* adc
-* make sim motor work (based on adc voltage detection)
-* fix boot screen layout - add URL
+* make local ADC report voltage, so bootscreen/sim-motor can check it.
+* fix boot screen layout - add URL to github project
 * fix my breaking of imperial units
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
+
+## other work items:
+* use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
+* make trip distance work with imperial again (see FIXME in lcd.c)
+* uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
+* change lcd brightenss eeprom value to a pctage in the 850C
+*     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
+* switch to gcc 7.3.1
 
 ## Mostly done
 
@@ -31,15 +38,8 @@
 * buttons - test in sw102
 * mainscreen (excluding graphs)
 * configscreen
-
-## other work items:
-
-* use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
-* make trip distance work with imperial again (see FIXME in lcd.c)
-* uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
-* change lcd brightenss eeprom value to a pctage in the 850C
-*     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-* switch to gcc 7.3.1
+* add screen looping
+* make sim motor work (based on adc voltage detection)
 
 ## todo later 
 

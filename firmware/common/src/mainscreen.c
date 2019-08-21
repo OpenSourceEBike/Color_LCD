@@ -658,7 +658,7 @@ static bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
-  if(events & ONOFF_CLICK) {
+  if(events & SCREEMCLICK_NEXT_SCREEN) {
     showNextScreen();
     return true;
   }

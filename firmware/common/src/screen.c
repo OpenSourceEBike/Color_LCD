@@ -216,7 +216,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   Coord maxy = 0;
 
   bool didChangeForceLabels = false; // if we did label force/unforce we need to remember for the next render
-  bool mpressed = buttons_get_m_state();
+  bool mpressed = SCREENFN_FORCE_LABELS;
 
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
@@ -717,7 +717,7 @@ static bool onPressEditable(buttons_events_t events)
   }
 
   // Mark that we are no longer editing - click pwr button to exit
-  if (events & ONOFF_CLICK)
+  if (events & SCREENCLICK_STOP_EDIT)
   {
     curActiveEditable = NULL;
 
@@ -798,7 +798,7 @@ static bool onPressScrollable(buttons_events_t events)
 
   // If we aren't already editing anything, start now (note: we will only be called if some active editable
   // hasn't already handled this button
-  if (events & M_CLICK)
+  if (events & SCREENCLICK_START_EDIT)
   {
     Field *clicked = &s->scrollable.entries[s->scrollable.selected];
 
@@ -824,7 +824,7 @@ static bool onPressScrollable(buttons_events_t events)
   }
 
   // click power button to exit out of menus
-  if (events & ONOFF_CLICK)
+  if (events & SCREENCLICK_STOP_EDIT)
   {
     handled = exitScrollable(); // if we were top scrollable don't claim we handled this press (let rest of app do it)
   }

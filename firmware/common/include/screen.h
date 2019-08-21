@@ -256,3 +256,20 @@ Screen *getCurrentScreen();
 bool screenOnPress(buttons_events_t events);
 
 void fieldPrintf(Field *field, const char *fmt, ...);
+
+#ifdef SW102
+#define SCREENFN_FORCE_LABELS buttons_get_m_state()
+
+#define SCREENCLICK_START_EDIT M_CLICK
+#define SCREENCLICK_STOP_EDIT M_CLICK
+#define SCREEMCLICK_NEXT_SCREEN ONOFF_CLICK
+
+#else
+#define SCREENFN_FORCE_LABELS false
+
+#define SCREENCLICK_START_EDIT ONOFF_CLICK
+#define SCREENCLICK_STOP_EDIT ONOFF_CLICK
+#define SCREEMCLICK_NEXT_SCREEN UPDOWN_CLICK
+
+#endif
+

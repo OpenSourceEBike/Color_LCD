@@ -40,7 +40,7 @@ l3_vars_t* get_l3_vars(void)
 
 /// Set correct backlight brightness for current headlight state
 void set_lcd_backlight() {
-  lcd_set_backlight_intensity(!l3_vars.ui8_lights ? l3_vars.ui8_lcd_backlight_on_brightness : l3_vars.ui8_lcd_backlight_off_brightness);
+  lcd_set_backlight_intensity(l3_vars.ui8_lights ? l3_vars.ui8_lcd_backlight_on_brightness : l3_vars.ui8_lcd_backlight_off_brightness);
 }
 
 static uint16_t fake(uint16_t minv, uint16_t maxv) {

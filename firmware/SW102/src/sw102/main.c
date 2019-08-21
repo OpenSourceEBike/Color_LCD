@@ -24,7 +24,6 @@
 #include "fault.h"
 #include "nrf_nvic.h"
 
-#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
 /* Variable definition */
 
@@ -47,34 +46,6 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 #define GUI_INTERVAL APP_TIMER_TICKS(MSEC_PER_TICK, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
-
-Field bootHeading = FIELD_DRAWTEXT(.msg = "OpenSource EBike");
-Field bootVersion = FIELD_DRAWTEXT(.msg = VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
-
-
-
-Screen bootScreen = {
-    .fields = {
-    {
-        .x = 0, .y = 0,
-        .field = &bootHeading,
-        .font = &FONT_5X12,
-    },
-    {
-        .x = 0, .y = 32,
-        .field = &bootVersion,
-        .font = &FONT_5X12,
-    },
-    {
-        .x = 0, .y = 80,
-        .field = &bootStatus,
-        .font = &FONT_5X12,
-    },
-    {
-        .field = NULL
-    }
-    }};
 
 /* Function prototype */
 static void gpio_init(void);
@@ -109,44 +80,6 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 
 
 
-// Screens in a loop, shown when the user short presses the power button
-static Screen *screens[] = {
-    &mainScreen,
-    &infoScreen,
-    &configScreen,
-    NULL
-};
-
-static int nextScreen = 0;
-
-void showNextScreen() {
-  Screen *next = screens[nextScreen++];
-
-  if(!next) {
-    nextScreen = 0;
-    next = screens[nextScreen++];
-  }
-
-  screenShow(next);
-}
-
-
-static bool appwide_onpress(buttons_events_t events)
-{
-  if (events & ONOFF_LONG_CLICK)
-  {
-    lcd_power_off(1);
-    return true;
-  }
-
-  if(events & ONOFF_CLICK) {
-    showNextScreen();
-    return true;
-  }
-
-  return false;
-}
-
 
 extern uint32_t __StackTop;
 extern uint32_t __StackLimit;
@@ -173,25 +106,6 @@ uint32_t stack_overflow_debug(void)
 
 
 
-/// Called every 20ms to check for button events and dispatch to our handlers
-static void handle_buttons() {
-  if (buttons_events)
-  {
-    bool handled = false;
-
-    if (!handled)
-      handled |= screenOnPress(buttons_events);
-
-    // Note: this must be after the screen/menu handlers have had their shot
-    if (!handled)
-      handled |= appwide_onpress(buttons_events);
-
-    if (handled)
-      buttons_clear_all_events();
-  }
-
-  buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
-}
 
 /**
  * @brief Application main entry.
@@ -214,9 +128,6 @@ int main(void)
   // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
-
-
-
   /*   UG_ConsoleSetArea(0, 0, 63, 127);
   UG_ConsoleSetForecolor(C_WHITE);
 
@@ -224,9 +135,6 @@ int main(void)
    static const char degC[] = { 31, 'C', 0 };
    UG_ConsolePutString(degC);
    */
-
-
-  screenShow(&bootScreen);
 
   // After we show the bootscreen...
   // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
@@ -236,7 +144,6 @@ int main(void)
   // Enter main loop.
 
   uint32_t lasttick = gui_ticks;
-  uint32_t start_time = get_seconds();
   uint32_t tickshandled = 0; // we might miss ticks if running behind, so we use our own local count to figure out if we need to run our 100ms services
   uint32_t ticksmissed = 0;
   while (1)
@@ -258,27 +165,7 @@ int main(void)
           APP_ERROR_HANDLER(FAULT_STACKOVERFLOW);
       }
 
-      screen_clock();
-
-      handle_buttons();
-      automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
-
-      if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
-        uint16_t bvolt = battery_voltage_10x_get();
-
-        is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-
-        if(is_sim_motor)
-          fieldPrintf(&bootStatus, "SIMULATING motor!");
-        else if(has_seen_motor)
-          fieldPrintf(&bootStatus, "Found motor");
-        else
-          fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
-
-        // Stop showing the boot screen after a few seconds (once we've found a motor)
-        if(get_seconds() - start_time >= 5 && (has_seen_motor || is_sim_motor))
-          showNextScreen();
-      }
+      main_idle();
     }
 
     sd_app_evt_wait(); // let OS threads have time to run

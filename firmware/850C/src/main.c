@@ -42,8 +42,6 @@ int main(void)
   SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
 
-  is_sim_motor = true; // kevinh FIXME temp hack till ADC
-
   pins_init();
   system_power(1);
   systick_init();
@@ -55,13 +53,12 @@ int main(void)
   timer4_init();
   graphs_init();
 
+  screenShow(&bootScreen);
+
   // block until user release the buttons
   while(buttons_get_onoff_state() ||
       buttons_get_down_state() ||
       buttons_get_up_state());
-
-  mainscreen_show(); // FIXME, use loop through all the screen types
-  configscreen_show();
 
   while(1)
   {
@@ -73,8 +70,7 @@ int main(void)
       ui32_ms_loop_counter_1 = ui32_timer_base_counter_1ms;
 
       // next 2 lines takes about 11ms to execute (main menu). Measured on 2019.03.04.
-      buttons_clock();
-      screen_clock();
+      main_idle();
       continue;
     }
   }

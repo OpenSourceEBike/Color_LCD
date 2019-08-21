@@ -19,6 +19,7 @@
 #include "eeprom.h"
 #include "buttons.h"
 #include "lcd.h"
+#include "configscreen.h"
 
 //
 // Fields - these might be shared my multiple screens
@@ -51,6 +52,33 @@ void time(void);
 void battery_soc(void), battery_display();
 void trip_time(void);
 
+Field bootHeading = FIELD_DRAWTEXT(.msg = "OpenSource EBike");
+Field bootVersion = FIELD_DRAWTEXT(.msg = "FIXME VER");
+Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
+
+
+
+Screen bootScreen = {
+    .fields = {
+    {
+        .x = 0, .y = 0,
+        .field = &bootHeading,
+        .font = &REGULAR_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = 32,
+        .field = &bootVersion,
+        .font = &REGULAR_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = 80,
+        .field = &bootStatus,
+        .font = &REGULAR_TEXT_FONT,
+    },
+    {
+        .field = NULL
+    }
+    }};
 
 
 
@@ -597,6 +625,98 @@ void walk_assist_state(void)
   }
 }
 
+
+
+
+// Screens in a loop, shown when the user short presses the power button
+static Screen *screens[] = {
+    &mainScreen,
+    &infoScreen,
+    &configScreen,
+    NULL
+};
+
+static int nextScreen = 0;
+
+void showNextScreen() {
+  Screen *next = screens[nextScreen++];
+
+  if(!next) {
+    nextScreen = 0;
+    next = screens[nextScreen++];
+  }
+
+  screenShow(next);
+}
+
+
+static bool appwide_onpress(buttons_events_t events)
+{
+  if (events & ONOFF_LONG_CLICK)
+  {
+    lcd_power_off(1);
+    return true;
+  }
+
+  if(events & ONOFF_CLICK) {
+    showNextScreen();
+    return true;
+  }
+
+  return false;
+}
+
+/// Called every 20ms to check for button events and dispatch to our handlers
+static void handle_buttons() {
+  if (buttons_events)
+  {
+    bool handled = false;
+
+    if (!handled)
+      handled |= screenOnPress(buttons_events);
+
+    // Note: this must be after the screen/menu handlers have had their shot
+    if (!handled)
+      handled |= appwide_onpress(buttons_events);
+
+    if (handled)
+      buttons_clear_all_events();
+  }
+
+  buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
+}
+
+#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
+
+
+/// Call every 20ms from the main thread.
+void main_idle() {
+	static uint32_t start_time;
+
+	if(start_time == 0)
+		start_time = ui32_seconds_since_startup;
+
+    screen_clock();
+    handle_buttons();
+    automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
+
+    if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
+      uint16_t bvolt = 120; // battery_voltage_10x_get();
+
+      is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
+
+      if(is_sim_motor)
+        fieldPrintf(&bootStatus, "SIMULATING motor!");
+      else if(has_seen_motor)
+        fieldPrintf(&bootStatus, "Found motor");
+      else
+        fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
+
+      // Stop showing the boot screen after a few seconds (once we've found a motor)
+      if(ui32_seconds_since_startup - start_time >= 5 && (has_seen_motor || is_sim_motor))
+        showNextScreen();
+    }
+}
 
 
 #if 0 // kevinh possibly repurpose in graph render widget

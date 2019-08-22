@@ -1,22 +1,22 @@
 ## Remaining merge tasks:
 
 * show labels properly on hte 850C layouts
-* fix configscreen layout
-* fix trip time to use a readonly fieldtype
+* fix configscreen to be prettier
+* fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * labels should be center aligned
 * final layout for mainscreen
-* use the 850C battery graphic case as a new renderBattery function
+* use the slick 850C battery graphic case as a new renderBattery function
 * add graphs
+* use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
 * fix boot screen layout - add URL to github project
-* fix my breaking of imperial units
-* use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
-* show a wider bar for BorderFat 
+* make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
+* use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
+* show a wider bar for BorderFat (to make config screen look better)
 
 ## other work items:
 * delay_ms(120) seems to wait a lot longer than 120ms
-* use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
-* make trip distance work with imperial again (see FIXME in lcd.c)
+
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C
 *     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood

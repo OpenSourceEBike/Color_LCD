@@ -546,6 +546,44 @@ static void changeEditable(bool increment)
 
 
 
+/// Given an editible extract its value as a string (max len MAX_FIELD_LEN)
+static void getEditableString(Field *field, uint32_t num, char *outbuf) {
+  switch (field->editable.typ)
+  {
+  case EditUInt:
+  {
+	// properly handle div_digits
+	int divd = field->editable.number.div_digits;
+	if (divd == 0)
+	  snprintf(outbuf, MAX_FIELD_LEN, "%lu", num);
+	else
+	{
+	  int div = 1;
+	  while (divd--)
+		div *= 10; // pwrs of 10
+
+	  if(field->editable.number.hide_fraction)
+		snprintf(outbuf, MAX_FIELD_LEN, "%lu", num / div);
+	  else
+		snprintf(outbuf, MAX_FIELD_LEN, "%lu.%0*lu", num / div,
+		  field->editable.number.div_digits, num % div);
+	}
+	break;
+  }
+  case EditEnum:
+	strncpy(outbuf, field->editable.editEnum.options[num], MAX_FIELD_LEN);
+	break;
+  default:
+	assert(0);
+	break;
+  }
+}
+
+// We can optionally render by filling all with black and then drawing text with a transparent background
+// This is useful on very small screens (SW102) where we might want the text to overlap.  However, this
+// approach causes flickering on non memory resident framebuffers (850C)
+#define EDITABLE_BLANKALL false
+
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
  * of what we are trying to render and if the same as last time, it will decide to not draw.
@@ -577,20 +615,33 @@ static bool renderEditable(FieldLayout *layout)
 
   // Get the value we are trying to show (it might be a num or an enum)
   uint32_t num = getEditableNumber(field);
+  bool valueChanged = num != layout->old_editable;
+  char valuestr[MAX_FIELD_LEN];
 
-  if(num != layout->old_editable) {
+  // If the value numerically changed, see if it also changed as a string (much more expensive)
+  bool showValue = !forceLabels && (valueChanged || dirty); // default to not drawing the value
+  if(showValue) {
+	char oldvaluestr[MAX_FIELD_LEN];
+	getEditableString(field, layout->old_editable, oldvaluestr);
+
     layout->old_editable = num;
-    dirty = true; // force a draw
+
+    getEditableString(field, num, valuestr);
+    if(strlen(valuestr) != strlen(oldvaluestr))
+    	dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
   }
 
   // If not dirty, labels didn't change and we aren't animating then exit
-  if(!dirty && forceLabels == oldForceLabels && !(blinkChanged && isActive))
+  bool forceLabelsChanged = forceLabels != oldForceLabels;
+  if(!dirty && !valueChanged && !forceLabelsChanged && !(blinkChanged && isActive))
     return false; // We didn't actually change so don't try to draw anything
 
-  // fill our entire box with blankspace
-  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
-      layout->y + height - 1, back);
-  UG_SetBackcolor(C_TRANSPARENT); // we just cleared the background ourself, from now on allow fonts to overlap
+  // fill our entire box with blankspace (if we must)
+  bool blankAll = EDITABLE_BLANKALL || forceLabelsChanged || dirty;
+  if(blankAll)
+	  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
+			  layout->y + height - 1, back);
+  UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label (if showing the conventional way - i.e. small and off to the top left.
   bool showLabel = layout->modifier != ModNoLabel;
@@ -607,46 +658,12 @@ static bool renderEditable(FieldLayout *layout)
     }
 
   // draw editable value
-  char msgbuf[MAX_FIELD_LEN];
-  const char *msg;
-  switch (field->editable.typ)
-  {
-  case EditUInt:
-  {
-    // properly handle div_digits
-    int divd = field->editable.number.div_digits;
-    if (divd == 0)
-      snprintf(msgbuf, sizeof(msgbuf), "%lu", num);
-    else
-    {
-      int div = 1;
-      while (divd--)
-        div *= 10; // pwrs of 10
-
-      if(field->editable.number.hide_fraction)
-        snprintf(msgbuf, sizeof(msgbuf), "%lu", num / div);
-      else
-        snprintf(msgbuf, sizeof(msgbuf), "%lu.%0*lu", num / div,
-          field->editable.number.div_digits, num % div);
-    }
-    msg = msgbuf;
-    break;
-  }
-  case EditEnum:
-    msg = field->editable.editEnum.options[num];
-    break;
-  default:
-    assert(0);
-    break;
-  }
-
-  bool showValue = !forceLabels;
   if(showValue) {
     const UG_FONT *font = layout->font ? layout->font : editable_value_font;
     UG_FontSelect(font);
 
     // how many pixels does our rendered string
-    UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(msg);
+    UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(valuestr);
 
     UG_S16 x = layout->x;
     UG_S16 y = layout->y;
@@ -661,7 +678,7 @@ static bool renderEditable(FieldLayout *layout)
           x += (width - strwidth) / 2;
     }
 
-    UG_PutString(x, y, (char*) msg);
+    UG_PutString(x, y, (char*) valuestr);
 
     // Blinking underline cursor when editing
     if (isActive)

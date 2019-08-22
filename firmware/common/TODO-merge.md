@@ -1,6 +1,5 @@
 ## Remaining merge tasks:
 
-* we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
 * show labels properly on hte 850C layouts
 * fix configscreen layout
 * final layout for mainscreen
@@ -10,6 +9,7 @@
 * fix boot screen layout - add URL to github project
 * fix my breaking of imperial units
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
+* show a wider bar for BorderFat 
 
 ## other work items:
 * delay_ms(120) seems to wait a lot longer than 120ms
@@ -46,6 +46,7 @@
 * fix button press handling
 * not properly blinking the edit cursor - getting covered by item beneath?
 * we are redrawing menus when we should not (due to blink event handling probably?)
+* we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
 
 ## todo later 
 

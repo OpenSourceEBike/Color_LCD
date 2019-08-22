@@ -52,7 +52,7 @@ CFLAGS  += -I./GD32F10x_standard_peripheral/Include -I./ -I./spl/CMSIS -I./spl/C
 # Need following option for LTO as LTO will treat retarget functions as
 # unused without following option
 CFLAGS+ = -fno-builtin
-CFLAGS += -std=c99 --specs=nano.specs --specs=nosys.specs -Werror -I../../common/include
+CFLAGS += -std=c99 --specs=nano.specs --specs=nosys.specs -Wall -Werror -I../../common/include
 
 LFLAGS  += -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm -nostartfiles -lnosys -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
 

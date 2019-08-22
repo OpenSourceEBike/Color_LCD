@@ -36,8 +36,6 @@ int main(void)
 {
   volatile uint32_t ui32_timer_base_counter_1ms;
   volatile uint32_t ui32_ms_loop_counter_1;
-  static buttons_events_t events = 0;
-  static buttons_events_t last_events = 0;
 
   SetSysClockTo128Mhz();
   RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);

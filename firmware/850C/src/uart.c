@@ -17,7 +17,7 @@ void uart_init(void)
  */
 const uint8_t* uart_get_rx_buffer_rdy(void)
 {
-	if(!usart1_received_package) {
+	if(!usart1_received_package()) {
 		return NULL;
 	}
 

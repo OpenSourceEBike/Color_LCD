@@ -13,7 +13,6 @@
 
 ## other work items:
 * changing # of digits drawn forces a full redraw of the field, which produces a very slight visible flash as the label is erased and redrawn
-* add a hard fault handler to catch and print bad ptr accesses
 * delay_ms(120) seems to wait a lot longer than 120ms
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C
@@ -48,6 +47,8 @@
 * we are redrawing menus when we should not (due to blink event handling probably?)
 * we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
 * show labels properly on hte 850C layouts
+* more implement fault.c for 850C 
+* add a hard fault handler to catch and print bad ptr accesses
 
 ## todo later 
 
@@ -57,7 +58,6 @@
 * check that linker is stripping all unused functions (for both platforms)
 * dramatically shrink the buttons.c code
 * remove ui8_***_imperial (by making auto scaling smarter in render)
-* more implement fault.c for 850C 
 * 850C doesn't seem to do proper dependency checking - changes to .h files should cause new builds
 * Per @lowPerformer: We can also extend the fonts by our "special" characters we need, f.i. ASCII ':' can be a 'W'. I did that with MY_FONT_8X12 where 0x1F is a '°' like in °C.
 

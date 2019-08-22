@@ -107,7 +107,7 @@ void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
     .ui8_left_zero_paddig = 0,
   };
 
-  static print_number_t graph_last_value =
+  /* static print_number_t graph_last_value =
   {
     .font = &REGULAR_TEXT_FONT,
     .fore_color = C_WHITE,
@@ -115,7 +115,7 @@ void graphs_draw(volatile lcd_vars_t *p_lcd_vars)
     .ui8_previous_digits_array = {255, 255, 255, 255, 255},
     .ui8_field_number_of_digits = 4,
     .ui8_left_zero_paddig = 0,
-  };
+  }; */
 
   // calc new min and max values
   graphs_measurements_calc_min_max_y(graph_id);

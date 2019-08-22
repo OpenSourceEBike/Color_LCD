@@ -112,7 +112,7 @@ static void eeprom_erase_page(uint32_t ui32_eeprom_page);
 static uint8_t eeprom_read(uint32_t ui32_address);
 static uint8_t eeprom_read_from_page(uint32_t ui32_address, uint32_t ui32_eeprom_page);
 static uint32_t eeprom_write(uint32_t ui32_address, uint8_t ui8_data);
-static uint32_t eeprom_write_to_page(uint32_t ui32_address, uint8_t ui8_data, uint32_t ui32_eeprom_page);
+// static uint32_t eeprom_write_to_page(uint32_t ui32_address, uint8_t ui8_data, uint32_t ui32_eeprom_page);
 static void eeprom_write_array(uint8_t *p_array, uint32_t ui32_len);
 static void eeprom_write_defaults(void);
 
@@ -284,7 +284,6 @@ void eeprom_init_variables(void)
 
 void eeprom_write_variables(void)
 {
-  uint32_t ui32_counter;
   uint8_t ui8_array[sizeof(m_eeprom_data)];
   volatile l3_vars_t *p_l3_output_vars;
   p_l3_output_vars = get_l3_vars();
@@ -443,6 +442,7 @@ uint32_t eeprom_write(uint32_t ui32_address, uint8_t ui8_data)
   return 0;
 }
 
+#if 0
 uint32_t eeprom_write_to_page(uint32_t ui32_address, uint8_t ui8_data, uint32_t ui32_eeprom_page)
 {
   ui32_address = ((uint32_t) EEPROM_START_ADDRESS) + (ui32_eeprom_page * 2048) + (ui32_address * 2);
@@ -459,6 +459,7 @@ uint32_t eeprom_write_to_page(uint32_t ui32_address, uint8_t ui8_data, uint32_t 
 
   return 0;
 }
+#endif
 
 void eeprom_erase_page(uint32_t ui32_eeprom_page)
 {

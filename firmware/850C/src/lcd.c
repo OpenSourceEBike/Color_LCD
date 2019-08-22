@@ -42,9 +42,6 @@ volatile lcd_vars_t m_lcd_vars =
   .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
-
-static uint8_t ui8_m_usart1_received_first_package = 0;
-
 static volatile graphs_t *m_p_graphs;
 static volatile uint32_t ui32_m_draw_graphs_1 = 0;
 static volatile uint32_t ui32_m_draw_graphs_2 = 0;

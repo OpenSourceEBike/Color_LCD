@@ -12,6 +12,7 @@
 * show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
 
 ## other work items:
+* changing # of digits drawn forces a full redraw of the field, which produces a very slight visible flash as the label is erased and redrawn
 * add a hard fault handler to catch and print bad ptr accesses
 * delay_ms(120) seems to wait a lot longer than 120ms
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix

@@ -666,13 +666,15 @@ static bool renderEditable(FieldLayout *layout)
   if(blankAll)
 	  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
 			  layout->y + height - 1, back);
-  UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label (if showing the conventional way - i.e. small and off to the top left.
   if(showLabel) {
+	UG_SetBackcolor(C_TRANSPARENT); // always draw labels with transparency, because they might slightly overlap the border
     UG_FontSelect(editable_label_font);
     UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
     }
+
+  UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label in the middle of the box
   if(forceLabels) {

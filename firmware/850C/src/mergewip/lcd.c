@@ -71,6 +71,9 @@ void assist_level_state(void);
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void update_menu_flashing_state(void);
+void calc_battery_soc_watts_hour(void);
+void l2_calc_odometer(void);
+static void automatic_power_off_management(void);
 void brake(void);
 void walk_assist_state(void);
 void wheel_speed(void);
@@ -93,6 +96,7 @@ void change_graph(void);
 void lcd_init(void)
 {
   bafang_500C_lcd_init();
+  lcd_set_backlight_intensity(20); // need otherwise no image will be shownbefore this
   UG_FillScreen(C_BLACK);
 
   lcd_configurations_screen_init();
@@ -179,6 +183,7 @@ void lcd_clock(void)
     graphs_clock_2();
   }
 
+  automatic_power_off_management();
   power_off_management();
 
   // must be reset after a full cycle of lcd_clock()
@@ -460,6 +465,199 @@ void lcd_power_off(uint8_t updateDistanceOdo)
   while(1) ;
 }
 
+void l2_low_pass_filter_battery_voltage_current_power(void)
+{
+  static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
+  static uint16_t ui16_battery_current_accumulated_x5 = 0;
+
+  // low pass filter battery voltage
+  ui32_battery_voltage_accumulated_x10000 -= ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT;
+  ui32_battery_voltage_accumulated_x10000 += (uint32_t) l2_vars.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+  l2_vars.ui16_battery_voltage_filtered_x10 = ((uint32_t) (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
+
+  // low pass filter batery current
+  ui16_battery_current_accumulated_x5 -= ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
+  ui16_battery_current_accumulated_x5 += (uint16_t) l2_vars.ui8_battery_current_x5;
+  l2_vars.ui16_battery_current_filtered_x5 = ui16_battery_current_accumulated_x5 >> BATTERY_CURRENT_FILTER_COEFFICIENT;
+
+  // battery power
+  l2_vars.ui16_battery_power_filtered_x50 = l2_vars.ui16_battery_current_filtered_x5 * l2_vars.ui16_battery_voltage_filtered_x10;
+  l2_vars.ui16_battery_power_filtered = l2_vars.ui16_battery_power_filtered_x50 / 50;
+
+  // loose resolution under 200W
+  if(l2_vars.ui16_battery_power_filtered < 200)
+  {
+    l2_vars.ui16_battery_power_filtered /= 10;
+    l2_vars.ui16_battery_power_filtered *= 10;
+  }
+  // loose resolution under 400W
+  else if(l2_vars.ui16_battery_power_filtered < 400)
+  {
+    l2_vars.ui16_battery_power_filtered /= 20;
+    l2_vars.ui16_battery_power_filtered *= 20;
+  }
+  // loose resolution all other values
+  else
+  {
+    l2_vars.ui16_battery_power_filtered /= 25;
+    l2_vars.ui16_battery_power_filtered *= 25;
+  }
+}
+
+void l2_low_pass_filter_pedal_torque_and_power(void)
+{
+  static uint32_t ui32_pedal_torque_accumulated = 0;
+  static uint32_t ui32_pedal_power_accumulated = 0;
+
+  // low pass filter
+  ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT;
+  ui32_pedal_torque_accumulated += (uint32_t) l2_vars.ui16_pedal_torque_x10 / 10;
+  l2_vars.ui16_pedal_torque_filtered = ((uint32_t) (ui32_pedal_torque_accumulated >> PEDAL_TORQUE_FILTER_COEFFICIENT));
+
+  // low pass filter
+  ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
+  ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
+  l2_vars.ui16_pedal_power_filtered = ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
+
+  if(l2_vars.ui16_pedal_torque_filtered > 200)
+  {
+    l2_vars.ui16_pedal_torque_filtered /= 20;
+    l2_vars.ui16_pedal_torque_filtered *= 20;
+  }
+  else if(l2_vars.ui16_pedal_torque_filtered > 100)
+  {
+    l2_vars.ui16_pedal_torque_filtered /= 10;
+    l2_vars.ui16_pedal_torque_filtered *= 10;
+  }
+  else
+  {
+    // do nothing to original values
+  }
+
+  if(l2_vars.ui16_pedal_power_filtered > 500)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 25;
+    l2_vars.ui16_pedal_power_filtered *= 25;
+  }
+  else if(l2_vars.ui16_pedal_power_filtered > 200)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 20;
+    l2_vars.ui16_pedal_power_filtered *= 20;
+  }
+  else if(l2_vars.ui16_pedal_power_filtered > 10)
+  {
+    l2_vars.ui16_pedal_power_filtered /= 10;
+    l2_vars.ui16_pedal_power_filtered *= 10;
+  }
+}
+
+static void l2_low_pass_filter_pedal_cadence(void)
+{
+  static uint16_t ui16_pedal_cadence_accumulated = 0;
+
+  // low pass filter
+  ui16_pedal_cadence_accumulated -= (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
+  ui16_pedal_cadence_accumulated += (uint16_t) l2_vars.ui8_pedal_cadence;
+
+  // consider the filtered value only for medium and high values of the unfiltered value
+  if(l2_vars.ui8_pedal_cadence > 20)
+  {
+    l2_vars.ui8_pedal_cadence_filtered = (uint8_t) (ui16_pedal_cadence_accumulated >> PEDAL_CADENCE_FILTER_COEFFICIENT);
+  }
+  else
+  {
+    l2_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence;
+  }
+}
+
+void l2_calc_wh(void)
+{
+  static uint8_t ui8_1s_timmer_counter = 0;
+  uint32_t ui32_temp = 0;
+
+  if(l2_vars.ui16_battery_power_filtered_x50 > 0)
+  {
+    l2_vars.ui32_wh_sum_x5 += l2_vars.ui16_battery_power_filtered_x50 / 10;
+    l2_vars.ui32_wh_sum_counter++;
+  }
+
+  // calc at 1s rate
+  if(ui8_1s_timmer_counter < 10)
+  {
+    ui8_1s_timmer_counter = 0;
+
+    // avoid zero divisison
+    if(l2_vars.ui32_wh_sum_counter != 0)
+    {
+      ui32_temp = l2_vars.ui32_wh_sum_counter / 36;
+      ui32_temp = (ui32_temp * (l2_vars.ui32_wh_sum_x5 / l2_vars.ui32_wh_sum_counter)) / 500;
+    }
+
+    l2_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10_offset + ui32_temp;
+  }
+  ui8_1s_timmer_counter++;
+}
+
+void l2_calc_odometer(void)
+{
+//  uint32_t uint32_temp;
+//  static uint8_t ui8_1s_timmer_counter;
+//
+//  // calc at 1s rate
+//  if (ui8_1s_timmer_counter++ >= 10)
+//  {
+//    ui8_1s_timmer_counter = 0;
+//
+//    uint32_temp = (uart_rx_vars.ui32_wheel_speed_sensor_tick_counter - l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)
+//        * ((uint32_t) configuration_variables.ui16_wheel_perimeter);
+//    // avoid division by 0
+//    if (uint32_temp > 100000) { uint32_temp /= 100000;}  // milimmeters to 0.1kms
+//    else { uint32_temp = 0; }
+//
+//    // now store the value on the global variable
+//    configuration_variables.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
+//  }
+}
+
+static void automatic_power_off_management(void)
+{
+  static uint8_t ui8_lcd_power_off_time_counter_minutes = 0;
+  static uint16_t ui16_lcd_power_off_time_counter = 0;
+
+  if(l3_vars.ui8_lcd_power_off_time_minutes != 0)
+  {
+    // see if we should reset the automatic power off minutes counter
+    if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
+        (l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
+        (l3_vars.ui8_braking) ||                // braking
+        buttons_get_events())                   // any button active
+    {
+      ui16_lcd_power_off_time_counter = 0;
+      ui8_lcd_power_off_time_counter_minutes = 0;
+    }
+
+    // increment the automatic power off minutes counter
+    ui16_lcd_power_off_time_counter++;
+
+    // check if we should power off the LCD
+    if(ui16_lcd_power_off_time_counter >= (50 * 60)) // 1 minute passed
+    {
+      ui16_lcd_power_off_time_counter = 0;
+
+      ui8_lcd_power_off_time_counter_minutes++;
+      if(ui8_lcd_power_off_time_counter_minutes >= l3_vars.ui8_lcd_power_off_time_minutes)
+      {
+        lcd_power_off(1);
+      }
+    }
+  }
+  // keep automatic_power_off_management disabled
+  else
+  {
+    ui16_lcd_power_off_time_counter = 0;
+    ui8_lcd_power_off_time_counter_minutes = 0;
+  }
+}
 
 void update_menu_flashing_state(void)
 {

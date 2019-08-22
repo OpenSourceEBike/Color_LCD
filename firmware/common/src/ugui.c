@@ -4997,7 +4997,8 @@ void UG_PutString_with_length( UG_S16 x, UG_S16 y, char* str, uint32_t ui8_lengt
     if (chr < gui->font.start_char || chr > gui->font.end_char) continue;
       if ( chr == '\n' )
       {
-         xp = gui->x_dim;
+         xp = x; // wrap to next line
+         yp += gui->font.char_height+gui->char_v_space;
          continue;
       }
     cw = gui->font.widths ? gui->font.widths[chr - gui->font.start_char] : gui->font.char_width;

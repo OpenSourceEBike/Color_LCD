@@ -1,5 +1,4 @@
-#ifndef __UGUI_CONFIG_H
-#define __UGUI_CONFIG_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -111,5 +110,3 @@ typedef signed long int       UG_S32;
 #define USE_PRERENDER_EVENT
 #define USE_POSTRENDER_EVENT
 
-
-#endif

@@ -54,8 +54,14 @@ void time(void);
 void battery_soc(void), battery_display();
 void trip_time(void);
 
-Field bootHeading = FIELD_DRAWTEXT(.msg = "OpenSource EBike");
-Field bootVersion = FIELD_DRAWTEXT(.msg = VERSION_STRING);
+
+// Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
+#define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
+#define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
+
+Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
+Field bootURL = FIELD_DRAWTEXTPTR("https://github.com/\nOpenSource-EBike-Firmware");
+Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
 
@@ -63,19 +69,24 @@ Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 Screen bootScreen = {
     .fields = {
     {
-        .x = 0, .y = 0,
+        .x = 0, .y = 0, .height = -1,
         .field = &bootHeading,
         .font = &REGULAR_TEXT_FONT,
     },
     {
-        .x = 0, .y = 32,
-        .field = &bootVersion,
-        .font = &REGULAR_TEXT_FONT,
+        .x = 0, .y = -8, .height = -1,
+        .field = &bootURL,
+        .font = &SMALL_TEXT_FONT,
     },
     {
-        .x = 0, .y = 80,
+        .x = 0, .y = YbyEighths(4), .height = -1,
+        .field = &bootVersion,
+        .font = &SMALL_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = YbyEighths(6), .height = -1,
         .field = &bootStatus,
-        .font = &REGULAR_TEXT_FONT,
+        .font = &SMALL_TEXT_FONT,
     },
     {
         .field = NULL
@@ -122,10 +133,6 @@ bool mainscreen_onpress(buttons_events_t events) {
 
   return false;
 }
-
-// Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
-#define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
-#define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
 
 #ifndef SW102
 

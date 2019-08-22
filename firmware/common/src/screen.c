@@ -104,7 +104,7 @@ static void autoTextHeight(FieldLayout *layout) {
     }
 }
 
-static bool renderDrawText(FieldLayout *layout)
+static bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
 {
   autoTextHeight(layout);
 
@@ -114,7 +114,7 @@ static bool renderDrawText(FieldLayout *layout)
   assert(font); // dynamic font selection not yet supported
 
   // how many pixels does our rendered string
-  UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(field->drawText.msg);
+  UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(msg);
 
   UG_S16 width = layout->width;
   UG_S16 height = layout->height;
@@ -131,8 +131,18 @@ static bool renderDrawText(FieldLayout *layout)
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
   UG_SetBackcolor(C_TRANSPARENT);
-  UG_PutString(x + 1, layout->y, field->drawText.msg);
+  UG_PutString(x + 1, layout->y, (char *) msg);
   return true;
+}
+
+static bool renderDrawText(FieldLayout *layout)
+{
+  return renderDrawTextCommon(layout, layout->field->drawText.msg);
+}
+
+static bool renderDrawTextPtr(FieldLayout *layout)
+{
+  return renderDrawTextCommon(layout, layout->field->drawTextPtr.msg);
 }
 
 static bool renderFill(FieldLayout *layout)
@@ -893,7 +903,7 @@ static bool onPressScrollable(buttons_events_t events)
 /**
  * Used to map from FieldVariant enums to rendering functions
  */
-static const FieldRenderFn renderers[] = { renderDrawText, renderFill,
+static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr, renderFill,
     renderMesh, renderScrollable, renderEditable, renderEnd };
 
 static Screen *curScreen;

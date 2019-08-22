@@ -12,12 +12,13 @@
 * show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
 
 ## other work items:
+* add a hard fault handler to catch and print bad ptr accesses
 * delay_ms(120) seems to wait a lot longer than 120ms
 * uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
 * change lcd brightenss eeprom value to a pctage in the 850C
 *     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-* switch to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules)
-* make a renderDrawPtrText, change most usages to use it.
+* tell others to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules) - https://github.com/gnu-mcu-eclipse/arm-none-eabi-gcc/releases/tag/v7.3.1-1.1
+* make most usages use renderDrawPtrText
 
 ## Mostly done
 

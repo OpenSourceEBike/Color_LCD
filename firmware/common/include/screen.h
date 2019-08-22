@@ -86,6 +86,7 @@ typedef enum {
  */
 typedef enum {
   FieldDrawText = 0,
+  FieldDrawTextPtr,
   FieldFill, // Fill with a solid color
   FieldMesh, // Fill with a mesh color
   FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
@@ -106,7 +107,7 @@ typedef enum {
  * Ready to render data (normally populated by comms code) which might be used on multiple different screens
  */
 typedef struct Field {
-  FieldVariant variant; //
+  FieldVariant variant : 4;
   bool dirty : 1; // true if this data has changed and needs to be rerendered
   bool blink : 1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
   bool is_selected : 1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
@@ -116,6 +117,10 @@ typedef struct Field {
     struct {
       char msg[MAX_FIELD_LEN];
     } drawText;
+
+    struct {
+      const char *msg; // A string stored in a ptr
+    } drawTextPtr;
 
     struct {
       struct Field *entries; // the menu entries for this submenu.
@@ -171,6 +176,7 @@ typedef struct Field {
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
+#define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 
 #define FIELD_END { .variant = FieldEnd }
 

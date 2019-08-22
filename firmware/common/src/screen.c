@@ -55,15 +55,15 @@ static bool blinkChanged;
 static bool blinkOn;
 
 #ifdef SW102
-#define heading_font &FONT_5X12
-#define scrollable_font &FONT_5X12
+#define HEADING_FONT FONT_5X12
+#define SCROLLABLE_FONT FONT_5X12
 
 static const UG_FONT const *editable_label_font = &FONT_5X12;
 static const UG_FONT const *editable_value_font = &FONT_5X12;
 static const UG_FONT const *editable_units_font = &FONT_5X12;
 #else
-#define heading_font &FONT_10X16
-#define scrollable_font &FONT_10X16
+#define HEADING_FONT FONT_10X16
+#define SCROLLABLE_FONT FONT_10X16
 
 static const UG_FONT const *editable_label_font = &FONT_10X16;
 static const UG_FONT const *editable_value_font = &FONT_10X16;
@@ -184,8 +184,6 @@ static void drawBorder(FieldLayout *layout)
             layout->x + layout->width - 1, layout->y + layout->height - 1, color); // right
 }
 
-#define SCROLLABLE_ROW_HEIGHT 32
-#define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
 
 const Coord screenWidth = SCREEN_WIDTH, screenHeight = SCREEN_HEIGHT; // FIXME, for larger devices allow screen objcts to nest inside other screens
 
@@ -329,9 +327,15 @@ static bool exitScrollable()
   }
 }
 
+#define SCROLLABLE_ROWS 2 // How many rows inside each entry (includes label and value)
+#define SCROLLABLE_ROW_HEIGHT 32 // for planning purposes - might be larger at runtime
+#define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
+
+
 static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
-  const Coord rowHeight = SCROLLABLE_ROW_HEIGHT; // 3 data rows 32 pixels tall + one 32 pixel header
+  const Coord rowHeight = SCROLLABLE_ROWS * (SCROLLABLE_FONT.char_height + 4); // 3 data rows 32 pixels tall + one 32 pixel header
+  int maxRowsPerScreen = SCREEN_HEIGHT / rowHeight; // might be less than MAX_SCROLLABLE_ROWS
 
   static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading + end of rows marker
 
@@ -352,7 +356,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
       bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
       forceScrollableRelayout = false;
-      for (int i = 0; i < MAX_SCROLLABLE_ROWS; i++)
+      for (int i = 0; i < maxRowsPerScreen; i++)
       {
         FieldLayout *r = rows + i;
 
@@ -368,7 +372,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           r->field = &heading;
           r->color = ColorNormal;
           r->border = BorderBottom | BorderFat;
-          r->font = heading_font;
+          r->font = &HEADING_FONT;
         }
         else
         {
@@ -396,7 +400,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           r->field->dirty = true; // Force rerender
         }
 
-        rows[MAX_SCROLLABLE_ROWS].field = NULL; // mark end of array (for rendering)
+        rows[maxRowsPerScreen].field = NULL; // mark end of array (for rendering)
       }
     }
   }
@@ -415,7 +419,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
     fieldPrintf(&label, "%s", field->scrollable.label);
     r->field = &label;
     r->color = ColorNormal;
-    r->font = scrollable_font;
+    r->font = &SCROLLABLE_FONT;
 
     // If we are inside a scrollable and selected, blink
     if (scrollable)

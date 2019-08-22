@@ -2,7 +2,7 @@
 
 * not properly blinking the edit cursor - getting covered by item beneath?
 * we are redrawing menus when we should not (due to blink event handling probably?)
-* we are redrawing speed when we should not
+* we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
 * show labels properly on hte 850C layouts
 * fix configscreen layout
 * final layout for mainscreen

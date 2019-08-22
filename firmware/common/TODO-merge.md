@@ -1,18 +1,16 @@
 ## Remaining merge tasks:
 
-* show labels properly on hte 850C layouts
-* fix configscreen to be prettier
+* fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * labels should be center aligned
 * final layout for mainscreen
 * use the slick 850C battery graphic case as a new renderBattery function
 * add graphs
-* use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
-* fix boot screen layout - add URL to github project
+* fix boot screen layout to be prettier - add URL to github project
 * make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
-* show a wider bar for BorderFat (to make config screen look better)
+* show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
 
 ## other work items:
 * delay_ms(120) seems to wait a lot longer than 120ms
@@ -49,6 +47,7 @@
 * not properly blinking the edit cursor - getting covered by item beneath?
 * we are redrawing menus when we should not (due to blink event handling probably?)
 * we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
+* show labels properly on hte 850C layouts
 
 ## todo later 
 

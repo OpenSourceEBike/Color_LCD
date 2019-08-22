@@ -337,8 +337,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
   const Coord rowHeight = SCROLLABLE_ROWS * (SCROLLABLE_FONT.char_height + 4); // 3 data rows 32 pixels tall + one 32 pixel header
   int maxRowsPerScreen = SCREEN_HEIGHT / rowHeight; // might be less than MAX_SCROLLABLE_ROWS
 
-  static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading + end of rows marker
-
   Field *scrollable = getActiveScrollable();
   bool weAreExpanded = scrollable == field;
 
@@ -346,9 +344,9 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
   // Otherwise just show our label so that the user might select us to expand
   if (weAreExpanded)
   {
-    // FIXME - we shouldn't need to relayout scrollables on blink transition, but currently we share the static rows[] array when we really should not, because
-    // it is used _both_ in the drawing of expanded elements and the non expanded case.  This problem becomes apparant if you remove this blinkChanged check.
-    if (forceScrollableRelayout || blinkChanged)
+	static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading + end of rows marker
+
+    if (forceScrollableRelayout)
     {
       static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
       static Field heading = FIELD_DRAWTEXT();
@@ -389,6 +387,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           {
             r->field = entry;
             entry->is_selected = (entryNum == field->scrollable.selected);
+            entry->blink = entry->is_selected; // We want to service our blink animation
           }
           else
           {
@@ -403,9 +402,14 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
         rows[maxRowsPerScreen].field = NULL; // mark end of array (for rendering)
       }
     }
+
+    // draw (or redraw if necessary) our current set of visible rows
+    return renderLayouts(rows, false);
   }
   else
   {
+	static FieldLayout rows[1 + 1]; // Used to layout each our single row + end of rows marker
+
     // Just draw our label (not highlighted) - show selection bar if necessary
     FieldLayout *r = &rows[0];
 
@@ -429,10 +433,10 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
       label.is_selected = false;
 
     rows[1].field = NULL; // mark end of array (for rendering)
-  }
 
-  // draw (or redraw if necessary) our current set of visible rows
-  return renderLayouts(rows, false);
+    // draw (or redraw if necessary) our current set of visible rows
+    return renderLayouts(rows, false);
+  }
 }
 
 static bool renderScrollable(FieldLayout *layout)

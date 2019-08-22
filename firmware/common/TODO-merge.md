@@ -12,6 +12,7 @@
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99)
 
 ## other work items:
+* delay_ms(120) seems to wait a lot longer than 120ms
 * we are redrawing menus when we should not (due to blink event handling probably?)
 * use colors in the 850C gui (and make menus prettier, colored background on heading, color for selection)
 * make trip distance work with imperial again (see FIXME in lcd.c)
@@ -41,15 +42,17 @@
 * configscreen
 * add screen looping
 * make sim motor work (based on adc voltage detection)
+* add fault screen 
 
 ## todo later 
 
+* per discussion with @casainho no problem - "add motor RPM, ERPS and PWM duty cycle to the secondary info page"
 * stop using ui32_g_layer_2_can_execute for mutual exclusion with the ISR
 * add instrumentation to measure times of key operations (main loop, frame update etc)
 * check that linker is stripping all unused functions (for both platforms)
 * dramatically shrink the buttons.c code
 * remove ui8_***_imperial (by making auto scaling smarter in render)
-* implement fault.c for 850C / add fault screen
+* more implement fault.c for 850C 
 * 850C doesn't seem to do proper dependency checking - changes to .h files should cause new builds
 * Per @lowPerformer: We can also extend the fonts by our "special" characters we need, f.i. ASCII ':' can be a 'W'. I did that with MY_FONT_8X12 where 0x1F is a '°' like in °C.
 

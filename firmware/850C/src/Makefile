@@ -13,7 +13,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 TCPREFIX  = arm-none-eabi-
 CC      = $(TCPREFIX)gcc
 AS      = $(TCPREFIX)as 
@@ -51,8 +50,10 @@ LFLAGS  = --specs=nano.specs --specs=nosys.specs -Tstm32_flash.ld -L/usr/lib/gcc
 CPFLAGS = -Obinary 
 ODFLAGS = -S
 
+include ../../common/Makefile.common
+
 COMMONSRC = ../../common/src
-SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c $(COMMONSRC)/configscreen.c
+SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/fault.c $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c $(COMMONSRC)/configscreen.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.

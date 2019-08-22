@@ -19,6 +19,7 @@
 #include "eeprom.h"
 #include "buttons.h"
 #include "lcd.h"
+#include "ugui.h"
 #include "configscreen.h"
 
 //
@@ -53,7 +54,7 @@ void battery_soc(void), battery_display();
 void trip_time(void);
 
 Field bootHeading = FIELD_DRAWTEXT(.msg = "OpenSource EBike");
-Field bootVersion = FIELD_DRAWTEXT(.msg = "FIXME VER");
+Field bootVersion = FIELD_DRAWTEXT(.msg = VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
 
@@ -121,6 +122,9 @@ bool mainscreen_onpress(buttons_events_t events) {
   return false;
 }
 
+// Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
+#define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
+#define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
 
 #ifndef SW102
 
@@ -145,18 +149,18 @@ bool mainscreen_onpress(buttons_events_t events) {
         .font = &MY_FONT_BATTERY, \
     }, \
     { \
-        .x = 32, .y = 0, \
+        .x = XbyEighths(2), .y = 0, \
         .width = -5, .height = -1, \
         .font = &REGULAR_TEXT_FONT, \
         .field = &socField \
-    }
-/*
-{
-    .x = 32, .y = 0,
-    .width = -5, .height = -1,
-    .field = &tripTimeField
-},
-*/
+    }, \
+	{ \
+		.x = XbyEighths(6), .y = 0, \
+		.width = -5, .height = -1, \
+		.font = &REGULAR_TEXT_FONT, \
+		.field = &tripTimeField \
+	}
+
 
 //
 // Screens
@@ -167,36 +171,52 @@ Screen mainScreen = {
     .fields = {
     BATTERY_BAR,
     {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
+        .x = 0, .y = 32,
+        .width = -1, .height = -1,
         .field = &assistLevelField,
         .font = &BIG_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
-    /*
     {
-        .x = 19, .y = 16,
-        .width = -2, .height = -1,
-        // .color = ColorInvert,
+        .x = XbyEighths(3), .y = 32,
+        .width = 0, .height = -1,
         .field = &speedField,
+        .font = &BIG_NUMBERS_TEXT_FONT,
+        .modifier = ModNoLabel,
         .border = BorderNone
-    }, */
+    },
     {
-        .x = 0, .y = -3,
-        .width = 0, .height = 19,
+        .x = 0, .y = YbyEighths(3),
+        .width = XbyEighths(4), .height = -1,
+        .field = &tripDistanceField,
+        .font = &REGULAR_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom | BorderRight
+    },
+    {
+        .x = XbyEighths(4), .y = YbyEighths(3),
+        .width = XbyEighths(4), .height = -1,
         .field = &maxPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom
     },
     {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &speedField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
+        .x = 0, .y = YbyEighths(4),
+        .width = XbyEighths(4), .height = -1,
+        .field = &tripTimeField,
+        .font = &REGULAR_TEXT_FONT,
         .modifier = ModNoLabel,
-        .border = BorderNone
+        .border = BorderBottom | BorderRight
+    },
+    {
+        .x = XbyEighths(4), .y = YbyEighths(4),
+        .width = XbyEighths(4), .height = -1,
+        .field = &humanPowerField,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .modifier = ModNoLabel,
+        .border = BorderBottom
     },
     STATUS_BAR,
     {

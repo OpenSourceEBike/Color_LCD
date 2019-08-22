@@ -243,7 +243,7 @@ typedef struct {
 } Screen;
 
 // Standard vertical spacing for fonts
-#define FONT12_Y 14 // we want a little bit of extra space
+// #define FONT12_Y 14 // we want a little bit of extra space
 
 void panicScreenShow(Screen *screen);
 void screenShow(Screen *screen);

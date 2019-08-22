@@ -91,18 +91,18 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
     break;
   }
 
-#ifdef SW102
   case FAULT_HARDFAULT:
+#ifdef SW102
     if(!info)
-      fieldPrintf(&infoCode, "stk overflow");
+      fieldPrintf(&infoCode, "hf overflow");
     else {
       HardFault_stack_t *hs = (HardFault_stack_t *) info;
 
       fieldPrintf(&infoCode, "%x:%x",
         hs->r12, hs->lr);
     }
-    break;
 #endif
+    break;
 
   case FAULT_MISSEDTICK:
     fieldPrintf(&infoCode, "missed tick");

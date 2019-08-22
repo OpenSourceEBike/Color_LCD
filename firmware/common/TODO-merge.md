@@ -1,12 +1,9 @@
 ## Remaining merge tasks:
 
-* not properly blinking the edit cursor - getting covered by item beneath?
-* we are redrawing menus when we should not (due to blink event handling probably?)
 * we are redrawing speed when we should not (also, don't do the fillrect and borders unless we are from scratch, instead don't use c_transparent in the font)
 * show labels properly on hte 850C layouts
 * fix configscreen layout
 * final layout for mainscreen
-* make a renderDrawPtrText, change most usages to use it.
 * use the 850C battery graphic case as a new renderBattery function
 * add graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
@@ -22,6 +19,7 @@
 * change lcd brightenss eeprom value to a pctage in the 850C
 *     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
 * switch to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules)
+* make a renderDrawPtrText, change most usages to use it.
 
 ## Mostly done
 
@@ -46,6 +44,8 @@
 * make sim motor work (based on adc voltage detection)
 * add fault screen 
 * fix button press handling
+* not properly blinking the edit cursor - getting covered by item beneath?
+* we are redrawing menus when we should not (due to blink event handling probably?)
 
 ## todo later 
 

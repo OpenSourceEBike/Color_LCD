@@ -583,10 +583,8 @@ static bool renderEditable(FieldLayout *layout)
     dirty = true; // force a draw
   }
 
-  if(forceLabels != oldForceLabels)
-    dirty = true;
-
-  if(!dirty)
+  // If not dirty, labels didn't change and we aren't animating then exit
+  if(!dirty && forceLabels == oldForceLabels && !(blinkChanged && isActive))
     return false; // We didn't actually change so don't try to draw anything
 
   // fill our entire box with blankspace
@@ -695,12 +693,29 @@ static bool renderEnd(FieldLayout *layout)
   return true;
 }
 
+// If we are showing a scrollable redraw it
 static void forceScrollableRender()
 {
   Field *active = getActiveScrollable();
-  assert(active);
-  scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
-  forceScrollableRelayout = true;
+  if(active) {
+    scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
+    forceScrollableRelayout = true;
+  }
+}
+
+// Mark a new editable as active (and that it now wants to be animated)
+static void setActiveEditable(Field *clicked) {
+	if(curActiveEditable)
+		curActiveEditable->blink = false;
+
+	curActiveEditable = clicked;
+
+	if(clicked) {
+	  clicked->dirty = true; // force redraw with highlighting
+	  clicked->blink = true;
+	}
+
+	forceScrollableRender(); // FIXME, I'm not sure if this is really required
 }
 
 // Returns true if we've handled the event (and therefore it should be cleared)
@@ -727,7 +742,7 @@ static bool onPressEditable(buttons_events_t events)
   // Mark that we are no longer editing - click pwr button to exit
   if (events & SCREENCLICK_STOP_EDIT)
   {
-    curActiveEditable = NULL;
+    setActiveEditable(NULL);
 
     handled = true;
   }
@@ -814,10 +829,8 @@ static bool onPressScrollable(buttons_events_t events)
     {
     case FieldEditable:
       if(!clicked->editable.read_only) { // only start editing non read only fields
-        curActiveEditable = clicked;
-        curActiveEditable->dirty = true; // force redraw with highlighting
+        setActiveEditable(clicked);
         handled = true;
-        forceScrollableRender(); // FIXME, I'm not sure if this is really required
       }
       break;
 
@@ -868,7 +881,7 @@ bool screenOnPress(buttons_events_t events)
 // A low level screen render that doesn't use soft device or call exit handlers (useful for the critical fault handler ONLY)
 void panicScreenShow(Screen *screen)
 {
-  curActiveEditable = NULL;
+  setActiveEditable(NULL);
   scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;

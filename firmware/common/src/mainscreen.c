@@ -159,7 +159,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 		.x = XbyEighths(5), .y = 0, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
-		.field = &tripTimeField \
+		.field = &timeField \
 	}
 
 

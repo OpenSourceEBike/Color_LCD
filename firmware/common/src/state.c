@@ -24,6 +24,7 @@
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
 uint16_t ui16_m_battery_soc_watts_hour_fixed; // temp hack during merge
+volatile uint32_t ui32_g_layer_2_can_execute;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
 bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)

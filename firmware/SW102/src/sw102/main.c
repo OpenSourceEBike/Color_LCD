@@ -23,6 +23,7 @@
 #include "hardfault.h"
 #include "fault.h"
 #include "nrf_nvic.h"
+#include "rtc.h"
 
 
 /* Variable definition */
@@ -128,13 +129,7 @@ int main(void)
   // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
-  /*   UG_ConsoleSetArea(0, 0, 63, 127);
-  UG_ConsoleSetForecolor(C_WHITE);
-
-   UG_FontSelect(&MY_FONT_8X12);
-   static const char degC[] = { 31, 'C', 0 };
-   UG_ConsolePutString(degC);
-   */
+  screenShow(&bootScreen);
 
   // After we show the bootscreen...
   // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
@@ -219,8 +214,6 @@ static void button_poll_timer_timeout(void *p_context)
 #endif
 
 
-static uint32_t seconds = 0;
-
 static void gui_timer_timeout(void *p_context)
 {
   UNUSED_PARAMETER(p_context);
@@ -231,7 +224,7 @@ static void gui_timer_timeout(void *p_context)
     layer_2();
 
   if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
-    seconds++;
+    ui32_seconds_since_startup++;
 }
 
 
@@ -241,7 +234,7 @@ uint32_t get_msecs() {
 }
 
 uint32_t get_seconds() {
-  return seconds;
+  return ui32_seconds_since_startup;
 }
 
 static void init_app_timers(void)

@@ -268,7 +268,7 @@ void fieldPrintf(Field *field, const char *fmt, ...);
 #define SCREENFN_FORCE_LABELS false
 
 #define SCREENCLICK_START_EDIT ONOFF_CLICK
-#define SCREENCLICK_STOP_EDIT ONOFF_CLICK
+#define SCREENCLICK_STOP_EDIT UPDOWN_CLICK
 #define SCREEMCLICK_NEXT_SCREEN UPDOWN_CLICK
 
 #endif

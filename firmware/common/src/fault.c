@@ -8,6 +8,7 @@
 #include "state.h"
 
 #ifdef SW102
+#include "hardfault.h"
 #include "nrf_nvic.h"
 #include "nrf_delay.h"
 #else

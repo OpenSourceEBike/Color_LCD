@@ -43,8 +43,6 @@ volatile lcd_vars_t m_lcd_vars =
 };
 
 
-volatile uint32_t ui32_g_layer_2_can_execute = 0;
-
 static uint8_t ui8_m_usart1_received_first_package = 0;
 
 static volatile graphs_t *m_p_graphs;

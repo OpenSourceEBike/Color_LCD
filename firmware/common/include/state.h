@@ -216,6 +216,7 @@ void set_lcd_backlight();
 
 extern uint16_t ui16_m_battery_soc_watts_hour;
 extern uint16_t ui16_m_battery_soc_watts_hour_fixed;
+extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor
 extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)

@@ -15,6 +15,7 @@
 #define CONFIGURATION_DONE 0xAAAA
 #define CONFIGURATION_RESET 0x0000
 
+// FIXME - have everyone call get_seconds instead
 uint32_t ui32_seconds_since_startup = 0;
 
 #if 0

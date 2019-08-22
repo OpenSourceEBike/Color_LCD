@@ -333,7 +333,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
   const Coord rowHeight = SCROLLABLE_ROW_HEIGHT; // 3 data rows 32 pixels tall + one 32 pixel header
 
-  static FieldLayout rows[MAX_SCROLLABLE_ROWS]; // Used to layout each of the currently visible rows + heading
+  static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading + end of rows marker
 
   Field *scrollable = getActiveScrollable();
   bool weAreExpanded = scrollable == field;
@@ -578,7 +578,7 @@ static bool renderEditable(FieldLayout *layout)
   if(forceLabels != oldForceLabels)
     dirty = true;
 
-  if(!dirty) // FIXME - disabled for now - something busted
+  if(!dirty)
     return false; // We didn't actually change so don't try to draw anything
 
   // fill our entire box with blankspace
@@ -648,7 +648,7 @@ static bool renderEditable(FieldLayout *layout)
     if(showLabel) {
       // right justify value on the second line
       x += width - strwidth;
-      y += FONT12_Y;
+      y += editable_label_font->char_height;
     }
     else {
       if(strwidth < width) // If the user gave us more space than we need, center justify within that box
@@ -824,7 +824,7 @@ static bool onPressScrollable(buttons_events_t events)
   }
 
   // click power button to exit out of menus
-  if (events & SCREENCLICK_STOP_EDIT)
+  if (!handled && (events & SCREENCLICK_STOP_EDIT))
   {
     handled = exitScrollable(); // if we were top scrollable don't claim we handled this press (let rest of app do it)
   }

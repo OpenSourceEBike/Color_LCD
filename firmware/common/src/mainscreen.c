@@ -19,6 +19,7 @@
 #include "eeprom.h"
 #include "buttons.h"
 #include "lcd.h"
+#include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
 
@@ -155,7 +156,7 @@ bool mainscreen_onpress(buttons_events_t events) {
         .field = &socField \
     }, \
 	{ \
-		.x = XbyEighths(6), .y = 0, \
+		.x = XbyEighths(5), .y = 0, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
 		.field = &tripTimeField \
@@ -182,7 +183,7 @@ Screen mainScreen = {
         .x = XbyEighths(3), .y = 32,
         .width = 0, .height = -1,
         .field = &speedField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
+        .font = &HUGE_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderNone
     },
@@ -190,7 +191,7 @@ Screen mainScreen = {
         .x = 0, .y = YbyEighths(3),
         .width = XbyEighths(4), .height = -1,
         .field = &tripDistanceField,
-        .font = &REGULAR_TEXT_FONT,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom | BorderRight
     },
@@ -206,7 +207,7 @@ Screen mainScreen = {
         .x = 0, .y = YbyEighths(4),
         .width = XbyEighths(4), .height = -1,
         .field = &tripTimeField,
-        .font = &REGULAR_TEXT_FONT,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderBottom | BorderRight
     },
@@ -721,7 +722,7 @@ void main_idle() {
     automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
 
     if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
-      uint16_t bvolt = 120; // battery_voltage_10x_get();
+      uint16_t bvolt = battery_voltage_10x_get();
 
       is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
 

@@ -57,7 +57,6 @@ typedef struct _print_number
   uint8_t ui8_decimal_digits;
 } print_number_t;
 
-extern volatile uint32_t ui32_g_layer_2_can_execute;
 extern volatile uint32_t ui32_g_graphs_data_array_over_255;
 extern volatile uint32_t ui32_g_first_time;
 

@@ -176,47 +176,47 @@ Screen mainScreen = {
         .width = -1, .height = -1,
         .field = &assistLevelField,
         .font = &BIG_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
+        .modifier = ModLabelTop,
+        .border = BorderNone
     },
     {
         .x = XbyEighths(3), .y = 32,
         .width = 0, .height = -1,
         .field = &speedField,
         .font = &HUGE_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .modifier = ModLabelTop,
         .border = BorderNone
     },
     {
         .x = 0, .y = YbyEighths(3),
-        .width = XbyEighths(4), .height = -1,
+        .width = XbyEighths(4), .height = YbyEighths(1),
         .field = &tripDistanceField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom | BorderRight
+        .modifier = ModLabelTop,
+        .border = BorderBottom | BorderRight | BorderTop
     },
     {
         .x = XbyEighths(4), .y = YbyEighths(3),
-        .width = XbyEighths(4), .height = -1,
+        .width = XbyEighths(4), .height = YbyEighths(1),
         .field = &maxPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
+        .modifier = ModLabelTop,
+        .border = BorderBottom | BorderTop
     },
     {
         .x = 0, .y = YbyEighths(4),
-        .width = XbyEighths(4), .height = -1,
+        .width = XbyEighths(4), .height = YbyEighths(1),
         .field = &tripTimeField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .modifier = ModLabelTop,
         .border = BorderBottom | BorderRight
     },
     {
         .x = XbyEighths(4), .y = YbyEighths(4),
-        .width = XbyEighths(4), .height = -1,
+        .width = XbyEighths(4), .height = YbyEighths(1),
         .field = &humanPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .modifier = ModLabelTop,
         .border = BorderBottom
     },
     STATUS_BAR,

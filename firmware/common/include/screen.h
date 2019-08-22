@@ -193,7 +193,7 @@ typedef enum {
 typedef enum {
   ModNone = 0,
   ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units
-
+  ModLabelTop = 2, // For editable fields: show the label above the value, normally it is shown to the left
 } LayoutModifier;
 
 /**

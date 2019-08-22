@@ -96,8 +96,18 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
   }
 }
 
+static void autoTextHeight(FieldLayout *layout) {
+    // Allow developer to use this shorthand for one row high text fields
+    if (layout->height == -1) {
+      assert(layout->font); // you must specify a font to use this feature
+      layout->height = layout->font->char_height;
+    }
+}
+
 static bool renderDrawText(FieldLayout *layout)
 {
+  autoTextHeight(layout);
+
   Field *field = layout->field;
 
   const UG_FONT *font = layout->font;
@@ -236,12 +246,6 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       if (layout->height == 0)
         layout->height = screenHeight - layout->y;
 
-      // Allow developer to use this shorthand for one row high text fields
-      if (layout->height == -1) {
-        assert(layout->font); // you must specify a font to use this feature
-        layout->height = layout->font->char_height;
-      }
-
       // if user specified width in terms of characters, change it to pixels
       if(layout->width < 0) {
         assert(layout->font); // you must specify a font to use this feature
@@ -253,6 +257,8 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
         layout->y = maxy + -layout->y - 1;
 
       didDraw |= renderers[layout->field->variant](layout);
+
+      assert(layout->height != -1); // by the time we reach here this must be set
 
       // After the renderer has run, cache the highest Y we have seen (for entries that have y = -1 for auto assignment)
       if(layout->y + layout->height > maxy)
@@ -592,9 +598,15 @@ static bool renderEditable(FieldLayout *layout)
 {
   Field *field = layout->field;
   UG_S16 width = layout->width;
-  UG_S16 height = layout->height;
   bool isActive = curActiveEditable == field; // are we being edited right now?
   bool dirty = field->dirty;
+  bool showLabel = layout->modifier != ModNoLabel;
+  const UG_FONT *font = layout->font ? layout->font : editable_value_font;
+
+  if(layout->height == -1) // We should autoset
+    layout->height = (showLabel ? editable_label_font->char_height : 0) + font->char_height;
+
+  UG_S16 height = layout->height;
 
   UG_COLOR back = getBackColor(layout), fore = getForeColor(layout);
   UG_SetForecolor(fore);
@@ -647,7 +659,6 @@ static bool renderEditable(FieldLayout *layout)
   UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label (if showing the conventional way - i.e. small and off to the top left.
-  bool showLabel = layout->modifier != ModNoLabel;
   if(showLabel) {
     UG_FontSelect(editable_label_font);
     UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
@@ -662,7 +673,6 @@ static bool renderEditable(FieldLayout *layout)
 
   // draw editable value
   if(showValue) {
-    const UG_FONT *font = layout->font ? layout->font : editable_value_font;
     UG_FontSelect(font);
 
     // how many pixels does our rendered string
@@ -672,8 +682,15 @@ static bool renderEditable(FieldLayout *layout)
     UG_S16 y = layout->y;
 
     if(showLabel) {
-      // right justify value on the second line
-      x += width - strwidth;
+      if(layout->modifier != ModLabelTop) // possibly move the value all the way to the right
+    	  x += width - strwidth;
+      else {
+    	  // Center justify
+    	  if(strwidth < width) // If the user gave us more space than we need, center justify within that box
+    	    x += (width - strwidth) / 2;
+      }
+
+      // put the value on the second line
       y += editable_label_font->char_height;
     }
     else {

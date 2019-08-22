@@ -225,48 +225,7 @@ Screen mainScreen = {
     } }
 };
 
-Screen infoScreen = {
-    // .onPress = mainscreen_onpress,
 
-    .fields = {
-    BATTERY_BAR,
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &motorTempField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &humanPowerField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &tripDistanceField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &odoField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    STATUS_BAR,
-    {
-        .field = NULL
-    } }
-};
 
 #else
 
@@ -653,7 +612,9 @@ void walk_assist_state(void)
 static Screen *screens[] = {
 	&mainScreen,
 	&configScreen,
+#ifdef SW102
     &infoScreen,
+#endif
     NULL
 };
 

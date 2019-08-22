@@ -2,6 +2,8 @@
 
 * show labels properly on hte 850C layouts
 * fix configscreen layout
+* fix trip time to use a readonly fieldtype
+* labels should be center aligned
 * final layout for mainscreen
 * use the 850C battery graphic case as a new renderBattery function
 * add graphs

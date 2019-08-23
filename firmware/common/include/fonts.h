@@ -9,6 +9,10 @@
 extern const UG_FONT MY_FONT_BATTERY;
 #endif
 
+#ifdef USE_FONT_CURSORS
+extern const UG_FONT FONT_CURSORS;
+#endif
+
 #ifdef USE_MY_FONT_8X12
 extern const UG_FONT MY_FONT_8X12;
 #endif

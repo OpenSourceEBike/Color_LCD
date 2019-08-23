@@ -58,16 +58,16 @@ static bool blinkOn;
 #define HEADING_FONT FONT_5X12
 #define SCROLLABLE_FONT FONT_5X12
 
-static const UG_FONT const *editable_label_font = &FONT_5X12;
-static const UG_FONT const *editable_value_font = &FONT_5X12;
-static const UG_FONT const *editable_units_font = &FONT_5X12;
+static const UG_FONT *editable_label_font = &FONT_5X12;
+static const UG_FONT *editable_value_font = &FONT_5X12;
+static const UG_FONT *editable_units_font = &FONT_5X12;
 #else
 #define HEADING_FONT FONT_10X16
 #define SCROLLABLE_FONT FONT_10X16
 
-static const UG_FONT const *editable_label_font = &FONT_10X16;
-static const UG_FONT const *editable_value_font = &FONT_10X16;
-static const UG_FONT const *editable_units_font = &FONT_10X16;
+static const UG_FONT *editable_label_font = &FONT_10X16;
+static const UG_FONT *editable_value_font = &FONT_10X16;
+static const UG_FONT *editable_units_font = &FONT_10X16;
 #endif
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
@@ -107,8 +107,6 @@ static void autoTextHeight(FieldLayout *layout) {
 static bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
 {
   autoTextHeight(layout);
-
-  Field *field = layout->field;
 
   const UG_FONT *font = layout->font;
   assert(font); // dynamic font selection not yet supported
@@ -736,6 +734,12 @@ static bool renderEditable(FieldLayout *layout)
   return true;
 }
 
+static bool renderCustom(FieldLayout *layout)
+{
+  assert(layout->field->custom.render);
+  return (*layout->field->custom.render)(layout);
+}
+
 static bool renderEnd(FieldLayout *layout)
 {
   assert(0); // This should never be called I think
@@ -906,7 +910,7 @@ static bool onPressScrollable(buttons_events_t events)
  * Used to map from FieldVariant enums to rendering functions
  */
 static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr, renderFill,
-    renderMesh, renderScrollable, renderEditable, renderEnd };
+    renderMesh, renderScrollable, renderEditable, renderCustom, renderEnd };
 
 static Screen *curScreen;
 static bool screenDirty;
@@ -991,6 +995,8 @@ void fieldPrintf(Field *field, const char *fmt, ...)
   va_list argp;
   va_start(argp, fmt);
   char buf[sizeof(field->drawText.msg)] = "";
+
+  assert(field->variant == FieldDrawText);
   vsnprintf(buf, sizeof(buf), fmt, argp);
   if (strcmp(buf, field->drawText.msg) != 0)
   {

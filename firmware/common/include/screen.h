@@ -91,6 +91,7 @@ typedef enum {
   FieldMesh, // Fill with a mesh color
   FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
   FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
+  FieldCustom, // A field with a custom render function (provided by the user)
   FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
 } FieldVariant;
 
@@ -102,6 +103,8 @@ typedef enum {
   EditUInt = 0, // This is the default type if not specified
   EditEnum // Choose a string from a list
 } EditableType;
+
+struct FieldLayout; // Forward declaration
 
 /**
  * Ready to render data (normally populated by comms code) which might be used on multiple different screens
@@ -121,6 +124,10 @@ typedef struct Field {
     struct {
       const char *msg; // A string stored in a ptr
     } drawTextPtr;
+
+    struct {
+      bool (*render)(struct FieldLayout *); // a custom render function, returns true if we did a render
+    } custom;
 
     struct {
       struct Field *entries; // the menu entries for this submenu.
@@ -177,6 +184,7 @@ typedef struct Field {
 
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
+#define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
 
 #define FIELD_END { .variant = FieldEnd }
 
@@ -205,7 +213,7 @@ typedef enum {
 /**
  * Defines the layout of a field on a particular screen
  */
-typedef struct {
+typedef struct FieldLayout {
   Coord x, y; // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
 
   // for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width

@@ -37,6 +37,9 @@
 
 #define  CONFIGURATIONS_TEXT_FONT     FONT_5X12
 
+#define HEADING_BACKGROUND 			C_BLACK
+#define HEADING_BORDER				(BorderBottom | BorderFat)
+
 #else
 
 #define  USE_MY_FONT_BATTERY // temp merge hack FIXME, stop using battery font on 850C
@@ -67,6 +70,9 @@
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)
 #define EDITABLE_NUM_ROWS 1
+
+#define HEADING_BACKGROUND 			C_DARK_BLUE
+#define HEADING_BORDER				(BorderNone)
 
 #endif
 

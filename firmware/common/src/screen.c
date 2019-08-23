@@ -89,6 +89,9 @@ static UG_COLOR getBackColor(const FieldLayout *layout)
   case ColorInvert:
     return C_WHITE;
 
+  case ColorHeading:
+	return HEADING_BACKGROUND;
+
   case ColorNormal:
   default:
     return C_BLACK;
@@ -103,6 +106,7 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
     return C_BLACK;
 
   case ColorNormal:
+  case ColorHeading:
   default:
     return C_WHITE;
   }
@@ -395,8 +399,8 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
         { // heading
           fieldPrintf(&heading, "%s", field->scrollable.label);
           r->field = &heading;
-          r->color = ColorNormal;
-          r->border = BorderBottom | BorderFat;
+          r->color = ColorHeading;
+          r->border = HEADING_BORDER;
           r->font = &HEADING_FONT;
 
           r->y = layout->y;

@@ -76,7 +76,8 @@
 
 typedef enum {
   ColorNormal = 0, // white on black
-  ColorInvert     // black on white
+  ColorInvert,     // black on white
+  ColorHeading     // white on dk blue
 } ColorOp;
 
 /**

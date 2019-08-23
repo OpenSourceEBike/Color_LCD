@@ -17,6 +17,8 @@
 #define C_TRANSPARENT 0xC1C2
 
 /* Enable needed fonts here */
+#define USE_FONT_CURSORS // Used for selection marker
+
 #ifdef SW102
 #define  USE_MY_FONT_8X12
 #define  USE_MY_FONT_NUM_10X16
@@ -70,6 +72,9 @@
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)
 #define EDITABLE_NUM_ROWS 1
+
+// The default is C_WHITE, redefine if you want something else
+#define EDITABLE_CURSOR_COLOR       C_ORANGE_RED
 
 #define HEADING_BACKGROUND 			C_DARK_BLUE
 #define HEADING_BORDER				(BorderNone)

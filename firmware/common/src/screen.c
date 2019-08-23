@@ -82,6 +82,11 @@ const UG_FONT *editable_units_font = &SMALL_TEXT_FONT;
 #define EDITABLE_NUM_ROWS 2
 #endif
 
+// The default is C_WHITE, redefine if you want something else
+#ifndef EDITABLE_CURSOR_COLOR
+#define EDITABLE_CURSOR_COLOR       C_WHITE
+#endif
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -185,12 +190,26 @@ static bool renderMesh(FieldLayout *layout)
  */
 static void drawSelectionMarker(FieldLayout *layout)
 {
-  // Only consider doing this on items that might be animated - and when editing don't blink the selection cursor
+  // Only consider doing this on items that might be animated
   // we size the cursor to be slightly shorter than the box it is in
-  if (layout->field && layout->field->is_selected && !curActiveEditable)
-    UG_DrawLine(layout->x, layout->y + 2, layout->x,
-        layout->y + layout->height - 3,
-        blinkOn ? getForeColor(layout) : getBackColor(layout));
+
+  //  && !curActiveEditable - old code when editing don't blink the selection cursor
+  if (layout->field && layout->field->is_selected)
+  {
+#if 1
+	  UG_FontSelect(&FONT_CURSORS);
+	  UG_PutChar('0',
+			  layout->x + layout->width - FONT_CURSORS.char_width,  // draw on ride side of line
+			  layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
+			  blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(layout),
+			  C_TRANSPARENT);
+#else
+	    UG_DrawLine(layout->x, layout->y + 2, layout->x,
+	        layout->y + layout->height - 3,
+	        blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(layout));
+#endif
+  }
+
 }
 
 /**
@@ -715,7 +734,7 @@ static bool renderEditable(FieldLayout *layout)
 
     if(showLabel) {
       if(!showLabelAtTop) {
-    	  x += width - strwidth;	// move the value all the way to the right
+    	  x += width - strwidth - FONT_CURSORS.char_width;	// move the value all the way to the right (but leave room for the cursor)
 
           if(isTwoRows)// put the value on the second line (if the screen is narrow)
         	  y += editable_label_font->char_height;
@@ -739,7 +758,7 @@ static bool renderEditable(FieldLayout *layout)
     if (isActive)
     {
       UG_S16 cursorY = y + font->char_height + 1;
-      UG_DrawLine(x - 1, cursorY, layout->x + width, cursorY, blinkOn ? fore : back);
+      UG_DrawLine(x - 1, cursorY, layout->x + width, cursorY, blinkOn ? EDITABLE_CURSOR_COLOR : back);
     }
   }
 

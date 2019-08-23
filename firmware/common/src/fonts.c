@@ -70,6 +70,22 @@ const UG_FONT FONT_45X72 = { (unsigned char*)BITS_FONT_45X72, FONT_TYPE_1BPP, 45
 #ifdef USE_FONT_CURSORS
 __UG_FONT_DATA unsigned char my_font_cursors[][13]={
 // kevinh - from "pinta" linux app leftarrow-8x13.png using https://littlevgl.com/image-to-c-array
+// @lowPerformer recommends http://www.eran.io/the-dot-factory-an-lcd-font-and-image-generator/ - it works with Mono
+{
+  0x00,
+  0x40,
+  0x60,
+  0x70,
+  0x78,
+  0x7c,
+  0x7e,
+  0x7c,
+  0x78,
+  0x70,
+  0x60,
+  0x40,
+  0x00,
+},
 {
  0x00,
  0x02,
@@ -85,7 +101,7 @@ __UG_FONT_DATA unsigned char my_font_cursors[][13]={
  0x02,
  0x00,
 }};
-const UG_FONT FONT_CURSORS= {(unsigned char*)my_font_cursors,FONT_TYPE_1BPP,8,13,'0','0',NULL};
+const UG_FONT FONT_CURSORS= {(unsigned char*)my_font_cursors,FONT_TYPE_1BPP,8,13,'0','1',NULL};
 #endif
 
 #ifdef USE_MY_FONT_BATTERY

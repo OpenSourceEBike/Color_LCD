@@ -62,9 +62,6 @@ void battery_soc(void), battery_display();
 void trip_time(void);
 static void showNextScreen();
 
-// Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
-#define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
-#define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");

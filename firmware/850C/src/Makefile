@@ -96,7 +96,7 @@ flash_serial: main.bin
 # stm32f1x unlocked.
 # INFO: a reset or power cycle is required for the new settings to take effect.
 flash_jtag: main.bin
-	$(OPENOCD) -c "init; reset halt; stm32f1x mass_erase 0; flash write_bank 0 main.bin 0; shutdown"
+	$(OPENOCD) -c "init; reset halt; sleep 500; stm32f1x mass_erase 0; flash write_bank 0 main.bin 0; shutdown"
 
 run_jtag: flash_jtag
 	$(OPENOCD) -c "init; reset halt; reset run; shutdown"

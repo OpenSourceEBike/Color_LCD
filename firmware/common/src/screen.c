@@ -62,8 +62,8 @@ const UG_FONT *editable_label_font = &FONT_5X12;
 const UG_FONT *editable_value_font = &FONT_5X12;
 const UG_FONT *editable_units_font = &FONT_5X12;
 #else
-#define HEADING_FONT FONT_10X16
-#define SCROLLABLE_FONT FONT_10X16
+#define HEADING_FONT TITLE_TEXT_FONT
+#define SCROLLABLE_FONT TITLE_TEXT_FONT
 
 const UG_FONT *editable_label_font = &FONT_10X16;
 const UG_FONT *editable_value_font = &FONT_10X16;
@@ -183,7 +183,7 @@ static void drawSelectionMarker(FieldLayout *layout)
 static void drawBorder(FieldLayout *layout)
 {
   UG_COLOR color = getForeColor(layout);
-  int fatness = (layout->border & BorderFat) ? 2 : 1;
+  int fatness = (layout->border & BorderFat) ? Yby64(1) : 1;
 
   if(layout->border & BorderTop)
     UG_DrawLine(layout->x, layout->y, layout->x + layout->width - 1, layout->y,

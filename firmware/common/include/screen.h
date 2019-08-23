@@ -277,19 +277,24 @@ extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
 
+
+// Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
+#define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
+#define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
+#define Xby64(n) ((SCREEN_WIDTH * (n)) / 64)
+#define Yby64(n) ((SCREEN_HEIGHT * (n)) / 64)
+
 #ifdef SW102
 #define SCREENFN_FORCE_LABELS buttons_get_m_state()
 
 #define SCREENCLICK_START_EDIT M_CLICK
 #define SCREENCLICK_STOP_EDIT M_CLICK
 #define SCREEMCLICK_NEXT_SCREEN ONOFF_CLICK
-
 #else
 #define SCREENFN_FORCE_LABELS false
 
 #define SCREENCLICK_START_EDIT ONOFF_CLICK
 #define SCREENCLICK_STOP_EDIT UPDOWN_CLICK
 #define SCREEMCLICK_NEXT_SCREEN UPDOWN_CLICK
-
 #endif
 

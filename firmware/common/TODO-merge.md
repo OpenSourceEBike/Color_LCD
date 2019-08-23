@@ -8,7 +8,6 @@
 * fix boot screen layout to be prettier - add URL to github project
 * make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
-* show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
 
 ## other work items:
 * changing # of digits drawn forces a full redraw of the field, which produces a very slight visible flash as the label is erased and redrawn
@@ -49,6 +48,7 @@
 * more implement fault.c for 850C 
 * add a hard fault handler to catch and print bad ptr accesses
 * use the slick 850C battery graphic case as a new renderBattery function
+* show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
 
 ## todo later 
 

@@ -58,16 +58,16 @@ static bool blinkOn;
 #define HEADING_FONT FONT_5X12
 #define SCROLLABLE_FONT FONT_5X12
 
-static const UG_FONT *editable_label_font = &FONT_5X12;
-static const UG_FONT *editable_value_font = &FONT_5X12;
-static const UG_FONT *editable_units_font = &FONT_5X12;
+const UG_FONT *editable_label_font = &FONT_5X12;
+const UG_FONT *editable_value_font = &FONT_5X12;
+const UG_FONT *editable_units_font = &FONT_5X12;
 #else
 #define HEADING_FONT FONT_10X16
 #define SCROLLABLE_FONT FONT_10X16
 
-static const UG_FONT *editable_label_font = &FONT_10X16;
-static const UG_FONT *editable_value_font = &FONT_10X16;
-static const UG_FONT *editable_units_font = &FONT_10X16;
+const UG_FONT *editable_label_font = &FONT_10X16;
+const UG_FONT *editable_value_font = &FONT_10X16;
+const UG_FONT *editable_units_font = &FONT_10X16;
 #endif
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
@@ -942,6 +942,10 @@ void panicScreenShow(Screen *screen)
   scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
   curScreen = screen;
   screenDirty = true;
+
+  if(curScreen->onEnter)
+    (*curScreen->onEnter)();
+
   screenUpdate(); // Force a draw immediately
 }
 
@@ -961,6 +965,9 @@ void screenUpdate()
 {
   if (!curScreen)
     return;
+
+  if(curScreen->onUpdate)
+    (*curScreen->onUpdate)();
 
   bool didDraw = false; // we only render to hardware if something changed
 

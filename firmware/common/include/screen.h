@@ -251,7 +251,9 @@ The top three handlers in the list above are handled by screen
 typedef bool (*ButtonEventHandler)(buttons_events_t events);
 
 typedef struct {
+  void (*onEnter)(); // If !NULL will be called whenever this screen is about to be shown (good to change globals etc)
   void (*onExit)(); // If !NULL will be called when this screen is no longer visible
+  void (*onUpdate)(); // If !NULL, Called just before each update operation
   ButtonEventHandler onPress; // or NULL for no handler
   FieldLayout fields[];
 } Screen;
@@ -270,6 +272,10 @@ Screen *getCurrentScreen();
 bool screenOnPress(buttons_events_t events);
 
 void fieldPrintf(Field *field, const char *fmt, ...);
+
+extern const UG_FONT *editable_label_font;
+extern const UG_FONT *editable_value_font;
+extern const UG_FONT *editable_units_font;
 
 #ifdef SW102
 #define SCREENFN_FORCE_LABELS buttons_get_m_state()

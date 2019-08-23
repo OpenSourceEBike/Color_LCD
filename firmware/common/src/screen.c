@@ -596,7 +596,11 @@ static void getEditableString(Field *field, uint32_t num, char *outbuf) {
 // We can optionally render by filling all with black and then drawing text with a transparent background
 // This is useful on very small screens (SW102) where we might want the text to overlap.  However, this
 // approach causes flickering on non memory resident framebuffers (850C)
+#ifdef SW102
+#define EDITABLE_BLANKALL true
+#else
 #define EDITABLE_BLANKALL false
+#endif
 
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes

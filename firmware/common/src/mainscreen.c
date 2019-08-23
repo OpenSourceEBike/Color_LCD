@@ -67,7 +67,7 @@ void trip_time(void);
 #define YbyEighths(n) ((SCREEN_HEIGHT * (n)) / 8)
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
-Field bootURL = FIELD_DRAWTEXTPTR("https://github.com/\nOpenSource-EBike-Firmware");
+Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
@@ -80,11 +80,13 @@ Screen bootScreen = {
         .field = &bootHeading,
         .font = &REGULAR_TEXT_FONT,
     },
+#ifndef SW102
     {
         .x = 0, .y = -8, .height = -1,
         .field = &bootURL,
         .font = &SMALL_TEXT_FONT,
     },
+#endif
     {
         .x = 0, .y = YbyEighths(4), .height = -1,
         .field = &bootVersion,

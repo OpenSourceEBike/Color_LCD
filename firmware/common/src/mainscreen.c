@@ -60,7 +60,7 @@ void temperature(void);
 void time(void);
 void battery_soc(void), battery_display();
 void trip_time(void);
-
+static void showNextScreen();
 
 // Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
 #define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)
@@ -72,8 +72,33 @@ Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
 
+#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
+
+static void bootScreenOnUpdate() {
+  static uint32_t start_time;
+
+  if(start_time == 0)
+    start_time = ui32_seconds_since_startup;
+
+  uint16_t bvolt = battery_voltage_10x_get();
+
+  is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
+
+  if(is_sim_motor)
+    fieldPrintf(&bootStatus, "SIMULATING motor!");
+  else if(has_seen_motor)
+    fieldPrintf(&bootStatus, "Found motor");
+  else
+    fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
+
+  // Stop showing the boot screen after a few seconds (once we've found a motor)
+  if(ui32_seconds_since_startup - start_time >= 5 && (has_seen_motor || is_sim_motor))
+    showNextScreen();
+}
 
 Screen bootScreen = {
+    .onUpdate = bootScreenOnUpdate,
+
     .fields = {
     {
         .x = 0, .y = 0, .height = -1,
@@ -645,9 +670,11 @@ static Screen *screens[] = {
     NULL
 };
 
-static int nextScreen = 0;
 
-void showNextScreen() {
+
+static void showNextScreen() {
+  static int nextScreen;
+
   Screen *next = screens[nextScreen++];
 
   if(!next) {
@@ -695,36 +722,12 @@ static void handle_buttons() {
   buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
 }
 
-#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
-
 
 /// Call every 20ms from the main thread.
 void main_idle() {
-	static uint32_t start_time;
-
-	if(start_time == 0)
-		start_time = ui32_seconds_since_startup;
-
     screen_clock();
     handle_buttons();
     automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
-
-    if(getCurrentScreen() == &bootScreen) { // FIXME move this into an onIdle callback on the screen
-      uint16_t bvolt = battery_voltage_10x_get();
-
-      is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-
-      if(is_sim_motor)
-        fieldPrintf(&bootStatus, "SIMULATING motor!");
-      else if(has_seen_motor)
-        fieldPrintf(&bootStatus, "Found motor");
-      else
-        fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
-
-      // Stop showing the boot screen after a few seconds (once we've found a motor)
-      if(ui32_seconds_since_startup - start_time >= 5 && (has_seen_motor || is_sim_motor))
-        showNextScreen();
-    }
 }
 
 

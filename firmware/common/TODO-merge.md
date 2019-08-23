@@ -1,6 +1,5 @@
 ## Remaining merge tasks:
 
-* use the slick 850C battery graphic case as a new renderBattery function
 * fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * labels should be center aligned
@@ -49,6 +48,7 @@
 * show labels properly on hte 850C layouts
 * more implement fault.c for 850C 
 * add a hard fault handler to catch and print bad ptr accesses
+* use the slick 850C battery graphic case as a new renderBattery function
 
 ## todo later 
 

@@ -1,9 +1,9 @@
 ## Remaining merge tasks:
 
+* use the slick 850C battery graphic case as a new renderBattery function
 * fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * labels should be center aligned
-* use the slick 850C battery graphic case as a new renderBattery function
 * add graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
 * fix boot screen layout to be prettier - add URL to github project

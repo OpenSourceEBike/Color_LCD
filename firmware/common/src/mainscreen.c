@@ -23,11 +23,18 @@
 #include "ugui.h"
 #include "configscreen.h"
 
+#ifndef SW102
+#include "battery_gui.h" // FIXME, remove this ifdef, instead move the layouts into a 850C specific file
+
+Field batteryField = FIELD_CUSTOM(renderBattery);
+#else
+Field batteryField = FIELD_DRAWTEXT();
+#endif
+
 //
 // Fields - these might be shared my multiple screens
 //
 Field socField = FIELD_DRAWTEXT();
-Field batteryField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
 Field speedField = FIELD_READONLY_UINT("Speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 Field assistLevelField = FIELD_READONLY_UINT("Assist", &l3_vars.ui8_assist_level, "");
@@ -157,13 +164,13 @@ bool mainscreen_onpress(buttons_events_t events) {
         .font = &MY_FONT_BATTERY, \
     }, \
     { \
-        .x = XbyEighths(2), .y = 0, \
+        .x = 96, .y = 4, \
         .width = -5, .height = -1, \
         .font = &REGULAR_TEXT_FONT, \
         .field = &socField \
     }, \
 	{ \
-		.x = XbyEighths(5), .y = 0, \
+		.x = 232, .y = 4, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
 		.field = &timeField \
@@ -554,9 +561,20 @@ void battery_soc(void)
 
 // Show our battery graphic
 void battery_display() {
-  uint8_t ui32_battery_bar_number = l3_vars.volt_based_soc / (90 / 5); // scale SOC so anything greater than 90% is 5 bars, and zero is zero.
 
+#ifdef SW102
+  // on this board we use a special battery font
+  uint8_t ui32_battery_bar_number = l3_vars.volt_based_soc / (90 / 5); // scale SOC so anything greater than 90% is 5 bars, and zero is zero.
   fieldPrintf(&batteryField, "%d", ui32_battery_bar_number);
+#else
+  static uint8_t oldsoc = 0xff;
+
+  // Only trigger redraws if something changed
+  if(l3_vars.volt_based_soc != oldsoc) {
+	  oldsoc = l3_vars.volt_based_soc;
+	  batteryField.dirty = true;
+  }
+#endif
 }
 
 void temperature(void)

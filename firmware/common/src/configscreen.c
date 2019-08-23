@@ -137,6 +137,13 @@ static Field topMenus[] = {
 
 static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
 
+static void configScreenOnEnter() {
+	// Set the font preference for this screen
+	editable_label_font = &CONFIGURATIONS_TEXT_FONT;
+	editable_value_font = &CONFIGURATIONS_TEXT_FONT;
+	editable_units_font = &CONFIGURATIONS_TEXT_FONT;
+}
+
 static void configExit() {
       // save the variables on EEPROM
       // FIXME: move this into a onExit callback on the config screen object instead
@@ -148,6 +155,7 @@ static void configExit() {
 //
 Screen configScreen = {
     .onExit = configExit,
+	.onEnter = configScreenOnEnter,
 
     .fields = {
     // FIXME, add a drawable with the a "Config" title at top of screen

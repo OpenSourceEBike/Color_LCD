@@ -277,6 +277,9 @@ extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
 
+// The default is for editables to be two rows tall, with the data value on the second row
+// define this as 1 if you want them to be one row tall (because you have a wide enough screen)
+// #define EDITABLE_NUM_ROWS 2
 
 // Used to define  positions in terms of # of 1/8ths of screen width/height (i.e. 4 is middle, 3 is slightly to left etc)
 #define XbyEighths(n) ((SCREEN_WIDTH * (n)) / 8)

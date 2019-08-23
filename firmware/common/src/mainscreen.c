@@ -165,6 +165,14 @@ bool mainscreen_onpress(buttons_events_t events) {
   return false;
 }
 
+
+static void mainScreenOnEnter() {
+	// Set the font preference for this screen
+	editable_label_font = &SMALL_TEXT_FONT;
+	editable_value_font = &SMALL_TEXT_FONT;
+	editable_units_font = &SMALL_TEXT_FONT;
+}
+
 #ifndef SW102
 
 /**
@@ -206,6 +214,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 //
 Screen mainScreen = {
     .onPress = mainscreen_onpress,
+	.onEnter = mainScreenOnEnter,
 
     .fields = {
     BATTERY_BAR,
@@ -307,6 +316,7 @@ Screen mainScreen = {
 //
 Screen mainScreen = {
     .onPress = mainscreen_onpress,
+	.onEnter = mainScreenOnEnter,
 
     .fields = {
     BATTERY_BAR,
@@ -350,6 +360,7 @@ Screen mainScreen = {
 
 Screen infoScreen = {
     // .onPress = mainscreen_onpress,
+	.onEnter = mainScreenOnEnter,
 
     .fields = {
     BATTERY_BAR,

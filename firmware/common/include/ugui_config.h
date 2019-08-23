@@ -35,6 +35,8 @@
 #define  MEDIUM_NUMBERS_TEXT_FONT     MY_FONT_NUM_10X16
 #define  BIG_NUMBERS_TEXT_FONT        MY_FONT_NUM_24X40
 
+#define  CONFIGURATIONS_TEXT_FONT     FONT_5X12
+
 #else
 
 #define  USE_MY_FONT_BATTERY // temp merge hack FIXME, stop using battery font on 850C
@@ -61,6 +63,10 @@
 #define  HUGE_NUMBERS_TEXT_FONT       FONT_61X99
 
 #define  CONFIGURATIONS_TEXT_FONT     FONT_12X20
+
+// The default is for editables to be two rows tall, with the data value on the second row
+// define this as 1 if you want them to be one row tall (because you have a wide enough screen)
+#define EDITABLE_NUM_ROWS 1
 
 #endif
 

@@ -56,18 +56,30 @@ static bool blinkOn;
 
 #ifdef SW102
 #define HEADING_FONT FONT_5X12
-#define SCROLLABLE_FONT FONT_5X12
-
-const UG_FONT *editable_label_font = &FONT_5X12;
-const UG_FONT *editable_value_font = &FONT_5X12;
-const UG_FONT *editable_units_font = &FONT_5X12;
 #else
 #define HEADING_FONT TITLE_TEXT_FONT
-#define SCROLLABLE_FONT TITLE_TEXT_FONT
 
-const UG_FONT *editable_label_font = &FONT_10X16;
-const UG_FONT *editable_value_font = &FONT_10X16;
-const UG_FONT *editable_units_font = &FONT_10X16;
+#endif
+
+#define SCROLLABLE_FONT CONFIGURATIONS_TEXT_FONT
+
+const UG_FONT *editable_label_font = &SMALL_TEXT_FONT;
+const UG_FONT *editable_value_font = &SMALL_TEXT_FONT;
+const UG_FONT *editable_units_font = &SMALL_TEXT_FONT;
+
+// We can optionally render by filling all with black and then drawing text with a transparent background
+// This is useful on very small screens (SW102) where we might want the text to overlap.  However, this
+// approach causes flickering on non memory resident framebuffers (850C)
+#ifdef SW102
+#define EDITABLE_BLANKALL true
+#else
+#define EDITABLE_BLANKALL false
+#endif
+
+// The default is for editables to be two rows tall, with the data value on the second row
+// define this as 1 if you want them to be one row tall (because you have a wide enough screen)
+#ifndef EDITABLE_NUM_ROWS
+#define EDITABLE_NUM_ROWS 2
 #endif
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
@@ -341,18 +353,20 @@ static bool exitScrollable()
   }
 }
 
-#define SCROLLABLE_ROWS 2 // How many rows inside each entry (includes label and value)
-#define SCROLLABLE_ROW_HEIGHT 32 // for planning purposes - might be larger at runtime
+#define SCROLLABLE_VPAD 4 // extra space between each row (for visual appearance)
+#define SCROLLABLE_ROW_HEIGHT (SCROLLABLE_VPAD + 16) // for planning purposes - might be larger at runtime
 #define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
 
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
-  const Coord rowHeight = SCROLLABLE_ROWS * (SCROLLABLE_FONT.char_height + 4); // 3 data rows 32 pixels tall + one 32 pixel header
+  const Coord rowHeight = EDITABLE_NUM_ROWS * (SCROLLABLE_FONT.char_height + gui.char_v_space) + SCROLLABLE_VPAD;
   int maxRowsPerScreen = SCREEN_HEIGHT / rowHeight; // might be less than MAX_SCROLLABLE_ROWS
 
   Field *scrollable = getActiveScrollable();
   bool weAreExpanded = scrollable == field;
+
+  assert(rowHeight >= SCROLLABLE_ROW_HEIGHT); // Make sure we we don't violate our array sizes
 
   // If we are expanded show our heading and the current visible child elements
   // Otherwise just show our label so that the user might select us to expand
@@ -375,7 +389,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
         r->x = layout->x;
         r->y = layout->y + rowHeight * i;
         r->width = layout->width;
-        r->height = rowHeight - 1; // Allow a 1 line gap between each row
         r->border = BorderNone;
 
         if (i == 0)
@@ -385,9 +398,15 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           r->color = ColorNormal;
           r->border = BorderBottom | BorderFat;
           r->font = &HEADING_FONT;
+
+          r->y = layout->y;
+          r->height = r->font->char_height + gui.char_v_space + SCROLLABLE_VPAD;
         }
         else
         {
+          r->y = rows[i - 1].y + rows[i - 1].height;
+          r->height = rowHeight; // all data rows are the same height
+
           // visible menu rows, starting with where the user has scrolled to
           const int entryNum = field->scrollable.first + i - 1;
           Field *entry = &field->scrollable.entries[entryNum];
@@ -593,14 +612,6 @@ static void getEditableString(Field *field, uint32_t num, char *outbuf) {
   }
 }
 
-// We can optionally render by filling all with black and then drawing text with a transparent background
-// This is useful on very small screens (SW102) where we might want the text to overlap.  However, this
-// approach causes flickering on non memory resident framebuffers (850C)
-#ifdef SW102
-#define EDITABLE_BLANKALL true
-#else
-#define EDITABLE_BLANKALL false
-#endif
 
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
@@ -613,10 +624,13 @@ static bool renderEditable(FieldLayout *layout)
   bool isActive = curActiveEditable == field; // are we being edited right now?
   bool dirty = field->dirty;
   bool showLabel = layout->modifier != ModNoLabel;
+  bool showLabelAtTop = layout->modifier == ModLabelTop;
   const UG_FONT *font = layout->font ? layout->font : editable_value_font;
 
+  bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
+
   if(layout->height == -1) // We should autoset
-    layout->height = (showLabel ? editable_label_font->char_height : 0) + font->char_height;
+    layout->height = ((isTwoRows || showLabelAtTop) ? editable_label_font->char_height : 0) + font->char_height;
 
   UG_S16 height = layout->height;
 
@@ -696,16 +710,19 @@ static bool renderEditable(FieldLayout *layout)
     UG_S16 y = layout->y;
 
     if(showLabel) {
-      if(layout->modifier != ModLabelTop) // possibly move the value all the way to the right
-    	  x += width - strwidth;
+      if(!showLabelAtTop) {
+    	  x += width - strwidth;	// move the value all the way to the right
+
+          if(isTwoRows)// put the value on the second line (if the screen is narrow)
+        	  y += editable_label_font->char_height;
+      }
       else {
     	  // Center justify
     	  if(strwidth < width) // If the user gave us more space than we need, center justify within that box
     	    x += (width - strwidth) / 2;
-      }
 
-      // put the value on the second line
-      y += editable_label_font->char_height;
+    	  y += editable_label_font->char_height; // put value just underneath
+      }
     }
     else {
       if(strwidth < width) // If the user gave us more space than we need, center justify within that box

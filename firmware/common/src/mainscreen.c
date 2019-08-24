@@ -725,10 +725,6 @@ static void handle_buttons() {
 
     if (handled)
       buttons_clear_all_events();
-
-    // If we just handled a press, we should immediately redraw any dirty things - so the UI feels snappy
-    if(handled)
-  	  screenUpdate();
   }
 
   buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
@@ -737,8 +733,8 @@ static void handle_buttons() {
 
 /// Call every 20ms from the main thread.
 void main_idle() {
-    screen_clock();
     handle_buttons();
+    screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
     automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
 }
 

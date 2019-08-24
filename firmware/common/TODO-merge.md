@@ -1,11 +1,8 @@
 ## Remaining merge tasks:
 
-* fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
-* labels should be center aligned
 * add graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
-* fix boot screen layout to be prettier - add URL to github project
 * make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
 
@@ -49,6 +46,9 @@
 * add a hard fault handler to catch and print bad ptr accesses
 * use the slick 850C battery graphic case as a new renderBattery function
 * show a wider bar for BorderFat - scale based on screen height (to make config screen look better)
+* fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
+* labels should be center aligned
+* fix boot screen layout to be prettier - add URL to github project
 
 ## todo later 
 
@@ -60,4 +60,4 @@
 * remove ui8_***_imperial (by making auto scaling smarter in render)
 * 850C doesn't seem to do proper dependency checking - changes to .h files should cause new builds
 * Per @lowPerformer: We can also extend the fonts by our "special" characters we need, f.i. ASCII ':' can be a 'W'. I did that with MY_FONT_8X12 where 0x1F is a '°' like in °C.
-
+* show units on config screen

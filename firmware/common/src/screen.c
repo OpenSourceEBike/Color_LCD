@@ -196,18 +196,12 @@ static void drawSelectionMarker(FieldLayout *layout)
   //  && !curActiveEditable - old code when editing don't blink the selection cursor
   if (layout->field && layout->field->is_selected)
   {
-#if 1
 	  UG_FontSelect(&FONT_CURSORS);
 	  UG_PutChar('0',
 			  layout->x + layout->width - FONT_CURSORS.char_width,  // draw on ride side of line
 			  layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
 			  blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(layout),
 			  C_TRANSPARENT);
-#else
-	    UG_DrawLine(layout->x, layout->y + 2, layout->x,
-	        layout->y + layout->height - 3,
-	        blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(layout));
-#endif
   }
 
 }
@@ -681,7 +675,7 @@ static bool renderEditable(FieldLayout *layout)
   bool valueChanged = num != layout->old_editable;
   char valuestr[MAX_FIELD_LEN];
 
-  bool needBlink = blinkChanged && isActive;
+  bool needBlink = blinkChanged && (isActive || field->is_selected);
 
   // If the value numerically changed, see if it also changed as a string (much more expensive)
   bool showValue = !forceLabels && (valueChanged || dirty || needBlink); // default to not drawing the value

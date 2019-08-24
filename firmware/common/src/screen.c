@@ -380,11 +380,12 @@ static bool exitScrollable()
 #define SCROLLABLE_ROW_HEIGHT (SCROLLABLE_VPAD + 16) // for planning purposes - might be larger at runtime
 #define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
 
+static int maxRowsPerScreen;
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 {
   const Coord rowHeight = EDITABLE_NUM_ROWS * (SCROLLABLE_FONT.char_height + gui.char_v_space) + SCROLLABLE_VPAD;
-  int maxRowsPerScreen = SCREEN_HEIGHT / rowHeight; // might be less than MAX_SCROLLABLE_ROWS
+  maxRowsPerScreen = SCREEN_HEIGHT / rowHeight; // might be less than MAX_SCROLLABLE_ROWS
 
   Field *scrollable = getActiveScrollable();
   bool weAreExpanded = scrollable == field;
@@ -487,6 +488,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           == &scrollable->scrollable.entries[scrollable->scrollable.selected];
     else
       label.is_selected = false;
+    label.blink = label.is_selected; // We want to service our blink animation
 
     rows[1].field = NULL; // mark end of array (for rendering)
 
@@ -906,7 +908,7 @@ static bool onPressScrollable(buttons_events_t events)
       s->scrollable.selected++;
     }
 
-    int numDataRows = MAX_SCROLLABLE_ROWS - 1;
+    int numDataRows = maxRowsPerScreen - 1;
     int lastVisibleRow = s->scrollable.first + numDataRows - 1;
     if (s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
       s->scrollable.first = s->scrollable.selected - numDataRows + 1;

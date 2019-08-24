@@ -894,7 +894,6 @@ static bool onPressScrollable(buttons_events_t events)
       s->scrollable.first = s->scrollable.selected;
 
     forceScrollableRender();
-    ;
     handled = true;
   }
 

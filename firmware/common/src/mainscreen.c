@@ -725,6 +725,10 @@ static void handle_buttons() {
 
     if (handled)
       buttons_clear_all_events();
+
+    // If we just handled a press, we should immediately redraw any dirty things - so the UI feels snappy
+    if(handled)
+  	  screenUpdate();
   }
 
   buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce

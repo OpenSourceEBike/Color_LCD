@@ -93,6 +93,7 @@ typedef enum {
   FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
   FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
   FieldCustom, // A field with a custom render function (provided by the user)
+  FieldGraph, // A bar graph
   FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
 } FieldVariant;
 
@@ -104,6 +105,32 @@ typedef enum {
   EditUInt = 0, // This is the default type if not specified
   EditEnum // Choose a string from a list
 } EditableType;
+
+#define GRAPH_MAX_POINTS	(256) // Note: we waste one record, to make our ring buffer code easier
+#define GRAPH_INTERVAL_MS 	3500 // graph updates are expensive - do rarely
+#define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
+#define GRAPH_COLOR_NORMAL  C_GREEN
+#define GRAPH_COLOR_WARN    C_YELLOW
+#define GRAPH_COLOR_ERROR   C_RED
+#define GRAPH_COLOR_BACKGROUND C_BLACK
+#define GRAPH_COLOR_AXIS	C_SLATE_GRAY
+#define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
+#define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
+
+// Assumed period of screenUpdate invoke
+#define UPDATE_INTERVAL_MS 20
+
+// How often to toggle blink animations
+#define BLINK_INTERVAL_MS  500
+
+// Each _active_ graph needs a graphcache to store past points and invariants.  Currently we use use one,
+// but as soon as we have multiple active graphs we should assign dynamically.
+typedef struct {
+	int32_t	points[GRAPH_MAX_POINTS];
+	int32_t	max_val, min_val; // the max/min value we've seen (ever)
+	uint32_t	start_valid; // the oldest point in our ring buffer
+	uint32_t    end_valid; // the newest point in our ring buffer
+} GraphCache;
 
 struct FieldLayout; // Forward declaration
 
@@ -118,6 +145,9 @@ typedef struct Field {
   // bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
 
   union {
+	  //FIXME: possibly move these fields out into separate structures, because currently the
+	  //biggest member causes all members to become larger.
+
     struct {
       char msg[MAX_FIELD_LEN];
     } drawText;
@@ -125,6 +155,13 @@ typedef struct Field {
     struct {
       const char *msg; // A string stored in a ptr
     } drawTextPtr;
+
+    struct {
+      struct Field  *source; // the data field we are graphing
+      GraphCache    *cache;
+      int32_t		warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+      int32_t		min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
+    } graph;
 
     struct {
       bool (*render)(struct FieldLayout *); // a custom render function, returns true if we did a render
@@ -186,6 +223,7 @@ typedef struct Field {
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
+#define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
 
 #define FIELD_END { .variant = FieldEnd }
 

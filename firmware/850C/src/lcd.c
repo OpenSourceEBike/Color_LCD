@@ -21,7 +21,6 @@
 #include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui.h"
 #include "rtc.h"
-#include "graphs.h"
 #include "fonts.h"
 #include "state.h"
 
@@ -42,10 +41,6 @@ volatile lcd_vars_t m_lcd_vars =
   .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
-static volatile graphs_t *m_p_graphs;
-static volatile uint32_t ui32_m_draw_graphs_1 = 0;
-static volatile uint32_t ui32_m_draw_graphs_2 = 0;
-
 volatile uint32_t ui32_g_first_time = 1;
 
 void power_off_management(void);
@@ -60,7 +55,6 @@ void lcd_init(void)
   bafang_500C_lcd_init();
   UG_FillScreen(C_BLACK);
 
-  m_p_graphs = get_graphs();
   set_lcd_backlight(); // default to at least some backlight
 }
 

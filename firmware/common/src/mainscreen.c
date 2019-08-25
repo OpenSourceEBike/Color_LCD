@@ -47,7 +47,8 @@ Field warnField = FIELD_DRAWTEXT();
 Field tripTimeField = FIELD_DRAWTEXT();
 Field tripDistanceField = FIELD_READONLY_UINT("Trip", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("ODO", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
-Field motorTempField = FIELD_DRAWTEXT();
+Field motorTempField = FIELD_READONLY_UINT("Temp", &l3_vars.ui8_motor_temperature, "C");
+Field motorTempGraph = FIELD_GRAPH(&motorTempField);
 
 static uint8_t ui8_walk_assist_state = 0;
 
@@ -56,7 +57,6 @@ void lcd_main_screen(void);
 void brake(void);
 void walk_assist_state(void);
 void power(void);
-void temperature(void);
 void time(void);
 void battery_soc(void), battery_display();
 void trip_time(void);
@@ -171,6 +171,10 @@ static void mainScreenOnEnter() {
 	editable_label_font = &SMALL_TEXT_FONT;
 	editable_value_font = &SMALL_TEXT_FONT;
 	editable_units_font = &SMALL_TEXT_FONT;
+
+	// Update our graph thresholds based on current values
+	motorTempGraph.graph.warn_threshold = l2_vars.ui8_motor_temperature_min_value_to_limit;
+	motorTempGraph.graph.error_threshold = l2_vars.ui8_motor_temperature_max_value_to_limit;
 }
 
 #ifndef SW102
@@ -265,6 +269,11 @@ Screen mainScreen = {
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .modifier = ModLabelTop,
         .border = BorderBottom
+    },
+    {
+        .x = XbyEighths(0), .y = -1,
+        .width = XbyEighths(8), .height = YbyEighths(2),
+        .field = &motorTempGraph,
     },
     STATUS_BAR,
     {
@@ -411,7 +420,6 @@ void lcd_main_screen(void)
   walk_assist_state();
 //  offroad_mode();
   power();
-  temperature();
   battery_soc();
   battery_display();
   brake();
@@ -612,16 +620,7 @@ void battery_display() {
 #endif
 }
 
-void temperature(void)
-{
-  if(l3_vars.ui8_temperature_limit_feature_enabled)
-  {
-    fieldPrintf(&motorTempField, "%dC", l3_vars.ui8_motor_temperature);
-  }
-  else {
-    fieldPrintf(&motorTempField, "no temp");
-  }
-}
+
 
 void time(void)
 {

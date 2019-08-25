@@ -54,6 +54,8 @@ static const FieldRenderFn renderers[];
 static bool blinkChanged;
 static bool blinkOn;
 
+static uint32_t screenUpdateCounter;
+
 #ifdef SW102
 #define HEADING_FONT FONT_5X12
 #else
@@ -508,6 +510,8 @@ static bool renderScrollable(FieldLayout *layout)
 // Get the numeric value of an editable number, properly handling different possible byte encodings
 static int32_t getEditableNumber(Field *field)
 {
+  assert(field->variant == FieldEditable);
+
   switch (field->editable.size)
   {
   case 1:
@@ -599,7 +603,7 @@ static void changeEditable(bool increment)
 
 
 /// Given an editible extract its value as a string (max len MAX_FIELD_LEN)
-static void getEditableString(Field *field, uint32_t num, char *outbuf) {
+static void getEditableString(Field *field, int32_t num, char *outbuf) {
   switch (field->editable.typ)
   {
   case EditUInt:
@@ -615,9 +619,9 @@ static void getEditableString(Field *field, uint32_t num, char *outbuf) {
 		div *= 10; // pwrs of 10
 
 	  if(field->editable.number.hide_fraction)
-		snprintf(outbuf, MAX_FIELD_LEN, "%lu", num / div);
+		snprintf(outbuf, MAX_FIELD_LEN, "%ld", num / div);
 	  else
-		snprintf(outbuf, MAX_FIELD_LEN, "%lu.%0*lu", num / div,
+		snprintf(outbuf, MAX_FIELD_LEN, "%ld.%0*lu", num / div,
 		  field->editable.number.div_digits, num % div);
 	}
 	break;
@@ -671,7 +675,7 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   // Get the value we are trying to show (it might be a num or an enum)
-  uint32_t num = getEditableNumber(field);
+  int32_t num = getEditableNumber(field);
   bool valueChanged = num != layout->old_editable;
   char valuestr[MAX_FIELD_LEN];
 
@@ -778,6 +782,153 @@ static bool renderCustom(FieldLayout *layout)
 {
   assert(layout->field->custom.render);
   return (*layout->field->custom.render)(layout);
+}
+
+// FIXME - support multiple active graphs by assigning cache dynamically
+static GraphCache caches[1];
+
+// Add to our ring buffer and maintain invariants
+static void graphAddPoint(Field *field, int32_t val) {
+	GraphCache *cache = field->graph.cache;
+
+	// discard old point if needed
+	bool isFull = cache->start_valid == cache->end_valid;
+	if(isFull)
+		cache->start_valid = (cache->start_valid + 1) % GRAPH_MAX_POINTS;
+
+	// add the point
+	uint32_t addr = (cache->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
+	cache->points[addr] = val;
+	cache->end_valid = addr;
+
+	// update invariants
+	if(val > cache->max_val)
+		cache->max_val = val;
+	if(val < cache->min_val && val >= field->graph.min_threshold)
+		cache->min_val = val;
+}
+
+static int graphX, // upper left of graph
+	graphY, // upper left of graph,
+	graphWidth, // total draw area width
+	graphHeight, // total draw area height
+	graphXmin, // x loc of 0,0 position
+	graphXmax, // x loc of rightmost data point
+	graphYmin, // y loc of 0,0 position (for min value)
+	graphYmax, // y loc of max value
+	graphLabelY; // y loc of the label for field name
+
+// Center justify a string on a line of specified width
+static void putStringCentered(int x, int y, int width, const UG_FONT *font, const char *str) {
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+
+	if(strwidth < width)
+		x += (width - strwidth) / 2; // if we have extra space put half of it before the string
+
+	UG_FontSelect(font);
+	UG_PutString(x, y, (char *) str);
+}
+
+
+// right justify a string (printing it to the left of X and Y)
+static void putStringRight(int x, int y, const UG_FONT *font, const char *str) {
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+
+	x -= strwidth;
+
+	UG_FontSelect(font);
+	UG_PutString(x, y, (char *) str);
+}
+
+
+// Draw our axis lines and min/max numbers
+static void graphClearAndLabelAxis(Field *field) {
+  UG_SetForecolor(GRAPH_COLOR_ACCENT);
+  UG_SetBackcolor(GRAPH_COLOR_BACKGROUND);
+
+  // Only need to draw labels and axis if dirty
+  Field *source = field->graph.source;
+  if(field->dirty) {
+	// clear all
+	UG_FillFrame(graphX, graphY, graphX + graphWidth - 1,
+		  graphY + graphHeight - 1, GRAPH_COLOR_BACKGROUND);
+
+    putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT, source->editable.label);
+
+    // vertical axis line
+    UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax, GRAPH_COLOR_AXIS);
+
+    // horiz axis line
+    UG_DrawLine(graphXmin, graphYmin, graphXmax, graphYmin, GRAPH_COLOR_AXIS);
+  }
+
+  // draw max value
+  GraphCache *cache = field->graph.cache;
+  char valstr[MAX_FIELD_LEN];
+  if(cache->max_val != INT32_MIN) {
+	getEditableString(source, cache->max_val, valstr);
+    putStringRight(graphXmin, graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+  }
+
+  // draw min value
+  if(cache->min_val != INT32_MAX) {
+	getEditableString(source, cache->min_val, valstr);
+    putStringRight(graphXmin, graphYmin - GRAPH_MAXVAL_FONT.char_height, &GRAPH_MAXVAL_FONT, valstr);
+  }
+}
+
+static void graphDrawPoints(Field *field) {
+
+}
+
+/**
+ * Our graphs are invoked for rendering once each blink interval, but most of the time we opt to do nothing.
+ */
+static bool renderGraph(FieldLayout *layout)
+{
+  bool needUpdate = (screenUpdateCounter % (GRAPH_INTERVAL_MS / UPDATE_INTERVAL_MS) == 0);
+
+  Field *field = layout->field;
+  assert(field);
+
+  // If we are not dirty and we don't need an update, just return
+  if(!needUpdate && !field->dirty)
+	  return false;
+
+  if(!field->graph.cache) {
+	  GraphCache *cache = field->graph.cache = &caches[0];
+
+	  // Init cache to empty
+	  cache->max_val = INT32_MIN;
+	  cache->min_val = INT32_MAX;
+	  cache->start_valid = 0;
+	  cache->end_valid = 0;
+  }
+
+  Field *source = field->graph.source;
+  assert(source);
+
+  // Pull in the latest point (if we are our periodic update)
+  if(needUpdate)
+	  graphAddPoint(field, getEditableNumber(source));
+
+  // Set axis coordinates
+  int axisdigits = 5;
+  int axiswidth = axisdigits * (GRAPH_MAXVAL_FONT.char_width + gui.char_h_space);
+  graphX = layout->x; // upper left of graph
+  graphY = layout->y; // upper left of graph,
+  graphWidth = layout->width; // total draw area width
+  graphHeight = layout->height;// total draw area height
+  graphXmin = graphX + axiswidth; // x loc of 0,0 position
+  graphXmax = graphX + graphWidth - 1; // x loc of rightmost data point
+  graphYmin = graphY + graphHeight - 1; // y loc of 0,0 position (for min value)
+  graphYmax = graphY + GRAPH_LABEL_FONT.char_height; // y loc of max value
+  graphLabelY = graphY; // y loc of the label for field name
+
+  graphClearAndLabelAxis(field);
+  graphDrawPoints(field);
+
+  return true;
 }
 
 static bool renderEnd(FieldLayout *layout)
@@ -949,7 +1100,7 @@ static bool onPressScrollable(buttons_events_t events)
  * Used to map from FieldVariant enums to rendering functions
  */
 static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr, renderFill,
-    renderMesh, renderScrollable, renderEditable, renderCustom, renderEnd };
+    renderMesh, renderScrollable, renderEditable, renderCustom, renderGraph, renderEnd };
 
 static Screen *curScreen;
 static bool screenDirty;
@@ -996,6 +1147,8 @@ Screen *getCurrentScreen() {
   return curScreen;
 }
 
+
+
 void screenUpdate()
 {
   if (!curScreen)
@@ -1007,9 +1160,8 @@ void screenUpdate()
   bool didDraw = false; // we only render to hardware if something changed
 
   // Every 200ms toggle any blinking animations
-  static uint8_t blinkCounter;
-  blinkCounter = (blinkCounter + 1) % 10;
-  blinkChanged = (blinkCounter == 0);
+  screenUpdateCounter++;
+  blinkChanged = (screenUpdateCounter % (BLINK_INTERVAL_MS / UPDATE_INTERVAL_MS) == 0);
   if (blinkChanged)
   {
     blinkOn = !blinkOn;

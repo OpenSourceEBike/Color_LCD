@@ -21,7 +21,6 @@
 #include "timers.h"
 #include "usart1.h"
 #include "eeprom.h"
-#include "graphs.h"
 #include "ugui.h"
 #include "ugui_driver/ugui_bafang_850c.h"
 #include "utils.h"
@@ -54,7 +53,6 @@ int main(void)
   timer3_init(); // drives LCD backlight
   lcd_init();
   timer4_init();
-  graphs_init();
 
   screenShow(&bootScreen);
 

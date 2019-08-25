@@ -61,3 +61,4 @@
 * 850C doesn't seem to do proper dependency checking - changes to .h files should cause new builds
 * Per @lowPerformer: We can also extend the fonts by our "special" characters we need, f.i. ASCII ':' can be a 'W'. I did that with MY_FONT_8X12 where 0x1F is a '°' like in °C.
 * show units on config screen
+* make is_selected in screen.c always imply blink

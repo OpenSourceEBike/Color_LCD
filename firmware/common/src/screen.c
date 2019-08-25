@@ -791,15 +791,14 @@ static GraphCache caches[1];
 static void graphAddPoint(Field *field, int32_t val) {
 	GraphCache *cache = field->graph.cache;
 
-	// discard old point if needed
-	bool isFull = cache->start_valid == cache->end_valid;
-	if(isFull)
-		cache->start_valid = (cache->start_valid + 1) % GRAPH_MAX_POINTS;
-
 	// add the point
-	uint32_t addr = (cache->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
-	cache->points[addr] = val;
-	cache->end_valid = addr;
+	cache->points[cache->end_valid] = val;
+	cache->end_valid = (cache->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
+
+	// discard old point if needed
+	bool overfull = cache->start_valid == cache->end_valid;
+	if(overfull)
+		cache->start_valid = (cache->start_valid + 1) % GRAPH_MAX_POINTS;
 
 	// update invariants
 	if(val > cache->max_val)
@@ -877,8 +876,75 @@ static void graphClearAndLabelAxis(Field *field) {
   }
 }
 
-static void graphDrawPoints(Field *field) {
+// Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
+static inline int32_t graphScaleY(GraphCache *cache, int32_t x) {
+	if(cache->max_val == cache->min_val) // Until there is a span everything is at wmin
+		return graphYmin;
 
+	// We go one row up from graphymin so we don't cover over the axis
+	return ((graphYmin - 1) * (cache->max_val - x) + graphYmax * (x - cache->min_val)) / (cache->max_val - cache->min_val);
+}
+
+static void graphDrawPoints(Field *field) {
+	GraphCache *cache = field->graph.cache;
+
+	int ptr = cache->start_valid;
+	if(ptr == cache->end_valid)
+		return; // ring buffer is empty
+
+	int x = graphXmin; // the vertical axis line
+
+	int warn_threshold = field->graph.warn_threshold;
+	if(warn_threshold != -1) {
+		warn_threshold = graphScaleY(cache, field->graph.warn_threshold);
+
+		// Make sure our threshold never goes below the areas we are going to draw
+		if(warn_threshold > graphYmin - 1)
+			warn_threshold = graphYmin - 1;
+	}
+
+	int error_threshold = field->graph.error_threshold;
+	if(error_threshold != -1) {
+		error_threshold = graphScaleY(cache, field->graph.error_threshold);
+
+		// Make sure our threshold never goes below the areas we are going to draw
+		if(error_threshold > graphYmin - 1)
+			error_threshold = graphYmin - 1;
+	}
+
+
+	do {
+		 x++; // drawing a new vertical line now
+		 int val = cache->points[ptr];
+		 int y = graphScaleY(cache, val);
+
+		 // Draw black space above the line (so we scroll/scale properly)
+		 UG_DrawLine(x, graphYmax, x, y - 1, GRAPH_COLOR_BACKGROUND);
+
+#if 0 // FIXME accent line is pretty ugly
+		 // Draw the accent line
+		 int accent_bottom = y + 2; // we draw the accent line three pixels high
+		 if(accent_bottom >= graphYmin) // don't draw past end of graph
+			 accent_bottom = graphYmin - 1;
+
+		 UG_DrawLine(x, y, x, accent_bottom, GRAPH_COLOR_ACCENT);
+		 y = accent_bottom + 1; // New segment is just below the accent
+#endif
+
+		 if(error_threshold != -1 && y <= error_threshold) {
+			 UG_DrawLine(x, y, x, error_threshold, GRAPH_COLOR_ERROR);
+			 y = error_threshold + 1;
+		 }
+
+		 if(warn_threshold != -1 && y <= warn_threshold) {
+			 UG_DrawLine(x, y, x, warn_threshold, GRAPH_COLOR_WARN);
+			 y = warn_threshold + 1;
+		 }
+
+		 UG_DrawLine(x, y, x, graphYmin, GRAPH_COLOR_NORMAL);
+
+		 ptr = (ptr + 1) % GRAPH_MAX_POINTS; // increment and wrap
+	 } while(ptr != cache->end_valid); // we just did the last entry?
 }
 
 /**
@@ -924,6 +990,10 @@ static bool renderGraph(FieldLayout *layout)
   graphYmin = graphY + graphHeight - 1; // y loc of 0,0 position (for min value)
   graphYmax = graphY + GRAPH_LABEL_FONT.char_height; // y loc of max value
   graphLabelY = graphY; // y loc of the label for field name
+
+  // limit max x based on the number of points we might have (so each point gets its own column
+  if(graphXmin + GRAPH_MAX_POINTS < graphXmax)
+	  graphXmax = graphXmin + GRAPH_MAX_POINTS;
 
   graphClearAndLabelAxis(field);
   graphDrawPoints(field);

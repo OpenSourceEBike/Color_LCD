@@ -1,7 +1,7 @@
 ## Remaining merge tasks:
 
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
-* add graphs
+* add white accent line to graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
 * make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
@@ -49,6 +49,7 @@
 * fix configscreen to be prettier (use color backgrounds, show units, bigger font, use color arrow for selection)
 * labels should be center aligned
 * fix boot screen layout to be prettier - add URL to github project
+* add graphs
 
 ## todo later 
 

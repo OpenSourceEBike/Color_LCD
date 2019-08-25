@@ -48,7 +48,21 @@ Field tripTimeField = FIELD_DRAWTEXT();
 Field tripDistanceField = FIELD_READONLY_UINT("Trip", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("ODO", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
 Field motorTempField = FIELD_READONLY_UINT("Temp", &l3_vars.ui8_motor_temperature, "C");
+
+Field pwmDutyField = FIELD_READONLY_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, "");
+Field motorErpsField = FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "");
+Field motorFOCField = FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "");
+Field cadenceField = FIELD_READONLY_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm");
+
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
+Field speedGraph = FIELD_GRAPH(&speedField);
 Field motorTempGraph = FIELD_GRAPH(&motorTempField);
+Field motorPowerGraph = FIELD_GRAPH(&maxPowerField);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+Field cadenceGraph = FIELD_GRAPH(&cadenceField);
+
 
 static uint8_t ui8_walk_assist_state = 0;
 

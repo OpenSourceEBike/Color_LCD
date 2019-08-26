@@ -238,6 +238,9 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs -lc -lnosys
 LDFLAGS += -Xlinker -Map=$(OUTPUT_DIRECTORY)/nrf51822_sw102.map
 
+SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex
+BOOTLOADER_HEX = ../../../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex
+KEYFILE := ../../../SW102_LCD_Bluetooth-bootloader/private.key
 
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice
 
@@ -267,7 +270,7 @@ openocd:
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: s130_nrf51_2.0.1_softdevice.hex
-	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex; verify_image $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex; reset halt; resume; shutdown"
+	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(SOFT_DEVICE); verify_image $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex; reset halt; resume; shutdown"
     
 # Erase Flash
 erase:
@@ -275,7 +278,6 @@ erase:
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; shutdown"
 
 # Generate DFU package
-KEYFILE := $(PROJ_DIR)/../SW102_LCD_Bluetooth-bootloader/private.key
 generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	mkdir -p $(RELEASE_DIRECTORY)
 	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version $(VERSION_NUM) --hw-version 51 --sd-req 0x87 $(RELEASE_DIRECTORY)/sw102-otaupdate-$(VERSION_STRING).zip
@@ -285,7 +287,7 @@ generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 # Note: srec_cmp is part of the 'srecord' debian package, for windows supposedly mergehex does the same thing
 release_build: generate_dfu_package
 	$(NRFUTIL) settings generate --no-backup --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version $(VERSION_NUM) --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
-	srec_cat -MULTiple ../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex -Intel $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel 
+	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel 
 
 # Program a full release build onto the connected device (including bootloader and soft device)
 release_program: release_build

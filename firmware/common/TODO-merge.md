@@ -53,6 +53,7 @@
 
 ## todo later 
 
+* when graphRender is invoked but it isn't yet time to redraw just add the current value to a sum and then later divide by # skipped updates to get a nice average value.  Much better than just sampling a single value every 3500ms.
 * per discussion with @casainho no problem - "add motor RPM, ERPS and PWM duty cycle to the secondary info page"
 * stop using ui32_g_layer_2_can_execute for mutual exclusion with the ISR
 * add instrumentation to measure times of key operations (main loop, frame update etc)

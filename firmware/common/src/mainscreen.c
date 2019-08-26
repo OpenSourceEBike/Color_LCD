@@ -200,7 +200,7 @@ static void mainScreenOnEnter() {
  */
 #define STATUS_BAR \
 { \
-    .x = 4, .y = SCREEN_HEIGHT - 32, \
+    .x = 4, .y = SCREEN_HEIGHT - 28, \
     .width = 0, .height = -1, \
     .field = &warnField, \
     .font = &REGULAR_TEXT_FONT, \
@@ -286,8 +286,8 @@ Screen mainScreen = {
     },
     {
         .x = XbyEighths(0), .y = -1,
-        .width = XbyEighths(8), .height = YbyEighths(3),
-        .field = &motorTempGraph,
+        .width = XbyEighths(8), .height = Yby64(20),
+        .field = &motorTempGraph
     },
     STATUS_BAR,
     {

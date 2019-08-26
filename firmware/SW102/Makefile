@@ -293,6 +293,11 @@ release_build: generate_dfu_package
 release_program: release_build
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex; verify_image $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex; echo FLASHED; reset halt; resume; shutdown"
 
+# Generate a transitional bootloader package for factory bootloaders (i.e. the devices from @eyebyesickle)
+generate_transitional: 
+	mkdir -p $(RELEASE_DIRECTORY)
+	/usr/local/bin/nrfutil dfu genpkg --bootloader $(BOOTLOADER_HEX) --sd-req 100 --softdevice $(SOFT_DEVICE) $(RELEASE_DIRECTORY)/sw102-transitional-$(VERSION_STRING).zip
+
 # Start CMSIS_Configuration_Wizard
 SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar

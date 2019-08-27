@@ -267,6 +267,14 @@ openocd:
 	@echo Starting OPENOCD shell
 	$(OPENOCD) -c "init; reset init;"
 
+# Start a command line GDB session
+gdb:
+	arm-none-eabi-gdb --command=gdb.config
+
+# Start a telnet session talking directly to openocd
+openocd-shell:
+	telnet localhost 4444
+	
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: s130_nrf51_2.0.1_softdevice.hex

@@ -7148,7 +7148,7 @@ void _UG_ButtonUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
          /* Full redraw necessary? */
          if ( (obj->state & OBJ_STATE_REDRAW) || (btn->state & BTN_STATE_ALWAYS_REDRAW) )
          {
-            UG_WindowGetArea(wnd,&a);
+            if(UG_WindowGetArea(wnd,&a) == UG_RESULT_OK) {
             obj->a_abs.xs = obj->a_rel.xs + a.xs;
             obj->a_abs.ys = obj->a_rel.ys + a.ys;
             obj->a_abs.xe = obj->a_rel.xe + a.xs;
@@ -7199,7 +7199,7 @@ void _UG_ButtonUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
 #ifdef USE_POSTRENDER_EVENT
             _UG_SendObjectPostrenderEvent(wnd, obj);
 #endif
-         }
+         }}
          /* Draw button frame */
          if ( !(btn->style & BTN_STYLE_NO_BORDERS) )
          {
@@ -7716,7 +7716,7 @@ void _UG_CheckboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
    /* -------------------------------------------------- */
    if ( obj->state & OBJ_STATE_UPDATE )
    {
-      UG_WindowGetArea(wnd,&a);
+      if(UG_WindowGetArea(wnd,&a) == UG_RESULT_OK) {
       obj->a_abs.xs = obj->a_rel.xs + a.xs;
       obj->a_abs.ys = obj->a_rel.ys + a.ys;
       obj->a_abs.xe = obj->a_rel.xe + a.xs;
@@ -7812,7 +7812,7 @@ void _UG_CheckboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
                  UG_DrawFrame(obj->a_abs.xs,obj->a_abs.ys,obj->a_abs.xs+d2+2*d-1,obj->a_abs.ys+d2+2*d-1,(chb->state&CHB_STATE_PRESSED)?chb->abc:chb->afc);
              }
          }
-      }
+      }}
       else
       {
           if ( !(chb->style & CHB_STYLE_NO_FILL) )
@@ -8133,7 +8133,7 @@ void _UG_TextboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
          /* Full redraw necessary? */
          if ( obj->state & OBJ_STATE_REDRAW )
          {
-            UG_WindowGetArea(wnd,&a);
+            if(UG_WindowGetArea(wnd,&a) == UG_RESULT_OK) {
             obj->a_abs.xs = obj->a_rel.xs + a.xs;
             obj->a_abs.ys = obj->a_rel.ys + a.ys;
             obj->a_abs.xe = obj->a_rel.xe + a.xs;
@@ -8164,7 +8164,7 @@ void _UG_TextboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
 #ifdef USE_POSTRENDER_EVENT
             _UG_SendObjectPostrenderEvent(wnd, obj);
 #endif
-         }
+         }}
       }
       else
       {
@@ -8282,7 +8282,7 @@ void _UG_ImageUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
          /* Full redraw necessary? */
          if ( obj->state & OBJ_STATE_REDRAW )
          {
-            UG_WindowGetArea(wnd,&a);
+            if(UG_WindowGetArea(wnd,&a) == UG_RESULT_OK) {
             /* ToDo: more/better image features */
             obj->a_abs.xs = obj->a_rel.xs + a.xs;
             obj->a_abs.ys = obj->a_rel.ys + a.ys;
@@ -8298,7 +8298,7 @@ void _UG_ImageUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
             }
 
             obj->state &= ~OBJ_STATE_REDRAW;
-         }
+         }}
       }
       else
       {

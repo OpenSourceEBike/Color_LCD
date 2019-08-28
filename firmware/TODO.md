@@ -30,14 +30,10 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * implement a watchdog function
 * per discussion with @casainho no problem - "add motor RPM, ERPS and PWM duty cycle to the secondary info page"
 
-# Tasks for release 1.1
-* let users customize what fields get shown in what locations (similar to the garmin devices?)
+# Tasks for after release 1.0
 * report pedal power via strava
 * fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
-
-# Tasks for future releases
-After the initial 1.0 release the following features can go into 1.1
-
+* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * when graphRender is invoked but it isn't yet time to redraw just add the current value to a sum and then later divide by # skipped updates to get a nice average value.  Much better than just sampling a single value every 3500ms.
 * stop using ui32_g_layer_2_can_execute for mutual exclusion with the ISR
 * add instrumentation to measure times of key operations (main loop, frame update etc)
@@ -51,13 +47,6 @@ After the initial 1.0 release the following features can go into 1.1
 * still need to change eeprom.c (change most of 850C version to be a HAL similar to eeprom-hw.c)
 * add the concept of Subscreens, so that the battery bar at the top and the status bar at the bottom can be shared across all screens
 * setup the local analog comparator to compare Vbat to a min voltage (19V or whatever).  If it falls below that voltage assume user just killed the power at the battery and quickly write settings to flash.  Only feasible if oscope timing shows we have enough time before the CPU voltage fails for this to be worth bothering with.
-* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
-* add a graph field type which can be used to graph any parameter vs time.  Allow this new graph type to be plopped into any of the standard layouts/screens
-* dim screen when the headlight is on
-* Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
-* merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
-* clean up button handling and take advantage of extra button on the SW102
-* don't bother wasting CPU cycles to update Fields that are currently not being shown to the user
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
@@ -138,34 +127,12 @@ None.
 * save 15Kish of flash by turning off USE_FONT_10X16 and pulling just the digits from that font into a new less flash consuming font
 * label assist on main screen (#26)
 * Stop using the redundent tx buffer #24 
-
-# Misc notes from kevin not yet formatted
-
-* install eabi toolchain from https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
-per https://launchpadlibrarian.net/218827232/How-to-build-toolchain.pdf
-
-* nrf on linux instructions here: https://gustavovelascoh.wordpress.com/2017/01/23/starting-development-with-nordic-nrf5x-and-gcc-on-linux/
-
-stlink setup:
-You have to connect the following 4 lines: SWDIO, SWCLK, VCC and GND.
-https://devzone.nordicsemi.com/f/nordic-q-a/13869/openocd-promgram-nrf51822-with-st-link-v2-mini
-https://devzone.nordicsemi.com/f/nordic-q-a/4984/st-link-nrf51822-and-openocd <- best next steps
-https://devzone.nordicsemi.com/f/nordic-q-a/20872/how-to-load-hex-to-nrf51-with-openocd
-
-eclipse debug setup:
-http://embeddedsoftdev.blogspot.com/p/ehal-nrf51.html
-
-## other work items:
-* changing # of digits drawn forces a full redraw of the field, which produces a very slight visible flash as the label is erased and redrawn
-* delay_ms(120) seems to wait a lot longer than 120ms
-* uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
-* change lcd brightenss eeprom value to a pctage in the 850C
-*     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-* tell others to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules) - https://github.com/gnu-mcu-eclipse/arm-none-eabi-gcc/releases/tag/v7.3.1-1.1
-* make most usages use renderDrawPtrText
-
-## done
-
+* dim screen when the headlight is on
+* Make a better implementation for APP_ERROR_CHECK, that includes FILE and LINENO of the caller
+* merge with 850C code somewhat? (sharing behavior - just different UX layer and HAL)
+* clean up button handling and take advantage of extra button on the SW102
+* don't bother wasting CPU cycles to update Fields that are currently not being shown to the user
+* add a graph field type which can be used to graph any parameter vs time.  Allow this new graph type to be plopped into any of the standard layouts/screens
 * utils
 * remove UG_PutString_with_length copypasta
 * ugui
@@ -195,4 +162,30 @@ http://embeddedsoftdev.blogspot.com/p/ehal-nrf51.html
 * labels should be center aligned
 * fix boot screen layout to be prettier - add URL to github project
 * add graphs
+
+# Misc notes from kevin not yet formatted
+
+* install eabi toolchain from https://launchpad.net/gcc-arm-embedded/4.9/4.9-2015-q3-update/+download/gcc-arm-none-eabi-4_9-2015q3-20150921-linux.tar.bz2
+per https://launchpadlibrarian.net/218827232/How-to-build-toolchain.pdf
+
+* nrf on linux instructions here: https://gustavovelascoh.wordpress.com/2017/01/23/starting-development-with-nordic-nrf5x-and-gcc-on-linux/
+
+stlink setup:
+You have to connect the following 4 lines: SWDIO, SWCLK, VCC and GND.
+https://devzone.nordicsemi.com/f/nordic-q-a/13869/openocd-promgram-nrf51822-with-st-link-v2-mini
+https://devzone.nordicsemi.com/f/nordic-q-a/4984/st-link-nrf51822-and-openocd <- best next steps
+https://devzone.nordicsemi.com/f/nordic-q-a/20872/how-to-load-hex-to-nrf51-with-openocd
+
+eclipse debug setup:
+http://embeddedsoftdev.blogspot.com/p/ehal-nrf51.html
+
+## other work items:
+* changing # of digits drawn forces a full redraw of the field, which produces a very slight visible flash as the label is erased and redrawn
+* delay_ms(120) seems to wait a lot longer than 120ms
+* uart_get_rx_buffer_rdy in the 850C might be a little bit race conditiony - eval and fix
+* change lcd brightenss eeprom value to a pctage in the 850C
+*     set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
+* tell others to gcc 7.3.1 (and make a develop.md or something to tell others, also mention use eclipse formatting rules) - https://github.com/gnu-mcu-eclipse/arm-none-eabi-gcc/releases/tag/v7.3.1-1.1
+* make most usages use renderDrawPtrText
+
 

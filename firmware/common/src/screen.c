@@ -636,6 +636,30 @@ static void getEditableString(Field *field, int32_t num, char *outbuf) {
 }
 
 
+// Center justify a string on a line of specified width
+static void putStringCentered(int x, int y, int width, const UG_FONT *font, const char *str) {
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+
+	if(strwidth < width)
+		x += (width - strwidth) / 2; // if we have extra space put half of it before the string
+
+	UG_FontSelect(font);
+	UG_PutString(x, y, (char *) str);
+}
+
+
+// right justify a string (printing it to the left of X and Y)
+static void putStringRight(int x, int y, const UG_FONT *font, const char *str) {
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+
+	x -= strwidth;
+
+	UG_FontSelect(font);
+	UG_PutString(x, y, (char *) str);
+}
+
+
+
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
  * of what we are trying to render and if the same as last time, it will decide to not draw.
@@ -709,18 +733,20 @@ static bool renderEditable(FieldLayout *layout)
   // Show the label (if showing the conventional way - i.e. small and off to the top left.
   if(showLabel) {
 	UG_SetBackcolor(C_TRANSPARENT); // always draw labels with transparency, because they might slightly overlap the border
-    UG_FontSelect(editable_label_font);
-    UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
+
+	if(showLabelAtTop)
+		putStringCentered(layout->x, layout->y, width, editable_label_font, field->editable.label);
+	else {
+		UG_FontSelect(editable_label_font);
+		UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
     }
+  }
 
   UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 
   // Show the label in the middle of the box
-  if(forceLabels) {
-    UG_FontSelect(editable_label_font);
-    UG_S16 strwidth = (editable_label_font->char_width + gui.char_h_space) * strlen(field->editable.label);
-    UG_PutString(layout->x + (width - strwidth) / 2, layout->y + (height - editable_label_font->char_height) / 2, (char*) field->editable.label);
-    }
+  if(forceLabels)
+	putStringCentered(layout->x, layout->y + (height - editable_label_font->char_height) / 2, width, editable_label_font, field->editable.label);
 
   // draw editable value
   if(showValue) {
@@ -816,28 +842,6 @@ static int graphX, // upper left of graph
 	graphYmin, // y loc of 0,0 position (for min value)
 	graphYmax, // y loc of max value
 	graphLabelY; // y loc of the label for field name
-
-// Center justify a string on a line of specified width
-static void putStringCentered(int x, int y, int width, const UG_FONT *font, const char *str) {
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
-
-	if(strwidth < width)
-		x += (width - strwidth) / 2; // if we have extra space put half of it before the string
-
-	UG_FontSelect(font);
-	UG_PutString(x, y, (char *) str);
-}
-
-
-// right justify a string (printing it to the left of X and Y)
-static void putStringRight(int x, int y, const UG_FONT *font, const char *str) {
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
-
-	x -= strwidth;
-
-	UG_FontSelect(font);
-	UG_PutString(x, y, (char *) str);
-}
 
 
 // Draw our axis lines and min/max numbers

@@ -2,7 +2,6 @@
 
 #include "ugui.h"
 
-
 /* Enable needed fonts here */
 
 #ifdef USE_MY_FONT_BATTERY

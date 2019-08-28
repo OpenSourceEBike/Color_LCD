@@ -73,32 +73,32 @@
  * Eventually improve these docs based on the following chat session:
  *
  * any time someone calls screenUpdate() it walks through all the fields on the screen (defined in the mainScreen array from mainscreen.c) and redraw any that have changed values. Fields define any value which can be shown on any screen. Here's the list: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L37-L64
-whereas FieldLayouts define the placement/size of fields on a particular screen. Here's the mainScreen for the 850C: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L196-L296
-x,y,width & height are pixel positions or if zero/negative they can define various automatic values: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L256-L264
+ whereas FieldLayouts define the placement/size of fields on a particular screen. Here's the mainScreen for the 850C: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L196-L296
+ x,y,width & height are pixel positions or if zero/negative they can define various automatic values: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L256-L264
 
-Kevin Hester @geeksville 15:46
-There is a helper macro XbyEighths/YbyEighths to generate screen coordinates in terms of 1/8 of screen position XbyEights(4) is the middle of the screen left/right (regardless of screen size) XbyEighths(1) is 1/8 of the screen in from the left. This allows stuff like the boot/fault screens to be the same on the 850C/SW102 even though their screens are sized quite differently.
-in the case of this project the call to screenUpdate happens in the 20ms gui tick here: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L748
-it is worth noting that mainScreen isn't different from the config menu or the boot screen or the secondary info screen on SW102. In fact someday we could define a few different screens the user can page through. When a user changes screens by pressing the power button showNextScreen() just changes the ptr to the current screen.
+ Kevin Hester @geeksville 15:46
+ There is a helper macro XbyEighths/YbyEighths to generate screen coordinates in terms of 1/8 of screen position XbyEights(4) is the middle of the screen left/right (regardless of screen size) XbyEighths(1) is 1/8 of the screen in from the left. This allows stuff like the boot/fault screens to be the same on the 850C/SW102 even though their screens are sized quite differently.
+ in the case of this project the call to screenUpdate happens in the 20ms gui tick here: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L748
+ it is worth noting that mainScreen isn't different from the config menu or the boot screen or the secondary info screen on SW102. In fact someday we could define a few different screens the user can page through. When a user changes screens by pressing the power button showNextScreen() just changes the ptr to the current screen.
 
-Kevin Hester @geeksville 15:54
-the various types of fields each have different render functions. The currently defined types of fields are this (which I think has all the options this project would ever need): https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L88-L98
-btw - I'll copy and paste this into the kinda crummy docs in screen.h so that eventually it can be clearer ;-)
+ Kevin Hester @geeksville 15:54
+ the various types of fields each have different render functions. The currently defined types of fields are this (which I think has all the options this project would ever need): https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L88-L98
+ btw - I'll copy and paste this into the kinda crummy docs in screen.h so that eventually it can be clearer ;-)
 
-casainho @casainho 15:56
-Ok, I think I understand now, thanks.
+ casainho @casainho 15:56
+ Ok, I think I understand now, thanks.
 
-Kevin Hester @geeksville 15:57
-Screens can optionally define onEnter, onExit, onUpdate callbacks. onExit is used for stuff like the config screen saving eeprom settings when the user switches away from the screen. onEnter is used to set custom fonts for just that one screen. onUpdate is used for some special update code which I copied from your original lcd.c.
+ Kevin Hester @geeksville 15:57
+ Screens can optionally define onEnter, onExit, onUpdate callbacks. onExit is used for stuff like the config screen saving eeprom settings when the user switches away from the screen. onEnter is used to set custom fonts for just that one screen. onUpdate is used for some special update code which I copied from your original lcd.c.
  *
  */
 
 #define MAX_FIELD_LEN 32
 
 typedef enum {
-  ColorNormal = 0, // white on black
-  ColorInvert,     // black on white
-  ColorHeading     // white on dk blue
+	ColorNormal = 0, // white on black
+	ColorInvert,     // black on white
+	ColorHeading     // white on dk blue
 } ColorOp;
 
 /**
@@ -107,15 +107,13 @@ typedef enum {
  * Note: might change someday to instead just be a pointer to a constant vtable like thing
  */
 typedef enum {
-  FieldDrawText = 0,
-  FieldDrawTextPtr,
-  FieldFill, // Fill with a solid color
-  FieldMesh, // Fill with a mesh color
-  FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
-  FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
-  FieldCustom, // A field with a custom render function (provided by the user)
-  FieldGraph, // A bar graph
-  FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
+	FieldDrawText = 0, FieldDrawTextPtr, FieldFill, // Fill with a solid color
+	FieldMesh, // Fill with a mesh color
+	FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
+	FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
+	FieldCustom, // A field with a custom render function (provided by the user)
+	FieldGraph, // A bar graph
+	FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
 } FieldVariant;
 
 /**
@@ -123,8 +121,8 @@ typedef enum {
  * index
  */
 typedef enum {
-  EditUInt = 0, // This is the default type if not specified
-  EditEnum // Choose a string from a list
+	EditUInt = 0, // This is the default type if not specified
+	EditEnum // Choose a string from a list
 } EditableType;
 
 #define GRAPH_MAX_POINTS	(256) // Note: we waste one record, to make our ring buffer code easier
@@ -147,79 +145,80 @@ typedef enum {
 // Each _active_ graph needs a graphcache to store past points and invariants.  Currently we use use one,
 // but as soon as we have multiple active graphs we should assign dynamically.
 typedef struct {
-	int32_t	points[GRAPH_MAX_POINTS];
-	int32_t	max_val, min_val; // the max/min value we've seen (ever)
-	uint32_t	start_valid; // the oldest point in our ring buffer
-	uint32_t    end_valid; // the newest point in our ring buffer
+	int32_t points[GRAPH_MAX_POINTS];
+	int32_t max_val, min_val; // the max/min value we've seen (ever)
+	uint32_t start_valid; // the oldest point in our ring buffer
+	uint32_t end_valid; // the newest point in our ring buffer
 } GraphCache;
 
-struct FieldLayout; // Forward declaration
+struct FieldLayout;
+// Forward declaration
 
 /**
  * Ready to render data (normally populated by comms code) which might be used on multiple different screens
  */
 typedef struct Field {
-  FieldVariant variant : 4;
-  bool dirty : 1; // true if this data has changed and needs to be rerendered
-  bool blink : 1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
-  bool is_selected : 1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
-  // bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
+	FieldVariant variant :4;
+	bool dirty :1; // true if this data has changed and needs to be rerendered
+	bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
+	bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
+	// bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
 
-  union {
-	  //FIXME: possibly move these fields out into separate structures, because currently the
-	  //biggest member causes all members to become larger.
+	union {
+		//FIXME: possibly move these fields out into separate structures, because currently the
+		//biggest member causes all members to become larger.
 
-    struct {
-      char msg[MAX_FIELD_LEN];
-    } drawText;
+		struct {
+			char msg[MAX_FIELD_LEN];
+		} drawText;
 
-    struct {
-      const char *msg; // A string stored in a ptr
-    } drawTextPtr;
+		struct {
+			const char *msg; // A string stored in a ptr
+		} drawTextPtr;
 
-    struct {
-      struct Field  *source; // the data field we are graphing
-      GraphCache    *cache;
-      int32_t		warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
-      int32_t		min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
-    } graph;
+		struct {
+			struct Field *source; // the data field we are graphing
+			GraphCache *cache;
+			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
+		} graph;
 
-    struct {
-      bool (*render)(struct FieldLayout *); // a custom render function, returns true if we did a render
-    } custom;
+		struct {
+			bool (*render)(struct FieldLayout*); // a custom render function, returns true if we did a render
+		} custom;
 
-    struct {
-      struct Field *entries; // the menu entries for this submenu.
-      const char *label; // the title shown in the GUI for this menu
-      uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
-      uint8_t selected; // the currently highlighted entry
-    } scrollable;
+		struct {
+			struct Field *entries; // the menu entries for this submenu.
+			const char *label; // the title shown in the GUI for this menu
+			uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
+			uint8_t selected; // the currently highlighted entry
+		} scrollable;
 
-    struct {
-      const char *label; // the label shown in the GUI for this item
-      void *target; // the data we are showing/manipulating
-      const EditableType typ;
-      const uint8_t size : 3; // sizeof for the specified target - we support 1 or 2 or 4
-      bool read_only : 1; // if true user can't really edit this
+		struct {
+			const char *label; // the label shown in the GUI for this item
+			void *target; // the data we are showing/manipulating
+			const EditableType typ;
+			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
+			bool read_only :1; // if true user can't really edit this
 
-      // the following parameters are particular to the editable type
-      union {
+			// the following parameters are particular to the editable type
+			union {
 
-        struct {
-          const char *units;
-          const uint8_t div_digits: 4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
-          const bool hide_fraction: 1; // if set, don't ever show the fractional part
-          const uint32_t max_value, min_value; // min/max
-          const uint32_t inc_step; // if zero, then 1 is assumed
-        } number;
+				struct {
+					const char *units;
+					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
+					const bool hide_fraction :1; // if set, don't ever show the fractional part
+					const uint32_t max_value, min_value; // min/max
+					const uint32_t inc_step; // if zero, then 1 is assumed
+				} number;
 
-        struct {
-          // we assume *target is a uint8_t
-          const char **options; // An array of strings, with a NULL entry at the end to mark end of choices
-        } editEnum;
-      };
-    } editable;
-  };
+				struct {
+					// we assume *target is a uint8_t
+					const char **options; // An array of strings, with a NULL entry at the end to mark end of choices
+				} editEnum;
+			};
+		} editable;
+	};
 } Field;
 
 //
@@ -248,74 +247,70 @@ typedef struct Field {
 
 #define FIELD_END { .variant = FieldEnd }
 
-
 typedef int16_t Coord; // Change to int16_t for screens wider/longer than 128, screens shorter than 128 can use uint8_t
 
 typedef enum {
-  BorderNone = 0,
-  BorderBottom = (1 << 0),
-  BorderTop = (1 << 1),
-  BorderLeft = (1 << 2),
-  BorderRight = (1 << 3),
-  BorderFat = (1 << 4), // two pixels tall
-  BorderBox = BorderLeft | BorderRight | BorderTop | BorderBottom, // left,right,bottom,top
-  // define others as needed
+	BorderNone = 0,
+	BorderBottom = (1 << 0),
+	BorderTop = (1 << 1),
+	BorderLeft = (1 << 2),
+	BorderRight = (1 << 3),
+	BorderFat = (1 << 4), // two pixels tall
+	BorderBox = BorderLeft | BorderRight | BorderTop | BorderBottom, // left,right,bottom,top
+// define others as needed
 } BorderOp;
-
 
 /// layouts can tell the field they are showing special rendering options
 typedef enum {
-  ModNone = 0,
-  ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units
-  ModLabelTop = 2, // For editable fields: show the label above the value, normally it is shown to the left
+	ModNone = 0, ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units
+	ModLabelTop = 2, // For editable fields: show the label above the value, normally it is shown to the left
 } LayoutModifier;
 
 /**
  * Defines the layout of a field on a particular screen
  */
 typedef struct FieldLayout {
-  Coord x, y; // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
+	Coord x, y; // a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
 
-  // for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width
-  // For all other cases, width is in pixels
-  Coord width;
+	// for text fields if negative width is in # of characters. or 0 to determine length based on remaining screen width
+	// For all other cases, width is in pixels
+	Coord width;
 
-  // for text fields use height = -1 to determine height based on font size.  for all fields 0 means 'rest of screen'
-  // for other cases height is in pixels
-  Coord height;
+	// for text fields use height = -1 to determine height based on font size.  for all fields 0 means 'rest of screen'
+	// for other cases height is in pixels
+	Coord height;
 
-  BorderOp border; // an optional border to draw within this field
+	BorderOp border; // an optional border to draw within this field
 
-  ColorOp color : 4;
-  LayoutModifier modifier : 4; // layouts can tell the field they are showing special rendering options
+	ColorOp color :4;
+	LayoutModifier modifier :4; // layouts can tell the field they are showing special rendering options
 
-  Field *field; // The field to render in this location
+	Field *field; // The field to render in this location
 
-  const UG_FONT *font; // If this field requires a font, use this.  Or if NULL auto select the biggest font that can hold the string
+	const UG_FONT *font; // If this field requires a font, use this.  Or if NULL auto select the biggest font that can hold the string
 
-  uint32_t old_editable; // a cache value only used for editable fields, used to compare against previous values and redraw if needed.
+	uint32_t old_editable; // a cache value only used for editable fields, used to compare against previous values and redraw if needed.
 
 } FieldLayout;
 
-
 /** Called when a press has occured, return true if this function has handled the event (and therefore it should be cleared)
-or false to let others handle it.
+ or false to let others handle it.
 
-The order of handlers is:
-* any active editable controls
-* any scrollable controls on this screen
-* the current screen handler
-* the top level application handler
-The top three handlers in the list above are handled by screen
-*/
+ The order of handlers is:
+ * any active editable controls
+ * any scrollable controls on this screen
+ * the current screen handler
+ * the top level application handler
+ The top three handlers in the list above are handled by screen
+ */
 typedef bool (*ButtonEventHandler)(buttons_events_t events);
 
 typedef struct {
-  void (*onEnter)(); // If !NULL will be called whenever this screen is about to be shown (good to change globals etc)
-  void (*onExit)(); // If !NULL will be called when this screen is no longer visible
-  void (*onUpdate)(); // If !NULL, Called just before each update operation
-  ButtonEventHandler onPress; // or NULL for no handler
-  FieldLayout fields[];
+	void (*onEnter)(); // If !NULL will be called whenever this screen is about to be shown (good to change globals etc)
+	void (*onExit)(); // If !NULL will be called when this screen is no longer visible
+	void (*onUpdate)(); // If !NULL, Called just before each update operation
+	ButtonEventHandler onPress; // or NULL for no handler
+	FieldLayout fields[];
 } Screen;
 
 // Standard vertical spacing for fonts
@@ -326,7 +321,7 @@ void screenShow(Screen *screen);
 void screenUpdate();
 
 /// Return the current visible screen
-Screen *getCurrentScreen();
+Screen* getCurrentScreen();
 
 /// Returns true if the current screen handled the press
 bool screenOnPress(buttons_events_t events);

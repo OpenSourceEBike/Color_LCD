@@ -11,10 +11,9 @@
 
 #include "stdio.h"
 
-typedef struct _rtc_time
-{
-  uint8_t ui8_hours;
-  uint8_t ui8_minutes;
+typedef struct _rtc_time {
+	uint8_t ui8_hours;
+	uint8_t ui8_minutes;
 } struct_rtc_time_t;
 
 void rtc_init(void);

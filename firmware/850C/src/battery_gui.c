@@ -4,13 +4,11 @@
 // Battery SOC symbol:
 // 10 bars, each bar: with = 7, height = 24
 // symbol has contour lines of 1 pixel
-#define BATTERY_SOC_START_X 0
+#define BATTERY_SOC_START_X 8
 #define BATTERY_SOC_START_Y 0
 #define BATTERY_SOC_BAR_WITH 7
 #define BATTERY_SOC_BAR_HEIGHT 24
 #define BATTERY_SOC_CONTOUR 1
-
-
 
 void battery_soc_bar_set(uint32_t ui32_bar_number, uint16_t ui16_color)
 {
@@ -139,10 +137,10 @@ bool renderBattery(FieldLayout *layout)
     else if(ui32_battery_bar_number == 1) { ui16_color = C_RED; }
 
     // Draw our bars
-	for(ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
-	{
-	  battery_soc_bar_set(ui32_i, ui16_color);
-	}
+    for(ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
+    {
+      battery_soc_bar_set(ui32_i, ui16_color);
+    }
   }
 
   return true;

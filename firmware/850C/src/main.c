@@ -56,11 +56,6 @@ int main(void)
 
   screenShow(&bootScreen);
 
-  // block until user release the buttons
-  while(buttons_get_onoff_state() ||
-      buttons_get_down_state() ||
-      buttons_get_up_state());
-
   while(1)
   {
     // because of continue; at the end of each if code block that will stop the while (1) loop there,

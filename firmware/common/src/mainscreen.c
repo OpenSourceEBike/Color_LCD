@@ -79,6 +79,9 @@ static void showNextScreen();
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
+#ifndef SW102
+Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
+#endif
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
@@ -86,27 +89,60 @@ Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
 static void bootScreenOnUpdate() {
-  static uint32_t start_time;
-
-  if(start_time == 0)
-    start_time = ui32_seconds_since_startup;
 
   uint16_t bvolt = battery_voltage_10x_get();
 
   is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
 
   if(is_sim_motor)
-    fieldPrintf(&bootStatus, "SIMULATING motor!");
+    fieldPrintf(&bootStatus, "SIMULATING TSDZ2!");
   else if(has_seen_motor)
-    fieldPrintf(&bootStatus, "Found motor");
+    fieldPrintf(&bootStatus, "Found TSDZ2");
   else
-    fieldPrintf(&bootStatus, "No motor? (%u.%uV)", bvolt / 10, bvolt % 10);
+    fieldPrintf(&bootStatus, "Waiting TSDZ2 - (%u.%uV)", bvolt / 10, bvolt % 10);
 
-  // Stop showing the boot screen after a few seconds (once we've found a motor)
-  if(ui32_seconds_since_startup - start_time >= 5 && (has_seen_motor || is_sim_motor))
+  // Stop showing only after we release on/off button and we are commutication with motor
+  if(buttons_get_onoff_state() == 0 && (has_seen_motor || is_sim_motor))
     showNextScreen();
 }
 
+#ifndef SW102
+Screen bootScreen = {
+    .onUpdate = bootScreenOnUpdate,
+
+    .fields = {
+    {
+        .x = 0, .y = YbyEighths(1), .height = -1,
+        .field = &bootHeading,
+        .font = &REGULAR_TEXT_FONT,
+    },
+
+    {
+        .x = 0, .y = -20, .height = -1,
+        .field = &bootURL,
+        .font = &SMALL_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = YbyEighths(4), .height = -1,
+        .field = &bootFirmwareVersion,
+        .font = &SMALL_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = -8, .height = -1,
+        .field = &bootVersion,
+        .font = &SMALL_TEXT_FONT,
+    },
+    {
+        .x = 0, .y = YbyEighths(6), .height = -1,
+        .field = &bootStatus,
+        .font = &SMALL_TEXT_FONT,
+    },
+    {
+        .field = NULL
+    }
+    }
+};
+#else
 Screen bootScreen = {
     .onUpdate = bootScreenOnUpdate,
 
@@ -116,13 +152,6 @@ Screen bootScreen = {
         .field = &bootHeading,
         .font = &REGULAR_TEXT_FONT,
     },
-#ifndef SW102
-    {
-        .x = 0, .y = -8, .height = -1,
-        .field = &bootURL,
-        .font = &SMALL_TEXT_FONT,
-    },
-#endif
     {
         .x = 0, .y = YbyEighths(4), .height = -1,
         .field = &bootVersion,
@@ -136,9 +165,9 @@ Screen bootScreen = {
     {
         .field = NULL
     }
-    }};
-
-
+    }
+};
+#endif
 
 bool mainscreen_onpress(buttons_events_t events) {
   if((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled)
@@ -207,25 +236,24 @@ static void mainScreenOnEnter() {
 }
 
 #define BATTERY_BAR \
-    { \
-        .x = 0, .y = 0, \
-        .width = -1, .height = -1, \
-        .field = &batteryField, \
-        .font = &MY_FONT_BATTERY, \
-    }, \
-    { \
-        .x = 96, .y = 4, \
-        .width = -5, .height = -1, \
-        .font = &REGULAR_TEXT_FONT, \
-        .field = &socField \
-    }, \
+  { \
+      .x = 0, .y = 0, \
+      .width = -1, .height = -1, \
+      .field = &batteryField, \
+      .font = &MY_FONT_BATTERY, \
+  }, \
+  { \
+      .x = 8 + ((7 + 1 + 1) * 10) + (1 * 2) + 10, .y = 2, \
+      .width = -5, .height = -1, \
+      .font = &REGULAR_TEXT_FONT, \
+      .field = &socField \
+  }, \
 	{ \
-		.x = 232, .y = 4, \
+		.x = 228, .y = 2, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
 		.field = &timeField \
 	}
-
 
 //
 // Screens
@@ -709,6 +737,7 @@ static void showNextScreen() {
 
 static bool appwide_onpress(buttons_events_t events)
 {
+  // power off only after we release first time the onoff button
   if (events & ONOFF_LONG_CLICK)
   {
     lcd_power_off(1);
@@ -725,7 +754,17 @@ static bool appwide_onpress(buttons_events_t events)
 
 /// Called every 20ms to check for button events and dispatch to our handlers
 static void handle_buttons() {
-  if (buttons_events)
+  static uint8_t firstTime = 1;
+
+  // keep tracking of first time release of onoff button
+  if(firstTime && buttons_get_onoff_state() == 0) {
+    firstTime = 0;
+    buttons_clear_onoff_click_event();
+    buttons_clear_onoff_long_click_event();
+    buttons_clear_onoff_click_long_click_event();
+  }
+
+  if (buttons_events && firstTime == 0)
   {
     bool handled = false;
 

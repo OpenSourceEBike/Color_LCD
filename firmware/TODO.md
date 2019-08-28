@@ -48,8 +48,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * add the concept of Subscreens, so that the battery bar at the top and the status bar at the bottom can be shared across all screens
 * setup the local analog comparator to compare Vbat to a min voltage (19V or whatever).  If it falls below that voltage assume user just killed the power at the battery and quickly write settings to flash.  Only feasible if oscope timing shows we have enough time before the CPU voltage fails for this to be worth bothering with.
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
-* FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
-the GUI thread.  Use two buffers + a ptr.
 
 # TODO tasks remaining before initial alpha release
 We define alpha releases as: Not feature complete, but functional and probably safe.
@@ -162,6 +160,8 @@ None.
 * labels should be center aligned
 * fix boot screen layout to be prettier - add URL to github project
 * add graphs
+* FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
+the GUI thread.  Use two buffers + a ptr.
 
 # Misc notes from kevin not yet formatted
 

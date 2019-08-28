@@ -70,6 +70,27 @@
  * the main loop when a press occurs.  This function will return true if it has handled this press event (and therefore
  * you should not do anything else with it).
  *
+ * Eventually improve these docs based on the following chat session:
+ *
+ * any time someone calls screenUpdate() it walks through all the fields on the screen (defined in the mainScreen array from mainscreen.c) and redraw any that have changed values. Fields define any value which can be shown on any screen. Here's the list: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L37-L64
+whereas FieldLayouts define the placement/size of fields on a particular screen. Here's the mainScreen for the 850C: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L196-L296
+x,y,width & height are pixel positions or if zero/negative they can define various automatic values: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L256-L264
+
+Kevin Hester @geeksville 15:46
+There is a helper macro XbyEighths/YbyEighths to generate screen coordinates in terms of 1/8 of screen position XbyEights(4) is the middle of the screen left/right (regardless of screen size) XbyEighths(1) is 1/8 of the screen in from the left. This allows stuff like the boot/fault screens to be the same on the 850C/SW102 even though their screens are sized quite differently.
+in the case of this project the call to screenUpdate happens in the 20ms gui tick here: https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/src/mainscreen.c#L748
+it is worth noting that mainScreen isn't different from the config menu or the boot screen or the secondary info screen on SW102. In fact someday we could define a few different screens the user can page through. When a user changes screens by pressing the power button showNextScreen() just changes the ptr to the current screen.
+
+Kevin Hester @geeksville 15:54
+the various types of fields each have different render functions. The currently defined types of fields are this (which I think has all the options this project would ever need): https://github.com/OpenSource-EBike-firmware/Color_LCD/blob/sw102-merge/firmware/common/include/screen.h#L88-L98
+btw - I'll copy and paste this into the kinda crummy docs in screen.h so that eventually it can be clearer ;-)
+
+casainho @casainho 15:56
+Ok, I think I understand now, thanks.
+
+Kevin Hester @geeksville 15:57
+Screens can optionally define onEnter, onExit, onUpdate callbacks. onExit is used for stuff like the config screen saving eeprom settings when the user switches away from the screen. onEnter is used to set custom fonts for just that one screen. onUpdate is used for some special update code which I copied from your original lcd.c.
+ *
  */
 
 #define MAX_FIELD_LEN 32

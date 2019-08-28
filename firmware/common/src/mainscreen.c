@@ -216,6 +216,17 @@ static void mainScreenOnEnter() {
 			l2_vars.ui8_motor_temperature_max_value_to_limit;
 }
 
+static void mainScreenOnDirtyClean() {
+  // main screen mask
+  UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
+//  UG_DrawLine(0, 159, 319, 159, MAIN_SCREEN_FIELD_LABELS_COLOR);
+//  UG_DrawLine(0, 239, 319, 239, MAIN_SCREEN_FIELD_LABELS_COLOR);
+//  UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
+
+  //  // vertical line
+  //  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
+}
+
 #ifndef SW102
 
 /**
@@ -254,31 +265,68 @@ static void mainScreenOnEnter() {
 //
 // Screens
 //
-Screen mainScreen = { .onPress = mainscreen_onpress, .onEnter =
-		mainScreenOnEnter,
+Screen mainScreen = {
+  .onPress = mainscreen_onpress,
+  .onEnter = mainScreenOnEnter,
+  .onDirtyClean = mainScreenOnDirtyClean,
 
-.fields = {
-BATTERY_BAR, { .x = 0, .y = 32, .width = -1, .height = -1, .field =
-		&assistLevelField, .font = &BIG_NUMBERS_TEXT_FONT, .modifier =
-		ModLabelTop, .border = BorderNone }, { .x = XbyEighths(3), .y = 32,
-		.width = 0, .height = -1, .field = &speedField, .font =
-				&HUGE_NUMBERS_TEXT_FONT, .modifier = ModLabelTop, .border =
-				BorderNone }, { .x = 0, .y = YbyEighths(3), .width = XbyEighths(
-		4), .height = YbyEighths(1), .field = &tripDistanceField, .font =
-		&MEDIUM_NUMBERS_TEXT_FONT, .modifier = ModLabelTop, .border =
-		BorderBottom | BorderRight | BorderTop }, { .x = XbyEighths(4), .y =
-		YbyEighths(3), .width = XbyEighths(4), .height = YbyEighths(1), .field =
-		&maxPowerField, .font = &MEDIUM_NUMBERS_TEXT_FONT, .modifier =
-		ModLabelTop, .border = BorderBottom | BorderTop }, { .x = 0, .y =
-		YbyEighths(4), .width = XbyEighths(4), .height = YbyEighths(1), .field =
-		&tripTimeField, .font = &MEDIUM_NUMBERS_TEXT_FONT, .modifier =
-		ModLabelTop, .border = BorderBottom | BorderRight }, { .x = XbyEighths(
-		4), .y = YbyEighths(4), .width = XbyEighths(4), .height = YbyEighths(1),
-		.field = &humanPowerField, .font = &MEDIUM_NUMBERS_TEXT_FONT,
-		.modifier = ModLabelTop, .border = BorderBottom }, { .x = XbyEighths(0),
-		.y = -1, .width = XbyEighths(8), .height = Yby64(20), .field =
-				&motorTempGraph },
-STATUS_BAR, { .field = NULL } } };
+  .fields = {
+    BATTERY_BAR,
+    {
+      .x = 0, .y = 36,
+      .width = -1, .height = -1,
+      .field = &assistLevelField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop,
+      .border = BorderNone
+    },
+    {
+      .x = XbyEighths(3), .y = 36,
+      .width = 0, .height = -1,
+      .field = &speedField,
+      .font = &HUGE_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop,
+      .border = BorderNone
+    },
+    { .x = 0, .y = YbyEighths(3),
+      .width = XbyEighths(4), .height = YbyEighths(1),
+      .field = &tripDistanceField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop,
+      .border = BorderBottom | BorderRight | BorderTop
+    },
+    { .x = XbyEighths(4), .y = YbyEighths(3),
+      .width = XbyEighths(4), .height = YbyEighths(1),
+      .field = &maxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop,
+      .border = BorderBottom | BorderTop
+    },
+    {
+      .x = 0, .y =YbyEighths(4),
+      .width = XbyEighths(4), .height = YbyEighths(1),
+      .field = &tripTimeField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop,
+      .border = BorderBottom | BorderRight
+    },
+    {
+      .x = XbyEighths(4), .y = YbyEighths(4),
+      .width = XbyEighths(4), .height = YbyEighths(1),
+      .field = &humanPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .modifier = ModLabelTop, .border = BorderBottom
+    },
+    {
+      .x = XbyEighths(0), .y = -1, .width = XbyEighths(8),
+      .height = Yby64(20), .field = &motorTempGraph
+    },
+    STATUS_BAR,
+    {
+      .field = NULL
+    }
+  }
+};
 
 #else
 

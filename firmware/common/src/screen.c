@@ -1181,9 +1181,12 @@ void screenUpdate() {
 	}
 
 	if (screenDirty) {
-		; // clear screen (to prevent turds from old screen staying around)
+    // clear screen (to prevent turds from old screen staying around)
 		UG_FillScreen(C_BLACK);
 		didDraw = true;
+
+	  if (curScreen->onDirtyClean)
+	    (*curScreen->onDirtyClean)();
 	}
 
 	// For each field if that field is dirty (or the screen is) redraw it

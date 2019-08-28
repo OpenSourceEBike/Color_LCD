@@ -309,6 +309,7 @@ typedef struct {
 	void (*onEnter)(); // If !NULL will be called whenever this screen is about to be shown (good to change globals etc)
 	void (*onExit)(); // If !NULL will be called when this screen is no longer visible
 	void (*onUpdate)(); // If !NULL, Called just before each update operation
+	void (*onDirtyClean)(); // If !NULL, Called after screen is cleared because it is dirty, good to draw any mask
 	ButtonEventHandler onPress; // or NULL for no handler
 	FieldLayout fields[];
 } Screen;

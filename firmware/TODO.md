@@ -11,23 +11,20 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
-* Figure out how to protect github repos from accidental pushes
 * test with 0.20 motor code
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
 * Implement cruise mode (also missing in 850C)
-* Implement offroad mode(also missing in 850C)
+* Implement offroad mode(also missing in 850C) - and fix the config editing of the div25 field it use
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
 * suspend the 100ms timer tick during copy_layer_2_layer_3_vars
 * let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
-* uncomment offroad mode - and fix the config editing of the div25 field it use
 * show motor temp alerts
 * show power limiting alerts (due to PWM or temp or whatever)
-* successful installation/usage report from at least one alpha user/dev
-* add a watchdog handler
-* turn bluetooth back on and have it implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
+* bluetooth: fully implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
+* add DFU assistence profile to the appload
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function

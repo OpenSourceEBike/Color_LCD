@@ -30,12 +30,6 @@ static void mainScreenOnEnter() {
 	editable_label_font = &SMALL_TEXT_FONT;
 	editable_value_font = &SMALL_TEXT_FONT;
 	editable_units_font = &SMALL_TEXT_FONT;
-
-	// Update our graph thresholds based on current values
-	motorTempGraph.graph.warn_threshold =
-			l2_vars.ui8_motor_temperature_min_value_to_limit;
-	motorTempGraph.graph.error_threshold =
-			l2_vars.ui8_motor_temperature_max_value_to_limit;
 }
 
 /**
@@ -108,7 +102,7 @@ Screen mainScreen = {
     {
         .x = 0, .y = -3,
         .width = 0, .height = -1,
-        .field = &speedField,
+        .field = &wheelSpeedIntegerField,
         .font = &BIG_NUMBERS_TEXT_FONT,
         .modifier = ModNoLabel,
         .border = BorderNone

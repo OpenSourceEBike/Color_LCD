@@ -34,7 +34,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/sw102/eeprom_hw.c \
   $(PROJ_DIR)/src/sw102/rtc.c \
   $(PROJ_DIR)/src/sw102/configscreen.c \
-  $(PROJ_DIR)/src/sw102/mainscreen.c \
+  $(PROJ_DIR)/src/sw102/mainscreen-sw102.c \
   $(COMMON_DIR)/src/ugui.c \
   $(COMMON_DIR)/src/fault.c \
   $(COMMON_DIR)/src/buttons.c \
@@ -44,6 +44,7 @@ SRC_FILES += \
   $(COMMON_DIR)/src/eeprom.c \
   $(COMMON_DIR)/src/screen.c \
   $(COMMON_DIR)/src/fonts.c \
+  $(COMMON_DIR)/src/mainscreen.c \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \

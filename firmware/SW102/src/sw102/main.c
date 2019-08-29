@@ -36,7 +36,7 @@ Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 /* App Timer */
 //APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
-#define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
+// #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 
 // APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */
 // #define SECONDS_INTERVAL APP_TIMER_TICKS(1000/*ms*/, APP_TIMER_PRESCALER)
@@ -121,7 +121,7 @@ int main(void)
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
   // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  ble_init();
+  // ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();

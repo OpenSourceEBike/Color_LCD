@@ -187,7 +187,14 @@ static void mainScreenOnEnter() {
 
 static void mainScreenOnDirtyClean() {
   // main screen mask
+  // horizontal lines
   UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 151, 319, 151, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 231, 319, 231, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 311, 319, 311, MAIN_SCREEN_FIELD_LABELS_COLOR);
+
+  // vertical line
+  UG_DrawLine(159, 152, 159, 310, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   UG_SetBackcolor(C_BLACK);
   UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
@@ -203,13 +210,6 @@ static void mainScreenOnDirtyClean() {
   {
     UG_PutString(260, 44 , "MPH");
   }
-
-//  UG_DrawLine(0, 159, 319, 159, MAIN_SCREEN_FIELD_LABELS_COLOR);
-//  UG_DrawLine(0, 239, 319, 239, MAIN_SCREEN_FIELD_LABELS_COLOR);
-//  UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
-
-  //  // vertical line
-  //  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 }
 
 void mainScreenOnPostUpdate(void) {
@@ -266,53 +266,54 @@ Screen mainScreen = {
       .width = -1, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
-      .modifier = ModNone,
-      .border = BorderNone
+      .modifier = ModNoLabel,
+      .border = BorderNone,
     },
     {
       .x = 120, .y = 54,
       .width = 123, .height = -1,
       .field = &wheelSpeedIntegerField,
       .font = &HUGE_NUMBERS_TEXT_FONT,
-      .modifier = ModNone,
-      .border = BorderNone
+      .modifier = ModNoLabel,
+      .border = BorderNone,
     },
     {
       .x = 253, .y = 75,
       .width = 45, .height = -1,
       .field = &wheelSpeedDecimalField,
       .font = &BIG_NUMBERS_TEXT_FONT,
-      .modifier = ModNone,
-      .border = BorderNone
+      .modifier = ModNoLabel,
+      .border = BorderNone,
     },
-    { .x = 0, .y = YbyEighths(3),
+    { .x = 0, .y = 160,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &tripDistanceField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .modifier = ModLabelTop,
-      .border = BorderBottom | BorderRight | BorderTop
+      .border = BorderNone
     },
-    { .x = XbyEighths(4), .y = YbyEighths(3),
+    { .x = XbyEighths(4), .y = 160,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &maxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .modifier = ModLabelTop,
-      .border = BorderBottom | BorderTop
+      .border = BorderNone,
     },
     {
-      .x = 0, .y =YbyEighths(4),
+      .x = 0, .y = 240,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &tripTimeField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .modifier = ModLabelTop,
-      .border = BorderBottom | BorderRight
+      .border = BorderNone
     },
     {
-      .x = XbyEighths(4), .y = YbyEighths(4),
+      .x = XbyEighths(4), .y = 240,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &humanPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop, .border = BorderBottom
+      .modifier = ModLabelTop,
+      .border = BorderNone
     },
     {
       .x = XbyEighths(0), .y = -1, .width = XbyEighths(8),

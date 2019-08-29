@@ -22,7 +22,6 @@
 #include "adc.h"
 #include "ugui.h"
 
-uint8_t ui8_m_wheel_speed_integer;
 uint8_t ui8_m_wheel_speed_decimal;
 
 //
@@ -31,7 +30,7 @@ uint8_t ui8_m_wheel_speed_decimal;
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
 Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_integer, "");
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
 Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_power_filtered, "W");
 Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
@@ -173,16 +172,8 @@ void lcd_main_screen(void) {
 
 void wheel_speed(void)
 {
-  static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
-  uint16_t ui16_wheel_speed_x10 = l3_vars.ui16_wheel_speed_x10;
-
-  if(ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous)
-  {
-    ui16_wheel_x10_speed_previous = ui16_wheel_speed_x10;
-
-    ui8_m_wheel_speed_integer = (uint8_t) (ui16_wheel_speed_x10 / 10);
-    ui8_m_wheel_speed_decimal = (uint8_t) (ui16_wheel_speed_x10 % 10);
-  }
+  // Note: no need to check for 'wheel speed previous' because this math is so cheap
+  ui8_m_wheel_speed_decimal = (uint8_t) (l3_vars.ui16_wheel_speed_x10 % 10);
 }
 
 void power(void) {

@@ -405,7 +405,8 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *imag
 //    Display_WriteCommand(0x2c);
 //    Display_WriteMultiData(image, pSize*3);
 //
-    return UG_RESULT_OK;
+	// kevinh this routine is not yet implemented?
+    return UG_RESULT_FAIL;
 }
 
 void lcd_write_command (uint32_t ui32_command)

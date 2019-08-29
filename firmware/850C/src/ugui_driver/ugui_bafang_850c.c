@@ -387,8 +387,7 @@ UG_RESULT HW_DrawLine( UG_S16 x1 , UG_S16 y1 , UG_S16 x2 , UG_S16 y2 , UG_COLOR 
     // If not, then use original drawline routine.
     if ((x1 == x2) || (y1 == y2)) 
     {
-        HW_FillFrame(x1, y1, x2, y2, c);
-        return UG_RESULT_OK;
+        return HW_FillFrame(x1, y1, x2, y2, c);
     }
     
     return UG_RESULT_FAIL;

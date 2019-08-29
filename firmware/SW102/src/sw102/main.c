@@ -35,7 +35,7 @@ UG_GUI gui;
 Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 /* App Timer */
-APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
+//APP_TIMER_DEF(button_poll_timer_id); /* Button timer. */
 #define BUTTON_POLL_INTERVAL APP_TIMER_TICKS(10/*ms*/, APP_TIMER_PRESCALER)
 
 // APP_TIMER_DEF(seconds_timer_id); /* Second counting timer. */

@@ -22,23 +22,18 @@
 #include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
-
-#ifndef SW102
 #include "battery_gui.h" // FIXME, remove this ifdef, instead move the layouts into a 850C specific file
 
 Field batteryField =
 		FIELD_CUSTOM(renderBattery);
-#else
-				Field batteryField = FIELD_DRAWTEXT();
-#endif
 
 //
 // Fields - these might be shared my multiple screens
 //
 				Field socField = FIELD_DRAWTEXT();
 				Field timeField = FIELD_DRAWTEXT();
-				Field speedField = FIELD_READONLY_UINT("Speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
-				Field assistLevelField = FIELD_READONLY_UINT("Assist", &l3_vars.ui8_assist_level, "");
+				Field speedField = FIELD_READONLY_UINT("KM/H", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = false);
+				Field assistLevelField = FIELD_READONLY_UINT("ASSIST", &l3_vars.ui8_assist_level, "");
 				Field maxPowerField = FIELD_READONLY_UINT("Motor Pwr", &l3_vars.ui16_battery_power_filtered, "W");
 				Field humanPowerField = FIELD_READONLY_UINT("Human Pwr", &l3_vars.ui16_pedal_power_filtered, "W");
 //Field whiteFillField = { .variant = FieldFill };
@@ -78,9 +73,7 @@ static void showNextScreen();
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
-#ifndef SW102
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
-#endif
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
@@ -104,7 +97,6 @@ static void bootScreenOnUpdate() {
     showNextScreen();
 }
 
-#ifndef SW102
 Screen bootScreen = {
     .onUpdate = bootScreenOnUpdate,
 
@@ -140,32 +132,6 @@ Screen bootScreen = {
     }
     }
 };
-#else
-Screen bootScreen = {
-    .onUpdate = bootScreenOnUpdate,
-
-    .fields = {
-    {
-        .x = 0, .y = 0, .height = -1,
-        .field = &bootHeading,
-        .font = &REGULAR_TEXT_FONT,
-    },
-    {
-        .x = 0, .y = YbyEighths(4), .height = -1,
-        .field = &bootVersion,
-        .font = &SMALL_TEXT_FONT,
-    },
-    {
-        .x = 0, .y = YbyEighths(6), .height = -1,
-        .field = &bootStatus,
-        .font = &SMALL_TEXT_FONT,
-    },
-    {
-        .field = NULL
-    }
-    }
-};
-#endif
 
 bool mainscreen_onpress(buttons_events_t events) {
 	if ((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled) {
@@ -226,8 +192,6 @@ static void mainScreenOnDirtyClean() {
   //  // vertical line
   //  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 }
-
-#ifndef SW102
 
 /**
  * Appears at the bottom of all screens, includes status msgs or critical fault alerts
@@ -327,136 +291,6 @@ Screen mainScreen = {
     }
   }
 };
-
-#else
-
-
-/**
- * Appears at the bottom of all screens, includes status msgs or critical fault alerts
- * FIXME - get rid of this nasty define - instead add the concept of Subscreens, so that the battery bar
- * at the top and the status bar at the bottom can be shared across all screens
- */
-#define STATUS_BAR \
-{ \
-    .x = 4, .y = 114, \
-    .width = 0, .height = -1, \
-    .field = &warnField, \
-    .font = &REGULAR_TEXT_FONT, \
-}
-
-#define BATTERY_BAR \
-    { \
-        .x = 0, .y = 0, \
-        .width = -1, .height = -1, \
-        .field = &batteryField, \
-        .font = &MY_FONT_BATTERY, \
-    }, \
-    { \
-        .x = 32, .y = 0, \
-        .width = -5, .height = -1, \
-        .font = &REGULAR_TEXT_FONT, \
-        .field = &socField \
-    }
-/*
-{
-    .x = 32, .y = 0,
-    .width = -5, .height = -1,
-    .field = &tripTimeField
-},
-*/
-
-//
-// Screens
-//
-Screen mainScreen = {
-    .onPress = mainscreen_onpress,
-	.onEnter = mainScreenOnEnter,
-
-    .fields = {
-    BATTERY_BAR,
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &assistLevelField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    /*
-    {
-        .x = 19, .y = 16,
-        .width = -2, .height = -1,
-        // .color = ColorInvert,
-        .field = &speedField,
-        .border = BorderNone
-    }, */
-    {
-        .x = 0, .y = -3,
-        .width = 0, .height = 19,
-        .field = &maxPowerField,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &speedField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderNone
-    },
-    STATUS_BAR,
-    {
-        .field = NULL
-    } }
-};
-
-Screen infoScreen = {
-    // .onPress = mainscreen_onpress,
-	.onEnter = mainScreenOnEnter,
-
-    .fields = {
-    BATTERY_BAR,
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &motorTempField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &humanPowerField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &tripDistanceField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &odoField,
-        .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
-        .border = BorderBottom
-    },
-    STATUS_BAR,
-    {
-        .field = NULL
-    } }
-};
-
-#endif
 
 void lcd_main_screen(void) {
 	time();
@@ -637,12 +471,6 @@ void battery_soc(void) {
 
 // Show our battery graphic
 void battery_display() {
-
-#ifdef SW102
-  // on this board we use a special battery font
-  uint8_t ui32_battery_bar_number = l3_vars.volt_based_soc / (90 / 5); // scale SOC so anything greater than 90% is 5 bars, and zero is zero.
-  fieldPrintf(&batteryField, "%d", ui32_battery_bar_number);
-#else
 	static uint8_t oldsoc = 0xff;
 
 	// Only trigger redraws if something changed
@@ -650,7 +478,6 @@ void battery_display() {
 		oldsoc = l3_vars.volt_based_soc;
 		batteryField.dirty = true;
 	}
-#endif
 }
 
 void time(void) {
@@ -685,9 +512,6 @@ void walk_assist_state(void) {
 
 // Screens in a loop, shown when the user short presses the power button
 static Screen *screens[] = { &mainScreen, &configScreen,
-#ifdef SW102
-		&infoScreen,
-#endif
 		NULL };
 
 static void showNextScreen() {

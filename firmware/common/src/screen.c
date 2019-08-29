@@ -565,6 +565,13 @@ static void changeEditable(bool increment) {
 static void getEditableString(Field *field, int32_t num, char *outbuf) {
 	switch (field->editable.typ) {
 	case EditUInt: {
+#if 0
+		  // convert to imperial
+		  if(l3_vars.ui8_units_type)
+		  {
+		    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
+		  }
+#endif
 		// properly handle div_digits
 		int divd = field->editable.number.div_digits;
 		if (divd == 0)

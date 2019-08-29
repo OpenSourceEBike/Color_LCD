@@ -1,10 +1,14 @@
 # Remaining merge tasks
 
+* make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
+* make warnings work
+
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * add white accent line to graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
-* make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
+* fix eclipse formatting of arrays
+* change char_height /8 hack to instead just let devs set vertical padding between rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
 
 # TODO tasks for beta release
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.

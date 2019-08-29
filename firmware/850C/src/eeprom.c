@@ -34,9 +34,7 @@ eeprom_data_t m_eeprom_data_defaults =
 {
   .ui8_assist_level = DEFAULT_VALUE_ASSIST_LEVEL,
   .ui16_wheel_perimeter = DEFAULT_VALUE_WHEEL_PERIMETER,
-  .ui16_wheel_perimeter_imperial_x10 = DEFAULT_VALUE_WHEEL_PERIMETER_IMPERIAL_X10,
   .ui8_wheel_max_speed = DEFAULT_VALUE_WHEEL_MAX_SPEED,
-  .ui8_wheel_max_speed_imperial = DEFAULT_VALUE_WHEEL_MAX_SPEED_IMPERIAL,
   .ui8_units_type = DEFAULT_VALUE_UNITS_TYPE,
   .ui32_wh_x10_offset = DEFAULT_VALUE_WH_X10_OFFSET,
   .ui32_wh_x10_100_percent = DEFAULT_VALUE_HW_X10_100_PERCENT,
@@ -77,9 +75,7 @@ eeprom_data_t m_eeprom_data_defaults =
   .ui8_startup_motor_power_boost_fade_time = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME,
   .ui8_temperature_limit_feature_enabled = DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE,
   .ui8_motor_temperature_min_value_to_limit = DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT,
-  .ui8_motor_temperature_min_value_to_limit_imperial = DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT_IMPERIAL,
   .ui8_motor_temperature_max_value_to_limit = DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT,
-  .ui8_motor_temperature_max_value_to_limit_imperial = DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT_IMPERIAL,
   .ui16_battery_voltage_reset_wh_counter_x10 = DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10,
   .ui8_lcd_power_off_time_minutes = DEFAULT_VALUE_LCD_POWER_OFF_TIME,
   .ui8_lcd_backlight_on_brightness = DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS,
@@ -211,9 +207,7 @@ void eeprom_init_variables(void)
   // copy data final variables
   p_l3_output_vars->ui8_assist_level = m_eeprom_data.ui8_assist_level;
   p_l3_output_vars->ui16_wheel_perimeter = m_eeprom_data.ui16_wheel_perimeter;
-  p_l3_output_vars->ui16_wheel_perimeter_imperial_x10 = m_eeprom_data.ui16_wheel_perimeter_imperial_x10;
   p_l3_output_vars->ui8_wheel_max_speed = m_eeprom_data.ui8_wheel_max_speed;
-  p_l3_output_vars->ui8_wheel_max_speed_imperial = m_eeprom_data.ui8_wheel_max_speed_imperial;
   p_l3_output_vars->ui8_units_type = m_eeprom_data.ui8_units_type;
   p_l3_output_vars->ui32_wh_x10_offset = m_eeprom_data.ui32_wh_x10_offset;
   p_l3_output_vars->ui32_wh_x10_100_percent = m_eeprom_data.ui32_wh_x10_100_percent;
@@ -250,9 +244,7 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui8_startup_motor_power_boost_time = m_eeprom_data.ui8_startup_motor_power_boost_time;
   p_l3_output_vars->ui8_startup_motor_power_boost_fade_time = m_eeprom_data.ui8_startup_motor_power_boost_fade_time;
   p_l3_output_vars->ui8_motor_temperature_min_value_to_limit = m_eeprom_data.ui8_motor_temperature_min_value_to_limit;
-  p_l3_output_vars->ui8_motor_temperature_min_value_to_limit_imperial = m_eeprom_data.ui8_motor_temperature_min_value_to_limit_imperial;
   p_l3_output_vars->ui8_motor_temperature_max_value_to_limit = m_eeprom_data.ui8_motor_temperature_max_value_to_limit;
-  p_l3_output_vars->ui8_motor_temperature_max_value_to_limit_imperial = m_eeprom_data.ui8_motor_temperature_max_value_to_limit_imperial;
   p_l3_output_vars->ui16_battery_voltage_reset_wh_counter_x10 = m_eeprom_data.ui16_battery_voltage_reset_wh_counter_x10;
   p_l3_output_vars->ui8_lcd_power_off_time_minutes = m_eeprom_data.ui8_lcd_power_off_time_minutes;
   p_l3_output_vars->ui8_lcd_backlight_on_brightness = m_eeprom_data.ui8_lcd_backlight_on_brightness;
@@ -290,9 +282,7 @@ void eeprom_write_variables(void)
   memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
   m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
   m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
-  m_eeprom_data.ui16_wheel_perimeter_imperial_x10 = p_l3_output_vars->ui16_wheel_perimeter_imperial_x10;
   m_eeprom_data.ui8_wheel_max_speed = p_l3_output_vars->ui8_wheel_max_speed;
-  m_eeprom_data.ui8_wheel_max_speed_imperial = p_l3_output_vars->ui8_wheel_max_speed_imperial;
   m_eeprom_data.ui8_units_type = p_l3_output_vars->ui8_units_type;
   m_eeprom_data.ui32_wh_x10_offset = p_l3_output_vars->ui32_wh_x10_offset;
   m_eeprom_data.ui32_wh_x10_100_percent = p_l3_output_vars->ui32_wh_x10_100_percent;
@@ -329,9 +319,7 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui8_startup_motor_power_boost_time = p_l3_output_vars->ui8_startup_motor_power_boost_time;
   m_eeprom_data.ui8_startup_motor_power_boost_fade_time = p_l3_output_vars->ui8_startup_motor_power_boost_fade_time;
   m_eeprom_data.ui8_motor_temperature_min_value_to_limit = p_l3_output_vars->ui8_motor_temperature_min_value_to_limit;
-  m_eeprom_data.ui8_motor_temperature_min_value_to_limit_imperial = p_l3_output_vars->ui8_motor_temperature_min_value_to_limit_imperial;
   m_eeprom_data.ui8_motor_temperature_max_value_to_limit = p_l3_output_vars->ui8_motor_temperature_max_value_to_limit;
-  m_eeprom_data.ui8_motor_temperature_max_value_to_limit_imperial = p_l3_output_vars->ui8_motor_temperature_max_value_to_limit_imperial;
   m_eeprom_data.ui16_battery_voltage_reset_wh_counter_x10 = p_l3_output_vars->ui16_battery_voltage_reset_wh_counter_x10;
   m_eeprom_data.ui8_lcd_power_off_time_minutes = p_l3_output_vars->ui8_lcd_power_off_time_minutes;
   m_eeprom_data.ui8_lcd_backlight_on_brightness = p_l3_output_vars->ui8_lcd_backlight_on_brightness;

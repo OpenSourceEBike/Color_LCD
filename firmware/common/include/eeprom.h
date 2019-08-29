@@ -63,10 +63,6 @@ typedef struct eeprom_data {
 
 	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_buttons_up_down_invert;
-	uint8_t ui8_wheel_max_speed_imperial;
-	uint16_t ui16_wheel_perimeter_imperial_x10;
-	uint8_t ui8_motor_temperature_min_value_to_limit_imperial;
-	uint8_t ui8_motor_temperature_max_value_to_limit_imperial;
 
 #ifndef SW102
 	graphs_id_t graph_id;
@@ -85,9 +81,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  3
 #define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       5
 #define DEFAULT_VALUE_WHEEL_PERIMETER                               2050 // 26'' wheel: 2050mm perimeter
-#define DEFAULT_VALUE_WHEEL_PERIMETER_IMPERIAL_X10                  810 // 2050 / 25.4
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
-#define DEFAULT_VALUE_WHEEL_MAX_SPEED_IMPERIAL                      31
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
@@ -133,9 +127,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
-#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT_IMPERIAL    167
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85 // 85 degrees celsius
-#define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT_IMPERIAL    185
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
 #ifdef SW102

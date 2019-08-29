@@ -739,10 +739,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l2_vars.ui16_battery_low_voltage_cut_off_x10 =
 			l3_vars.ui16_battery_low_voltage_cut_off_x10;
 	l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
-	l2_vars.ui16_wheel_perimeter_imperial_x10 =
-			l3_vars.ui16_wheel_perimeter_imperial_x10;
 	l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
-	l2_vars.ui8_wheel_max_speed_imperial = l3_vars.ui8_wheel_max_speed_imperial;
 	l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
 	l2_vars.ui8_motor_assistance_startup_without_pedal_rotation =
 			l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;
@@ -778,12 +775,8 @@ void copy_layer_2_layer_3_vars(void) {
 			l3_vars.ui8_startup_motor_power_boost_feature_enabled;
 	l2_vars.ui8_motor_temperature_min_value_to_limit =
 			l3_vars.ui8_motor_temperature_min_value_to_limit;
-	l2_vars.ui8_motor_temperature_min_value_to_limit_imperial =
-			l3_vars.ui8_motor_temperature_min_value_to_limit_imperial;
 	l2_vars.ui8_motor_temperature_max_value_to_limit =
 			l3_vars.ui8_motor_temperature_max_value_to_limit;
-	l2_vars.ui8_motor_temperature_max_value_to_limit_imperial =
-			l3_vars.ui8_motor_temperature_max_value_to_limit_imperial;
 	l2_vars.ui8_offroad_feature_enabled = l3_vars.ui8_offroad_feature_enabled;
 	l2_vars.ui8_offroad_enabled_on_startup =
 			l3_vars.ui8_offroad_enabled_on_startup;

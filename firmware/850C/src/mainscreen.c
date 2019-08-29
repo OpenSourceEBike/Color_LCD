@@ -343,12 +343,6 @@ void wheel_speed(void)
   static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
   uint16_t ui16_wheel_speed_x10 = l3_vars.ui16_wheel_speed_x10;
 
-  // convert to imperial
-  if(l3_vars.ui8_units_type)
-  {
-    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
-  }
-
   if(ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous)
   {
     ui16_wheel_x10_speed_previous = ui16_wheel_speed_x10;

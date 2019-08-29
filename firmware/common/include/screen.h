@@ -196,6 +196,7 @@ typedef struct Field {
 
 		struct {
 			const char *label; // the label shown in the GUI for this item
+			const uint8_t label_y_offset; // offset y value from label to item
 			void *target; // the data we are showing/manipulating
 			const EditableType typ;
 			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
@@ -308,7 +309,8 @@ typedef bool (*ButtonEventHandler)(buttons_events_t events);
 typedef struct {
 	void (*onEnter)(); // If !NULL will be called whenever this screen is about to be shown (good to change globals etc)
 	void (*onExit)(); // If !NULL will be called when this screen is no longer visible
-	void (*onUpdate)(); // If !NULL, Called just before each update operation
+	void (*onPreUpdate)(); // If !NULL, Called just before each update operation
+	void (*onPostUpdate)(); // If !NULL, Called just after each update operation
 	void (*onDirtyClean)(); // If !NULL, Called after screen is cleared because it is dirty, good to draw any mask
 	ButtonEventHandler onPress; // or NULL for no handler
 	FieldLayout fields[];

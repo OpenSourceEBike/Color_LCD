@@ -22,53 +22,56 @@
 #include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
-#include "battery_gui.h" // FIXME, remove this ifdef, instead move the layouts into a 850C specific file
+#include "battery_gui.h"
 
-Field batteryField =
-		FIELD_CUSTOM(renderBattery);
+uint8_t ui8_m_wheel_speed_integer;
+uint8_t ui8_m_wheel_speed_decimal;
+
+Field batteryField = FIELD_CUSTOM(renderBattery);
 
 //
 // Fields - these might be shared my multiple screens
 //
-				Field socField = FIELD_DRAWTEXT();
-				Field timeField = FIELD_DRAWTEXT();
-				Field speedField = FIELD_READONLY_UINT("KM/H", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = false);
-				Field assistLevelField = FIELD_READONLY_UINT("ASSIST", &l3_vars.ui8_assist_level, "");
-				Field maxPowerField = FIELD_READONLY_UINT("Motor Pwr", &l3_vars.ui16_battery_power_filtered, "W");
-				Field humanPowerField = FIELD_READONLY_UINT("Human Pwr", &l3_vars.ui16_pedal_power_filtered, "W");
-//Field whiteFillField = { .variant = FieldFill };
-//Field meshFillField = { .variant = FieldMesh };
-				Field warnField = FIELD_DRAWTEXT();
+Field socField = FIELD_DRAWTEXT();
+Field timeField = FIELD_DRAWTEXT();
+Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_integer, "");
+Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
+Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_power_filtered, "W");
+Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
+Field warnField = FIELD_DRAWTEXT();
 
-				Field tripTimeField = FIELD_DRAWTEXT();
-				Field tripDistanceField = FIELD_READONLY_UINT("Trip", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
-				Field odoField = FIELD_READONLY_UINT("ODO", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
-				Field motorTempField = FIELD_READONLY_UINT("Temp", &l3_vars.ui8_motor_temperature, "C");
+Field tripTimeField = FIELD_READONLY_UINT("trip time", &l3_vars.ui16_pedal_power_filtered, "");
+Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
+Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
+Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C");
 
-				Field pwmDutyField = FIELD_READONLY_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, "");
-				Field motorErpsField = FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "");
-				Field motorFOCField = FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "");
-				Field cadenceField = FIELD_READONLY_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm");
+Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cycle, "");
+Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "");
+Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
+Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence, "rpm");
 
-				Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
-				Field speedGraph = FIELD_GRAPH(&speedField);
-				Field motorTempGraph = FIELD_GRAPH(&motorTempField);
-				Field motorPowerGraph = FIELD_GRAPH(&maxPowerField);
-				Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
-				Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
-				Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
-				Field cadenceGraph = FIELD_GRAPH(&cadenceField);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
+Field speedGraph = FIELD_GRAPH(&wheelSpeedIntegerField);
+Field motorTempGraph = FIELD_GRAPH(&motorTempField);
+Field motorPowerGraph = FIELD_GRAPH(&maxPowerField);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+Field cadenceGraph = FIELD_GRAPH(&cadenceField);
 
-				static uint8_t ui8_walk_assist_state = 0;
+static uint8_t ui8_walk_assist_state = 0;
 
-				void lcd_main_screen(void);
-				void brake(void);
-				void walk_assist_state(void);
-				void power(void);
-				void time(void);
-				void battery_soc(void),
+void lcd_main_screen(void);
+void brake(void);
+void walk_assist_state(void);
+void power(void);
+void time(void);
+void wheel_speed(void);
+void battery_soc(void),
 battery_display();
 void trip_time(void);
+void wheel_speed(void);
 static void showNextScreen();
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
@@ -79,7 +82,7 @@ Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
-static void bootScreenOnUpdate() {
+static void bootScreenOnPreUpdate() {
 
 	uint16_t bvolt = battery_voltage_10x_get();
 
@@ -98,39 +101,39 @@ static void bootScreenOnUpdate() {
 }
 
 Screen bootScreen = {
-    .onUpdate = bootScreenOnUpdate,
+  .onPreUpdate = bootScreenOnPreUpdate,
 
-    .fields = {
+  .fields = {
     {
-        .x = 0, .y = YbyEighths(1), .height = -1,
-        .field = &bootHeading,
-        .font = &REGULAR_TEXT_FONT,
+      .x = 0, .y = YbyEighths(1), .height = -1,
+      .field = &bootHeading,
+      .font = &REGULAR_TEXT_FONT,
     },
 
     {
-        .x = 0, .y = -20, .height = -1,
-        .field = &bootURL,
-        .font = &SMALL_TEXT_FONT,
+      .x = 0, .y = -20, .height = -1,
+      .field = &bootURL,
+      .font = &SMALL_TEXT_FONT,
     },
     {
-        .x = 0, .y = YbyEighths(4), .height = -1,
-        .field = &bootFirmwareVersion,
-        .font = &SMALL_TEXT_FONT,
+      .x = 0, .y = YbyEighths(4), .height = -1,
+      .field = &bootFirmwareVersion,
+      .font = &SMALL_TEXT_FONT,
     },
     {
-        .x = 0, .y = -8, .height = -1,
-        .field = &bootVersion,
-        .font = &SMALL_TEXT_FONT,
+      .x = 0, .y = -8, .height = -1,
+      .field = &bootVersion,
+      .font = &SMALL_TEXT_FONT,
     },
     {
-        .x = 0, .y = YbyEighths(6), .height = -1,
-        .field = &bootStatus,
-        .font = &SMALL_TEXT_FONT,
+      .x = 0, .y = YbyEighths(6), .height = -1,
+      .field = &bootStatus,
+      .font = &SMALL_TEXT_FONT,
     },
     {
-        .field = NULL
+      .field = NULL
     }
-    }
+  }
 };
 
 bool mainscreen_onpress(buttons_events_t events) {
@@ -185,12 +188,33 @@ static void mainScreenOnEnter() {
 static void mainScreenOnDirtyClean() {
   // main screen mask
   UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
+
+  UG_SetBackcolor(C_BLACK);
+  UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_FontSelect(&FONT_10X16);
+  UG_PutString(12, 44, "ASSIST");
+
+  // wheel speed
+  if(l3_vars.ui8_units_type == 0)
+  {
+    UG_PutString(255, 44 , "KM/H");
+  }
+  else
+  {
+    UG_PutString(260, 44 , "MPH");
+  }
+
 //  UG_DrawLine(0, 159, 319, 159, MAIN_SCREEN_FIELD_LABELS_COLOR);
 //  UG_DrawLine(0, 239, 319, 239, MAIN_SCREEN_FIELD_LABELS_COLOR);
 //  UG_DrawLine(0, 319, 319, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   //  // vertical line
   //  UG_DrawLine(159, 159, 159, 319, MAIN_SCREEN_FIELD_LABELS_COLOR);
+}
+
+void mainScreenOnPostUpdate(void) {
+  // wheel speed print dot
+  UG_FillCircle(239, 128, 3, C_WHITE);
 }
 
 /**
@@ -233,23 +257,32 @@ Screen mainScreen = {
   .onPress = mainscreen_onpress,
   .onEnter = mainScreenOnEnter,
   .onDirtyClean = mainScreenOnDirtyClean,
+  .onPostUpdate = mainScreenOnPostUpdate,
 
   .fields = {
     BATTERY_BAR,
     {
-      .x = 0, .y = 36,
+      .x = 20, .y = 75,
       .width = -1, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .modifier = ModNone,
       .border = BorderNone
     },
     {
-      .x = XbyEighths(3), .y = 36,
-      .width = 0, .height = -1,
-      .field = &speedField,
+      .x = 120, .y = 54,
+      .width = 123, .height = -1,
+      .field = &wheelSpeedIntegerField,
       .font = &HUGE_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .modifier = ModNone,
+      .border = BorderNone
+    },
+    {
+      .x = 253, .y = 75,
+      .width = 45, .height = -1,
+      .field = &wheelSpeedDecimalField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .modifier = ModNone,
       .border = BorderNone
     },
     { .x = 0, .y = YbyEighths(3),
@@ -301,6 +334,30 @@ void lcd_main_screen(void) {
 	battery_display();
 	brake();
 	trip_time();
+	wheel_speed();
+}
+
+void wheel_speed(void)
+{
+  static uint16_t ui16_wheel_x10_speed_previous = 0xffff;
+  uint16_t ui16_wheel_speed_x10 = l3_vars.ui16_wheel_speed_x10;
+
+  // convert to imperial
+  if(l3_vars.ui8_units_type)
+  {
+    ui16_wheel_speed_x10 = (ui16_wheel_speed_x10 * 10) / 16;
+  }
+
+  if(ui16_wheel_speed_x10 != ui16_wheel_x10_speed_previous)
+  {
+    ui16_wheel_x10_speed_previous = ui16_wheel_speed_x10;
+
+    ui8_m_wheel_speed_integer = (uint8_t) (ui16_wheel_speed_x10 / 10);
+    ui8_m_wheel_speed_decimal = (uint8_t) (ui16_wheel_speed_x10 % 10);
+  }
+
+  ui8_m_wheel_speed_integer = 48;
+      ui8_m_wheel_speed_decimal = 8;
 }
 
 void power(void) {
@@ -435,12 +492,6 @@ void screen_clock(void) {
 
 	lcd_main_screen();
 	screenUpdate();
-
-#if 0
-  // must be reset after a full cycle of lcd_clock()
-  ui32_m_draw_graphs_1 = 0;
-  ui32_m_draw_graphs_2 = 0;
-#endif
 }
 
 void trip_time(void) {
@@ -448,8 +499,8 @@ void trip_time(void) {
 
 	p_time = rtc_get_time_since_startup();
 
-	fieldPrintf(&tripTimeField, "%02d:%02d", p_time->ui8_hours,
-			p_time->ui8_minutes);
+//	fieldPrintf(&tripTimeField, "%02d:%02d", p_time->ui8_hours,
+//			p_time->ui8_minutes);
 }
 
 void brake(void) {
@@ -580,127 +631,3 @@ void main_idle() {
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
 	automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
 }
-
-#if 0 // kevinh possibly repurpose in graph render widget
-void graphs_measurements_update(void)
-{
-  static uint32_t counter = 0;
-//  static uint8_t ui8_first_time = 1;
-  static uint8_t ui8_first_time = 0;
-  static uint32_t ui32_pedal_power_accumulated = 0;
-
-#ifndef SIMULATION
-  if(ui8_first_time &&
-      l2_vars.ui8_motor_temperature != 0)
-  {
-    ui8_first_time = 0;
-  }
-
-  if(ui8_first_time == 0)
-  {
-    // apply the same low pass filter as for the value show to user
-    ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT;
-    ui32_pedal_power_accumulated += (uint32_t) l2_vars.ui16_pedal_power_x10 / 10;
-
-    // sum the value
-    m_p_graphs[0].measurement.ui32_sum_value += ((uint32_t) (ui32_pedal_power_accumulated >> PEDAL_POWER_FILTER_COEFFICIENT));
-
-    // every 3.5 seconds, update the graph array values
-    if(++counter >= 35)
-    {
-      if(m_p_graphs[0].measurement.ui32_sum_value)
-      {
-        /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = m_p_graphs[0].measurement.ui32_sum_value / counter;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
-      }
-      else
-      {
-        /*store the average value on the 3.5 seconds*/
-        m_p_graphs[0].ui32_data_y_last_value = 0;
-        m_p_graphs[0].measurement.ui32_sum_value = 0;
-      }
-
-      m_p_graphs[0].ui32_data_y_last_value_previous = m_p_graphs[0].ui32_data_y_last_value;
-
-      counter = 0;
-
-      // signal to draw graphs on main loop
-      ui32_m_draw_graphs_1 = 1;
-    }
-  }
-#else
-  // every 0.5 second
-  counter++;
-  if(counter >= 2)
-  {
-    m_p_graphs[0].ui32_data_y_last_value = l2_vars.ui16_pedal_power_filtered;
-
-    if(l2_vars.ui16_pedal_power_filtered == 0)
-    {
-      m_p_graphs[0].ui32_data_y_last_value++;
-    }
-
-    // signal to draw graphs on main loop
-    ui32_m_draw_graphs_1 = 1;
-
-    counter = 0;
-  }
-#endif
-}
-#endif
-
-#if 0
-void update_menu_flashing_state(void)
-{
-
-//  // ***************************************************************************************************
-//  // For flashing the temperature field when the current is being limited due to motor over temperature
-//  // flash only if current is being limited: ui8_temperature_current_limiting_value != 255
-//  if (l3_vars.ui8_temperature_current_limiting_value != 255)
-//  {
-//    if (ui8_lcd_menu_flash_state_temperature == 0) // state 0: disabled
-//    {
-//      if (ui16_lcd_menu_flash_counter_temperature > 0)
-//      {
-//        ui16_lcd_menu_flash_counter_temperature--;
-//      }
-//
-//      if (ui16_lcd_menu_flash_counter_temperature == 0)
-//      {
-//        // if l3_vars.ui8_temperature_current_limiting_value == 0, flash quicker meaning motor is shutoff
-//        if (l3_vars.ui8_temperature_current_limiting_value > 0)
-//        {
-//          ui16_lcd_menu_flash_counter_temperature = 50 + ((uint16_t) l3_vars.ui8_temperature_current_limiting_value);
-//        }
-//        else
-//        {
-//          ui16_lcd_menu_flash_counter_temperature = 25;
-//        }
-//
-//        ui8_lcd_menu_flash_state_temperature = 1;
-//      }
-//    }
-//
-//    if (ui8_lcd_menu_flash_state_temperature == 1) // state 1: enabled
-//    {
-//      if (ui16_lcd_menu_flash_counter_temperature > 0)
-//      {
-//        ui16_lcd_menu_flash_counter_temperature--;
-//      }
-//
-//      if (ui16_lcd_menu_flash_counter_temperature == 0)
-//      {
-//        ui16_lcd_menu_flash_counter_temperature = 25; // 0.25 second
-//        ui8_lcd_menu_flash_state_temperature = 0;
-//      }
-//    }
-//  }
-//  else
-//  {
-//    ui8_lcd_menu_flash_state_temperature = 1;
-//  }
-//  // ***************************************************************************************************
-}
-#endif
-

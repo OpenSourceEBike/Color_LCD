@@ -726,7 +726,7 @@ static bool renderEditable(FieldLayout *layout) {
 				if (strwidth < width) // If the user gave us more space than we need, center justify within that box
 					x += (width - strwidth) / 2;
 
-				y += editable_label_font->char_height; // put value just underneath
+				y += (editable_label_font->char_height + field->editable.label_y_offset); // add offset and put value just underneath
 			}
 		} else {
 			if (strwidth < width) // If the user gave us more space than we need, center justify within that box
@@ -1167,8 +1167,8 @@ void screenUpdate() {
 	if (!curScreen)
 		return;
 
-	if (curScreen->onUpdate)
-		(*curScreen->onUpdate)();
+	if (curScreen->onPreUpdate)
+		(*curScreen->onPreUpdate)();
 
 	bool didDraw = false; // we only render to hardware if something changed
 
@@ -1191,6 +1191,11 @@ void screenUpdate() {
 
 	// For each field if that field is dirty (or the screen is) redraw it
 	didDraw |= renderLayouts(curScreen->fields, screenDirty);
+
+	if(didDraw) {
+    if (curScreen->onPostUpdate)
+      (*curScreen->onPostUpdate)();
+	}
 
 #ifdef SW102
   // flush the screen to the hardware

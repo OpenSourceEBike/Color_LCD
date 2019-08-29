@@ -42,7 +42,7 @@ SIZE     = $(TCPREFIX)size
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = 3
+OPT = 0
 
 # -mfix-cortex-m3-ldrd should be enabled by default for Cortex M3.
 # CFLAGS -H show header files
@@ -65,7 +65,7 @@ ODFLAGS = -S
 include ../../common/Makefile.common
 
 COMMONSRC = ../../common/src
-SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/fault.c $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c
+SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/fault.c $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c
 OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
 
 # dev platform specific.

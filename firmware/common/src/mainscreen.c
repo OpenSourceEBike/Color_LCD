@@ -55,8 +55,7 @@ void walk_assist_state(void);
 void power(void);
 void time(void);
 void wheel_speed(void);
-void battery_soc(void),
-battery_display();
+void battery_soc(void);
 void trip_time(void);
 void wheel_speed(void);
 static void showNextScreen();
@@ -344,16 +343,6 @@ void battery_soc(void) {
 				l3_vars.ui16_battery_voltage_soc_x10 % 10);
 }
 
-// Show our battery graphic
-void battery_display() {
-	static uint8_t oldsoc = 0xff;
-
-	// Only trigger redraws if something changed
-	if (l3_vars.volt_based_soc != oldsoc) {
-		oldsoc = l3_vars.volt_based_soc;
-		batteryField.dirty = true;
-	}
-}
 
 void time(void) {
 	struct_rtc_time_t *p_rtc_time = rtc_get_time();

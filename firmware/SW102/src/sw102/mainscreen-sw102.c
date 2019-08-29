@@ -157,6 +157,13 @@ Screen infoScreen = {
     } }
 };
 
+// Show our battery graphic
+void battery_display() {
+  // on this board we use a special battery font
+  uint8_t ui32_battery_bar_number = l3_vars.volt_based_soc / (90 / 5); // scale SOC so anything greater than 90% is 5 bars, and zero is zero.
+  fieldPrintf(&batteryField, "%d", ui32_battery_bar_number);
+}
+
 // Screens in a loop, shown when the user short presses the power button
 Screen *screens[] = { &mainScreen, &configScreen,
 		&infoScreen,

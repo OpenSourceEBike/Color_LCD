@@ -195,3 +195,14 @@ Screen mainScreen = {
 // Screens in a loop, shown when the user short presses the power button
 Screen *screens[] = { &mainScreen, &configScreen, NULL };
 
+
+// Show our battery graphic
+void battery_display() {
+	static uint8_t oldsoc = 0xff;
+
+	// Only trigger redraws if something changed
+	if (l3_vars.volt_based_soc != oldsoc) {
+		oldsoc = l3_vars.volt_based_soc;
+		batteryField.dirty = true;
+	}
+}

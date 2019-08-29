@@ -629,10 +629,15 @@ static bool renderEditable(FieldLayout *layout) {
 	bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
 
 	if (layout->height == -1) // We should autoset
-		layout->height = (
-				(isTwoRows || showLabelAtTop) ?
-						editable_label_font->char_height : 0)
-				+ font->char_height;
+//		layout->height = (
+//				(isTwoRows || showLabelAtTop) ?
+//						editable_label_font->char_height : 0)
+//				+ font->char_height;
+	  // don't know why char_height must be -= (char_height / 8) to be near the real value
+    layout->height = (
+        (isTwoRows || showLabelAtTop) ?
+            (editable_label_font->char_height - (editable_label_font->char_height / 8)): 0)
+        + (font->char_height - (font->char_height / 8));
 
 	UG_S16 height = layout->height;
 

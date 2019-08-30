@@ -89,6 +89,8 @@ const UG_FONT *editable_units_font = &SMALL_TEXT_FONT;
 #define EDITABLE_CURSOR_COLOR       C_WHITE
 #endif
 
+int32_t countDigit(int32_t n);
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -616,10 +618,10 @@ static const char *getUnits(Field *field) {
   const char *units = field->editable.number.units;
 
   if (screenConvertMiles) {
-    if(strcasecmp(units, "kph") == 0)
+    if(strcmp(units, "kph") == 0)
       return "mph";
 
-    if(strcasecmp(units, "km") == 0)
+    if(strcmp(units, "km") == 0)
       return "mi";
   }
 
@@ -639,8 +641,8 @@ static void getEditableString(Field *field, int32_t num, char *outbuf)
   case EditUInt:
   {
     const char *units = field->editable.number.units;
-    if (screenConvertMiles && (strcasecmp(units, "kph") == 0
-        || strcasecmp(units, "km") == 0))
+    if (screenConvertMiles && (strcmp(units, "kph") == 0
+        || strcmp(units, "km") == 0))
       num = (num * 100) / 161; // div by 1.609 for km->mi
 
     if (screenConvertFarenheit && strcmp(units, "C") == 0)
@@ -709,6 +711,7 @@ static bool renderEditable(FieldLayout *layout)
   bool dirty = field->dirty;
   bool showLabel = layout->modifier != ModNoLabel;
   bool showLabelAtTop = layout->modifier == ModLabelTop;
+  bool align = layout->field->editable.number.align;
   const UG_FONT *font = layout->font ? layout->font : editable_value_font;
 
   bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
@@ -826,14 +829,34 @@ static bool renderEditable(FieldLayout *layout)
         if (strwidth < width) // If the user gave us more space than we need, center justify within that box
           x += (width - strwidth) / 2;
 
-        y +=
-            (editable_label_font->char_height + field->editable.label_y_offset); // add offset and put value just underneath
+        y += (editable_label_font->char_height + field->editable.label_y_offset); // add offset and put value just underneath
       }
     }
     else
     {
-      if (strwidth < width) // If the user gave us more space than we need, center justify within that box
-        x += (width - strwidth) / 2;
+      int32_t num_of_digits;
+      int divd = field->editable.number.div_digits;
+
+      switch (align) {
+        case AlignCenter:
+          if (strwidth < width) // If the user gave us more space than we need, center justify within that box
+            x += (width - strwidth) / 2;
+          break;
+
+        case AlignRight:
+          num_of_digits = countDigit(num);
+
+          // we will print the 0 anyway
+          if(num_of_digits == 0)
+            num_of_digits = 1;
+
+          // ignore fraction digits
+          if(divd && num_of_digits > divd)
+            num_of_digits -= divd;
+
+          x = (x + width) - (num_of_digits * (font->char_width + gui.char_h_space));
+          break;
+      }
     }
 
     UG_PutString(x, y, (char*) valuestr);
@@ -1374,5 +1397,16 @@ void fieldPrintf(Field *field, const char *fmt, ...)
   }
 
   va_end(argp);
+}
+
+int32_t countDigit(int32_t n)
+{
+  int32_t count = 0;
+  while (n != 0) {
+    n = n / 10;
+    ++count;
+  }
+
+  return count;
 }
 

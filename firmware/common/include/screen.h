@@ -125,6 +125,11 @@ typedef enum {
 	EditEnum // Choose a string from a list
 } EditableType;
 
+typedef enum {
+  AlignCenter = 0,
+  AlignRight,
+} Align;
+
 #define GRAPH_MAX_POINTS	(256) // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_INTERVAL_MS 	3500 // graph updates are expensive - do rarely
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
@@ -206,6 +211,7 @@ typedef struct Field {
 			union {
 
 				struct {
+				  const Align align;
 					const char *units;
 					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part

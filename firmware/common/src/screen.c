@@ -643,7 +643,7 @@ static void getEditableString(Field *field, int32_t num, char *outbuf)
         || strcasecmp(units, "km") == 0))
       num = (num * 100) / 161; // div by 1.609 for km->mi
 
-    if (screenConvertFarenheit && strcmp(units, "C"))
+    if (screenConvertFarenheit && strcmp(units, "C") == 0)
       num = 32 + (num * 9) / 5;
 
     // properly handle div_digits

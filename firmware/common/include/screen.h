@@ -329,6 +329,12 @@ Screen* getCurrentScreen();
 /// Returns true if the current screen handled the press
 bool screenOnPress(buttons_events_t events);
 
+// Set to true if we should automatically convert kph -> mph and km -> mi
+extern bool screenConvertMiles;
+
+// Set to true if we should automatically convert C -> F
+extern bool screenConvertFarenheit;
+
 void fieldPrintf(Field *field, const char *fmt, ...);
 
 extern const UG_FONT *editable_label_font;

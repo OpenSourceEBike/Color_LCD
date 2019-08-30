@@ -138,6 +138,8 @@ void eeprom_init() {
 	}
 
 	eeprom_init_variables();
+
+  screenConvertMiles = l3_vars.ui8_units_type != 0; // Set initial value on unit conversions (FIXME, move this someplace better)
 }
 
 void eeprom_init_variables(void) {
@@ -155,7 +157,7 @@ void eeprom_init_variables(void) {
 	// copy data final variables
 	p_l3_output_vars->ui8_assist_level = m_eeprom_data.ui8_assist_level;
 	p_l3_output_vars->ui16_wheel_perimeter = m_eeprom_data.ui16_wheel_perimeter;
-	p_l3_output_vars->ui8_wheel_max_speed = m_eeprom_data.ui8_wheel_max_speed;
+	p_l3_output_vars->ui8_wheel_max_speed_x10 = m_eeprom_data.ui8_wheel_max_speed * 10;
 	p_l3_output_vars->ui8_units_type = m_eeprom_data.ui8_units_type;
 	p_l3_output_vars->ui32_wh_x10_offset = m_eeprom_data.ui32_wh_x10_offset;
 	p_l3_output_vars->ui32_wh_x10_100_percent =
@@ -268,15 +270,6 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_walk_assist_level_factor[7];
 	p_l3_output_vars->ui8_walk_assist_level_factor[8] =
 			m_eeprom_data.ui8_walk_assist_level_factor[8];
-
-#if 0
-  p_lcd_configurations_menu->ui8_item_number = m_eeprom_data.lcd_configurations_menu.ui8_item_number;
-  p_lcd_configurations_menu->ui8_item_visible_start_index = m_eeprom_data.lcd_configurations_menu.ui8_item_visible_start_index;
-  p_lcd_configurations_menu->ui8_item_visible_index = m_eeprom_data.lcd_configurations_menu.ui8_item_visible_index;
-  p_lcd_configurations_menu->ui8_refresh_full_menu_1 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1;
-  p_lcd_configurations_menu->ui8_refresh_full_menu_2 = m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2;
-  p_lcd_configurations_menu->ui8_battery_soc_power_used_state = m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state;
-#endif
 }
 
 void eeprom_write_variables(void) {
@@ -291,7 +284,7 @@ void eeprom_write_variables(void) {
 
 	m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
 	m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
-	m_eeprom_data.ui8_wheel_max_speed = p_l3_output_vars->ui8_wheel_max_speed;
+	m_eeprom_data.ui8_wheel_max_speed = p_l3_output_vars->ui8_wheel_max_speed_x10 / 10;
 	m_eeprom_data.ui8_units_type = p_l3_output_vars->ui8_units_type;
 	m_eeprom_data.ui32_wh_x10_offset = p_l3_output_vars->ui32_wh_x10_offset;
 	m_eeprom_data.ui32_wh_x10_100_percent =

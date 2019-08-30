@@ -83,6 +83,7 @@ void parse_simmotor() {
 	l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
 
 	l2_vars.ui16_wheel_speed_x10 = fakeWave(&speedstore, 0, 300);
+  l2_vars.ui16_wheel_speed_x10 = 200;
 
 	l2_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -675,7 +676,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =
 			l2_vars.ui8_temperature_current_limiting_value;
-	l3_vars.ui8_motor_temperature = l2_vars.ui8_motor_temperature;
+	l3_vars.ui8_motor_temperature_x10 = l2_vars.ui8_motor_temperature * 10;
 	l3_vars.ui32_wheel_speed_sensor_tick_counter =
 			l2_vars.ui32_wheel_speed_sensor_tick_counter;
 	l3_vars.ui16_pedal_power_x10 = l2_vars.ui16_pedal_power_x10;
@@ -739,7 +740,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l2_vars.ui16_battery_low_voltage_cut_off_x10 =
 			l3_vars.ui16_battery_low_voltage_cut_off_x10;
 	l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
-	l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed;
+	l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed_x10 / 10;
 	l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
 	l2_vars.ui8_motor_assistance_startup_without_pedal_rotation =
 			l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;

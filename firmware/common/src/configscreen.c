@@ -5,9 +5,9 @@
 
 static Field wheelMenus[] =
 		{
-						FIELD_EDITABLE_UINT("Max wheel speed", &l3_vars.ui8_wheel_max_speed, "km/h", 1, 99),
+						FIELD_EDITABLE_UINT("Max wheel speed", &l3_vars.ui8_wheel_max_speed_x10, "kph", 1, 990, .div_digits = 10, .inc_step = 10, .hide_fraction = true),
 						FIELD_EDITABLE_UINT("Wheel perimeter", &l3_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
-						FIELD_EDITABLE_ENUM("Speed units", &l3_vars.ui8_units_type, "km/h", "mph"),
+						FIELD_EDITABLE_ENUM("Speed units", &l3_vars.ui8_units_type, "kph", "mph"),
 				FIELD_END };
 
 static Field batteryMenus[] =
@@ -92,7 +92,7 @@ static Field displayMenus[] =
 static Field offroadMenus[] = {
     FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_offroad_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
     FIELD_EDITABLE_ENUM("Active on start", &l3_vars.ui8_offroad_enabled_on_startup, "no", "yes"), // FIXME, share one array of disable/enable strings
-    FIELD_EDITABLE_UINT("Speed limit", &l3_vars.ui8_offroad_speed_limit, "km/h", 1, 99),
+    FIELD_EDITABLE_UINT("Speed limit", &l3_vars.ui8_offroad_speed_limit_x10, "kph", 1, 990, .div_digits = 10, .inc_step = 10, .hide_fraction = true),
     FIELD_EDITABLE_ENUM("Limit power", &l3_vars.ui8_offroad_power_limit_enabled, "no", "yes"), // FIXME, share one array of disable/enable strings
     FIELD_EDITABLE_UINT("Power limit", &l3_vars.ui8_offroad_power_limit_div25, "watt", 0, 2000), // huge FIXME - div25 can't work with this system, change it
     FIELD_END
@@ -143,8 +143,8 @@ static void configScreenOnEnter() {
 
 static void configExit() {
 	// save the variables on EEPROM
-	// FIXME: move this into a onExit callback on the config screen object instead
 	eeprom_write_variables();
+  screenConvertMiles = l3_vars.ui8_units_type != 0;
 }
 
 //

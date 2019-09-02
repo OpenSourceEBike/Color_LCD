@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include <assert.h>
 #include "screen.h"
@@ -418,6 +419,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
 
         if (i == 0)
         { // heading
+          heading.dirty = true; // Force the heading to be redrawn even if we aren't chaning the string
           fieldPrintf(&heading, "%s", field->scrollable.label);
           r->field = &heading;
           r->color = ColorHeading;

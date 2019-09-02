@@ -512,28 +512,63 @@ static bool renderScrollable(FieldLayout *layout)
   return renderActiveScrollable(layout, field);
 }
 
+// Set to true if we should automatically convert kph -> mph and km -> mi
+bool screenConvertMiles = false;
+
+// Set to true if we should automatically convert C -> F
+bool screenConvertFarenheit = false;
+
 // Get the numeric value of an editable number, properly handling different possible byte encodings
-static int32_t getEditableNumber(Field *field)
+// if withConversion, convert from SI units if necessary
+static int32_t getEditableNumber(Field *field, bool withConversion)
 {
   assert(field->variant == FieldEditable);
 
+  int32_t num;
   switch (field->editable.size)
   {
   case 1:
-    return *(uint8_t*) field->editable.target;
+    num = *(uint8_t*) field->editable.target;
+    break;
   case 2:
-    return *(int16_t*) field->editable.target;
+    num = *(int16_t*) field->editable.target;
+    break;
   case 4:
-    return *(int32_t*) field->editable.target;
+    num = *(int32_t*) field->editable.target;
+    break;
   default:
     assert(0);
     return 0;
   }
+
+  if (withConversion)
+  {
+    const char *units = field->editable.number.units;
+    if (screenConvertMiles
+        && (strcasecmp(units, "kph") == 0 || strcasecmp(units, "km") == 0))
+      num = (num * 100) / 161; // div by 1.609 for km->mi
+
+    if (screenConvertFarenheit && strcmp(units, "C") == 0)
+      num = 32 + (num * 9) / 5;
+  }
+
+  return num;
 }
 
 // Set the numeric value of an editable number, properly handling different possible byte encodings
-static void setEditableNumber(Field *field, uint32_t v)
+static void setEditableNumber(Field *field, uint32_t v, bool withConversion)
 {
+  if (withConversion)
+  {
+    const char *units = field->editable.number.units;
+    if (screenConvertMiles
+        && (strcasecmp(units, "kph") == 0 || strcasecmp(units, "km") == 0))
+      v = (v * 161) / 100; // mult by 1.609 for km->mi
+
+    if (screenConvertFarenheit && strcmp(units, "C") == 0)
+      v = ((v - 32) * 5) / 9;
+  }
+
   switch (field->editable.size)
   {
   case 1:
@@ -562,6 +597,12 @@ static int countEnumOptions(Field *s)
 }
 
 /**
+ * We only convert to displayed units once, when the user starts editing, so that when the user increments/decrements they see the value change
+ * by the expected amount.  We convert back into SI units when the user stops editing.
+ */
+int32_t curEditableValueConverted;
+
+/**
  * increment/decrement an editable
  */
 static void changeEditable(bool increment)
@@ -569,7 +610,7 @@ static void changeEditable(bool increment)
   Field *f = curActiveEditable;
   assert(f);
 
-  int v = getEditableNumber(f);
+  int v = curEditableValueConverted;
 
   switch (f->editable.typ)
   {
@@ -585,7 +626,6 @@ static void changeEditable(bool increment)
       v = f->editable.number.max_value;
     else if (v > f->editable.number.max_value)
       v = f->editable.number.min_value;
-    setEditableNumber(f, v);
     break;
   }
   case EditEnum:
@@ -596,35 +636,33 @@ static void changeEditable(bool increment)
       v = numOpts - 1;
     else if (v >= numOpts)
       v = 0;
-    setEditableNumber(f, v);
     break;
   }
   default:
     assert(0);
     break;
   }
+
+  curEditableValueConverted = v;
 }
 
-// Set to true if we should automatically convert kph -> mph and km -> mi
-bool screenConvertMiles = true;
-
-// Set to true if we should automatically convert C -> F
-bool screenConvertFarenheit = true;
-
 /// Return a human readable name for the units of this field (converting from SI if necessary)
-static const char *getUnits(Field *field) {
+static const char* getUnits(Field *field)
+{
   const char *units = field->editable.number.units;
 
-  if (screenConvertMiles) {
-    if(strcasecmp(units, "kph") == 0)
+  if (screenConvertMiles)
+  {
+    if (strcasecmp(units, "kph") == 0)
       return "mph";
 
-    if(strcasecmp(units, "km") == 0)
+    if (strcasecmp(units, "km") == 0)
       return "mi";
   }
 
-  if(screenConvertFarenheit) {
-    if(strcmp(units, "C") == 0)
+  if (screenConvertFarenheit)
+  {
+    if (strcmp(units, "C") == 0)
       return "F";
   }
 
@@ -638,14 +676,6 @@ static void getEditableString(Field *field, int32_t num, char *outbuf)
   {
   case EditUInt:
   {
-    const char *units = field->editable.number.units;
-    if (screenConvertMiles && (strcasecmp(units, "kph") == 0
-        || strcasecmp(units, "km") == 0))
-      num = (num * 100) / 161; // div by 1.609 for km->mi
-
-    if (screenConvertFarenheit && strcmp(units, "C"))
-      num = 32 + (num * 9) / 5;
-
     // properly handle div_digits
     int divd = field->editable.number.div_digits;
     if (divd == 0)
@@ -745,7 +775,8 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   // Get the value we are trying to show (it might be a num or an enum)
-  int32_t num = getEditableNumber(field);
+  // If we are actively editing, we are careful to show only the cached editable value
+  int32_t num = isActive ? curEditableValueConverted : getEditableNumber(field, true);
   bool valueChanged = num != layout->old_editable;
   char valuestr[MAX_FIELD_LEN];
 
@@ -861,8 +892,7 @@ static bool renderEditable(FieldLayout *layout)
 
       UG_FontSelect(editable_units_font);
       UG_PutString(layout->x + width - uwidth,
-          layout->y + layout->height - font->char_height - 1,
-          (char*) units);
+          layout->y + layout->height - font->char_height - 1, (char*) units);
     }
   }
 
@@ -1062,7 +1092,7 @@ static bool renderGraph(FieldLayout *layout)
 
   // Pull in the latest point (if we are our periodic update)
   if (needUpdate)
-    graphAddPoint(field, getEditableNumber(source));
+    graphAddPoint(field, getEditableNumber(source, true));
 
   // Set axis coordinates
   int axisdigits = 5;
@@ -1109,7 +1139,12 @@ static void forceScrollableRender()
 static void setActiveEditable(Field *clicked)
 {
   if (curActiveEditable)
+  {
     curActiveEditable->blink = false;
+
+    // Save any changed value
+    setEditableNumber(curActiveEditable, curEditableValueConverted, true);
+  }
 
   curActiveEditable = clicked;
 
@@ -1117,6 +1152,9 @@ static void setActiveEditable(Field *clicked)
   {
     clicked->dirty = true; // force redraw with highlighting
     clicked->blink = true;
+
+    // get initial value for editing
+    curEditableValueConverted = getEditableNumber(clicked, true);
   }
 
   forceScrollableRender(); // FIXME, I'm not sure if this is really required
@@ -1133,17 +1171,15 @@ static bool onPressEditable(buttons_events_t events)
     // Note: we mark that we've handled this 'event' (so that other subsystems don't think they should) but really, we have already
     // been calling changeEditable in our render function, where we check only on blinkChanged, so that users can press and hold to
     // change values.
-    // changeEditable(true);
     handled = true;
   }
 
   if (events & DOWN_CLICK)
   {
-    // changeEditable(false);
     handled = true;
   }
 
-  // Mark that we are no longer editing - click pwr button to exit
+// Mark that we are no longer editing - click pwr button to exit
   if (events & SCREENCLICK_STOP_EDIT)
   {
     setActiveEditable(NULL);
@@ -1222,8 +1258,8 @@ static bool onPressScrollable(buttons_events_t events)
     handled = true;
   }
 
-  // If we aren't already editing anything, start now (note: we will only be called if some active editable
-  // hasn't already handled this button
+// If we aren't already editing anything, start now (note: we will only be called if some active editable
+// hasn't already handled this button
   if (events & SCREENCLICK_START_EDIT)
   {
     Field *clicked = &s->scrollable.entries[s->scrollable.selected];
@@ -1248,7 +1284,7 @@ static bool onPressScrollable(buttons_events_t events)
     }
   }
 
-  // click power button to exit out of menus
+// click power button to exit out of menus
   if (!handled && (events & SCREENCLICK_STOP_EDIT))
   {
     handled = exitScrollable(); // if we were top scrollable don't claim we handled this press (let rest of app do it)
@@ -1320,7 +1356,7 @@ void screenUpdate()
 
   bool didDraw = false; // we only render to hardware if something changed
 
-  // Every 200ms toggle any blinking animations
+// Every 200ms toggle any blinking animations
   screenUpdateCounter++;
   blinkChanged = (screenUpdateCounter % (BLINK_INTERVAL_MS / UPDATE_INTERVAL_MS)
       == 0);
@@ -1339,7 +1375,7 @@ void screenUpdate()
       (*curScreen->onDirtyClean)();
   }
 
-  // For each field if that field is dirty (or the screen is) redraw it
+// For each field if that field is dirty (or the screen is) redraw it
   didDraw |= renderLayouts(curScreen->fields, screenDirty);
 
   if (didDraw)
@@ -1349,7 +1385,7 @@ void screenUpdate()
   }
 
 #ifdef SW102
-  // flush the screen to the hardware
+// flush the screen to the hardware
   if (didDraw)
   {
     lcd_refresh();

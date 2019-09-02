@@ -83,7 +83,7 @@ void parse_simmotor() {
 	l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
 
 	l2_vars.ui16_wheel_speed_x10 = fakeWave(&speedstore, 0, 300);
-  l2_vars.ui16_wheel_speed_x10 = 200;
+  l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
 
 	l2_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -91,6 +91,7 @@ void parse_simmotor() {
 
 	if (l2_vars.ui8_temperature_limit_feature_enabled) {
 		l2_vars.ui8_motor_temperature = fakeWave(&tempstore, 20, 120);
+		l2_vars.ui8_motor_temperature = 50;
 	} else {
 		l2_vars.ui8_throttle = fake(0, 100);
 	}

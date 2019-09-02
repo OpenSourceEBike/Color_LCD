@@ -158,6 +158,11 @@ bool mainscreen_onpress(buttons_events_t events) {
 }
 
 
+void set_conversions() {
+  screenConvertMiles = l3_vars.ui8_units_type != 0; // Set initial value on unit conversions (FIXME, move this someplace better)
+  screenConvertFarenheit = screenConvertMiles; // FIXME, should be based on a different eeprom config value
+}
+
 void lcd_main_screen(void) {
 	time();
 	walk_assist_state();
@@ -339,7 +344,7 @@ void time(void) {
 	struct_rtc_time_t *p_rtc_time = rtc_get_time();
 
 	// force to be [0 - 12]
-	if (l3_vars.ui8_units_type) {
+	if (l3_vars.ui8_units_type) { // FIXME, should be based on a different eeprom config value, just because someone is using mph doesn't mean they want 12 hr time
 		if (p_rtc_time->ui8_hours > 12) {
 			p_rtc_time->ui8_hours -= 12;
 		}

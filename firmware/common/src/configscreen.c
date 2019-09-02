@@ -5,8 +5,8 @@
 
 static Field wheelMenus[] =
 		{
-						FIELD_EDITABLE_UINT("Max wheel speed", &l3_vars.ui8_wheel_max_speed_x10, "kph", 1, 990, .div_digits = 10, .inc_step = 10, .hide_fraction = true),
-						FIELD_EDITABLE_UINT("Wheel perimeter", &l3_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
+						FIELD_EDITABLE_UINT("Max speed", &l3_vars.ui8_wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
+						FIELD_EDITABLE_UINT("Circumference", &l3_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
 						FIELD_EDITABLE_ENUM("Speed units", &l3_vars.ui8_units_type, "kph", "mph"),
 				FIELD_END };
 
@@ -15,7 +15,7 @@ static Field batteryMenus[] =
 						FIELD_EDITABLE_UINT("Max current", &l3_vars.ui8_battery_max_current, "amps", 1, 30),
 						FIELD_EDITABLE_UINT("Current ramp", &l3_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Low cut-off", &l3_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Number of cells", &l3_vars.ui8_battery_cells_number, "", 7, 14),
+						FIELD_EDITABLE_UINT("Num cells", &l3_vars.ui8_battery_cells_number, "", 7, 14),
 						FIELD_EDITABLE_UINT("Resistance", &l3_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
 						FIELD_READONLY_UINT("Voltage", &l3_vars.ui16_battery_voltage_soc_x10, "volts", .div_digits = 1),
 				FIELD_END };
@@ -24,7 +24,7 @@ static Field socMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_battery_soc_enable, "disable", "enable"),
 						FIELD_EDITABLE_ENUM("Show", &l3_vars.ui8_battery_soc_increment_decrement, "%full", "%used"),
-						FIELD_EDITABLE_UINT("Reset threshold", &l3_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
+						FIELD_EDITABLE_UINT("Reset at", &l3_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Battery total", &l3_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .inc_step = 10),
 						FIELD_EDITABLE_UINT("Used", &l3_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
 				FIELD_END };
@@ -119,13 +119,13 @@ static Field technicalMenus[] =
 				FIELD_END };
 
 static Field topMenus[] = {
-FIELD_SCROLLABLE("Wheel settings", wheelMenus),
+FIELD_SCROLLABLE("Wheel", wheelMenus),
 FIELD_SCROLLABLE("Battery", batteryMenus),
 FIELD_SCROLLABLE("SOC", socMenus),
 FIELD_SCROLLABLE("Assist level", assistMenus),
-FIELD_SCROLLABLE("Walk assist", walkAssistMenus),
+FIELD_SCROLLABLE("Walk", walkAssistMenus),
 FIELD_SCROLLABLE("Startup power", startupPowerMenus),
-FIELD_SCROLLABLE("Motor temperature", motorTempMenus),
+FIELD_SCROLLABLE("Motor temp", motorTempMenus),
 FIELD_SCROLLABLE("Display", displayMenus),
 // FIELD_SCROLLABLE("Offroad", offroadMenus),
 		FIELD_SCROLLABLE("Various", variousMenus),
@@ -144,13 +144,20 @@ static void configScreenOnEnter() {
 static void configExit() {
 	// save the variables on EEPROM
 	eeprom_write_variables();
-  screenConvertMiles = l3_vars.ui8_units_type != 0;
+	set_conversions(); // we just changed units
+}
+
+static void configPreUpdate() {
+  set_conversions(); // while in the config menu we might change units at any time - keep the display looking correct
 }
 
 //
 // Screens
 //
-Screen configScreen = { .onExit = configExit, .onEnter = configScreenOnEnter,
+Screen configScreen = {
+    .onExit = configExit,
+    .onEnter = configScreenOnEnter,
+    .onPreUpdate = configPreUpdate,
 
 .fields = {
 // FIXME, add a drawable with the a "Config" title at top of screen

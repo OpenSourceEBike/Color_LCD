@@ -139,8 +139,9 @@ void eeprom_init() {
 
 	eeprom_init_variables();
 
-  screenConvertMiles = l3_vars.ui8_units_type != 0; // Set initial value on unit conversions (FIXME, move this someplace better)
+	set_conversions();
 }
+
 
 void eeprom_init_variables(void) {
 	//uint32_t ui32_counter;

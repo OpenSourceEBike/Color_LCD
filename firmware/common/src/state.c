@@ -676,7 +676,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =
 			l2_vars.ui8_temperature_current_limiting_value;
-	l3_vars.ui8_motor_temperature_x10 = l2_vars.ui8_motor_temperature * 10;
+	l3_vars.ui8_motor_temperature = l2_vars.ui8_motor_temperature;
 	l3_vars.ui32_wheel_speed_sensor_tick_counter =
 			l2_vars.ui32_wheel_speed_sensor_tick_counter;
 	l3_vars.ui16_pedal_power_x10 = l2_vars.ui16_pedal_power_x10;

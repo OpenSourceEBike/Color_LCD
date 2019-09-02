@@ -111,7 +111,7 @@ typedef struct l3_vars_struct {
 	uint16_t ui16_motor_speed_erps;
 	uint8_t ui8_foc_angle;
 	uint8_t ui8_temperature_current_limiting_value;
-	uint16_t ui8_motor_temperature_x10;
+	uint16_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;
 	uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
 	uint16_t ui16_pedal_torque_x10;

@@ -91,7 +91,6 @@ void parse_simmotor() {
 
 	if (l2_vars.ui8_temperature_limit_feature_enabled) {
 		l2_vars.ui8_motor_temperature = fakeWave(&tempstore, 20, 120);
-		l2_vars.ui8_motor_temperature = 50;
 	} else {
 		l2_vars.ui8_throttle = fake(0, 100);
 	}

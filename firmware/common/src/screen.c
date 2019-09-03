@@ -275,7 +275,8 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
 
     if (layout->field->variant == FieldEditable)
     {
-      forceLabels = mpressed && layout->modifier == ModNoLabel;
+      // If this field normally doesn't show the label, but M is pressed now, show it
+      forceLabels = mpressed && layout->label_align_x == AlignHidden;
       didChangeForceLabels = true;
     }
 
@@ -433,6 +434,10 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
         {
           r->y = rows[i - 1].y + rows[i - 1].height;
           r->height = rowHeight; // all data rows are the same height
+          r->label_align_y = AlignCenter;
+          r->label_align_x = AlignLeft;
+          r->align_x = AlignRight;
+          r->inset_x = FONT_CURSORS.char_width; // move the value all the way to the right (but leave room for the cursor)
 
           // visible menu rows, starting with where the user has scrolled to
           const int entryNum = field->scrollable.first + i - 1;
@@ -705,6 +710,9 @@ static void getEditableString(Field *field, int32_t num, char *outbuf)
   }
 }
 
+// Sometimes we want to know where we just draw a string, so I have this FIXME ugly hack here
+static int renderedStrX, renderedStrY;
+
 // Center justify a string on a line of specified width
 static void putStringCentered(int x, int y, int width, const UG_FONT *font,
     const char *str)
@@ -716,6 +724,8 @@ static void putStringCentered(int x, int y, int width, const UG_FONT *font,
 
   UG_FontSelect(font);
   UG_PutString(x, y, (char*) str);
+  renderedStrX = x;
+  renderedStrY = y;
 }
 
 // right justify a string (printing it to the left of X and Y)
@@ -727,6 +737,57 @@ static void putStringRight(int x, int y, const UG_FONT *font, const char *str)
 
   UG_FontSelect(font);
   UG_PutString(x, y, (char*) str);
+  renderedStrX = x;
+  renderedStrY = y;
+}
+
+static void putStringLeft(int x, int y, const UG_FONT *font, const char *str)
+{
+  UG_FontSelect(font);
+  UG_PutString(x, y, (char*) str);
+  renderedStrX = x;
+  renderedStrY = y;
+}
+
+/**
+ * Draw a string in a field, respecting font, alignment and optional insets.
+ *
+ * Insets will be from the left/top if using align left/top/center, otherwise they will be from the right.
+ */
+static void putAligned(FieldLayout *layout, AlignmentX alignx, AlignmentY aligny,
+		int insetx, int insety, const UG_FONT *font, const char *str) {
+	// First find the y position
+	int y = layout->y;
+	switch(aligny) {
+	case AlignTop:
+		y += insety;
+		break;
+	case AlignBottom:
+		y -= (insety + font->char_height);
+		break;
+	case AlignCenter:
+		y += insety + layout->height / 2 - font->char_height / 2;
+		break;
+	default:
+		assert(0);
+	}
+
+	// Now print the string at the proper x positon
+	switch(alignx) {
+	case AlignHidden:
+		return; // Don't draw at all
+	case AlignLeft:
+		putStringLeft(layout->x + insetx, y, font, str);
+		break;
+	case AlignRight:
+		putStringRight(layout->x + layout->width - insetx, y, font, str);
+		break;
+	case AlignCenter:
+		putStringCentered(layout->x + insetx, y, layout->width, font, str);
+		break;
+	default:
+		assert(0);
+	}
 }
 
 /**
@@ -739,23 +800,18 @@ static bool renderEditable(FieldLayout *layout)
   UG_S16 width = layout->width;
   bool isActive = curActiveEditable == field; // are we being edited right now?
   bool dirty = field->dirty;
-  bool showLabel = layout->modifier != ModNoLabel;
-  bool showLabelAtTop = layout->modifier == ModLabelTop;
+  bool showLabel = layout->label_align_x != AlignHidden;
+  bool showLabelAtTop = layout->label_align_y == AlignTop;
   const UG_FONT *font = layout->font ? layout->font : editable_value_font;
 
   bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
 
+  // a rough approximation of the offset for descenders (i.e. the bottom parts of chars like g and j)
+  int descender_y = (editable_label_font->char_height / 8);
+
   if (layout->height == -1) // We should autoset
-//		layout->height = (
-//				(isTwoRows || showLabelAtTop) ?
-//						editable_label_font->char_height : 0)
-//				+ font->char_height;
-  // don't know why char_height must be -= (char_height / 8) to be near the real value
-    layout->height = (
-        (isTwoRows || showLabelAtTop) ?
-            (editable_label_font->char_height
-                - (editable_label_font->char_height / 8)) :
-            0) + (font->char_height - (font->char_height / 8));
+    layout->height = ((isTwoRows || showLabelAtTop) ? editable_label_font->char_height : 0)
+			+ font->char_height - descender_y;
 
   UG_S16 height = layout->height;
 
@@ -815,14 +871,9 @@ static bool renderEditable(FieldLayout *layout)
   {
     UG_SetBackcolor(C_TRANSPARENT); // always draw labels with transparency, because they might slightly overlap the border
 
-    if (showLabelAtTop)
-      putStringCentered(layout->x, layout->y, width, editable_label_font,
-          field->editable.label);
-    else
-    {
-      UG_FontSelect(editable_label_font);
-      UG_PutString(layout->x + 1, layout->y, (char*) field->editable.label);
-    }
+    int label_inset_x = 0, label_inset_y = 0; // Move to be a public constant or even a LayoutField member if useful
+
+    putAligned(layout, layout->label_align_x, layout->label_align_y, label_inset_x, label_inset_y, editable_label_font, field->editable.label);
   }
 
   UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
@@ -838,44 +889,29 @@ static bool renderEditable(FieldLayout *layout)
   {
     UG_FontSelect(font);
 
-    // how many pixels does our rendered string
-    UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(valuestr);
-
-    UG_S16 x = layout->x;
-    UG_S16 y = layout->y;
-
+    int y = layout->inset_y; // used as an inset
+    int x = layout->inset_x;
+    AlignmentY align_y = AlignCenter;
     if (showLabel)
     {
       if (!showLabelAtTop)
       {
-        x += width - strwidth - FONT_CURSORS.char_width; // move the value all the way to the right (but leave room for the cursor)
-
         if (isTwoRows) // put the value on the second line (if the screen is narrow)
           y += editable_label_font->char_height;
       }
       else
       {
-        // Center justify
-        if (strwidth < width) // If the user gave us more space than we need, center justify within that box
-          x += (width - strwidth) / 2;
-
-        y +=
-            (editable_label_font->char_height + field->editable.label_y_offset); // add offset and put value just underneath
+        y += (editable_label_font->char_height); // put value just beneath label
       }
     }
-    else
-    {
-      if (strwidth < width) // If the user gave us more space than we need, center justify within that box
-        x += (width - strwidth) / 2;
-    }
 
-    UG_PutString(x, y, (char*) valuestr);
+    putAligned(layout, layout->align_x, align_y, x, y, font, valuestr);
 
-    // Blinking underline cursor when editing
+    // Blinking underline cursor when editing, just below value and drawing to the right edge of the box
     if (isActive)
     {
-      UG_S16 cursorY = y + font->char_height + 1;
-      UG_DrawLine(x - 1, cursorY, layout->x + width, cursorY,
+      UG_S16 cursorY = renderedStrY + font->char_height + 1;
+      UG_DrawLine(renderedStrX - 1, cursorY, layout->x + width, cursorY,
           blinkOn ? EDITABLE_CURSOR_COLOR : back);
     }
   }
@@ -889,12 +925,13 @@ static bool renderEditable(FieldLayout *layout)
     int ulen = strlen(units);
     if (ulen)
     {
-      const UG_FONT *font = editable_units_font;
-      UG_S16 uwidth = (font->char_width + gui.char_h_space) * ulen;
+      int unit_inset_x = 0, unit_inset_y = 0; // Move to be a public constant or even a LayoutField member if useful
 
-      UG_FontSelect(editable_units_font);
-      UG_PutString(layout->x + width - uwidth,
-          layout->y + layout->height - font->char_height - 1, (char*) units);
+      if(layout->unit_align_x == AlignDefault) { // If unspecified (normally should be AlignRight) pick rational defaults
+    	  layout->unit_align_x = AlignRight;
+    	  layout->unit_align_y = AlignBottom;
+      }
+      putAligned(layout, layout->unit_align_x, layout->unit_align_y, unit_inset_x, unit_inset_y, editable_units_font, units);
     }
   }
 

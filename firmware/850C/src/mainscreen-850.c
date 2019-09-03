@@ -131,7 +131,7 @@ Screen mainScreen = {
       .width = -1, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
-      .modifier = ModNoLabel,
+      .label_align_x = AlignHidden,
       .border = BorderNone,
     },
     {
@@ -139,7 +139,7 @@ Screen mainScreen = {
       .width = 123, .height = -1,
       .field = &wheelSpeedIntegerField,
       .font = &HUGE_NUMBERS_TEXT_FONT,
-      .modifier = ModNoLabel,
+      .label_align_x = AlignHidden,
       .border = BorderNone,
     },
     {
@@ -147,21 +147,21 @@ Screen mainScreen = {
       .width = 45, .height = -1,
       .field = &wheelSpeedDecimalField,
       .font = &BIG_NUMBERS_TEXT_FONT,
-      .modifier = ModNoLabel,
+      .label_align_x = AlignHidden,
       .border = BorderNone,
     },
     { .x = 0, .y = 160,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &tripDistanceField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .label_align_y = AlignTop,
       .border = BorderNone
     },
     { .x = XbyEighths(4), .y = 160,
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &maxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .label_align_y = AlignTop,
       .border = BorderNone,
     },
     {
@@ -169,7 +169,7 @@ Screen mainScreen = {
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &tripTimeField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .label_align_y = AlignTop,
       .border = BorderNone
     },
     {
@@ -177,7 +177,7 @@ Screen mainScreen = {
       .width = XbyEighths(4), .height = YbyEighths(1),
       .field = &humanPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
-      .modifier = ModLabelTop,
+      .label_align_y = AlignTop,
       .border = BorderNone
     },
     {

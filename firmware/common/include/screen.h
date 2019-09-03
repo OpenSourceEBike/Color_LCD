@@ -196,7 +196,6 @@ typedef struct Field {
 
 		struct {
 			const char *label; // the label shown in the GUI for this item
-			const uint8_t label_y_offset; // offset y value from label to item
 			void *target; // the data we are showing/manipulating
 			const EditableType typ;
 			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
@@ -263,9 +262,24 @@ typedef enum {
 
 /// layouts can tell the field they are showing special rendering options
 typedef enum {
-	ModNone = 0, ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units
-	ModLabelTop = 2, // For editable fields: show the label above the value, normally it is shown to the left
+	ModNone = 0,
+	// ModNoLabel = 1, // For editable fields: don't show label (normally), instead show just the data and the units - No longer used, instead just label_align_x == AlignHidden
+	// ModLabelTop = 2 // For editable fields: show the label above the value, normally it is shown to the left -  No longer used instead just set label_align_y == AlignTop
 } LayoutModifier;
+
+typedef enum {
+	AlignDefault = 0,
+	AlignCenter = AlignDefault,
+	AlignLeft,
+	AlignRight,
+	AlignHidden // Do not show this element
+} AlignmentX;
+
+typedef enum {
+	AlignCenterY = AlignCenter, // default
+	AlignTop,
+	AlignBottom
+} AlignmentY;
 
 /**
  * Defines the layout of a field on a particular screen
@@ -285,6 +299,13 @@ typedef struct FieldLayout {
 
 	ColorOp color :4;
 	LayoutModifier modifier :4; // layouts can tell the field they are showing special rendering options
+
+	AlignmentX align_x : 2; // Align the primary contents of this element within our bounds using this rule
+	AlignmentX label_align_x : 2; // Align the label using this rule
+	AlignmentY label_align_y : 2; // Align the label using this rule
+	AlignmentX unit_align_x : 2; // Align units using this rule
+	AlignmentY unit_align_y : 2; // Align units using this rule
+	uint8_t inset_x, inset_y; 		// inset primary content in from sides by this amount
 
 	Field *field; // The field to render in this location
 

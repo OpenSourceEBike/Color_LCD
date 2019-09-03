@@ -905,6 +905,7 @@ static bool renderEditable(FieldLayout *layout)
       else
       {
         y += (editable_label_font->char_height); // put value just beneath label
+        align_y = AlignTop;
       }
     }
 

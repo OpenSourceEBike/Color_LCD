@@ -160,11 +160,6 @@ Screen configScreen = {
     .onPreUpdate = configPreUpdate,
 
 .fields = {
-// FIXME, add a drawable with the a "Config" title at top of screen
 		{ .color = ColorNormal, .field = &configRoot }, { .field = NULL } } };
 
-void configscreen_show(void) {
-	configRoot.scrollable.entries = topMenus;
 
-	screenShow(&configScreen);
-}

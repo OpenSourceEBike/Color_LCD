@@ -122,7 +122,8 @@ typedef enum {
  */
 typedef enum {
 	EditUInt = 0, // This is the default type if not specified
-	EditEnum // Choose a string from a list
+	EditEnum, // Choose a string from a list
+	ReadOnlyStr // Show a simple string
 } EditableType;
 
 
@@ -198,13 +199,12 @@ typedef struct Field {
 		struct {
 			const char *label; // the label shown in the GUI for this item
 			void *target; // the data we are showing/manipulating
-			const EditableType typ;
+			const EditableType typ : 2;
 			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
 			bool read_only :1; // if true user can't really edit this
 
 			// the following parameters are particular to the editable type
 			union {
-
 				struct {
 					const char *units;
 					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
@@ -235,6 +235,10 @@ typedef struct Field {
 #define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
   .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
+
+#define FIELD_READONLY_STRING(lbl, targ) { .variant = FieldEditable, \
+  .editable = { .read_only = true, .typ = ReadOnlyStr, .label = lbl, .target = targ, .size = sizeof(*targ)  } }
+
 
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
@@ -358,6 +362,9 @@ extern bool screenConvertMiles;
 extern bool screenConvertFarenheit;
 
 void fieldPrintf(Field *field, const char *fmt, ...);
+
+// Update this readonly editable with a string value, str must point to a static buffer
+void updateReadOnlyStr(Field *field, char *str);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;

@@ -40,7 +40,7 @@ Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_p
 Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
 Field warnField = FIELD_DRAWTEXT();
 
-Field tripTimeField = FIELD_READONLY_UINT("trip time", &l3_vars.ui16_pedal_power_filtered, "");
+Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
 Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C");
@@ -320,10 +320,15 @@ void screen_clock(void) {
 }
 
 void trip_time(void) {
-	// struct_rtc_time_t *p_time = rtc_get_time_since_startup();
+	struct_rtc_time_t *p_time = rtc_get_time_since_startup();
+	static int oldmin = -1; // used to prevent unneeded updates
+	static char timestr[8]; // 12:13
 
-//	fieldPrintf(&tripTimeField, "%02d:%02d", p_time->ui8_hours,
-//			p_time->ui8_minutes);
+	if(p_time->ui8_minutes != oldmin) {
+		oldmin = p_time->ui8_minutes;
+		sprintf(timestr, "%02d:%02d", p_time->ui8_hours, p_time->ui8_minutes);
+		updateReadOnlyStr(&tripTimeField, timestr);
+	}
 }
 
 void brake(void) {

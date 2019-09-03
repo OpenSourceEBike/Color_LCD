@@ -683,6 +683,11 @@ static void getEditableString(Field *field, int32_t num, char *outbuf)
 {
   switch (field->editable.typ)
   {
+  case ReadOnlyStr:
+	  // NOTE: We ignore the passed in number (it will be garbage anyways) and instead just return the string
+	  strncpy(outbuf, field->editable.target, MAX_FIELD_LEN);
+	  break;
+
   case EditUInt:
   {
     // properly handle div_digits
@@ -790,6 +795,13 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx, AlignmentY aligny
 	default:
 		assert(0);
 	}
+}
+
+// Update this readonly editable with a string value, str must point to a static buffer
+void updateReadOnlyStr(Field *field, char *str) {
+	assert(field->editable.typ == ReadOnlyStr); // Make sure the field is being used as provisioned
+	field->editable.target = str;
+	field->dirty = true;
 }
 
 /**

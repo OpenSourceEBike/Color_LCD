@@ -1,20 +1,18 @@
-# Remaining merge tasks
+# Tasks in Kevin's work queue
 
-* make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * make warnings work
-
-* fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * add white accent line to graphs
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
 * fix eclipse formatting of arrays
-* change char_height /8 hack to instead just let devs set vertical padding between rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
+* now that we have inset_y, remove descender_y - I don't think it is needed anymore rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
 
 # TODO tasks for beta release
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
+* fix string widths for SW102 long strings
 * test with 0.20 motor code
 * move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
 * Implement cruise mode (also missing in 850C)
@@ -166,6 +164,9 @@ None.
 * add graphs
 * FIXME - pingpong between two rx buffers, current implementation allows ISR to overwrite the buffer being used by
 the GUI thread.  Use two buffers + a ptr.
+* make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
+* fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
+* heading is busted on SW102 menus
 
 # Misc notes from kevin not yet formatted
 

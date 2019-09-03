@@ -57,6 +57,7 @@ CFLAGS += -std=c99 --specs=nano.specs --specs=nosys.specs -Wall -Werror -I../../
 LFLAGS  += -Tstm32_flash.ld -L/usr/lib/gcc/arm-none-eabi/4.9.3/armv7-m -lgcc -lm -nostartfiles -lnosys -mcpu=cortex-m3 -mthumb -Wl,--gc-sections
 
 LFLAGS += --specs=nano.specs --specs=nosys.specs # to use newlib nano
+LFLAGS += -Xlinker -Map=main.map
 #LFLAGS += -u _printf_float # newlib nano printf use floats
 #LFLAGS += -u _scanf_float # newlib nano scanf use floats
 CPFLAGS = -Obinary 

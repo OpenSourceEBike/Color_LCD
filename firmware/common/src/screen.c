@@ -90,6 +90,8 @@ const UG_FONT *editable_units_font = &SMALL_TEXT_FONT;
 #define EDITABLE_CURSOR_COLOR       C_WHITE
 #endif
 
+int32_t countDigit(int32_t n);
+
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
   switch (layout->color)
@@ -802,6 +804,7 @@ static bool renderEditable(FieldLayout *layout)
   bool dirty = field->dirty;
   bool showLabel = layout->label_align_x != AlignHidden;
   bool showLabelAtTop = layout->label_align_y == AlignTop;
+
   const UG_FONT *font = layout->font ? layout->font : editable_value_font;
 
   bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
@@ -1449,5 +1452,16 @@ void fieldPrintf(Field *field, const char *fmt, ...)
   }
 
   va_end(argp);
+}
+
+int32_t countDigit(int32_t n)
+{
+  int32_t count = 0;
+  while (n != 0) {
+    n = n / 10;
+    ++count;
+  }
+
+  return count;
 }
 

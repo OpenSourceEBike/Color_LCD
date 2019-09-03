@@ -69,17 +69,17 @@ static void mainScreenOnDirtyClean() {
   // wheel speed
   if(l3_vars.ui8_units_type == 0)
   {
-    UG_PutString(255, 44 , "KM/H");
+    UG_PutString(260, 44 , "KM/H");
   }
   else
   {
-    UG_PutString(260, 44 , "MPH");
+    UG_PutString(265, 44 , "MPH");
   }
 }
 
 void mainScreenOnPostUpdate(void) {
   // wheel speed print dot
-  UG_FillCircle(239, 128, 3, C_WHITE);
+  UG_FillCircle(250, 128, 3, C_WHITE);
 }
 
 /**
@@ -128,14 +128,14 @@ Screen mainScreen = {
     BATTERY_BAR,
     {
       .x = 20, .y = 75,
-      .width = -1, .height = -1,
+      .width = 45, .height = 72,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
       .border = BorderNone,
     },
     {
-      .x = 120, .y = 54,
+      .x = 119, .y = 54,
       .width = 123, .height = -1,
       .field = &wheelSpeedIntegerField,
       .font = &HUGE_NUMBERS_TEXT_FONT,

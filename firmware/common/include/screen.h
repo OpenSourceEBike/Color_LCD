@@ -125,6 +125,7 @@ typedef enum {
 	EditEnum // Choose a string from a list
 } EditableType;
 
+
 #define GRAPH_MAX_POINTS	(256) // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_INTERVAL_MS 	3500 // graph updates are expensive - do rarely
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph

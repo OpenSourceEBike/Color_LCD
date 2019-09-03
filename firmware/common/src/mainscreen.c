@@ -30,7 +30,11 @@ uint8_t ui8_m_wheel_speed_decimal;
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
 Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
+#ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
+#else
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1, .hide_fraction = true);
+#endif
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
 Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_power_filtered, "W");
 Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");

@@ -672,7 +672,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui8_pedal_human_power = l2_vars.ui8_pedal_human_power;
 	l3_vars.ui8_duty_cycle = l2_vars.ui8_duty_cycle;
 	l3_vars.ui8_error_states = l2_vars.ui8_error_states;
-	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;
+	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;;
 	l3_vars.ui8_pedal_cadence = l2_vars.ui8_pedal_cadence;
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =

@@ -3,6 +3,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// error codes from common.h in the controller code, used for ui8_error_states
+#define NO_ERROR                                0
+#define ERROR_MOTOR_BLOCKED                     1
+#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
+#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
+#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
+#define ERROR_NO_SPEED_SENSOR_DETECTED          5
+#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
+#define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
+
 typedef enum {
 	GRAPH_PEDAL_HUMAN_POWER = 0,
 	GRAPH_PEDAL_CADENCE,
@@ -111,7 +121,7 @@ typedef struct l3_vars_struct {
 	uint16_t ui16_motor_speed_erps;
 	uint8_t ui8_foc_angle;
 	uint8_t ui8_temperature_current_limiting_value;
-	uint16_t ui8_motor_temperature;
+	uint8_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;
 	uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
 	uint16_t ui16_pedal_torque_x10;

@@ -115,6 +115,12 @@ static UG_COLOR getForeColor(const FieldLayout *layout)
   case ColorInvert:
     return C_BLACK;
 
+  case ColorError:
+	return C_ERROR;
+
+  case ColorWarning:
+	return C_WARNING;
+
   case ColorNormal:
   case ColorHeading:
   default:
@@ -132,7 +138,7 @@ static void autoTextHeight(FieldLayout *layout)
   }
 }
 
-static bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
+bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
 {
   autoTextHeight(layout);
 
@@ -157,7 +163,8 @@ static bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
   UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
       layout->y + height - 1, back);
   UG_SetBackcolor(C_TRANSPARENT);
-  UG_PutString(x + 1, layout->y, (char*) msg);
+  if(!layout->field->blink || blinkOn) // if we are supposed to blink do that
+	  UG_PutString(x + 1, layout->y, (char*) msg);
   return true;
 }
 
@@ -206,7 +213,7 @@ static void drawSelectionMarker(FieldLayout *layout)
     UG_FontSelect(&FONT_CURSORS);
     UG_PutChar('0', layout->x + layout->width - FONT_CURSORS.char_width, // draw on ride side of line
     layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
-    blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(layout),
+    blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
     C_TRANSPARENT);
   }
 
@@ -251,9 +258,13 @@ static bool needsRender(FieldLayout *layout)
   if (layout->field->dirty)
     return true;
 
-  if (layout->field->blink && blinkChanged)
-    return true; // this field is doing a blink animation and it is time for that to update
+  if(blinkChanged) {
+	  if (layout->field->blink)
+		return true; // this field is doing a blink animation and it is time for that to update
 
+	  if(layout->field && layout->field->is_selected)
+		  return true; // we also do a blink animation for our selection cursor
+  }
   if (layout->field->variant == FieldEditable)
     return true; // Editables are smart enough to do their own rendering shortcuts based on cached values
 
@@ -454,7 +465,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           {
             r->field = entry;
             entry->is_selected = (entryNum == field->scrollable.selected);
-            entry->blink = entry->is_selected; // We want to service our blink animation
+            entry->blink = entry->is_selected;
           }
           else
           {
@@ -498,7 +509,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field)
           == &scrollable->scrollable.entries[scrollable->scrollable.selected];
     else
       label.is_selected = false;
-    label.blink = label.is_selected; // We want to service our blink animation
+    // label.blink = label.is_selected; // we no longer need to set blink if is_selected is set
 
     rows[1].field = NULL; // mark end of array (for rendering)
 

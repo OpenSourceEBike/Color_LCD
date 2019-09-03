@@ -107,7 +107,7 @@ void parse_simmotor() {
 	l2_vars.ui8_foc_angle = fake(0, 100);
 
 	// error states
-	l2_vars.ui8_error_states = fake(0, 1);
+	l2_vars.ui8_error_states = NO_ERROR; // fake(0, ERROR_MAX);
 
 	// temperature actual limiting value
 	l2_vars.ui8_temperature_current_limiting_value = fake(0, 100);

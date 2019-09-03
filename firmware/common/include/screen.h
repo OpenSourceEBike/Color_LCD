@@ -98,7 +98,9 @@
 typedef enum {
 	ColorNormal = 0, // white on black
 	ColorInvert,     // black on white
-	ColorHeading     // white on dk blue
+	ColorHeading,    // white on dk blue
+	ColorError,      // red on black (and possibly blinking)
+	ColorWarning     // yellow on black
 } ColorOp;
 
 /**
@@ -142,7 +144,7 @@ typedef enum {
 #define UPDATE_INTERVAL_MS 20
 
 // How often to toggle blink animations
-#define BLINK_INTERVAL_MS  500
+#define BLINK_INTERVAL_MS  300
 
 // Each _active_ graph needs a graphcache to store past points and invariants.  Currently we use use one,
 // but as soon as we have multiple active graphs we should assign dynamically.
@@ -365,6 +367,11 @@ void fieldPrintf(Field *field, const char *fmt, ...);
 
 // Update this readonly editable with a string value, str must point to a static buffer
 void updateReadOnlyStr(Field *field, char *str);
+
+/** These are render callback functions, you should normally never need to call them, but they can be useful if you
+ * are using your own custom render callback.
+ */
+bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;

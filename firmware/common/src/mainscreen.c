@@ -7,6 +7,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "stdio.h"
 #include "main.h"
 #include "utils.h"
@@ -24,6 +25,20 @@
 
 uint8_t ui8_m_wheel_speed_decimal;
 
+static uint8_t ui8_walk_assist_state = 0;
+
+void lcd_main_screen(void);
+void warnings(void);
+void walk_assist_state(void);
+void power(void);
+void time(void);
+void wheel_speed(void);
+void battery_soc(void);
+void trip_time(void);
+void wheel_speed(void);
+static void showNextScreen();
+static bool renderWarning(FieldLayout *layout);
+
 //
 // Fields - these might be shared my multiple screens
 //
@@ -38,7 +53,7 @@ Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
 Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_power_filtered, "W");
 Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
-Field warnField = FIELD_DRAWTEXT();
+Field warnField = FIELD_CUSTOM(renderWarning);
 
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
@@ -49,19 +64,6 @@ Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cyc
 Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "");
 Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
 Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence, "rpm");
-
-static uint8_t ui8_walk_assist_state = 0;
-
-void lcd_main_screen(void);
-void brake(void);
-void walk_assist_state(void);
-void power(void);
-void time(void);
-void wheel_speed(void);
-void battery_soc(void);
-void trip_time(void);
-void wheel_speed(void);
-static void showNextScreen();
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
@@ -174,7 +176,7 @@ void lcd_main_screen(void) {
 	power();
 	battery_soc();
 	battery_display();
-	brake();
+	warnings();
 	trip_time();
 	wheel_speed();
 }
@@ -331,12 +333,72 @@ void trip_time(void) {
 	}
 }
 
-void brake(void) {
-	fieldPrintf(&warnField,
-			l3_vars.ui8_braking ?
-					"BRAKE" :
-					(l3_vars.ui8_walk_assist ?
-							"WALK" : (l3_vars.ui8_lights ? "LIGH" : "")));
+static ColorOp warnColor = ColorNormal;
+static char warningStr[MAX_FIELD_LEN];
+
+// We use a custom callback so we can reuse the standard drawtext code, but with a dynamically changing color
+static bool renderWarning(FieldLayout *layout) {
+	layout->color = warnColor;
+	return renderDrawTextCommon(layout, warningStr);
+}
+
+static void setWarning(ColorOp color, const char *str) {
+	warnColor = color;
+	warnField.blink = (color == ColorError);
+	warnField.dirty = (strcmp(str, warningStr) != 0);
+	if(warnField.dirty)
+		strncpy(warningStr, str, sizeof(warningStr));
+}
+
+
+#define NO_ERROR                                0
+#define ERROR_MOTOR_BLOCKED                     1
+#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
+#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
+#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
+#define ERROR_NO_SPEED_SENSOR_DETECTED          5
+#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
+
+static const char *motorErrors[] = { "None", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+
+void warnings(void) {
+	// High priorty faults in red
+
+	if(l3_vars.ui8_error_states) {
+		const char *str = (l3_vars.ui8_error_states > ERROR_MAX) ? "Unknown Motor" : motorErrors[l3_vars.ui8_error_states];
+		setWarning(ColorError, str);
+		return;
+	}
+
+	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
+		setWarning(ColorError, "Temp Shutdown");
+		return;
+	}
+
+	// warn faults in yellow
+	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
+		setWarning(ColorWarning, "Temp Warning");
+		return;
+	}
+
+	// All of the following possible 'faults' are low priority
+
+	if(l3_vars.ui8_braking) {
+		setWarning(ColorNormal, "BRAKE");
+		return;
+	}
+
+	if(l3_vars.ui8_walk_assist) {
+		setWarning(ColorNormal, "WALK");
+		return;
+	}
+
+	if(l3_vars.ui8_lights) {
+		setWarning(ColorNormal, "LIGHT");
+		return;
+	}
+
+	setWarning(ColorNormal, "");
 }
 
 void battery_soc(void) {

@@ -183,6 +183,11 @@ void lcd_main_screen(void) {
 
 void wheel_speed(void)
 {
+  // limit otherwise at startup this value goes crazy
+  if(l3_vars.ui16_wheel_speed_x10 > 999) {
+    l3_vars.ui16_wheel_speed_x10 = 999;
+  }
+
   // Note: no need to check for 'wheel speed previous' because this math is so cheap
   ui8_m_wheel_speed_decimal = (uint8_t) (l3_vars.ui16_wheel_speed_x10 % 10);
 }

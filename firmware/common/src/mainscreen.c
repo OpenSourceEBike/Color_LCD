@@ -334,7 +334,7 @@ void trip_time(void) {
 
 	if(p_time->ui8_minutes != oldmin) {
 		oldmin = p_time->ui8_minutes;
-		sprintf(timestr, "%02d:%02d", p_time->ui8_hours, p_time->ui8_minutes);
+		sprintf(timestr, "%d:%02d", p_time->ui8_hours, p_time->ui8_minutes);
 		updateReadOnlyStr(&tripTimeField, timestr);
 	}
 }
@@ -427,7 +427,7 @@ void time(void) {
 		}
 	}
 
-	fieldPrintf(&timeField, "%02d:%02d", p_rtc_time->ui8_hours,
+	fieldPrintf(&timeField, "%d:%02d", p_rtc_time->ui8_hours,
 			p_rtc_time->ui8_minutes);
 }
 

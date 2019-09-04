@@ -25,7 +25,8 @@ extern Field socField,
 	pwmDutyField,
 	motorErpsField,
 	motorFOCField,
-	cadenceField;
+	cadenceField,
+	batteryVoltageField;
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

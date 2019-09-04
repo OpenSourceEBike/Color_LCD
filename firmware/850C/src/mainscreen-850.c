@@ -36,6 +36,8 @@ Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
 Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
 Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
 Field cadenceGraph = FIELD_GRAPH(&cadenceField);
+Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+
 
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen
@@ -202,10 +204,10 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = 0, .y = 314,
+      .x = 0, .y = 318,
       .width = XbyEighths(8),
-      .height = 100,
-      .field = &motorTempGraph
+      .height = 134,
+      .field = &batteryVoltageGraph,
     },
     STATUS_BAR,
     {

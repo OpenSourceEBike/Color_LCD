@@ -411,7 +411,7 @@ void battery_soc(void) {
 	if (l3_vars.ui8_battery_soc_enable)
 		fieldPrintf(&socField, "%3d%%", ui16_m_battery_soc_watts_hour);
 	else
-		fieldPrintf(&socField, "%2u.%1uV",
+		fieldPrintf(&socField, "%u.%1uV",
 				l3_vars.ui16_battery_voltage_soc_x10 / 10,
 				l3_vars.ui16_battery_voltage_soc_x10 % 10);
 }

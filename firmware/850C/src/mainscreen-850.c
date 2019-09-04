@@ -108,12 +108,14 @@ void mainScreenOnPostUpdate(void) {
       .x = 8 + ((7 + 1 + 1) * 10) + (1 * 2) + 10, .y = 2, \
       .width = -5, .height = -1, \
       .font = &REGULAR_TEXT_FONT, \
+      .unit_align_x = AlignLeft, \
       .field = &socField \
   }, \
 	{ \
 		.x = 228, .y = 2, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
+		.unit_align_x = AlignRight, \
 		.field = &timeField \
 	}
 

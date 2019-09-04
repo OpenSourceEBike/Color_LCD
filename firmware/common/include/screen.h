@@ -140,6 +140,8 @@ typedef enum {
 #define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
 #define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
 
+#define LABEL_COLOR MAIN_SCREEN_FIELD_LABELS_COLOR
+
 // Assumed period of screenUpdate invoke
 #define UPDATE_INTERVAL_MS 20
 

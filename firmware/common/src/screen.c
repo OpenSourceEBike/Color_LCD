@@ -140,6 +140,9 @@ static void autoTextHeight(FieldLayout *layout)
 
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
 {
+  AlignmentX alignx = layout->unit_align_x;
+  uint8_t insetx = layout->inset_x;
+
   autoTextHeight(layout);
 
   const UG_FONT *font = layout->font;
@@ -148,19 +151,35 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
   // how many pixels does our rendered string
   UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(msg);
 
-  UG_S16 width = layout->width;
   UG_S16 height = layout->height;
   UG_S16 x = layout->x;
 
-  if (strwidth < width) // If the user gave us more space than we need, center justify within that box
-    x += (width - strwidth) / 2;
+  // Now print the string at the proper x positon
+  switch(alignx) {
+  case AlignHidden:
+    break;
+  case AlignLeft:
+    x += insetx;
+    break;
+  case AlignRight:
+    x += layout->width - strwidth - insetx;
+    break;
+  case AlignCenter:
+    if (strwidth < layout->width)
+      x += ((layout->width - strwidth) / 2) + insetx;
+    else
+      x += insetx;
+    break;
+  default:
+    assert(0);
+  }
 
   UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout);
   UG_SetForecolor(getForeColor(layout));
 
   // ug fonts include no blank space at the beginning, so we always include one col of padding
-  UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
+  UG_FillFrame(layout->x, layout->y, layout->x + layout->width - 1,
       layout->y + height - 1, back);
   UG_SetBackcolor(C_TRANSPARENT);
   if(!layout->field->blink || blinkOn) // if we are supposed to blink do that
@@ -896,6 +915,7 @@ static bool renderEditable(FieldLayout *layout)
   if (showLabel)
   {
     UG_SetBackcolor(C_TRANSPARENT); // always draw labels with transparency, because they might slightly overlap the border
+    UG_SetForecolor(LABEL_COLOR);
 
     int label_inset_x = 0, label_inset_y = 0; // Move to be a public constant or even a LayoutField member if useful
 
@@ -903,6 +923,7 @@ static bool renderEditable(FieldLayout *layout)
   }
 
   UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
+  UG_SetForecolor(fore);
 
   // Show the label in the middle of the box
   if (forceLabels)
@@ -930,11 +951,6 @@ static bool renderEditable(FieldLayout *layout)
         y += (editable_label_font->char_height); // put value just beneath label
         align_y = AlignTop;
       }
-    }
-
-    if(num != 0)
-    {
-      num++;
     }
 
     putAligned(layout, layout->unit_align_x, align_y, x, y, font, valuestr);
@@ -1024,8 +1040,10 @@ static void graphClearAndLabelAxis(Field *field)
     UG_FillFrame(graphX, graphY, graphX + graphWidth - 1,
         graphY + graphHeight - 1, GRAPH_COLOR_BACKGROUND);
 
+    UG_SetForecolor(LABEL_COLOR);
     putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT,
         source->editable.label);
+    UG_SetForecolor(GRAPH_COLOR_ACCENT);
 
     // vertical axis line
     UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,

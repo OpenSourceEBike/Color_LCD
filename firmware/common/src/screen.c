@@ -833,7 +833,7 @@ static bool renderEditable(FieldLayout *layout)
   bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
 
   // a rough approximation of the offset for descenders (i.e. the bottom parts of chars like g and j)
-  int descender_y = (editable_label_font->char_height / 8);
+  int descender_y = (font->char_height / 8);
 
   if (layout->height == -1) // We should autoset
     layout->height = ((isTwoRows || showLabelAtTop) ? editable_label_font->char_height : 0)
@@ -917,7 +917,7 @@ static bool renderEditable(FieldLayout *layout)
 
     int y = layout->inset_y; // used as an inset
     int x = layout->inset_x;
-    AlignmentY align_y = AlignCenter;
+    AlignmentY align_y = layout->unit_align_y;
     if (showLabel)
     {
       if (!showLabelAtTop)
@@ -932,7 +932,12 @@ static bool renderEditable(FieldLayout *layout)
       }
     }
 
-    putAligned(layout, layout->align_x, align_y, x, y, font, valuestr);
+    if(num != 0)
+    {
+      num++;
+    }
+
+    putAligned(layout, layout->unit_align_x, align_y, x, y, font, valuestr);
 
     // Blinking underline cursor when editing, just below value and drawing to the right edge of the box
     if (isActive)

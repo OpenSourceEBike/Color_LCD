@@ -56,26 +56,26 @@ static void mainScreenOnDirtyClean() {
   // main screen mask
   // horizontal lines
   UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
-  UG_DrawLine(0, 151, 319, 151, MAIN_SCREEN_FIELD_LABELS_COLOR);
-  UG_DrawLine(0, 231, 319, 231, MAIN_SCREEN_FIELD_LABELS_COLOR);
-  UG_DrawLine(0, 311, 319, 311, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 155, 319, 155, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 235, 319, 235, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(0, 315, 319, 315, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   // vertical line
-  UG_DrawLine(159, 152, 159, 310, MAIN_SCREEN_FIELD_LABELS_COLOR);
+  UG_DrawLine(159, 156, 159, 314, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
   UG_SetBackcolor(C_BLACK);
   UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
   UG_FontSelect(&FONT_10X16);
-  UG_PutString(12, 44, "ASSIST");
+  UG_PutString(12, 46, "ASSIST");
 
   // wheel speed
   if(l3_vars.ui8_units_type == 0)
   {
-    UG_PutString(260, 44 , "KM/H");
+    UG_PutString(260, 46 , "KM/H");
   }
   else
   {
-    UG_PutString(265, 44 , "MPH");
+    UG_PutString(265, 46 , "MPH");
   }
 }
 
@@ -91,10 +91,10 @@ void mainScreenOnPostUpdate(void) {
  */
 #define STATUS_BAR \
 { \
-    .x = 4, .y = SCREEN_HEIGHT - 28, \
+    .x = 4, .y = SCREEN_HEIGHT - 18, \
     .width = 0, .height = -1, \
     .field = &warnField, \
-    .font = &REGULAR_TEXT_FONT, \
+    .font = &SMALL_TEXT_FONT, \
 }
 
 #define BATTERY_BAR \
@@ -129,35 +129,42 @@ Screen mainScreen = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 20, .y = 75,
-      .width = 45, .height = 72,
+      .x = 20, .y = 77,
+      .width = 45, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
       .align_x = AlignCenter,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
       .border = BorderNone,
     },
     {
-      .x = 119, .y = 54,
+      .x = 119, .y = 56,
       .width = 123, // 2 digits
-      .height = -1,
+      .height = 99,
       .field = &wheelSpeedIntegerField,
       .font = &HUGE_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
       .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
       .border = BorderNone,
     },
     {
-      .x = 253, .y = 75,
+      .x = 253, .y = 77,
       .width = 45, // 1 digit
-      .height = -1,
+      .height = 72,
       .field = &wheelSpeedDecimalField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
       .align_x = AlignCenter,
+      .unit_align_x = AlignCenter,
+      .unit_align_y = AlignTop,
       .border = BorderNone,
     },
-    { .x = 1, .y = 157,
+    {
+      .x = 1, .y = 161,
       .width = XbyEighths(4) - 4,
       .height = 72,
       .align_x = AlignRight,
@@ -168,7 +175,8 @@ Screen mainScreen = {
       .label_align_y = AlignTop,
       .border = BorderNone,
     },
-    { .x = XbyEighths(4) + 1, .y = 154,
+    {
+      .x = XbyEighths(4) + 1, .y = 161,
       .width = XbyEighths(4) - 4,
       .height = 72,
       .align_x = AlignRight,
@@ -180,7 +188,7 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = 1, .y = 236,
+      .x = 1, .y = 240,
       .width = XbyEighths(4) - 4,
       .height = 72,
       .align_x = AlignRight,
@@ -192,7 +200,7 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = XbyEighths(4) + 1, .y = 236,
+      .x = XbyEighths(4) + 1, .y = 240,
       .width = XbyEighths(4) - 4,
       .height = 72,
       .align_x = AlignRight,
@@ -204,9 +212,9 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = 0, .y = 318,
+      .x = 0, .y = 322,
       .width = XbyEighths(8),
-      .height = 134,
+      .height = 136,
       .field = &batteryVoltageGraph,
     },
     STATUS_BAR,

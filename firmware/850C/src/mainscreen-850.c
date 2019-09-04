@@ -79,7 +79,7 @@ static void mainScreenOnDirtyClean() {
 
 void mainScreenOnPostUpdate(void) {
   // wheel speed print dot
-  UG_FillCircle(250, 128, 3, C_WHITE);
+  UG_FillCircle(247, 128, 3, C_WHITE);
 }
 
 /**

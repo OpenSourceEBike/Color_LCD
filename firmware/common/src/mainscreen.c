@@ -188,6 +188,8 @@ void wheel_speed(void)
     l3_vars.ui16_wheel_speed_x10 = 999;
   }
 
+  l3_vars.ui16_wheel_speed_x10 = 988;
+
   // Note: no need to check for 'wheel speed previous' because this math is so cheap
   ui8_m_wheel_speed_decimal = (uint8_t) (l3_vars.ui16_wheel_speed_x10 % 10);
 }

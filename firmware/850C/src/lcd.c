@@ -47,8 +47,6 @@ void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void power_off_management(void);
 
-void change_graph(void);
-
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
 {

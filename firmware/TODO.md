@@ -1,7 +1,6 @@
 # Tasks in Kevin's work queue
 
-* make warnings work
-* add white accent line to graphs
+* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * make local ADC report voltage, so bootscreen/sim-motor can check it.
 * use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
 * fix eclipse formatting of arrays
@@ -35,7 +34,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 # Tasks for after release 1.0
 * report pedal power via strava
 * fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
-* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 * when graphRender is invoked but it isn't yet time to redraw just add the current value to a sum and then later divide by # skipped updates to get a nice average value.  Much better than just sampling a single value every 3500ms.
 * stop using ui32_g_layer_2_can_execute for mutual exclusion with the ISR
 * add instrumentation to measure times of key operations (main loop, frame update etc)
@@ -167,6 +165,7 @@ the GUI thread.  Use two buffers + a ptr.
 * make trip distance work with imperial again (see FIXME in lcd.c) - applies to all imperial data
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * heading is busted on SW102 menus
+* make warnings work
 
 # Misc notes from kevin not yet formatted
 

@@ -99,7 +99,6 @@ eeprom_data_t m_eeprom_data_defaults =
       DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
       DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9
   },
-  .graph_id = GRAPH_PEDAL_HUMAN_POWER,
   .ui8_battery_soc_increment_decrement = DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT,
   .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
 };
@@ -266,7 +265,6 @@ void eeprom_init_variables(void)
   p_l3_output_vars->ui8_walk_assist_level_factor[6] = m_eeprom_data.ui8_walk_assist_level_factor[6];
   p_l3_output_vars->ui8_walk_assist_level_factor[7] = m_eeprom_data.ui8_walk_assist_level_factor[7];
   p_l3_output_vars->ui8_walk_assist_level_factor[8] = m_eeprom_data.ui8_walk_assist_level_factor[8];
-  p_l3_output_vars->graph_id = m_eeprom_data.graph_id;
   p_l3_output_vars->ui8_battery_soc_increment_decrement = m_eeprom_data.ui8_battery_soc_increment_decrement;
   p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
 }
@@ -341,7 +339,6 @@ void eeprom_write_variables(void)
   m_eeprom_data.ui8_walk_assist_level_factor[6] = p_l3_output_vars->ui8_walk_assist_level_factor[6];
   m_eeprom_data.ui8_walk_assist_level_factor[7] = p_l3_output_vars->ui8_walk_assist_level_factor[7];
   m_eeprom_data.ui8_walk_assist_level_factor[8] = p_l3_output_vars->ui8_walk_assist_level_factor[8];
-  m_eeprom_data.graph_id = p_l3_output_vars->graph_id;
   m_eeprom_data.ui8_battery_soc_increment_decrement = p_l3_output_vars->ui8_battery_soc_increment_decrement;
   m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
 

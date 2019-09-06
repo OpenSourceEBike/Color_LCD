@@ -259,7 +259,8 @@ typedef struct Field {
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
 #define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
-#define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }  } }
+#define FIELD_CUSTOMIZABLE_PTR(s, c) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = c  } }
+#define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 
 #define FIELD_END { .variant = FieldEnd }
 

@@ -17,8 +17,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x10
-#define EEPROM_VERSION 0x11
+#define EEPROM_MIN_COMPAT_VERSION 0x12
+#define EEPROM_VERSION 0x12
 
 typedef struct eeprom_data {
 	uint8_t eeprom_version; // Used to detect changes in eeprom encoding, if != EEPROM_VERSION we will not use it
@@ -64,9 +64,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_buttons_up_down_invert;
 
-#ifndef SW102
-	graphs_id_t graph_id;
-#endif
+	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;

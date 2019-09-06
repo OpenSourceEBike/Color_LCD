@@ -66,6 +66,30 @@ Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_sp
 Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
 Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence, "rpm");
 
+/**
+ * NOTE: The indexes into this array are stored in EEPROM, to prevent user confusion add new options only at the end.
+ * If you remove old values, either warn users or bump up eeprom version to force eeprom contents to be discarded.
+ */
+Field *customizables[] = {
+		&maxPowerField, // 0
+		&humanPowerField, // 1
+		&tripTimeField, // 2
+		&odoField, // 3
+		&motorTempField, // 4
+		&batteryVoltageField, // 5
+		&pwmDutyField, // 6
+		&motorErpsField, // 7
+		&motorFOCField, // 8
+		&cadenceField, // 9
+		&tripDistanceField, // 10
+		NULL
+};
+
+Field custom1 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[1], customizables);
+Field custom2 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[2], customizables);
+Field custom3 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[3], customizables);
+Field custom4 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[4], customizables);
+
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");

@@ -13,20 +13,6 @@
 #define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
 #define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
 
-typedef enum {
-	GRAPH_PEDAL_HUMAN_POWER = 0,
-	GRAPH_PEDAL_CADENCE,
-	GRAPH_WHEEL_SPEED,
-	GRAPH_BATTERY_VOLTAGE,
-	GRAPH_BATTERY_CURRENT,
-	GRAPH_BATTERY_SOC,
-	GRAPH_MOTOR_POWER,
-	GRAPH_MOTOR_TEMPERATURE,
-	GRAPH_MOTOR_PWM_DUTY_CYCLE,
-	GRAPH_MOTOR_ERPS,
-	GRAPH_MOTOR_FOC_ANGLE,
-	NUMBER_OF_GRAPHS_ID,
-} graphs_id_t;
 
 typedef struct l2_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
@@ -106,7 +92,11 @@ typedef struct l2_vars_struct {
 	uint8_t ui8_offroad_mode;
 } l2_vars_t;
 
-#define NUM_CUSTOMIZABLE_FIELDS 1 // We currently only allow customizing the graph field
+/* Selector positions for customizable fields
+ * 0 is the graph,
+ * 1-4 are the boxes above the graph
+ */
+#define NUM_CUSTOMIZABLE_FIELDS 5 // We currently only allow customizing the graph field
 
 typedef struct l3_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
@@ -187,7 +177,6 @@ typedef struct l3_vars_struct {
 	uint8_t ui8_braking;
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
-	graphs_id_t graph_id;
 	uint8_t ui8_buttons_up_down_invert;
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage

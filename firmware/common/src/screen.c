@@ -245,6 +245,7 @@ static bool forceLabels;
 /// If we are redirecting to another field, we return the final field
 static Field *getField(const FieldLayout *layout) {
   Field *field = layout->field;
+  assert(field);
 
   if(field->variant == FieldCustomizable) {
 	  assert(field && field->customizable.selector && field->customizable.choices);
@@ -837,7 +838,7 @@ void updateReadOnlyStr(Field *field, char *str) {
  */
 static bool renderEditable(FieldLayout *layout)
 {
-  Field *field = layout->field;
+  Field *field = getField(layout);
   UG_S16 width = layout->width;
   bool isActive = curActiveEditable == field; // are we being edited right now?
   bool dirty = field->dirty;
@@ -1155,8 +1156,7 @@ static bool renderGraph(FieldLayout *layout)
   bool needUpdate = (screenUpdateCounter
       % (GRAPH_INTERVAL_MS / UPDATE_INTERVAL_MS) == 0);
 
-  Field *field = layout->field;
-  assert(field);
+  Field *field = getField(layout);
 
   // If we are not dirty and we don't need an update, just return
   if (!needUpdate && !field->dirty)

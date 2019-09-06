@@ -23,6 +23,7 @@
 #include "ugui.h"
 #include "configscreen.h"
 #include "battery_gui.h"
+#include "state.h"
 
 
 Field batteryField = FIELD_CUSTOM(renderBattery);
@@ -38,6 +39,8 @@ Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
 Field cadenceGraph = FIELD_GRAPH(&cadenceField);
 Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 
+Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0], &batteryVoltageGraph, &humanPowerGraph, &speedGraph,
+		&motorTempGraph, &pwmDutyGraph, &motorErpsGraph, &motorFOCGraph, &cadenceGraph);
 
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen

@@ -115,6 +115,7 @@ typedef enum {
 	FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
 	FieldCustom, // A field with a custom render function (provided by the user)
 	FieldGraph, // A bar graph
+	FieldCustomizable, // A field where the user can choose what is shown, effectively a pointer to another field
 	FieldEnd // Marker record for the last entry in a scrollable submenu - never shown to user
 } FieldVariant;
 
@@ -201,6 +202,11 @@ typedef struct Field {
 		} scrollable;
 
 		struct {
+			struct Field **choices; // An array of ptrs (editable) fields (terminated with NULL) that the user can choose from
+			uint8_t 	*selector; // the index into the array of the users current choice (library clients should store this to eeprom)
+		} customizable;
+
+		struct {
 			const char *label; // the label shown in the GUI for this item
 			void *target; // the data we are showing/manipulating
 			const EditableType typ : 2;
@@ -253,6 +259,7 @@ typedef struct Field {
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
 #define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
+#define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }  } }
 
 #define FIELD_END { .variant = FieldEnd }
 

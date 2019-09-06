@@ -242,23 +242,45 @@ const Coord screenWidth = SCREEN_WIDTH, screenHeight = SCREEN_HEIGHT; // FIXME, 
 static bool oldForceLabels;
 static bool forceLabels;
 
+/// If we are redirecting to another field, we return the final field
+static Field *getField(const FieldLayout *layout) {
+  Field *field = layout->field;
+
+  if(field->variant == FieldCustomizable) {
+	  assert(field && field->customizable.selector && field->customizable.choices);
+
+	  field = field->customizable.choices[*field->customizable.selector];
+  }
+
+  return field;
+}
+
 /// Should we redraw this field this tick? We always render dirty items, or items that might need to show blink animations
-static bool needsRender(FieldLayout *layout)
+static bool needsRender(Field *field)
 {
-  if (layout->field->dirty)
+  if (field->dirty)
     return true;
 
   if(blinkChanged) {
-	  if (layout->field->blink)
+	  if (field->blink)
 		return true; // this field is doing a blink animation and it is time for that to update
 
-	  if(layout->field && layout->field->is_selected)
+	  if(field && field->is_selected)
 		  return true; // we also do a blink animation for our selection cursor
   }
-  if (layout->field->variant == FieldEditable)
+  if (field->variant == FieldEditable)
     return true; // Editables are smart enough to do their own rendering shortcuts based on cached values
 
   return false;
+}
+
+/**
+ * Render a specified field using the specified layout.  Usually field is just layout->field, but not always (renderCustomizable
+ * redirects to a different field for rendering)
+ *
+ */
+static bool renderField(FieldLayout *layout, Field *field) {
+	return renderers[field->variant](layout);
 }
 
 const bool renderLayouts(FieldLayout *layouts, bool forceRender)
@@ -273,10 +295,12 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // For each field if that field is dirty (or the screen is) redraw it
   for (FieldLayout *layout = layouts; layout->field; layout++)
   {
-    if (forceRender) // tell the field it must redraw itself
-      layout->field->dirty = true;
+	Field *field = getField(layout); // we might be redirecting
 
-    if (layout->field->variant == FieldEditable)
+    if (forceRender) // tell the field it must redraw itself
+      field->dirty = true;
+
+    if (field->variant == FieldEditable)
     {
       // If this field normally doesn't show the label, but M is pressed now, show it
       forceLabels = mpressed && layout->label_align_x == AlignHidden;
@@ -284,7 +308,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
     }
 
     // We always render dirty items, or items that might need to show blink animations
-    if (needsRender(layout))
+    if (needsRender(field))
     {
       if (layout->width == 0)
         layout->width = screenWidth - layout->x;
@@ -304,7 +328,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
       if (layout->y < 0)
         layout->y = maxy + -layout->y - 1;
 
-      didDraw |= renderers[layout->field->variant](layout);
+      didDraw |= renderField(layout, field);
 
       assert(layout->height != -1); // by the time we reach here this must be set
 
@@ -320,7 +344,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender)
   // We clear the dirty bits in a separate pass because multiple layouts on the screen might share the same field
   for (const FieldLayout *layout = layouts; layout->field; layout++)
   {
-    layout->field->dirty = false;
+	getField(layout)->dirty = false; // we call getField because we might be redirecting
   }
 
   if (didChangeForceLabels)
@@ -1180,6 +1204,14 @@ static bool renderGraph(FieldLayout *layout)
   return true;
 }
 
+static bool renderCustomizable(FieldLayout *layout)
+{
+  // Delegate rendering to the field which is actually selected
+  Field *field = getField(layout);
+
+  return renderField(layout, field);
+}
+
 static bool renderEnd(FieldLayout *layout)
 {
   assert(0); // This should never be called I think
@@ -1360,7 +1392,7 @@ static bool onPressScrollable(buttons_events_t events)
  */
 static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr,
     renderFill, renderMesh, renderScrollable, renderEditable, renderCustom,
-    renderGraph, renderEnd };
+    renderGraph, renderCustomizable, renderEnd };
 
 static Screen *curScreen;
 static bool screenDirty;

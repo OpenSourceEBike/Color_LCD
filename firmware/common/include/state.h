@@ -106,6 +106,8 @@ typedef struct l2_vars_struct {
 	uint8_t ui8_offroad_mode;
 } l2_vars_t;
 
+#define NUM_CUSTOMIZABLE_FIELDS 1 // We currently only allow customizing the graph field
+
 typedef struct l3_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
@@ -189,6 +191,9 @@ typedef struct l3_vars_struct {
 	uint8_t ui8_buttons_up_down_invert;
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
+
+	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
+
 } l3_vars_t;
 
 // deprecated FIXME, delete

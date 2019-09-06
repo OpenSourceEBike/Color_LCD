@@ -83,7 +83,7 @@ void parse_simmotor() {
 	l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
 
 	l2_vars.ui16_wheel_speed_x10 = fakeWave(&speedstore, 0, 300);
-  l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
+	l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
 
 	l2_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -671,7 +671,8 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui8_pedal_human_power = l2_vars.ui8_pedal_human_power;
 	l3_vars.ui8_duty_cycle = l2_vars.ui8_duty_cycle;
 	l3_vars.ui8_error_states = l2_vars.ui8_error_states;
-	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;;
+	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;
+	;
 	l3_vars.ui8_pedal_cadence = l2_vars.ui8_pedal_cadence;
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =

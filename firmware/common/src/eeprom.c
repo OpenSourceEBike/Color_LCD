@@ -16,6 +16,9 @@
 
 static eeprom_data_t m_eeprom_data;
 
+// get rid of some copypasta with this little wrapper for copying arrays between structs
+#define COPY_ARRAY(dest, src, field) memcpy(dest->field, src->field, sizeof(dest->field))
+
 const eeprom_data_t m_eeprom_data_defaults =
 		{ .eeprom_version = EEPROM_VERSION, .ui8_assist_level =
 				DEFAULT_VALUE_ASSIST_LEVEL, .ui16_wheel_perimeter =
@@ -101,17 +104,6 @@ const eeprom_data_t m_eeprom_data_defaults =
 				DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7,
 				DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
 				DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
-#if 0
-  .lcd_configurations_menu = {
-    .ui8_item_number = 1,
-    .ui8_previous_item_number = 0xff,
-    .ui8_item_visible_start_index = 0,
-    .ui8_item_visible_index = 1,
-    .ui8_refresh_full_menu_1 = 0,
-    .ui8_refresh_full_menu_2 = 0,
-    .ui8_battery_soc_power_used_state = 0,
-  },
-#endif
 		};
 
 void eeprom_init() {
@@ -143,18 +135,11 @@ void eeprom_init() {
 }
 
 
+
+
+
 void eeprom_init_variables(void) {
-	//uint32_t ui32_counter;
-	// uint8_t ui8_array[sizeof(m_eeprom_data)];
 	l3_vars_t *p_l3_output_vars = get_l3_vars();
-	// lcd_configurations_menu_t *p_lcd_configurations_menu;
-
-	// p_lcd_configurations_menu = get_lcd_configurations_menu();
-
-	// copy data from the array to the structure
-	//memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
-	//memcpy(&m_eeprom_data, ui8_array, sizeof(m_eeprom_data));
-
 	// copy data final variables
 	p_l3_output_vars->ui8_assist_level = m_eeprom_data.ui8_assist_level;
 	p_l3_output_vars->ui16_wheel_perimeter = m_eeprom_data.ui16_wheel_perimeter;
@@ -178,24 +163,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation;
 	p_l3_output_vars->ui8_temperature_limit_feature_enabled =
 			m_eeprom_data.ui8_temperature_limit_feature_enabled;
-	p_l3_output_vars->ui8_assist_level_factor[0] =
-			m_eeprom_data.ui8_assist_level_factor[0];
-	p_l3_output_vars->ui8_assist_level_factor[1] =
-			m_eeprom_data.ui8_assist_level_factor[1];
-	p_l3_output_vars->ui8_assist_level_factor[2] =
-			m_eeprom_data.ui8_assist_level_factor[2];
-	p_l3_output_vars->ui8_assist_level_factor[3] =
-			m_eeprom_data.ui8_assist_level_factor[3];
-	p_l3_output_vars->ui8_assist_level_factor[4] =
-			m_eeprom_data.ui8_assist_level_factor[4];
-	p_l3_output_vars->ui8_assist_level_factor[5] =
-			m_eeprom_data.ui8_assist_level_factor[5];
-	p_l3_output_vars->ui8_assist_level_factor[6] =
-			m_eeprom_data.ui8_assist_level_factor[6];
-	p_l3_output_vars->ui8_assist_level_factor[7] =
-			m_eeprom_data.ui8_assist_level_factor[7];
-	p_l3_output_vars->ui8_assist_level_factor[8] =
-			m_eeprom_data.ui8_assist_level_factor[8];
+	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_assist_level_factor);
 	p_l3_output_vars->ui8_number_of_assist_levels =
 			m_eeprom_data.ui8_number_of_assist_levels;
 	p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled =
@@ -204,24 +172,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_startup_motor_power_boost_limit_power;
 	p_l3_output_vars->ui8_startup_motor_power_boost_always =
 			m_eeprom_data.ui8_startup_motor_power_boost_always;
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[0] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[0];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[1] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[1];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[2] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[2];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[3] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[3];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[4] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[4];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[5] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[5];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[6] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[6];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[7] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[7];
-	p_l3_output_vars->ui8_startup_motor_power_boost_factor[8] =
-			m_eeprom_data.ui8_startup_motor_power_boost_factor[8];
+	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_startup_motor_power_boost_factor);
 	p_l3_output_vars->ui8_startup_motor_power_boost_time =
 			m_eeprom_data.ui8_startup_motor_power_boost_time;
 	p_l3_output_vars->ui8_startup_motor_power_boost_fade_time =
@@ -253,36 +204,11 @@ void eeprom_init_variables(void) {
 	p_l3_output_vars->ui32_odometer_x10 = m_eeprom_data.ui32_odometer_x10;
 	p_l3_output_vars->ui8_walk_assist_feature_enabled =
 			m_eeprom_data.ui8_walk_assist_feature_enabled;
-	p_l3_output_vars->ui8_walk_assist_level_factor[0] =
-			m_eeprom_data.ui8_walk_assist_level_factor[0];
-	p_l3_output_vars->ui8_walk_assist_level_factor[1] =
-			m_eeprom_data.ui8_walk_assist_level_factor[1];
-	p_l3_output_vars->ui8_walk_assist_level_factor[2] =
-			m_eeprom_data.ui8_walk_assist_level_factor[2];
-	p_l3_output_vars->ui8_walk_assist_level_factor[3] =
-			m_eeprom_data.ui8_walk_assist_level_factor[3];
-	p_l3_output_vars->ui8_walk_assist_level_factor[4] =
-			m_eeprom_data.ui8_walk_assist_level_factor[4];
-	p_l3_output_vars->ui8_walk_assist_level_factor[5] =
-			m_eeprom_data.ui8_walk_assist_level_factor[5];
-	p_l3_output_vars->ui8_walk_assist_level_factor[6] =
-			m_eeprom_data.ui8_walk_assist_level_factor[6];
-	p_l3_output_vars->ui8_walk_assist_level_factor[7] =
-			m_eeprom_data.ui8_walk_assist_level_factor[7];
-	p_l3_output_vars->ui8_walk_assist_level_factor[8] =
-			m_eeprom_data.ui8_walk_assist_level_factor[8];
+	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_walk_assist_level_factor);
 }
 
 void eeprom_write_variables(void) {
-	//uint8_t ui8_array[sizeof(m_eeprom_data)];
 	l3_vars_t *p_l3_output_vars = get_l3_vars();
-	// volatile lcd_configurations_menu_t *p_lcd_configurations_menu;
-	// p_lcd_configurations_menu = get_lcd_configurations_menu();
-
-	// write vars to eeprom struct
-	// Note: we don't clear eeprom_data before writing to it, because we want to preserve any defaults from m_eeprom_data_defaults
-	// memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
-
 	m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
 	m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
 	m_eeprom_data.ui8_wheel_max_speed = p_l3_output_vars->ui8_wheel_max_speed_x10 / 10;
@@ -305,24 +231,7 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_motor_assistance_startup_without_pedal_rotation;
 	m_eeprom_data.ui8_temperature_limit_feature_enabled =
 			p_l3_output_vars->ui8_temperature_limit_feature_enabled;
-	m_eeprom_data.ui8_assist_level_factor[0] =
-			p_l3_output_vars->ui8_assist_level_factor[0];
-	m_eeprom_data.ui8_assist_level_factor[1] =
-			p_l3_output_vars->ui8_assist_level_factor[1];
-	m_eeprom_data.ui8_assist_level_factor[2] =
-			p_l3_output_vars->ui8_assist_level_factor[2];
-	m_eeprom_data.ui8_assist_level_factor[3] =
-			p_l3_output_vars->ui8_assist_level_factor[3];
-	m_eeprom_data.ui8_assist_level_factor[4] =
-			p_l3_output_vars->ui8_assist_level_factor[4];
-	m_eeprom_data.ui8_assist_level_factor[5] =
-			p_l3_output_vars->ui8_assist_level_factor[5];
-	m_eeprom_data.ui8_assist_level_factor[6] =
-			p_l3_output_vars->ui8_assist_level_factor[6];
-	m_eeprom_data.ui8_assist_level_factor[7] =
-			p_l3_output_vars->ui8_assist_level_factor[7];
-	m_eeprom_data.ui8_assist_level_factor[8] =
-			p_l3_output_vars->ui8_assist_level_factor[8];
+	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_assist_level_factor);
 	m_eeprom_data.ui8_number_of_assist_levels =
 			p_l3_output_vars->ui8_number_of_assist_levels;
 	m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled =
@@ -331,24 +240,7 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_startup_motor_power_boost_always;
 	m_eeprom_data.ui8_startup_motor_power_boost_limit_power =
 			p_l3_output_vars->ui8_startup_motor_power_boost_limit_power;
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[0] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[0];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[1] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[1];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[2] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[2];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[3] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[3];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[4] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[4];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[5] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[5];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[6] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[6];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[7] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[7];
-	m_eeprom_data.ui8_startup_motor_power_boost_factor[8] =
-			p_l3_output_vars->ui8_startup_motor_power_boost_factor[8];
+	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_startup_motor_power_boost_factor);
 	m_eeprom_data.ui8_startup_motor_power_boost_time =
 			p_l3_output_vars->ui8_startup_motor_power_boost_time;
 	m_eeprom_data.ui8_startup_motor_power_boost_fade_time =
@@ -380,47 +272,9 @@ void eeprom_write_variables(void) {
 	m_eeprom_data.ui32_odometer_x10 = p_l3_output_vars->ui32_odometer_x10;
 	m_eeprom_data.ui8_walk_assist_feature_enabled =
 			p_l3_output_vars->ui8_walk_assist_feature_enabled;
-	m_eeprom_data.ui8_walk_assist_level_factor[0] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[0];
-	m_eeprom_data.ui8_walk_assist_level_factor[1] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[1];
-	m_eeprom_data.ui8_walk_assist_level_factor[2] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[2];
-	m_eeprom_data.ui8_walk_assist_level_factor[3] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[3];
-	m_eeprom_data.ui8_walk_assist_level_factor[4] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[4];
-	m_eeprom_data.ui8_walk_assist_level_factor[5] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[5];
-	m_eeprom_data.ui8_walk_assist_level_factor[6] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[6];
-	m_eeprom_data.ui8_walk_assist_level_factor[7] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[7];
-	m_eeprom_data.ui8_walk_assist_level_factor[8] =
-			p_l3_output_vars->ui8_walk_assist_level_factor[8];
-#if 0
-  m_eeprom_data.lcd_configurations_menu.ui8_item_number = p_lcd_configurations_menu->ui8_item_number;
-  m_eeprom_data.lcd_configurations_menu.ui8_item_visible_start_index = p_lcd_configurations_menu->ui8_item_visible_start_index;
-  m_eeprom_data.lcd_configurations_menu.ui8_item_visible_index = p_lcd_configurations_menu->ui8_item_visible_index;
-  m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_1 = p_lcd_configurations_menu->ui8_refresh_full_menu_1;
-  m_eeprom_data.lcd_configurations_menu.ui8_refresh_full_menu_2 = p_lcd_configurations_menu->ui8_refresh_full_menu_2;
-  m_eeprom_data.lcd_configurations_menu.ui8_battery_soc_power_used_state = p_lcd_configurations_menu->ui8_battery_soc_power_used_state;
-#endif
-
-	// eeprom structure to array
-	//memset(ui8_array, 0, sizeof(m_eeprom_data));
-	//memcpy(&ui8_array, &m_eeprom_data, sizeof(m_eeprom_data));
+	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_walk_assist_level_factor);
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }
 
-#if 0
-void eeprom_init_defaults(void)
-{
-  flash_write_words(&eeprom_invalid, 1); // mark that eeprom image is valid
-
-  // eeprom_init() will read the default values now
-  eeprom_init();
-}
-#endif
 

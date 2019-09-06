@@ -90,7 +90,9 @@ const UG_FONT *editable_units_font = &SMALL_TEXT_FONT;
 #define EDITABLE_CURSOR_COLOR       C_WHITE
 #endif
 
-int32_t countDigit(int32_t n);
+static void putAligned(FieldLayout *layout, AlignmentX alignx, AlignmentY aligny,
+		int insetx, int insety, const UG_FONT *font, const char *str);
+
 
 static UG_COLOR getBackColor(const FieldLayout *layout)
 {
@@ -138,43 +140,12 @@ static void autoTextHeight(FieldLayout *layout)
   }
 }
 
+
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
 {
-  AlignmentX alignx = layout->unit_align_x;
-  uint8_t insetx = layout->inset_x;
-
   autoTextHeight(layout);
-
-  const UG_FONT *font = layout->font;
-  assert(font); // dynamic font selection not yet supported
-
-  // how many pixels does our rendered string
-  UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(msg);
-
   UG_S16 height = layout->height;
-  UG_S16 x = layout->x;
 
-  // Now print the string at the proper x positon
-  switch(alignx) {
-  case AlignHidden:
-    break;
-  case AlignLeft:
-    x += insetx;
-    break;
-  case AlignRight:
-    x += layout->width - strwidth - insetx;
-    break;
-  case AlignCenter:
-    if (strwidth < layout->width)
-      x += ((layout->width - strwidth) / 2) + insetx;
-    else
-      x += insetx;
-    break;
-  default:
-    assert(0);
-  }
-
-  UG_FontSelect(font);
   UG_COLOR back = getBackColor(layout);
   UG_SetForecolor(getForeColor(layout));
 
@@ -183,7 +154,7 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg)
       layout->y + height - 1, back);
   UG_SetBackcolor(C_TRANSPARENT);
   if(!layout->field->blink || blinkOn) // if we are supposed to blink do that
-	  UG_PutString(x + 1, layout->y, (char*) msg);
+	  putAligned(layout, layout->align_x, AlignTop, layout->inset_x, layout->inset_y, layout->font, msg);
   return true;
 }
 
@@ -793,6 +764,8 @@ static void putStringLeft(int x, int y, const UG_FONT *font, const char *str)
  */
 static void putAligned(FieldLayout *layout, AlignmentX alignx, AlignmentY aligny,
 		int insetx, int insety, const UG_FONT *font, const char *str) {
+	assert(font); // dynamic font selection not yet supported
+
 	// First find the y position
 	int y = layout->y;
 	switch(aligny) {
@@ -1501,14 +1474,4 @@ void fieldPrintf(Field *field, const char *fmt, ...)
   va_end(argp);
 }
 
-int32_t countDigit(int32_t n)
-{
-  int32_t count = 0;
-  while (n != 0) {
-    n = n / 10;
-    ++count;
-  }
-
-  return count;
-}
 

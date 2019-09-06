@@ -44,6 +44,8 @@
 #define C_WARNING	 				C_WHITE
 #define C_ERROR						C_WHITE
 
+#define LABEL_COLOR C_WHITE
+
 #else
 
 #define  USE_MY_FONT_BATTERY // temp merge hack FIXME, stop using battery font on 850C
@@ -83,6 +85,8 @@
 
 #define C_WARNING	 				C_YELLOW
 #define C_ERROR						C_RED
+
+#define LABEL_COLOR MAIN_SCREEN_FIELD_LABELS_COLOR
 
 #endif
 

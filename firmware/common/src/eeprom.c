@@ -17,7 +17,7 @@
 static eeprom_data_t m_eeprom_data;
 
 // get rid of some copypasta with this little wrapper for copying arrays between structs
-#define COPY_ARRAY(dest, src, field) memcpy(dest->field, src->field, sizeof(dest->field))
+#define COPY_ARRAY(dest, src, field) memcpy((dest)->field, (src)->field, sizeof((dest)->field))
 
 const eeprom_data_t m_eeprom_data_defaults =
 		{ .eeprom_version = EEPROM_VERSION, .ui8_assist_level =
@@ -170,7 +170,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation;
 	p_l3_output_vars->ui8_temperature_limit_feature_enabled =
 			m_eeprom_data.ui8_temperature_limit_feature_enabled;
-	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_assist_level_factor);
+	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, ui8_assist_level_factor);
 	p_l3_output_vars->ui8_number_of_assist_levels =
 			m_eeprom_data.ui8_number_of_assist_levels;
 	p_l3_output_vars->ui8_startup_motor_power_boost_feature_enabled =
@@ -179,7 +179,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_startup_motor_power_boost_limit_power;
 	p_l3_output_vars->ui8_startup_motor_power_boost_always =
 			m_eeprom_data.ui8_startup_motor_power_boost_always;
-	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_startup_motor_power_boost_factor);
+	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, ui8_startup_motor_power_boost_factor);
 	p_l3_output_vars->ui8_startup_motor_power_boost_time =
 			m_eeprom_data.ui8_startup_motor_power_boost_time;
 	p_l3_output_vars->ui8_startup_motor_power_boost_fade_time =
@@ -211,8 +211,8 @@ void eeprom_init_variables(void) {
 	p_l3_output_vars->ui32_odometer_x10 = m_eeprom_data.ui32_odometer_x10;
 	p_l3_output_vars->ui8_walk_assist_feature_enabled =
 			m_eeprom_data.ui8_walk_assist_feature_enabled;
-	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, ui8_walk_assist_level_factor);
-	COPY_ARRAY(p_l3_output_vars, m_eeprom_data, field_selectors);
+	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, ui8_walk_assist_level_factor);
+	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, field_selectors);
 }
 
 void eeprom_write_variables(void) {
@@ -239,7 +239,7 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_motor_assistance_startup_without_pedal_rotation;
 	m_eeprom_data.ui8_temperature_limit_feature_enabled =
 			p_l3_output_vars->ui8_temperature_limit_feature_enabled;
-	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_assist_level_factor);
+	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, ui8_assist_level_factor);
 	m_eeprom_data.ui8_number_of_assist_levels =
 			p_l3_output_vars->ui8_number_of_assist_levels;
 	m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled =
@@ -248,7 +248,7 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_startup_motor_power_boost_always;
 	m_eeprom_data.ui8_startup_motor_power_boost_limit_power =
 			p_l3_output_vars->ui8_startup_motor_power_boost_limit_power;
-	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_startup_motor_power_boost_factor);
+	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, ui8_startup_motor_power_boost_factor);
 	m_eeprom_data.ui8_startup_motor_power_boost_time =
 			p_l3_output_vars->ui8_startup_motor_power_boost_time;
 	m_eeprom_data.ui8_startup_motor_power_boost_fade_time =
@@ -280,8 +280,8 @@ void eeprom_write_variables(void) {
 	m_eeprom_data.ui32_odometer_x10 = p_l3_output_vars->ui32_odometer_x10;
 	m_eeprom_data.ui8_walk_assist_feature_enabled =
 			p_l3_output_vars->ui8_walk_assist_feature_enabled;
-	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, ui8_walk_assist_level_factor);
-	COPY_ARRAY(m_eeprom_data, p_l3_output_vars, field_selectors);
+	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, ui8_walk_assist_level_factor);
+	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, field_selectors);
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

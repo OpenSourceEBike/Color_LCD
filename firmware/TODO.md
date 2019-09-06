@@ -44,7 +44,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * Per @lowPerformer: We can also extend the fonts by our "special" characters we need, f.i. ASCII ':' can be a 'W'. I did that with MY_FONT_8X12 where 0x1F is a '°' like in °C.
 * show units on config screen
 * make is_selected in screen.c always imply blink
-* still need to change eeprom.c (change most of 850C version to be a HAL similar to eeprom-hw.c)
 * add the concept of Subscreens, so that the battery bar at the top and the status bar at the bottom can be shared across all screens
 * setup the local analog comparator to compare Vbat to a min voltage (19V or whatever).  If it falls below that voltage assume user just killed the power at the battery and quickly write settings to flash.  Only feasible if oscope timing shows we have enough time before the CPU voltage fails for this to be worth bothering with.
 * clean up buttons_clock by treating all buttons uniformly and getting rid of the enormous copypasta switches
@@ -166,6 +165,7 @@ the GUI thread.  Use two buffers + a ptr.
 * fix trip time to use a readonly fieldtype (so it lays out correctly on mainscreen)
 * heading is busted on SW102 menus
 * make warnings work
+* still need to change eeprom.c (change most of 850C version to be a HAL similar to eeprom-hw.c)
 
 # Misc notes from kevin not yet formatted
 

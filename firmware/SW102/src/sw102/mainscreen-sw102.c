@@ -80,7 +80,7 @@ Screen mainScreen = {
         .width = 0, .height = -1,
         .field = &assistLevelField,
         .font = &BIG_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     /*
@@ -96,7 +96,7 @@ Screen mainScreen = {
         .width = 0, .height = 19,
         .field = &maxPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     {
@@ -104,7 +104,7 @@ Screen mainScreen = {
         .width = 0, .height = -1,
         .field = &wheelSpeedIntegerField,
         .font = &BIG_NUMBERS_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderNone
     },
     STATUS_BAR,
@@ -124,7 +124,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &motorTempField,
         .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     {
@@ -132,7 +132,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &humanPowerField,
         .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     {
@@ -140,7 +140,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &tripDistanceField,
         .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     {
@@ -148,7 +148,7 @@ Screen infoScreen = {
         .width = 0, .height = -1,
         .field = &odoField,
         .font = &REGULAR_TEXT_FONT,
-        .modifier = ModNoLabel,
+        .label_align_x = AlignHidden,
         .border = BorderBottom
     },
     STATUS_BAR,

@@ -197,80 +197,33 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color)
   /**************************************************/
   // Set XY
   //
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2a; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2a); // write data to BUS
+  lcd_write_data_8bits(ui32_x_high);   // write data to BUS
+  lcd_write_data_8bits(ui32_x_low);   // write data to BUS
+  lcd_write_data_8bits(ui32_x_high);   // write data to BUS
+  lcd_write_data_8bits(ui32_x_low);   // write data to BUS
 
-  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_x_high;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2b); // write data to BUS
+  lcd_write_data_8bits(ui32_y_high);   // write data to BUS
+  lcd_write_data_8bits(ui32_y_low);   // write data to BUS
+  lcd_write_data_8bits(ui32_y_high);   // write data to BUS
+  lcd_write_data_8bits(ui32_y_low);   // write data to BUS
 
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_x_low;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_x_high;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_x_low;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2b; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_y_high;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_y_low;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_y_high;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_y_low;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2c; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2c); // write data to BUS
 
   /**************************************************/
   // Set data on bus
   //
-  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_color;
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_data_8bits(ui32_color);
 
   // NOP
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0); // write data to BUS
 
   // NOP
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0); // write data to BUS
 
   // NOP
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0); // write data to BUS
 }
 
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32_color)
@@ -312,54 +265,19 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR ui32
   /**************************************************/
   // Set XY
   //
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2a; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2a); // write data to BUS - set col addr
+  lcd_write_data_8bits(x1 >> 8);   // write data to BUS
+  lcd_write_data_8bits(x1);   // write data to BUS
+  lcd_write_data_8bits(x2 >> 8);   // write data to BUS
+  lcd_write_data_8bits(x2);   // write data to BUS
 
-  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) (x1 >> 8);   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2b); // write data to BUS
+  lcd_write_data_8bits(y1 >> 8);   // write data to BUS
+  lcd_write_data_8bits(y1);   // write data to BUS
+  lcd_write_data_8bits(y2 >> 8);   // write data to BUS
+  lcd_write_data_8bits(y2);   // write data to BUS
 
-  LCD_BUS__PORT->ODR = (uint16_t) x1;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) (x2 >> 8);   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) x2;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2b; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
-  LCD_BUS__PORT->ODR = (uint16_t) (y1 >> 8);   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) y1;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) (y2 >> 8);   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_BUS__PORT->ODR = (uint16_t) y2;   // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
-
-  LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN; // command
-  LCD_BUS__PORT->ODR = (uint16_t) 0x2c; // write data to BUS
-  LCD_WRITE__PORT->BRR = LCD_WRITE__PIN; // pulse low WR pin
-  LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+  lcd_write_command(0x2c); // write data to BUS
 
   LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN; // data
 
@@ -408,26 +326,26 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *imag
     return UG_RESULT_FAIL;
 }
 
-void lcd_write_command (uint32_t ui32_command)
+void lcd_write_command (uint16_t ui32_command)
 {
   // command
   GPIOC->BRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_command;
+  LCD_BUS__PORT->ODR = ui32_command;
 
   // pulse low WR pin
   GPIOC->BRR = LCD_WRITE__PIN;
   GPIOC->BSRR = LCD_WRITE__PIN;
 }
 
-void lcd_write_data_8bits (uint32_t ui32_data)
+void lcd_write_data_8bits (uint16_t ui32_data)
 {
   // data
   LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
 
   // write data to BUS
-  LCD_BUS__PORT->ODR = (uint16_t) ui32_data;
+  LCD_BUS__PORT->ODR = ui32_data;
 
   // pulse low WR pin
   LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
@@ -436,15 +354,15 @@ void lcd_write_data_8bits (uint32_t ui32_data)
 
 void lcd_set_xy (uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2, uint16_t ui16_y2)
 {
-  lcd_write_command(0x2a);
+  lcd_write_command(0x2a); // set col addr
   lcd_write_data_8bits(ui16_x1>>8);
   lcd_write_data_8bits(ui16_x1);
   lcd_write_data_8bits(ui16_x2>>8);
   lcd_write_data_8bits(ui16_x2);
-  lcd_write_command(0x2b);
+  lcd_write_command(0x2b); // set page addr
   lcd_write_data_8bits(ui16_y1>>8);
   lcd_write_data_8bits(ui16_y1);
   lcd_write_data_8bits(ui16_y2>>8);
   lcd_write_data_8bits(ui16_y2);
-  lcd_write_command(0x2c);
+  lcd_write_command(0x2c); // write_memory_start
 }

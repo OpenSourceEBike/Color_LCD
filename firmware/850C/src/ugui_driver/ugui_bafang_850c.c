@@ -86,16 +86,16 @@ void bafang_500C_lcd_init()
   // keep chip select active
   GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-  lcd_write_command(0xD0); // Power Setting
+  lcd_write_command(0xD0); // dynamic backlight config
   lcd_write_data_8bits(0x07);
   lcd_write_data_8bits(0x41);
   lcd_write_data_8bits(0x1D);
 
-  lcd_write_command(0xD2); // Power_Setting for Normal Mode
+  lcd_write_command(0xD2); // Power_Setting for Normal Mode (FIXME, undocumented in datasheet)
   lcd_write_data_8bits(0x01);
   lcd_write_data_8bits(0x11);
 
-  lcd_write_command(0xC0); // Panel Driving Setting
+  lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
   lcd_write_data_8bits(0x10);
   lcd_write_data_8bits(0x3B);
   lcd_write_data_8bits(0x00);
@@ -105,17 +105,17 @@ void bafang_500C_lcd_init()
   lcd_write_command(0xC5); // Frame rate and Inversion Control
   lcd_write_data_8bits(0x00);
 
-  lcd_write_command(0xE4); // ????
+  lcd_write_command(0xE4); // get pll status according to datasheet FIXME
   lcd_write_data_8bits(0xA0);
 
-  lcd_write_command(0xF0); // ??
+  lcd_write_command(0xF0); // set pixel data inteface
   lcd_write_data_8bits(0x01);
 
-  lcd_write_command(0xF3); // ??
+  lcd_write_command(0xF3); // FIXME undocumented in datasheet
   lcd_write_data_8bits(0x40);
   lcd_write_data_8bits(0x1A);
 
-  lcd_write_command(0xC8); // Gamma Setting
+  lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
   lcd_write_data_8bits(0x00);
   lcd_write_data_8bits(0x14);
   lcd_write_data_8bits(0x33);
@@ -129,7 +129,7 @@ void bafang_500C_lcd_init()
   lcd_write_data_8bits(0x0F);
   lcd_write_data_8bits(0x00);
 
-  lcd_write_command(0x3A); // set_pixel_format
+  lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
   lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
 
   lcd_write_command(0x11); // exit_sleep_mode
@@ -326,6 +326,9 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, uint8_t *imag
     return UG_RESULT_FAIL;
 }
 
+/**
+ * For timing information see 13.2.2 in the datasheet
+ */
 void lcd_write_command (uint16_t ui32_command)
 {
   // command
@@ -334,7 +337,7 @@ void lcd_write_command (uint16_t ui32_command)
   // write data to BUS
   LCD_BUS__PORT->ODR = ui32_command;
 
-  // pulse low WR pin
+  // pulse low WR pin tPWLW min time 12ns (shortest possible CPU cycle on our CPU is 9ns, and based on disassembly this is definitely fine)
   GPIOC->BRR = LCD_WRITE__PIN;
   GPIOC->BSRR = LCD_WRITE__PIN;
 }

@@ -87,13 +87,15 @@ void bafang_500C_lcd_init() {
 	// keep chip select active
 	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-#if 0
+/*
+	// casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
+	// a valuable reference.
   lcd_write_command(0xD0); // dynamic backlight config
   lcd_write_data_8bits(0x07);
   lcd_write_data_8bits(0x41);
   lcd_write_data_8bits(0x1D);
 
-  lcd_write_command(0xD2); // Power_Setting for Normal Mode (FIXME, undocumented in datasheet)
+  lcd_write_command(0xD2); // Power_Setting for Normal Mode
   lcd_write_data_8bits(0x01);
   lcd_write_data_8bits(0x11);
 
@@ -139,36 +141,47 @@ void bafang_500C_lcd_init() {
   delay_ms(120); // 120ms delay after leaving sleep
 
   lcd_write_command(0x29); // set_display_on
-#else
+
+	lcd_write_command(0x36); // set_address_mode
+	// Vertical Flip: Normal display
+	// Horizontal Flip: Flipped display
+	// RGB/BGR Order: Pixels sent in BGR order
+	// Column Address Order: Right to Left
+	// Page Address Order: Top to Bottom
+	lcd_write_data_8bits(0x0A);
+*/
 	// Configure ILI9481 display
+
 	// borrowed from https://github.com/Bodmer/TFT_HX8357_Due/blob/master/TFT_HX8357_Due.cpp as a starting point
-	lcd_write_command(0x11);
-	delay_ms(20);
-	lcd_write_command(0xD0);
-	lcd_write_data_8bits(0x07);
-	lcd_write_data_8bits(0x42);
-	lcd_write_data_8bits(0x18);
+	lcd_write_command(0x11); // exit sleep mode
+	delay_ms(20); // datasheet only requires 5ms
+	lcd_write_command(0xD0); // power setting
+	lcd_write_data_8bits(0x07); // ref voltage, matches power on default
+	lcd_write_data_8bits(0x42); // was 41, this adafruit value results in a slightly lower VGL voltage
+	lcd_write_data_8bits(0x18); // was 1d (vreg1out 4.625V), this adafruit value is lower 4.0V
 
-	lcd_write_command(0xD1);
+	lcd_write_command(0xD1); // vcom control - was missing, possibly quite bad to not set this
 	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x07);
-	lcd_write_data_8bits(0x10);
+	lcd_write_data_8bits(0x07); // vcm, default was 0 so VCOMH voltage was probably quite a bit low
+	lcd_write_data_8bits(0x10); // vdv, default was 0 so the AC voltage was probably also low
 
-	lcd_write_command(0xD2);
-	lcd_write_data_8bits(0x01);
-	lcd_write_data_8bits(0x02);
+	lcd_write_command(0xD2); // power setting for normal mode
+	lcd_write_data_8bits(0x01); // max drive current
+	lcd_write_data_8bits(0x02); // was 0x11 - charge pump frequency, now quite different - not sure which is better
 
-	lcd_write_command(0xC0);
+	lcd_write_command(0xC0); // panel driving setting
 	lcd_write_data_8bits(0x10);
 	lcd_write_data_8bits(0x3B);
 	lcd_write_data_8bits(0x00);
 	lcd_write_data_8bits(0x02);
 	lcd_write_data_8bits(0x11);
 
-	lcd_write_command(0xC5);
-	lcd_write_data_8bits(0x03);
+	lcd_write_command(0xC5); // frame rate and inversion
+	lcd_write_data_8bits(0x03); // 72Hz frame rate (default value) - was previously using 0, which is 125Hz.  I think this might explain the whitescreen problem
 
-	lcd_write_command(0xC8);
+	// cmd 0xe4, f0, f3 missing (all threee undocumented in datasheet)
+
+	lcd_write_command(0xC8); // gamma setting - was quite different, but for now using the more recent Adafruit/Linux kernel values
 	lcd_write_data_8bits(0x00);
 	lcd_write_data_8bits(0x32);
 	lcd_write_data_8bits(0x36);
@@ -182,40 +195,31 @@ void bafang_500C_lcd_init() {
 	lcd_write_data_8bits(0x0C);
 	lcd_write_data_8bits(0x00);
 
-	lcd_write_command(0x36);
+	// FIXME - check this, I bet this explains the flipping problem - see 8.2.25 in datasheet
+	lcd_write_command(0x36); // set address mode
+	// bit 0: Vertical Flip: Normal display
+	// bit 1: Horizontal Flip: Flipped display
+	// bit 3: RGB/BGR Order: Pixels sent in BGR order
+	// bit 6: Column Address Order: Right to Left
+	// bit 7: Page Address Order: Top to Bottom
 	lcd_write_data_8bits(0x0A);
 
-	lcd_write_command(0x3A);
-	lcd_write_data_8bits(0x55);
-
-	lcd_write_command(0x2A);
-	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x01);
-	lcd_write_data_8bits(0x3F);
-
-	lcd_write_command(0x2B);
-	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x01);
-	lcd_write_data_8bits(0xDF);
+	lcd_write_command(0x3A); // set pixel format
+	lcd_write_data_8bits(0x55); // 16bpp
 
 	delay_ms(120);
-	lcd_write_command(0x29);
+	lcd_write_command(0x29); // set display on
 
 	delay_ms(25);
 	// End of ILI9481 display configuration
-#endif
 
-	// FIXME - check this, I bet this explains the flipping problem
+	// Note: if we have some devices still not working, we might need to add a READ command to 0xbf (8.2.39) to read
+	// the chip id of the failing units - this would allow us to see the vendor code of whoever made the display and
+	// confirm it is a 9481 (or if different - what it is)
 
-	lcd_write_command(0x36); // set_address_mode
-	// Vertical Flip: Normal display
-	// Horizontal Flip: Flipped display
-	// RGB/BGR Order: Pixels sent in BGR order
-	// Column Address Order: Right to Left
-	// Page Address Order: Top to Bottom
-	lcd_write_data_8bits(0x0A);
+	// It is worth noting that the display controller has a small amount of non volatile memory.  I bet the mfg of the
+	// 850C is checking that code in their firmware, and based on that value chosing to flip the display horizontally
+	// if needed (via command 0x36)
 
 	// Initialize global structure and set PSET to this.PSET.
 	UG_Init(&gui, lcd_pixel_set, DISPLAY_WIDTH, DISPLAY_HEIGHT);

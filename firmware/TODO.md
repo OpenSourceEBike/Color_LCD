@@ -1,38 +1,35 @@
-# Tasks in Kevin's work queue
+# Near term tasks (someone is already working on these)
 
 * let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
-* make local ADC report voltage, so bootscreen/sim-motor can check it.
-* use a slightly smaller font for the digits after the dot 45x72, big is 61x99. apply to speed field
-* fix eclipse formatting of arrays
-* now that we have inset_y, remove descender_y - I don't think it is needed anymore rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
+* Update wiki instructions on how to develop for 850C/SW102
+* Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
 
 # TODO tasks for beta release
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
+* make the 850C display local ADC report voltage, so bootscreen/sim-motor can check it (and warn user/enter sim mode).
+* fix eclipse formatting of arrays - currently if we click format it makes our constant arrays (like the FieldLayout screens) look like crap
 * fix string widths for SW102 long strings
-* test with 0.20 motor code
-* move config/technical info to the info screen (and stop using DrawText fields for showing most data fields)
-* Implement cruise mode (also missing in 850C)
-* Implement offroad mode(also missing in 850C) - and fix the config editing of the div25 field it use
-* show temp warnings on main screen
-* show motor faults promenantly on main screen
+* clean up the SW102 info screen, possibly by splitting into two screens and using the new user field customization feature
+* per discussion with @casainho no problem - "add motor RPM, ERPS and PWM duty cycle to the secondary info page" (should be easy with the new user field customization)
+* Implement cruise mode (most of the code is there, just commented out)
+* Implement offroad mode(most of the code is there, just commented out) - and fix the config editing of the div25 field it use
 * suspend the 100ms timer tick during copy_layer_2_layer_3_vars
 * let user edit maxpower from the mainscreen 
 * fix power fields to blink as needed
-* show motor temp alerts
 * show power limiting alerts (due to PWM or temp or whatever)
 * bluetooth: fully implement bicycle power/speed/cadence profile and test with Strava app - https://devzone.nordicsemi.com/f/nordic-q-a/3233/anybody-wrote-ble_cps-c-for-cycling-power - https://www.bluetooth.com/specifications/gatt/services/ 
 and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.3.0%2Fble_sdk_app_csc.html&cp=5_5_7_4_2_2_5
-* add DFU assistence profile to the appload
+* add DFU assistence profile to the SW102 appload
 * make a shutdown screen
 * pack & align eeprom 
 * implement a watchdog function
-* per discussion with @casainho no problem - "add motor RPM, ERPS and PWM duty cycle to the secondary info page"
 
 # Tasks for after release 1.0
 * report pedal power via strava
+* now that we have inset_y, remove descender_y - I don't think it is needed anymore rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
 * fix bluetooth notifications (so battery SOC/cadence periodically updates in android app)
 * when graphRender is invoked but it isn't yet time to redraw just add the current value to a sum and then later divide by # skipped updates to get a nice average value.  Much better than just sampling a single value every 3500ms.
 * stop using ui32_g_layer_2_can_execute for mutual exclusion with the ISR
@@ -166,6 +163,8 @@ the GUI thread.  Use two buffers + a ptr.
 * heading is busted on SW102 menus
 * make warnings work
 * still need to change eeprom.c (change most of 850C version to be a HAL similar to eeprom-hw.c)
+* show temp warnings on main screen
+* show motor faults promenantly on main screen
 
 # Misc notes from kevin not yet formatted
 

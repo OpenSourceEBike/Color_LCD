@@ -343,6 +343,26 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color) {
 #endif
 }
 
+
+// pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
+void wait_pulse() {
+	// WOW @r0mko says his screen needs this delay to be 80 which is really slow.  Hopefully we only have to
+	// be this slow on a particular chip vendor
+	for(volatile int numnops = 0; numnops < 3; numnops++)
+		__asm volatile(
+				"nop\n\t"
+		);
+}
+
+void lcd_write_cycle() {
+	GPIOC->BRR = LCD_WRITE__PIN;
+	wait_pulse();
+	GPIOC->BSRR = LCD_WRITE__PIN;
+
+	// FIXME, total write cycle min time is 100ns, we are probably fine, but nothing is currently guaranteeing it
+}
+
+
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
 		UG_COLOR ui32_color) {
 	if (ui32_color == C_TRANSPARENT)
@@ -396,8 +416,7 @@ UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
 	LCD_BUS__PORT->ODR = ui32_color;
 
 	while (ui32_pixels-- > 0) {
-		LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
-		LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+		lcd_write_cycle();
 	}
 
 	return UG_RESULT_OK;
@@ -423,23 +442,6 @@ UG_RESULT HW_DrawLine(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
 
 
 
-// pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
-void wait_pulse() {
-	// WOW @r0mko says his screen needs this delay to be 80 which is really slow.  Hopefully we only have to
-	// be this slow on a particular chip vendor
-	for(volatile int numnops = 0; numnops < 3; numnops++)
-		__asm volatile(
-				"nop\n\t"
-		);
-}
-
-void lcd_write_cycle() {
-	GPIOC->BRR = LCD_WRITE__PIN;
-	wait_pulse();
-	GPIOC->BSRR = LCD_WRITE__PIN;
-
-	// FIXME, total write cycle min time is 100ns, we are probably fine, but nothing is currently guaranteeing it
-}
 
 /**
  * For timing information see 13.2.2 in the datasheet

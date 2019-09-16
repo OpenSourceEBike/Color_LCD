@@ -40,9 +40,13 @@ UG_GUI gui;
 void lcd_set_xy(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2,
 		uint16_t ui16_y2);
 
+void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread);
+
 inline void Display_Reset() {
 
 }
+
+uint16_t lcd_devcode[6]; // per 8.2.39 of datasheet, six words, first will be filled with garbage
 
 void bafang_500C_lcd_init() {
 	// next step is needed to have PB3 and PB4 working as GPIO
@@ -78,80 +82,81 @@ void bafang_500C_lcd_init() {
 	GPIO_InitStructure.GPIO_Pin = 0xffff;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_Init(LCD_BUS__PORT, &GPIO_InitStructure);
 
-	// keep RESET and READ pins always at 1
+	// disable reset
 	GPIO_SetBits(LCD_RESET__PORT, LCD_RESET__PIN);
+
+	// default to write mode
 	GPIO_SetBits(LCD_READ__PORT, LCD_READ__PIN);
 
 	// keep chip select active
 	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
 
-/*
-	// casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
-	// a valuable reference.
-  lcd_write_command(0xD0); // dynamic backlight config
-  lcd_write_data_8bits(0x07);
-  lcd_write_data_8bits(0x41);
-  lcd_write_data_8bits(0x1D);
+	/*
+	 // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
+	 // a valuable reference.
+	 lcd_write_command(0xD0); // dynamic backlight config
+	 lcd_write_data_8bits(0x07);
+	 lcd_write_data_8bits(0x41);
+	 lcd_write_data_8bits(0x1D);
 
-  lcd_write_command(0xD2); // Power_Setting for Normal Mode
-  lcd_write_data_8bits(0x01);
-  lcd_write_data_8bits(0x11);
+	 lcd_write_command(0xD2); // Power_Setting for Normal Mode
+	 lcd_write_data_8bits(0x01);
+	 lcd_write_data_8bits(0x11);
 
-  lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
-  lcd_write_data_8bits(0x10);
-  lcd_write_data_8bits(0x3B);
-  lcd_write_data_8bits(0x00);
-  lcd_write_data_8bits(0x02);
-  lcd_write_data_8bits(0x11);
+	 lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
+	 lcd_write_data_8bits(0x10);
+	 lcd_write_data_8bits(0x3B);
+	 lcd_write_data_8bits(0x00);
+	 lcd_write_data_8bits(0x02);
+	 lcd_write_data_8bits(0x11);
 
-  lcd_write_command(0xC5); // Frame rate and Inversion Control
-  lcd_write_data_8bits(0x00);
+	 lcd_write_command(0xC5); // Frame rate and Inversion Control
+	 lcd_write_data_8bits(0x00);
 
-  lcd_write_command(0xE4); // get pll status according to datasheet FIXME
-  lcd_write_data_8bits(0xA0);
+	 lcd_write_command(0xE4); // get pll status according to datasheet FIXME
+	 lcd_write_data_8bits(0xA0);
 
-  lcd_write_command(0xF0); // set pixel data inteface
-  lcd_write_data_8bits(0x01);
+	 lcd_write_command(0xF0); // set pixel data inteface
+	 lcd_write_data_8bits(0x01);
 
-  lcd_write_command(0xF3); // FIXME undocumented in datasheet
-  lcd_write_data_8bits(0x40);
-  lcd_write_data_8bits(0x1A);
+	 lcd_write_command(0xF3); // FIXME undocumented in datasheet
+	 lcd_write_data_8bits(0x40);
+	 lcd_write_data_8bits(0x1A);
 
-  lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
-  lcd_write_data_8bits(0x00);
-  lcd_write_data_8bits(0x14);
-  lcd_write_data_8bits(0x33);
-  lcd_write_data_8bits(0x10);
-  lcd_write_data_8bits(0x00);
-  lcd_write_data_8bits(0x16);
-  lcd_write_data_8bits(0x44);
-  lcd_write_data_8bits(0x36);
-  lcd_write_data_8bits(0x77);
-  lcd_write_data_8bits(0x00);
-  lcd_write_data_8bits(0x0F);
-  lcd_write_data_8bits(0x00);
+	 lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
+	 lcd_write_data_8bits(0x00);
+	 lcd_write_data_8bits(0x14);
+	 lcd_write_data_8bits(0x33);
+	 lcd_write_data_8bits(0x10);
+	 lcd_write_data_8bits(0x00);
+	 lcd_write_data_8bits(0x16);
+	 lcd_write_data_8bits(0x44);
+	 lcd_write_data_8bits(0x36);
+	 lcd_write_data_8bits(0x77);
+	 lcd_write_data_8bits(0x00);
+	 lcd_write_data_8bits(0x0F);
+	 lcd_write_data_8bits(0x00);
 
-  lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
-  lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+	 lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
+	 lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
 
-  lcd_write_command(0x11); // exit_sleep_mode
+	 lcd_write_command(0x11); // exit_sleep_mode
 
-  delay_ms(120); // 120ms delay after leaving sleep
+	 delay_ms(120); // 120ms delay after leaving sleep
 
-  lcd_write_command(0x29); // set_display_on
+	 lcd_write_command(0x29); // set_display_on
 
-	lcd_write_command(0x36); // set_address_mode
-	// Vertical Flip: Normal display
-	// Horizontal Flip: Flipped display
-	// RGB/BGR Order: Pixels sent in BGR order
-	// Column Address Order: Right to Left
-	// Page Address Order: Top to Bottom
-	lcd_write_data_8bits(0x0A);
-*/
+	 lcd_write_command(0x36); // set_address_mode
+	 // Vertical Flip: Normal display
+	 // Horizontal Flip: Flipped display
+	 // RGB/BGR Order: Pixels sent in BGR order
+	 // Column Address Order: Right to Left
+	 // Page Address Order: Top to Bottom
+	 lcd_write_data_8bits(0x0A);
+	 */
 	// Configure ILI9481 display
-
 	// borrowed from https://github.com/Bodmer/TFT_HX8357_Due/blob/master/TFT_HX8357_Due.cpp as a starting point
 	lcd_write_command(0x11); // exit sleep mode
 	delay_ms(20); // datasheet only requires 5ms
@@ -212,6 +217,8 @@ void bafang_500C_lcd_init() {
 
 	delay_ms(25);
 	// End of ILI9481 display configuration
+
+	// lcd_read_data_16bits(0xbf, lcd_devcode, 6);
 
 	// Note: if we have some devices still not working, we might need to add a READ command to 0xbf (8.2.39) to read
 	// the chip id of the failing units - this would allow us to see the vendor code of whoever made the display and
@@ -393,6 +400,18 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
 	return UG_RESULT_FAIL;
 }
 
+void lcd_write_cycle() {
+	// pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
+	GPIOC->BRR = LCD_WRITE__PIN;
+	for(volatile int numnops = 0; numnops < 30; numnops++)
+		__asm volatile(
+				"nop\n\t"
+		);
+	GPIOC->BSRR = LCD_WRITE__PIN;
+
+	// FIXME, total write cycle min time is 100ns, we are probably fine, but nothing is currently guaranteeing it
+}
+
 /**
  * For timing information see 13.2.2 in the datasheet
  */
@@ -403,21 +422,61 @@ void lcd_write_command(uint16_t ui32_command) {
 	// write data to BUS
 	LCD_BUS__PORT->ODR = ui32_command;
 
-	// pulse low WR pin tPWLW min time 12ns (shortest possible CPU cycle on our CPU is 9ns, and based on disassembly this is definitely fine)
-	GPIOC->BRR = LCD_WRITE__PIN;
-	GPIOC->BSRR = LCD_WRITE__PIN;
+	lcd_write_cycle();
+
+	// data
+	LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
 }
 
 void lcd_write_data_8bits(uint16_t ui32_data) {
 	// data
-	LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
+	// LCD_COMMAND_DATA__PORT->BSRR = LCD_COMMAND_DATA__PIN;
 
 	// write data to BUS
 	LCD_BUS__PORT->ODR = ui32_data;
 
 	// pulse low WR pin
-	LCD_WRITE__PORT->BRR = LCD_WRITE__PIN;
-	LCD_WRITE__PORT->BSRR = LCD_WRITE__PIN;
+	lcd_write_cycle();
+}
+
+void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
+	// FIXME - doesn't yet worK!
+
+	GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+	delay_ms(2);
+	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+	delay_ms(2);
+
+	lcd_write_command(command);
+
+	// Make data pins inputs
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = 0xffff;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(LCD_BUS__PORT, &GPIO_InitStructure);
+
+	while (numtoread--) {
+		LCD_READ__PORT->BRR = LCD_READ__PIN; // drive from high to low (as an open drain output)
+
+		delay_ms(2); // min 340ns delay needed before reading
+
+		// Now the data should be valid for reading
+		*out++ = (uint16_t) LCD_BUS__PORT->IDR;
+
+		LCD_READ__PORT->BSRR = LCD_READ__PIN; // raise read high (LCD will stop driving data lines)
+
+		delay_ms(2); // min 250ns of read high needed per datasheet
+	}
+
+	// Make data pins outputs again
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+	delay_ms(2);
+	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
+	delay_ms(2);
 }
 
 void lcd_set_xy(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2,

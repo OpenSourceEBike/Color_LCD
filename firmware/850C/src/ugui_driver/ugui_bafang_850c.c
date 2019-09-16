@@ -48,6 +48,42 @@ inline void Display_Reset() {
 
 uint16_t lcd_devcode[6]; // per 8.2.39 of datasheet, six words, first will be filled with garbage
 
+typedef void (*PushPixelFn)(UG_COLOR);
+
+static void push_pixel_850(UG_COLOR c) {
+	if (c == C_TRANSPARENT)
+		c = C_BLACK; // FIXME, not quite correct - we really should skip that pixel
+
+	lcd_write_data_8bits(c);
+}
+
+/**
+ * A ugui acceleration function.  Given a rectangle, return a callback to set pixels in that rect.
+ * The draw order will be by rows, starting from x1,y1 down to x2,y2.
+ */
+PushPixelFn HW_FillArea(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2) {
+
+	/**************************************************/
+	// Set XY
+	//
+	lcd_write_command(0x2a); // write coladdr
+	lcd_write_data_8bits(x1 >> 8);   // write data to BUS - start addr
+	lcd_write_data_8bits(x1);   // write data to BUS
+	lcd_write_data_8bits(x2 >> 8);   // write data to BUS - end addr
+	lcd_write_data_8bits(x2);   // write data to BUS
+
+	lcd_write_command(0x2b); // write pageaddr
+	lcd_write_data_8bits(y1 >> 8);   // write data to BUS
+	lcd_write_data_8bits(y1);   // write data to BUS
+	lcd_write_data_8bits(y2 >> 8);   // write data to BUS
+	lcd_write_data_8bits(y2);   // write data to BUS
+
+	lcd_write_command(0x2c); // start writing pixels
+
+	return push_pixel_850;
+}
+
+
 void bafang_500C_lcd_init() {
 	// next step is needed to have PB3 and PB4 working as GPIO
 	/* Disable the Serial Wire Jtag Debug Port SWJ-DP */
@@ -234,6 +270,7 @@ void bafang_500C_lcd_init() {
 	// Register acceleratos.
 	UG_DriverRegister(DRIVER_FILL_FRAME, (void*) HW_FillFrame);
 	UG_DriverRegister(DRIVER_DRAW_LINE, (void*) HW_DrawLine);
+	UG_DriverRegister(DRIVER_FILL_AREA, (void*) HW_FillArea);
 //  UG_DriverRegister(DRIVER_DRAW_IMAGE, (void*)HW_DrawImage);
 }
 
@@ -264,27 +301,22 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color) {
 	if (ui32_color == C_TRANSPARENT)
 		return;
 
-	uint32_t ui32_x_high;
-	uint32_t ui32_x_low;
-	uint32_t ui32_y_high;
-	uint32_t ui32_y_low;
-
 	// first 8 bits are the only ones that count for the LCD driver
-	ui32_x_high = i16_x >> 8;
-	ui32_x_low = i16_x;
-	ui32_y_high = i16_y >> 8;
-	ui32_y_low = i16_y;
+	uint32_t ui32_x_high = i16_x >> 8;
+	uint32_t ui32_x_low = i16_x;
+	uint32_t ui32_y_high = i16_y >> 8;
+	uint32_t ui32_y_low = i16_y;
 
 	/**************************************************/
 	// Set XY
 	//
-	lcd_write_command(0x2a); // write data to BUS
-	lcd_write_data_8bits(ui32_x_high);   // write data to BUS
+	lcd_write_command(0x2a); // write coladdr
+	lcd_write_data_8bits(ui32_x_high);   // write data to BUS - start addr
 	lcd_write_data_8bits(ui32_x_low);   // write data to BUS
-	lcd_write_data_8bits(ui32_x_high);   // write data to BUS
+	lcd_write_data_8bits(ui32_x_high);   // write data to BUS - end addr
 	lcd_write_data_8bits(ui32_x_low);   // write data to BUS
 
-	lcd_write_command(0x2b); // write data to BUS
+	lcd_write_command(0x2b); // write pageaddr
 	lcd_write_data_8bits(ui32_y_high);   // write data to BUS
 	lcd_write_data_8bits(ui32_y_low);   // write data to BUS
 	lcd_write_data_8bits(ui32_y_high);   // write data to BUS
@@ -297,14 +329,18 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color) {
 	//
 	lcd_write_data_8bits(ui32_color);
 
-	// NOP
-	lcd_write_command(0); // write data to BUS
+#if 0
+	// I @geeksville think this is required and it cost cycles
 
 	// NOP
 	lcd_write_command(0); // write data to BUS
 
 	// NOP
 	lcd_write_command(0); // write data to BUS
+
+	// NOP
+	lcd_write_command(0); // write data to BUS
+#endif
 }
 
 UG_RESULT HW_FillFrame(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
@@ -400,13 +436,19 @@ UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
 	return UG_RESULT_FAIL;
 }
 
-void lcd_write_cycle() {
-	// pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
-	GPIOC->BRR = LCD_WRITE__PIN;
-	for(volatile int numnops = 0; numnops < 30; numnops++)
+// pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
+void wait_pulse() {
+	// WOW @r0mko says his screen needs this delay to be 80 which is really slow.  Hopefully we only have to
+	// be this slow on a particular chip vendor
+	for(volatile int numnops = 0; numnops < 3; numnops++)
 		__asm volatile(
 				"nop\n\t"
 		);
+}
+
+void lcd_write_cycle() {
+	GPIOC->BRR = LCD_WRITE__PIN;
+	wait_pulse();
 	GPIOC->BSRR = LCD_WRITE__PIN;
 
 	// FIXME, total write cycle min time is 100ns, we are probably fine, but nothing is currently guaranteeing it
@@ -416,8 +458,16 @@ void lcd_write_cycle() {
  * For timing information see 13.2.2 in the datasheet
  */
 void lcd_write_command(uint16_t ui32_command) {
+#if 0
+	// We briefly deassert chip select to ensure that each new command is considered totally atomic - i.e.
+	// if we wedge the display controller it will keep talking to us
+	LCD_CHIP_SELECT__PORT->BSRR = LCD_CHIP_SELECT__PIN; // let chip select go high
+	wait_pulse();
+	LCD_CHIP_SELECT__PORT->BRR = LCD_CHIP_SELECT__PIN; // reassert chip select
+#endif
+
 	// command
-	GPIOC->BRR = LCD_COMMAND_DATA__PIN;
+	LCD_COMMAND_DATA__PORT->BRR = LCD_COMMAND_DATA__PIN;
 
 	// write data to BUS
 	LCD_BUS__PORT->ODR = ui32_command;
@@ -441,11 +491,6 @@ void lcd_write_data_8bits(uint16_t ui32_data) {
 
 void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
 	// FIXME - doesn't yet worK!
-
-	GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
-	delay_ms(2);
-	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
-	delay_ms(2);
 
 	lcd_write_command(command);
 
@@ -472,11 +517,6 @@ void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
 	// Make data pins outputs again
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-	GPIO_SetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
-	delay_ms(2);
-	GPIO_ResetBits(LCD_CHIP_SELECT__PORT, LCD_CHIP_SELECT__PIN);
-	delay_ms(2);
 }
 
 void lcd_set_xy(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2,

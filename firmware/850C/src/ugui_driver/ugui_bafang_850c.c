@@ -272,7 +272,6 @@ void bafang_500C_lcd_init() {
 	UG_DriverRegister(DRIVER_FILL_FRAME, (void*) HW_FillFrame);
 	UG_DriverRegister(DRIVER_DRAW_LINE, (void*) HW_DrawLine);
 	UG_DriverRegister(DRIVER_FILL_AREA, (void*) HW_FillArea);
-//  UG_DriverRegister(DRIVER_DRAW_IMAGE, (void*)HW_DrawImage);
 }
 
 void lcd_window_set(unsigned int s_x, unsigned int e_x, unsigned int s_y,
@@ -331,7 +330,7 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color) {
 	lcd_write_data_8bits(ui32_color);
 
 #if 0
-	// I @geeksville think this is required and it cost cycles
+	// I @geeksville don't think this is required and it cost cycles
 
 	// NOP
 	lcd_write_command(0); // write data to BUS
@@ -422,20 +421,7 @@ UG_RESULT HW_DrawLine(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c) {
 	return UG_RESULT_FAIL;
 }
 
-UG_RESULT HW_DrawImage(UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2,
-		uint8_t *image, uint16_t pSize) {
-//
-//    if((x1 < 0) ||(x1 >= DISPLAY_WIDTH) || (y1 < 0) || (y1 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
-//    if((x2 < 0) ||(x2 >= DISPLAY_WIDTH) || (y2 < 0) || (y2 >= DISPLAY_HEIGHT)) return UG_RESULT_FAIL;
-//
-//    Display_WindowSet(x1,x2,y1,y2);
-//
-//    Display_WriteCommand(0x2c);
-//    Display_WriteMultiData(image, pSize*3);
-//
-	// kevinh this routine is not yet implemented?
-	return UG_RESULT_FAIL;
-}
+
 
 // pulse low WR pin tPWLW min time 30ns (shortest possible CPU cycle on our CPU is 9ns)
 void wait_pulse() {
@@ -520,17 +506,4 @@ void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
-void lcd_set_xy(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2,
-		uint16_t ui16_y2) {
-	lcd_write_command(0x2a); // set col addr
-	lcd_write_data_8bits(ui16_x1 >> 8);
-	lcd_write_data_8bits(ui16_x1);
-	lcd_write_data_8bits(ui16_x2 >> 8);
-	lcd_write_data_8bits(ui16_x2);
-	lcd_write_command(0x2b); // set page addr
-	lcd_write_data_8bits(ui16_y1 >> 8);
-	lcd_write_data_8bits(ui16_y1);
-	lcd_write_data_8bits(ui16_y2 >> 8);
-	lcd_write_data_8bits(ui16_y2);
-	lcd_write_command(0x2c); // write_memory_start
-}
+

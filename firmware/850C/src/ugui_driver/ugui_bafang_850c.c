@@ -254,7 +254,8 @@ void bafang_500C_lcd_init() {
 	delay_ms(25);
 	// End of ILI9481 display configuration
 
-	// lcd_read_data_16bits(0xbf, lcd_devcode, 6);
+	lcd_read_data_16bits(0xbf, lcd_devcode, 6);
+	// @geeksville board reads back as 0x2, 0x4, 0x94, 0x81, 0xff - a legit ili9481
 
 	// Note: if we have some devices still not working, we might need to add a READ command to 0xbf (8.2.39) to read
 	// the chip id of the failing units - this would allow us to see the vendor code of whoever made the display and

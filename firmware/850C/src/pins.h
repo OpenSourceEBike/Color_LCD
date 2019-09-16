@@ -18,7 +18,7 @@
 #define LCD_BACKLIGHT__PIN                          GPIO_Pin_7
 
 #define LCD_RESET__PORT                             GPIOC
-#define LCD_RESET__PIN                              GPIO_Pin_7
+#define LCD_RESET__PIN                              GPIO_Pin_6
 
 #define LCD_COMMAND_DATA__PORT                      GPIOC
 #define LCD_COMMAND_DATA__PIN                       GPIO_Pin_3
@@ -30,7 +30,7 @@
 #define LCD_WRITE__PIN                              GPIO_Pin_5
 
 #define LCD_READ__PORT                              GPIOC
-#define LCD_READ__PIN                               GPIO_Pin_6
+#define LCD_READ__PIN                               GPIO_Pin_7
 
 #define LCD_BUS__PORT                               GPIOB
 

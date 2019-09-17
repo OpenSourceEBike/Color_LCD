@@ -30,6 +30,7 @@
 #include "configscreen.h"
 
 void SetSysClockTo128Mhz(void);
+void adc_init();
 
 int main(void)
 {
@@ -45,6 +46,7 @@ int main(void)
 #endif
 
   pins_init();
+  adc_init();
   system_power(1);
   systick_init();
   usart1_init();

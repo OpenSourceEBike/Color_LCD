@@ -11,7 +11,7 @@
 #include "buttons.h"
 #include "state.h"
 
-#define TIME_1 2000
+#define TIME_1 1000 // changed to 1 sec because 2 secs seems too long to me and a user asked for it also
 #define TIME_2 200
 #define TIME_3 300
 #define TIME_4 1000

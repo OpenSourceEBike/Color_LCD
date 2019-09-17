@@ -895,7 +895,7 @@ static bool renderEditable(FieldLayout *layout) {
 			}
 		}
 
-		putAligned(layout, layout->unit_align_x, align_y, x, y, font, valuestr);
+		putAligned(layout, layout->align_x, align_y, x, y, font, valuestr);
 
 		// Blinking underline cursor when editing, just below value and drawing to the right edge of the box
 		if (isActive) {

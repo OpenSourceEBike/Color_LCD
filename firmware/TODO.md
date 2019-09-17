@@ -9,7 +9,6 @@ We define beta releases as: Feature complete, only fixing bugs from that point u
 Note: there will probably be a few alpha releases based on user bug reports and the following work items.  Once this list is complete we
 will declare beta.
 
-* make the 850C display local ADC report voltage, so bootscreen/sim-motor can check it (and warn user/enter sim mode).
 * fix eclipse formatting of arrays - currently if we click format it makes our constant arrays (like the FieldLayout screens) look like crap
 * fix string widths for SW102 long strings
 * clean up the SW102 info screen, possibly by splitting into two screens and using the new user field customization feature
@@ -165,6 +164,7 @@ the GUI thread.  Use two buffers + a ptr.
 * still need to change eeprom.c (change most of 850C version to be a HAL similar to eeprom-hw.c)
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
+* make the 850C display local ADC report voltage, so bootscreen/sim-motor can check it (and warn user/enter sim mode).
 
 # Misc notes from kevin not yet formatted
 

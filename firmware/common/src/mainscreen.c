@@ -46,9 +46,9 @@ Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
 Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
 #ifdef SW102
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #else
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1, .hide_fraction = true);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1, .hide_fraction = true);
 #endif
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
 Field maxPowerField = FIELD_READONLY_UINT("motor power", &l3_vars.ui16_battery_power_filtered, "W");
@@ -85,10 +85,13 @@ Field *customizables[] = {
 		NULL
 };
 
+
+// Note: field_selectors[0] is used on the 850C for the graphs selector
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[1], customizables);
 Field custom2 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[2], customizables);
 Field custom3 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[3], customizables);
 Field custom4 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[4], customizables);
+
 
 Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
 Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");

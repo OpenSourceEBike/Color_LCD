@@ -1002,18 +1002,24 @@ static int graphX, // upper left of graph
 		graphYmax, // y loc of max value
 		graphLabelY; // y loc of the label for field name
 
-// Draw our axis lines and min/max numbers
-static void graphClearAndLabelAxis(Field *field) {
+// Clear our box completely if needed
+static void graphClear(Field *field) {
 	UG_SetForecolor(GRAPH_COLOR_ACCENT);
 	UG_SetBackcolor(GRAPH_COLOR_BACKGROUND);
 
-	// Only need to draw labels and axis if dirty
-	Field *source = field->graph.source;
 	if (field->dirty) {
 		// clear all
 		UG_FillFrame(graphX, graphY, graphX + graphWidth - 1,
 				graphY + graphHeight - 1, GRAPH_COLOR_BACKGROUND);
+	}
+}
 
+// Draw our axis lines and min/max numbers
+static void graphLabelAxis(Field *field) {
+
+	// Only need to draw labels and axis if dirty
+	Field *source = field->graph.source;
+	if (field->dirty) {
 		UG_SetForecolor(LABEL_COLOR);
 		putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT,
 				source->editable.label);
@@ -1125,6 +1131,13 @@ static bool renderGraph(FieldLayout *layout) {
 
 	Field *field = getField(layout);
 
+	bool isCustomizing = curCustomizingField
+			&& curCustomizingField == parentCustomizable;
+	bool needBlink = blinkChanged && isCustomizing;
+
+	if(needBlink)
+		field->dirty = true; // Force a complete redraw if blink changed
+
 	// If we are not dirty and we don't need an update, just return
 	if (!needUpdate && !field->dirty)
 		return false;
@@ -1132,7 +1145,7 @@ static bool renderGraph(FieldLayout *layout) {
 	if (!field->graph.cache) {
 		GraphCache *cache = field->graph.cache = &caches[0];
 
-		// Init cache to empty
+		// Reinit cache to empty
 		cache->max_val = INT32_MIN;
 		cache->min_val = INT32_MAX;
 		cache->start_valid = 0;
@@ -1164,7 +1177,12 @@ static bool renderGraph(FieldLayout *layout) {
 	if (graphXmin + GRAPH_MAX_POINTS < graphXmax)
 		graphXmax = graphXmin + GRAPH_MAX_POINTS;
 
-	graphClearAndLabelAxis(field);
+	graphClear(field);
+
+	if(needBlink && !blinkOn)
+		return true; // If we are supposed to be blinking return before we actually draw the graph contents
+
+	graphLabelAxis(field);
 	graphDrawPoints(field);
 
 	return true;
@@ -1377,9 +1395,16 @@ static void changeCurrentCustomizableField() {
 	Field *s = curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
 
-	uint8_t i = *s->customizable.selector + 1;
 
-	if (!s->customizable.choices[i]) // we fell off the end, loop around
+	uint8_t i = *s->customizable.selector ;
+
+	Field *oldSelected = s->customizable.choices[i];
+
+	// If we are leaving a graph, discard that graphs cache (so it will start fresh next time)
+	if(oldSelected->variant == FieldGraph)
+		oldSelected->graph.cache = NULL;
+
+	if (!s->customizable.choices[++i]) // we fell off the end, loop around
 		i = 0;
 
 	*s->customizable.selector = i;
@@ -1391,7 +1416,7 @@ static bool onPressCustomizing(buttons_events_t events) {
 
 	// If we aren't already editing anything, start now (note: we will only be called if some active editable
 	// hasn't already handled this button
-	if (!curCustomizingField && (events & SCREENCLICK_START_EDIT)) {
+	if (!curCustomizingField && (events & SCREENCLICK_START_CUSTOMIZING)) {
 		selectNextCustomizableField();
 		return true;
 	}
@@ -1412,7 +1437,9 @@ static bool onPressCustomizing(buttons_events_t events) {
 	}
 
 // click power button to exit out of menus
-	if (events & SCREENCLICK_STOP_EDIT) {
+	if (events & SCREENCLICK_STOP_CUSTOMIZING) {
+		curCustomizingField->dirty = true; // force a redraw (to remove any turds)
+
 		curCustomizingField = NULL;
 		return true;
 	}

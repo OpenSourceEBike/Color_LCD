@@ -42,6 +42,8 @@ Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -
 Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0], &batteryVoltageGraph, &humanPowerGraph, &speedGraph,
 		&motorTempGraph, &pwmDutyGraph, &motorErpsGraph, &motorFOCGraph, &cadenceGraph);
 
+
+
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen
 	editable_label_font = &SMALL_TEXT_FONT;
@@ -220,7 +222,7 @@ Screen mainScreen = {
       .x = 0, .y = 322,
       .width = XbyEighths(8),
       .height = 136,
-      .field = &batteryVoltageGraph,
+      .field = &graphs,
     },
     STATUS_BAR,
     {

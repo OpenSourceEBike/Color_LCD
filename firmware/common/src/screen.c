@@ -39,7 +39,7 @@ extern UG_GUI gui;
 static bool forceScrollableRelayout;
 
 // If the user is editing an editable, this will be it
-static Field *curActiveEditable = NULL;
+static Field *curActiveEditable = NULL, *curCustomizingField = NULL;
 
 #define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
 
@@ -56,6 +56,13 @@ static bool blinkChanged;
 static bool blinkOn;
 
 static uint32_t screenUpdateCounter;
+
+/**
+ * Used to map from FieldVariant enums to rendering functions
+ */
+
+static Screen *curScreen;
+static bool screenDirty;
 
 #ifdef SW102
 #define HEADING_FONT FONT_5X12
@@ -230,6 +237,9 @@ const Coord screenWidth = SCREEN_WIDTH, screenHeight = SCREEN_HEIGHT; // FIXME, 
 static bool oldForceLabels;
 static bool forceLabels;
 
+// If our currently rendered field is nested beneath a customizable, it is good to track the parent field
+Field *parentCustomizable;
+
 /// If we are redirecting to another field, we return the final field
 static Field* getField(const FieldLayout *layout) {
 	Field *field = layout->field;
@@ -240,8 +250,10 @@ static Field* getField(const FieldLayout *layout) {
 				field && field->customizable.selector
 						&& field->customizable.choices);
 
+		parentCustomizable = field;
 		field = field->customizable.choices[*field->customizable.selector];
-	}
+	} else
+		parentCustomizable = NULL;
 
 	return field;
 }
@@ -789,6 +801,8 @@ static bool renderEditable(FieldLayout *layout) {
 	Field *field = getField(layout);
 	UG_S16 width = layout->width;
 	bool isActive = curActiveEditable == field; // are we being edited right now?
+	bool isCustomizing = curCustomizingField
+			&& curCustomizingField == parentCustomizable;
 	bool dirty = field->dirty;
 	bool showLabel = layout->label_align_x != AlignHidden;
 	bool showLabelAtTop = layout->label_align_y == AlignTop;
@@ -830,7 +844,9 @@ static bool renderEditable(FieldLayout *layout) {
 	bool valueChanged = num != layout->old_editable;
 	char valuestr[MAX_FIELD_LEN];
 
-	bool needBlink = blinkChanged && (isActive || field->is_selected);
+	// Do we need to handle a blink transition right now?
+	bool needBlink = blinkChanged
+			&& (isActive || field->is_selected || isCustomizing);
 
 	// If the value numerically changed, see if it also changed as a string (much more expensive)
 	bool showValue = !forceLabels && (valueChanged || dirty || needBlink); // default to not drawing the value
@@ -852,10 +868,39 @@ static bool renderEditable(FieldLayout *layout) {
 		return false; // We didn't actually change so don't try to draw anything
 
 	// fill our entire box with blankspace (if we must)
-	bool blankAll = EDITABLE_BLANKALL || forceLabelsChanged || dirty;
+	bool blankAll = EDITABLE_BLANKALL || forceLabelsChanged || dirty
+			|| (isCustomizing && needBlink);
 	if (blankAll)
 		UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
 				layout->y + height - 1, back);
+
+	UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
+	UG_SetForecolor(fore);
+
+	// If the user is trying to customize a field, we blink the field contents.
+	// If this field is already showing a label it looks better to blink by alternating the field contents with blackspace
+	// If this field is not showing a label we need to instead alternate field name with blackspace
+	// by forcing showOnlyLabel
+	bool showOnlyLabel = forceLabels; // the common case, just cares about our global
+
+	if (isCustomizing && needBlink) {
+		if (!showLabel)  // the label is hidden for this field, so we alternate between the label name and blackspace
+			showOnlyLabel = true;
+
+		if (!blinkOn)
+			return true; // Just show black background this time
+	}
+
+	// Show the label in the middle of the box (and nothing else)
+	// We show this if the user has pressed the key to see all of the field names (useful on tiny screen devices)
+	// or the user is currently customizing a field - in which case we blink alternating the field name and the contents
+	if (showOnlyLabel) {
+		putStringCentered(layout->x,
+				layout->y + (height - editable_label_font->char_height) / 2,
+				width, editable_label_font, field->editable.label);
+
+		return true;
+	}
 
 	// Show the label (if showing the conventional way - i.e. small and off to the top left.
 	if (showLabel) {
@@ -871,12 +916,6 @@ static bool renderEditable(FieldLayout *layout) {
 
 	UG_SetBackcolor(blankAll ? C_TRANSPARENT : C_BLACK); // we just cleared the background ourself, from now on allow fonts to overlap
 	UG_SetForecolor(fore);
-
-	// Show the label in the middle of the box
-	if (forceLabels)
-		putStringCentered(layout->x,
-				layout->y + (height - editable_label_font->char_height) / 2,
-				width, editable_label_font, field->editable.label);
 
 	// draw editable value
 	if (showValue) {
@@ -906,8 +945,7 @@ static bool renderEditable(FieldLayout *layout) {
 	}
 
 	// Put units in bottom right (unless we are showing the label)
-	bool showUnits = field->editable.typ == EditUInt && !showLabel
-			&& !forceLabels;
+	bool showUnits = field->editable.typ == EditUInt && !showLabel;
 	if (showUnits) {
 		const char *units = getUnits(field);
 		int ulen = strlen(units);
@@ -1144,6 +1182,10 @@ static bool renderEnd(FieldLayout *layout) {
 	return true;
 }
 
+static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr,
+		renderFill, renderMesh, renderScrollable, renderEditable, renderCustom,
+		renderGraph, renderCustomizable, renderEnd };
+
 // If we are showing a scrollable redraw it
 static void forceScrollableRender() {
 	Field *active = getActiveScrollable();
@@ -1292,14 +1334,91 @@ static bool onPressScrollable(buttons_events_t events) {
 }
 
 /**
- * Used to map from FieldVariant enums to rendering functions
+ * For the current screen.  Select the next customizable field on the screen (or nothing if there are not suitable
+ * fields).  If there isn't a current customizable field, select the first candidate.
  */
-static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr,
-		renderFill, renderMesh, renderScrollable, renderEditable, renderCustom,
-		renderGraph, renderCustomizable, renderEnd };
+static void selectNextCustomizableField() {
+	FieldLayout *layout = curScreen->fields;
+	Field *firstCustomizable = NULL; // we haven't found one yet
+	bool wantNext = false;
 
-static Screen *curScreen;
-static bool screenDirty;
+	if(curCustomizingField)
+		curCustomizingField->dirty = true; // Force the field we are leaving to get redrawn (to not leave turds around)
+
+	while (layout->field) {
+		Field *field = layout->field;
+
+		if (field->variant == FieldCustomizable) { // We ignore all other fields
+			if (!firstCustomizable)
+				firstCustomizable = field;
+
+			if (wantNext) {
+				// We found the field after our current field, use it.
+				curCustomizingField = field;
+				return;
+			}
+
+			if (field == curCustomizingField) // we found our current field, therefore we should pick the next one we see
+				wantNext = true;
+		}
+
+		layout++;
+	}
+
+	// We didn't find any fields after our current customizing field (either because curCustomizing is NULL or was
+	// the last on the page.  - use the first one (if we found one at all)
+	curCustomizingField = firstCustomizable;
+}
+
+/**
+ * For the currently customizing field, advance the target to the next possible choice for the sort of data to show.
+ */
+static void changeCurrentCustomizableField() {
+	Field *s = curCustomizingField;
+	assert(s && s->variant == FieldCustomizable);
+
+	uint8_t i = *s->customizable.selector + 1;
+
+	if (!s->customizable.choices[i]) // we fell off the end, loop around
+		i = 0;
+
+	*s->customizable.selector = i;
+}
+
+// Returns true if we've handled the event (and therefore it should be cleared)
+// if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
+static bool onPressCustomizing(buttons_events_t events) {
+
+	// If we aren't already editing anything, start now (note: we will only be called if some active editable
+	// hasn't already handled this button
+	if (!curCustomizingField && (events & SCREENCLICK_START_EDIT)) {
+		selectNextCustomizableField();
+		return true;
+	}
+
+	if (!curCustomizingField) // If we don't now have a customizing field, don't consider any other buttons
+		return false;
+
+	// Change the current customizable field to show the next possible value
+	if (events & UP_CLICK) {
+		changeCurrentCustomizableField();
+		return true;
+	}
+
+	// Go to next customizable field
+	if (events & DOWN_CLICK) {
+		selectNextCustomizableField();
+		return true;
+	}
+
+// click power button to exit out of menus
+	if (events & SCREENCLICK_STOP_EDIT) {
+		curCustomizingField = NULL;
+		return true;
+	}
+
+	return false;
+}
 
 bool screenOnPress(buttons_events_t events) {
 	bool handled = false;
@@ -1310,6 +1429,9 @@ bool screenOnPress(buttons_events_t events) {
 	if (!handled)
 		handled |= onPressScrollable(events);
 
+	if (!handled)
+		handled |= onPressCustomizing(events);
+
 	if (!handled && curScreen && curScreen->onPress)
 		handled |= curScreen->onPress(events);
 
@@ -1319,6 +1441,7 @@ bool screenOnPress(buttons_events_t events) {
 // A low level screen render that doesn't use soft device or call exit handlers (useful for the critical fault handler ONLY)
 void panicScreenShow(Screen *screen) {
 	setActiveEditable(NULL);
+	curCustomizingField = NULL;
 	scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
 	curScreen = screen;
 	screenDirty = true;

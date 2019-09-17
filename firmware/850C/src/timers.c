@@ -44,6 +44,7 @@ volatile uint32_t get_time_base_counter_1ms (void)
   return time_base_counter_1ms;
 }
 
+// used for LCD backlight
 void timer3_init(void)
 {
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);

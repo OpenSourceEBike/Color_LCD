@@ -223,7 +223,7 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity)
   }
 
   TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-  TIM_CtrlPWMOutputs(TIM3, ENABLE);
+  // TIM_CtrlPWMOutputs(TIM3, ENABLE); // FIXME, this function is not allowed for TIM3, apparently this PWM output is always on
 }
 
 

@@ -139,3 +139,12 @@ void __attribute__((noreturn)) __assert_func(const char *file, int line,
 	abort();
 }
 
+#ifndef SW102
+// For the STM32 library on the 850C
+void assert_failed(uint8_t* file, uint32_t line) {
+	error_info_t errinfo = { .line_num = (uint16_t) line, .p_file_name =
+			(uint8_t const*) file, .err_code = FAULT_GCC_ASSERT };
+
+	app_error_fault_handler(FAULT_GCC_ASSERT, 0, (uint32_t) &errinfo);
+}
+#endif

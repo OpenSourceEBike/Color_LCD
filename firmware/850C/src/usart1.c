@@ -74,7 +74,7 @@ void usart1_init(void)
   NVIC_Init(&NVIC_InitStructure);
 
   USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-  USART_ClearITPendingBit(USART1, USART_IT_TXE);
+  USART_ClearITPendingBit(USART1, USART_IT_TC);
 
   // enable the USART
   USART_Cmd(USART1, ENABLE);

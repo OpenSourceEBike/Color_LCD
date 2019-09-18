@@ -20,6 +20,7 @@
 #include "buttons.h"
 // #include "adc.h"
 #include "fault.h"
+#include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
@@ -63,6 +64,19 @@ static uint16_t fakeWave(uint32_t *storage, uint16_t minv, uint16_t maxv) {
 	return (*storage % numval) + minv;
 }
 
+/// Generate a fake value that randomly oscillates between min and max and then back to min.  You must provide static storage for this routine to use
+static uint16_t fakeRandom(uint32_t *storage, uint16_t minv, uint16_t maxv) {
+    int32_t rnd = (rand() - RAND_MAX / 2) % ((maxv - minv) / 20);
+    (*storage) += rnd;
+    if (*storage > maxv) {
+        *storage = (uint32_t)maxv;
+    }
+    if (*storage < minv) {
+        *storage = (uint32_t)minv;
+    }
+    return *storage;
+}
+
 /**
  * Pretend we just received a randomized motor packet
  */
@@ -71,7 +85,7 @@ void parse_simmotor() {
 	const uint32_t min_bat10x = 400;
 	const uint32_t max_bat10x = 546;
 	const uint32_t max_cur10x = 140;
-	static uint32_t voltstore, curstore, speedstore, cadencestore, tempstore;
+    static uint32_t voltstore, curstore, speedstore, cadencestore, tempstore, diststore;
 
 	// per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
 	// l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
@@ -80,10 +94,11 @@ void parse_simmotor() {
 	// l2_vars.ui16_adc_battery_voltage = max_bat10x * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
 
 	// battery current drain x5
-	l2_vars.ui8_battery_current_x5 = fakeWave(&curstore, 0, max_cur10x) / 2;
+	l2_vars.ui8_battery_current_x5 = fakeRandom(&curstore, 0, max_cur10x) / 2;
 
-	l2_vars.ui16_wheel_speed_x10 = fakeWave(&speedstore, 0, 300);
-	l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
+	l2_vars.ui16_wheel_speed_x10 = fakeRandom(&speedstore, 80, 300);
+    diststore += l2_vars.ui16_wheel_speed_x10 * 2.6; // speed x 10 to millimeters per 100 ms
+//	l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
 
 	l2_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -99,7 +114,7 @@ void parse_simmotor() {
 
 	l2_vars.ui8_pedal_torque_sensor = fake(0, 100);
 
-	l2_vars.ui8_pedal_cadence = fakeWave(&cadencestore, 0, 100);
+	l2_vars.ui8_pedal_cadence = fakeRandom(&cadencestore, 0, 120);
 	l2_vars.ui8_pedal_human_power = fake(0, 100);
 	l2_vars.ui8_duty_cycle = fake(0, 100);
 	l2_vars.ui16_motor_speed_erps = fake(0, 4000);
@@ -113,7 +128,10 @@ void parse_simmotor() {
 
 	// wheel_speed_sensor_tick_counter
 
-	l2_vars.ui32_wheel_speed_sensor_tick_counter = fake(0, 4000);
+    if (diststore > l2_vars.ui16_wheel_perimeter) {
+        l2_vars.ui32_wheel_speed_sensor_tick_counter += 1;
+        diststore -= l2_vars.ui16_wheel_perimeter;
+    }
 
 	// ui16_pedal_torque_x10
 	l2_vars.ui16_pedal_torque_x10 = fake(10, 1000);

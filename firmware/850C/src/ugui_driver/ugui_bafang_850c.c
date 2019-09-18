@@ -36,6 +36,8 @@
 #define VDP (DISPLAY_HEIGHT - 1)
 
 UG_GUI gui;
+uint8_t write_pulse_duration = 75;
+uint16_t lcd_devcode[6]; // per 8.2.39 of datasheet, six words, first will be filled with garbage
 
 void lcd_set_xy(uint16_t ui16_x1, uint16_t ui16_y1, uint16_t ui16_x2,
 		uint16_t ui16_y2);
@@ -46,7 +48,6 @@ inline void Display_Reset() {
 
 }
 
-uint16_t lcd_devcode[6]; // per 8.2.39 of datasheet, six words, first will be filled with garbage
 
 typedef void (*PushPixelFn)(UG_COLOR);
 
@@ -216,34 +217,50 @@ void bafang_500C_lcd_init() {
 	lcd_write_data_8bits(0x00);
 	lcd_write_data_8bits(0x02);
 	lcd_write_data_8bits(0x11);
+    
+    lcd_write_command(0xC5); // Frame rate and Inversion Control
+    lcd_write_data_8bits(0x05);
 
-	lcd_write_command(0xC5); // frame rate and inversion
-	lcd_write_data_8bits(0x03); // 72Hz frame rate (default value) - was previously using 0, which is 125Hz.  I think this might explain the whitescreen problem
+    lcd_write_command(0xE4); // ?? Some mystery needed to fix the whitescreen issue
+    lcd_write_data_8bits(0xA0);
 
-	// cmd 0xe4, f0, f3 missing (all threee undocumented in datasheet)
+    lcd_write_command(0xF0); // ??
+    lcd_write_data_8bits(0x01);
 
-	lcd_write_command(0xC8); // gamma setting - was quite different, but for now using the more recent Adafruit/Linux kernel values
-	lcd_write_data_8bits(0x00);
-	lcd_write_data_8bits(0x32);
-	lcd_write_data_8bits(0x36);
-	lcd_write_data_8bits(0x45);
-	lcd_write_data_8bits(0x06);
-	lcd_write_data_8bits(0x16);
-	lcd_write_data_8bits(0x37);
-	lcd_write_data_8bits(0x75);
-	lcd_write_data_8bits(0x77);
-	lcd_write_data_8bits(0x54);
-	lcd_write_data_8bits(0x0C);
-	lcd_write_data_8bits(0x00);
+    lcd_write_command(0xF3); // ??
+    lcd_write_data_8bits(0x40);
+    lcd_write_data_8bits(0x1A);
 
-	// FIXME - check this, I bet this explains the flipping problem - see 8.2.25 in datasheet
-	lcd_write_command(0x36); // set address mode
-	// bit 0: Vertical Flip: Normal display
-	// bit 1: Horizontal Flip: Flipped display
-	// bit 3: RGB/BGR Order: Pixels sent in BGR order
-	// bit 6: Column Address Order: Right to Left
-	// bit 7: Page Address Order: Top to Bottom
-	lcd_write_data_8bits(0x0A);
+    lcd_write_command(0xC8); // Gamma Setting
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x14);
+    lcd_write_data_8bits(0x33);
+    lcd_write_data_8bits(0x10);
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x16);
+    lcd_write_data_8bits(0x44);
+    lcd_write_data_8bits(0x36);
+    lcd_write_data_8bits(0x77);
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x0F);
+    lcd_write_data_8bits(0x00);
+
+    lcd_write_command(0x3A); // set_pixel_format
+    lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+
+    lcd_write_command(0x11); // exit_sleep_mode
+
+    delay_ms(120); // 120ms delay after leaving sleep
+
+    lcd_write_command(0x29); // set_display_on
+
+    lcd_write_command(0x36); // set_address_mode
+    // Vertical Flip: Normal display
+    // Horizontal Flip: Flipped display
+    // RGB/BGR Order: Pixels sent in BGR order
+    // Column Address Order: Right to Left
+    // Page Address Order: Top to Bottom
+    lcd_write_data_8bits(0x4A);
 
 	lcd_write_command(0x3A); // set pixel format
 	lcd_write_data_8bits(0x55); // 16bpp
@@ -255,7 +272,9 @@ void bafang_500C_lcd_init() {
 	// End of ILI9481 display configuration
 
 	lcd_read_data_16bits(0xbf, lcd_devcode, 6);
+
 	// @geeksville board reads back as 0x2, 0x4, 0x94, 0x81, 0xff - a legit ili9481
+    write_pulse_duration = 0; // enable fast writes
 
 	// Note: if we have some devices still not working, we might need to add a READ command to 0xbf (8.2.39) to read
 	// the chip id of the failing units - this would allow us to see the vendor code of whoever made the display and
@@ -267,11 +286,10 @@ void bafang_500C_lcd_init() {
 
 	// Initialize global structure and set PSET to this.PSET.
 	UG_Init(&gui, lcd_pixel_set, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-
 	// Register acceleratos.
 	UG_DriverRegister(DRIVER_FILL_FRAME, (void*) HW_FillFrame);
 	UG_DriverRegister(DRIVER_DRAW_LINE, (void*) HW_DrawLine);
-	UG_DriverRegister(DRIVER_FILL_AREA, (void*) HW_FillArea);
+	UG_DriverRegister(DRIVER_FILL_AREA, (void*) HW_FillArea);   
 }
 
 void lcd_window_set(unsigned int s_x, unsigned int e_x, unsigned int s_y,
@@ -348,7 +366,7 @@ void lcd_pixel_set(UG_S16 i16_x, UG_S16 i16_y, UG_COLOR ui32_color) {
 void wait_pulse() {
 	// WOW @r0mko says his screen needs this delay to be 80 which is really slow.  Hopefully we only have to
 	// be this slow on a particular chip vendor
-	for(volatile int numnops = 0; numnops < 3; numnops++)
+	for(volatile int numnops = 0; numnops < write_pulse_duration; numnops++)
 		__asm volatile(
 				"nop\n\t"
 		);
@@ -493,14 +511,14 @@ void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
 	while (numtoread--) {
 		LCD_READ__PORT->BRR = LCD_READ__PIN; // drive from high to low (as an open drain output)
 
-		delay_ms(2); // min 340ns delay needed before reading
+		delay_ms(1); // min 340ns delay needed before reading
 
 		// Now the data should be valid for reading
 		*out++ = (uint16_t) LCD_BUS__PORT->IDR;
 
 		LCD_READ__PORT->BSRR = LCD_READ__PIN; // raise read high (LCD will stop driving data lines)
 
-		delay_ms(2); // min 250ns of read high needed per datasheet
+		delay_ms(1); // min 250ns of read high needed per datasheet
 	}
 
 	// Make data pins outputs again
@@ -509,3 +527,8 @@ void lcd_read_data_16bits(uint16_t command, uint16_t *out, int numtoread) {
 }
 
 
+
+uint16_t *getLcdDevcode()
+{
+    return lcd_devcode;
+}

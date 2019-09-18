@@ -23,8 +23,6 @@
 #include "rtc.h"
 #include "fonts.h"
 #include "state.h"
-#include "screen.h"
-#include "timers.h"
 
 // Battery SOC symbol:
 // 10 bars, each bar: with = 7, height = 24
@@ -34,20 +32,6 @@
 #define BATTERY_SOC_BAR_WITH 7
 #define BATTERY_SOC_BAR_HEIGHT 24
 #define BATTERY_SOC_CONTOUR 1
-
-void wordsToHexString(uint16_t* input, char* output, int len)
-{
-    int loop = 0;
-    int i = 0; 
-    while(len--)
-    {
-        sprintf((char*)(output+i),"%04X ", input[loop]);
-        loop+=1;
-        i+=5;
-    }
-    output[i++] = '\0';
-}
-
 
 volatile lcd_vars_t m_lcd_vars =
 {
@@ -70,13 +54,6 @@ void lcd_init(void)
   UG_FillScreen(C_BLACK);
 
   set_lcd_backlight(); // default to at least some backlight
-  
-  char display_ver[43];
-  wordsToHexString(getLcdDevcode(), display_ver, 6);
-  UG_SetForecolor(C_WHEAT);
-  UG_FontSelect(&FONT_10X16);
-  UG_PutString(0, 0, display_ver);
-  delay_ms(3000);
 }
 
 #if 0

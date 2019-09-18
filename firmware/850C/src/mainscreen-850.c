@@ -25,7 +25,6 @@
 #include "battery_gui.h"
 #include "state.h"
 
-
 Field batteryField = FIELD_CUSTOM(renderBattery);
 
 // We currently don't have any graphs in the SW102, so leave them here until then

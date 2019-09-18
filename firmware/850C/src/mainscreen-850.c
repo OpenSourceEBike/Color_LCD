@@ -132,6 +132,7 @@ Screen mainScreen = {
   .onEnter = mainScreenOnEnter,
   .onDirtyClean = mainScreenOnDirtyClean,
   .onPostUpdate = mainScreenOnPostUpdate,
+  .onCustomized = eeprom_write_variables,
 
   .fields = {
     BATTERY_BAR,

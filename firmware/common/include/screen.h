@@ -348,6 +348,7 @@ typedef struct {
 	void (*onPreUpdate)(); // If !NULL, Called just before each update operation
 	void (*onPostUpdate)(); // If !NULL, Called just after each update operation
 	void (*onDirtyClean)(); // If !NULL, Called after screen is cleared because it is dirty, good to draw any mask
+	void (*onCustomized)(); // If !NULL, called when the user has just customized fields with FieldCustomize (used to save to EEPROM)
 	ButtonEventHandler onPress; // or NULL for no handler
 	FieldLayout fields[];
 } Screen;

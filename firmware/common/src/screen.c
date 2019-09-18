@@ -1396,7 +1396,7 @@ static void changeCurrentCustomizableField() {
 	assert(s && s->variant == FieldCustomizable);
 
 
-	uint8_t i = *s->customizable.selector ;
+	uint8_t i = *s->customizable.selector;
 
 	Field *oldSelected = s->customizable.choices[i];
 
@@ -1438,9 +1438,14 @@ static bool onPressCustomizing(buttons_events_t events) {
 
 // click power button to exit out of menus
 	if (events & SCREENCLICK_STOP_CUSTOMIZING) {
-		curCustomizingField->dirty = true; // force a redraw (to remove any turds)
+		Field *oldSelected = curCustomizingField->customizable.choices[*curCustomizingField->customizable.selector];
+		oldSelected->dirty = true; // force a redraw (to remove any turds)
 
 		curCustomizingField = NULL;
+
+		if(curScreen->onCustomized)
+			(*curScreen->onCustomized)();
+
 		return true;
 	}
 

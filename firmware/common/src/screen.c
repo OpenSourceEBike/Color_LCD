@@ -1325,7 +1325,7 @@ static bool onPressScrollable(buttons_events_t events) {
 
 // If we aren't already editing anything, start now (note: we will only be called if some active editable
 // hasn't already handled this button
-	if (events & SCREENCLICK_START_EDIT) {
+	if (events & SCREENCLICK_START_EDIT && !curActiveEditable) {
 		Field *clicked = &s->scrollable.entries[s->scrollable.selected];
 
 		switch (clicked->variant) {

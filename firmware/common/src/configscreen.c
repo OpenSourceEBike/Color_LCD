@@ -160,6 +160,7 @@ Screen configScreen = {
     .onPreUpdate = configPreUpdate,
 
 .fields = {
-		{ .color = ColorNormal, .field = &configRoot }, { .field = NULL } } };
+		{ .color = ColorNormal, .field = &configRoot },
+		{ .field = NULL } } };
 
 

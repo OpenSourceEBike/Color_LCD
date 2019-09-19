@@ -282,8 +282,8 @@ void bafang_500C_lcd_init() {
     // RGB/BGR Order: Pixels sent in BGR order
     // Column Address Order: Right to Left
     // Page Address Order: Top to Bottom
-    if (type == LCD_ILI9481) {
-        lcd_write_data_8bits(0x0A);
+    if (type != LCD_ST7796) {
+        lcd_write_data_8bits(0x0A); // Unless we know otherwise don't flip the display
     } else {
         lcd_write_data_8bits(0x4A); // X-axis flip for ST7796
     }

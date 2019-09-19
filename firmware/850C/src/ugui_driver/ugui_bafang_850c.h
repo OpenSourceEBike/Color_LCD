@@ -23,6 +23,13 @@
 /* *** Glogal GUI structure for this. *** */
 extern UG_GUI ugui_lcd;
 
+typedef enum
+{
+    LCD_ILI9481 = 0,
+    LCD_ST7796, 
+    LCD_Unknown
+} lcd_IC_t;
+
 /* *** Function prototypes. *** */
 void bafang_500C_lcd_init();
 void lcd_pixel_set(UG_S16 x, UG_S16 y, UG_COLOR c);

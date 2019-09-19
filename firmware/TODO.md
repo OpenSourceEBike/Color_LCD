@@ -1,6 +1,6 @@
 # Near term tasks (someone is already working on these)
 
-* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
+* update sw102 to use customizable fields and do a sw102 release
 * Update wiki instructions on how to develop for 850C/SW102
 * Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
 
@@ -165,6 +165,7 @@ the GUI thread.  Use two buffers + a ptr.
 * show temp warnings on main screen
 * show motor faults promenantly on main screen
 * make the 850C display local ADC report voltage, so bootscreen/sim-motor can check it (and warn user/enter sim mode).
+* let user completely customize which fields show in the various layout positions of the screens.  said differently: make fields fully customizable like the garmin UI or this note from casainho: https://github.com/OpenSource-EBike-firmware/SW102_LCD_Bluetooth/issues/3#issuecomment-518039673
 
 # Misc notes from kevin not yet formatted
 

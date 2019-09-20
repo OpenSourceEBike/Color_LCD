@@ -122,7 +122,7 @@ Screen infoScreen = {
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
-        .field = &motorTempField,
+        .field = &custom1,
         .font = &REGULAR_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom
@@ -130,7 +130,7 @@ Screen infoScreen = {
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
-        .field = &humanPowerField,
+        .field = &custom2,
         .font = &REGULAR_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom
@@ -138,7 +138,7 @@ Screen infoScreen = {
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
-        .field = &tripDistanceField,
+        .field = &custom3,
         .font = &REGULAR_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom
@@ -146,7 +146,7 @@ Screen infoScreen = {
     {
         .x = 0, .y = -1,
         .width = 0, .height = -1,
-        .field = &odoField,
+        .field = &custom4,
         .font = &REGULAR_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom
@@ -165,8 +165,8 @@ void battery_display() {
 }
 
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen, &configScreen,
-		&infoScreen,
+Screen *screens[] = { &mainScreen,
+		&infoScreen, &configScreen,
 		NULL };
 
 

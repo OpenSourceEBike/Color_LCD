@@ -714,13 +714,18 @@ static int renderedStrX, renderedStrY;
 // Center justify a string on a line of specified width
 static void putStringCentered(int x, int y, int width, const UG_FONT *font,
 		const char *str) {
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+  int maxchars = strlen(str);
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars;
+
+	if(strwidth > width) { // if string is too long, trim it to fit (to prevent wrapping to next row)
+	  maxchars = width / (font->char_width + gui.char_h_space);
+	}
 
 	if (strwidth < width)
 		x += (width - strwidth) / 2; // if we have extra space put half of it before the string
 
 	UG_FontSelect(font);
-	UG_PutString(x, y, (char*) str);
+	UG_PutString_with_length(x, y, (char*) str, maxchars);
 	renderedStrX = x;
 	renderedStrY = y;
 }
@@ -844,7 +849,10 @@ static bool renderEditable(FieldLayout *layout) {
 	int32_t num =
 			isActive ?
 					curEditableValueConverted : getEditableNumber(field, true);
-	bool valueChanged = num != layout->old_editable;
+
+	// If we are customizing this value, we don't check for changes of the value because that causes glitches in the display with extra
+	// redraws
+	bool valueChanged = num != layout->old_editable && !isCustomizing;
 	char valuestr[MAX_FIELD_LEN];
 
 	// Do we need to handle a blink transition right now?

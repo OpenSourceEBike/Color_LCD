@@ -1,7 +1,5 @@
 # Near term tasks (someone is already working on these)
 
-* doublecheck that mainscreen on 850c still looks good
-
 * Update wiki instructions on how to develop for 850C/SW102
 * Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
 

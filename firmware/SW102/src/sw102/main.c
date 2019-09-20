@@ -120,8 +120,8 @@ int main(void)
 
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
-  // kevinh FIXME - turn off ble for now because somtimes it calls app_error_fault_handler(1...) from nrf51822_sw102_ble_advdata
-  // ble_init();
+  // kevinh FIXME - turn off ble while debugging
+  ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();

@@ -815,13 +815,14 @@ static bool renderEditable(FieldLayout *layout) {
 	bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
 
 	// a rough approximation of the offset for descenders (i.e. the bottom parts of chars like g and j)
-	int descender_y = (font->char_height / 8);
+	// * now that we have inset_y, remove descender_y - I don't think it is needed anymore rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
+	// int descender_y = (font->char_height / 8);
 
 	if (layout->height == -1) // We should autoset
 		layout->height = (
 				(isTwoRows || showLabelAtTop) ?
 						editable_label_font->char_height : 0)
-				+ font->char_height - descender_y;
+				+ font->char_height;
 
 	UG_S16 height = layout->height;
 

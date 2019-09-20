@@ -427,7 +427,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 				FieldLayout *r = rows + i;
 
 				r->x = layout->x;
-				r->y = layout->y + rowHeight * i;
 				r->width = layout->width;
 				r->border = BorderNone;
 
@@ -445,7 +444,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 				} else {
 					r->y = rows[i - 1].y + rows[i - 1].height;
 					r->height = rowHeight; // all data rows are the same height
-					r->label_align_y = AlignCenter;
+					r->label_align_y = EDITABLE_NUM_ROWS == 1 ? AlignCenter : AlignTop;
 					r->label_align_x = AlignLeft;
 					r->align_x = AlignRight;
 					r->inset_x = FONT_CURSORS.char_width; // move the value all the way to the right (but leave room for the cursor)

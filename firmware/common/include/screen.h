@@ -396,6 +396,15 @@ extern const UG_FONT *editable_units_font;
 #define Xby64(n) ((SCREEN_WIDTH * (n)) / 64)
 #define Yby64(n) ((SCREEN_HEIGHT * (n)) / 64)
 
+// Define _S macro which returns long strings on devices with big screens, or short strings on tiny devices
+// eventually we can replace _S with one of the internationalization libraries, and start generating builds
+// with strings in German, Portuguese etc...
+#ifndef SW102
+#define _S(longstr, shortstr) longstr
+#else
+#define _S(longstr, shortstr) shortstr
+#endif
+
 #ifdef SW102
 #define SCREENFN_FORCE_LABELS buttons_get_m_state()
 

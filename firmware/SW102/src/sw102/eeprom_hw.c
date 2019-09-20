@@ -125,10 +125,13 @@ bool flash_write_words(const void *value, uint16_t length_words)
   write_done = false;
 
   // either make a new record or update an old one (if we lose power during update the old record is preserved)
-  if (has_old)
-    APP_ERROR_CHECK(fds_record_update(&record_desc, &record));
-  else
-    APP_ERROR_CHECK(fds_record_write(&record_desc, &record));
+  ret_code_t retcode = (has_old) ?
+    fds_record_update(&record_desc, &record)
+  :
+    fds_record_write(&record_desc, &record);
+  // Note - we intentionally don't check error codes here, because the developer might have turned off softdevice for debugging
+  // APP_ERROR_CHECK(retcode);
+  (void) retcode;
 
   for (volatile int count = 0; count < 1000 && !write_done; count++) {
     sd_app_evt_wait();

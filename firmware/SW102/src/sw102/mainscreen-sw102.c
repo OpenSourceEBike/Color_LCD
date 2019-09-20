@@ -117,6 +117,7 @@ Screen infoScreen = {
     // .onPress = mainscreen_onpress,
 	.onEnter = mainScreenOnEnter,
   .onCustomized = eeprom_write_variables,
+  .onPress = anyscreen_onpress,
 
     .fields = {
     BATTERY_BAR,

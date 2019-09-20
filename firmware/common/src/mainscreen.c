@@ -156,19 +156,27 @@ Screen bootScreen = {
   }
 };
 
+// Allow common operations (like walk assist and headlights) button presses to work on any page
+bool anyscreen_onpress(buttons_events_t events) {
+  if ((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled) {
+    ui8_walk_assist_state = 1;
+    return true;
+  }
+
+  // long up to turn on headlights
+  if (events & UP_LONG_CLICK) {
+    l3_vars.ui8_lights = !l3_vars.ui8_lights;
+    set_lcd_backlight();
+
+    return true;
+  }
+
+  return false;
+}
+
 bool mainscreen_onpress(buttons_events_t events) {
-	if ((events & DOWN_LONG_CLICK) && l3_vars.ui8_walk_assist_feature_enabled) {
-		ui8_walk_assist_state = 1;
-		return true;
-	}
-
-	// long up to turn on headlights
-	if (events & UP_LONG_CLICK) {
-		l3_vars.ui8_lights = !l3_vars.ui8_lights;
-		set_lcd_backlight();
-
-		return true;
-	}
+	if(anyscreen_onpress(events))
+	  return true;
 
 	if (events & UP_CLICK /* &&
 	 m_lcd_vars.ui8_lcd_menu_max_power == 0 */) {

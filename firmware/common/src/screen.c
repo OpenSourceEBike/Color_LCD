@@ -762,7 +762,7 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx,
 		y += insety;
 		break;
 	case AlignBottom:
-		y -= (insety + font->char_height);
+		y += layout->height - (insety + font->char_height);
 		break;
 	case AlignCenter:
 		y += insety + layout->height / 2 - font->char_height / 2;

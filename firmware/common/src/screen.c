@@ -427,7 +427,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 				FieldLayout *r = rows + i;
 
 				r->x = layout->x;
-				r->y = layout->y + rowHeight * i;
 				r->width = layout->width;
 				r->border = BorderNone;
 
@@ -445,7 +444,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 				} else {
 					r->y = rows[i - 1].y + rows[i - 1].height;
 					r->height = rowHeight; // all data rows are the same height
-					r->label_align_y = AlignCenter;
+					r->label_align_y = EDITABLE_NUM_ROWS == 1 ? AlignCenter : AlignTop;
 					r->label_align_x = AlignLeft;
 					r->align_x = AlignRight;
 					r->inset_x = FONT_CURSORS.char_width; // move the value all the way to the right (but leave room for the cursor)
@@ -715,13 +714,18 @@ static int renderedStrX, renderedStrY;
 // Center justify a string on a line of specified width
 static void putStringCentered(int x, int y, int width, const UG_FONT *font,
 		const char *str) {
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * strlen(str);
+  int maxchars = strlen(str);
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars;
+
+	if(strwidth > width) { // if string is too long, trim it to fit (to prevent wrapping to next row)
+	  maxchars = width / (font->char_width + gui.char_h_space);
+	}
 
 	if (strwidth < width)
 		x += (width - strwidth) / 2; // if we have extra space put half of it before the string
 
 	UG_FontSelect(font);
-	UG_PutString(x, y, (char*) str);
+	UG_PutString_with_length(x, y, (char*) str, maxchars);
 	renderedStrX = x;
 	renderedStrY = y;
 }
@@ -762,7 +766,7 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx,
 		y += insety;
 		break;
 	case AlignBottom:
-		y -= (insety + font->char_height);
+		y += layout->height - (insety + font->char_height);
 		break;
 	case AlignCenter:
 		y += insety + layout->height / 2 - font->char_height / 2;
@@ -815,13 +819,14 @@ static bool renderEditable(FieldLayout *layout) {
 	bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
 
 	// a rough approximation of the offset for descenders (i.e. the bottom parts of chars like g and j)
-	int descender_y = (font->char_height / 8);
+	// * now that we have inset_y, remove descender_y - I don't think it is needed anymore rows: https://github.com/OpenSource-EBike-firmware/Color_LCD/commit/020b195a4d5ffa3a226aeaed955d634c40b3cf7f#r34886687
+	// int descender_y = (font->char_height / 8);
 
 	if (layout->height == -1) // We should autoset
 		layout->height = (
 				(isTwoRows || showLabelAtTop) ?
 						editable_label_font->char_height : 0)
-				+ font->char_height - descender_y;
+				+ font->char_height;
 
 	UG_S16 height = layout->height;
 
@@ -844,7 +849,10 @@ static bool renderEditable(FieldLayout *layout) {
 	int32_t num =
 			isActive ?
 					curEditableValueConverted : getEditableNumber(field, true);
-	bool valueChanged = num != layout->old_editable;
+
+	// If we are customizing this value, we don't check for changes of the value because that causes glitches in the display with extra
+	// redraws
+	bool valueChanged = num != layout->old_editable && !isCustomizing;
 	char valuestr[MAX_FIELD_LEN];
 
 	// Do we need to handle a blink transition right now?

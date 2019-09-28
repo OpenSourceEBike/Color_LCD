@@ -209,13 +209,24 @@ void lcd_init(void)
 
 
 
+static int lcdBacklight = -1; // -1 means unset
+static int oldBacklight = -1;
+
 /**
  * @brief Start transfer of frameBuffer to LCD
  */
 void lcd_refresh(void)
 {
-  uint8_t addr = 0xB0;
+  if(lcdBacklight != oldBacklight) {
+    oldBacklight = lcdBacklight;
 
+    uint8_t level = 255 * (100 - lcdBacklight);
+    uint8_t cmd[] = { 0x81, level };
+
+    send_cmd(cmd, sizeof(cmd));
+  }
+
+  uint8_t addr = 0xB0;
   static uint8_t pagecmd[] = { 0, 0x00, 0x10 };
 
   for (uint8_t i = 0; i < 16; i++)
@@ -251,11 +262,10 @@ static void spi_init(void)
 
 
 //SW102 version, we are an oled so if the user asks for lots of backlight we really want to dim instead
+// Note: This routine might be called from an ISR, so do not do slow SPI operations (especially because
+// you might muck up other threads).  Instead just change the desired intensity and wait until the next
+// screen redraw.
 void lcd_set_backlight_intensity(uint8_t pct) {
-
-  uint8_t level = 255 * (100 - pct);
-  uint8_t cmd[] = { 0x81, level };
-
-  send_cmd(cmd, sizeof(cmd));
+  lcdBacklight = pct;
 }
 

@@ -70,13 +70,13 @@ static void mainScreenOnEnter() {
 // Screens
 //
 Screen mainScreen = {
-    .onPress = mainscreen_onpress,
+  .onPress = mainscreen_onpress,
 	.onEnter = mainScreenOnEnter,
 
     .fields = {
     BATTERY_BAR,
     {
-        .x = 0, .y = -1,
+        .x = 0, .y = -2,
         .width = 0, .height = -1,
         .field = &assistLevelField,
         .font = &BIG_NUMBERS_TEXT_FONT,
@@ -92,7 +92,7 @@ Screen mainScreen = {
         .border = BorderNone
     }, */
     {
-        .x = 0, .y = -3,
+        .x = 0, .y = -2,
         .width = 0, .height = 19,
         .field = &maxPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
@@ -100,7 +100,7 @@ Screen mainScreen = {
         .border = BorderBottom
     },
     {
-        .x = 0, .y = -3,
+        .x = 0, .y = -2,
         .width = 0, .height = -1,
         .field = &wheelSpeedIntegerField,
         .font = &BIG_NUMBERS_TEXT_FONT,
@@ -116,41 +116,45 @@ Screen mainScreen = {
 Screen infoScreen = {
     // .onPress = mainscreen_onpress,
 	.onEnter = mainScreenOnEnter,
+  .onCustomized = eeprom_write_variables,
+  .onPress = anyscreen_onpress,
 
     .fields = {
     BATTERY_BAR,
     {
-        .x = 0, .y = -1,
+        .x = 0, .y = -3,
         .width = 0, .height = -1,
-        .field = &motorTempField,
-        .font = &REGULAR_TEXT_FONT,
-        .label_align_x = AlignHidden,
+        .field = &custom1,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .label_align_y = AlignTop,
+        .border = BorderBottom | BorderTop
+    },
+    {
+        .x = 0, .y = -3,
+        .width = 0, .height = -1,
+        .field = &custom2,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .label_align_y = AlignTop,
         .border = BorderBottom
     },
     {
-        .x = 0, .y = -1,
+        .x = 0, .y = -3,
         .width = 0, .height = -1,
-        .field = &humanPowerField,
-        .font = &REGULAR_TEXT_FONT,
-        .label_align_x = AlignHidden,
+        .field = &custom3,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .label_align_y = AlignTop,
         .border = BorderBottom
     },
+#if 0
     {
-        .x = 0, .y = -1,
+        .x = 0, .y = -3,
         .width = 0, .height = -1,
-        .field = &tripDistanceField,
-        .font = &REGULAR_TEXT_FONT,
+        .field = &custom4,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom
     },
-    {
-        .x = 0, .y = -1,
-        .width = 0, .height = -1,
-        .field = &odoField,
-        .font = &REGULAR_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderBottom
-    },
+#endif
     STATUS_BAR,
     {
         .field = NULL
@@ -165,8 +169,8 @@ void battery_display() {
 }
 
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen, &configScreen,
-		&infoScreen,
+Screen *screens[] = { &mainScreen,
+		&infoScreen, &configScreen,
 		NULL };
 
 

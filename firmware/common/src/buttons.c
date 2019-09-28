@@ -11,10 +11,10 @@
 #include "buttons.h"
 #include "state.h"
 
-#define TIME_1 1000 // changed to 1 sec because 2 secs seems too long to me and a user asked for it also
+#define TIME_1 1500 // changed to 1.5 sec because 2 secs seems too long to me and a user asked for it also
 #define TIME_2 200
 #define TIME_3 300
-#define TIME_4 1000
+#define TIME_4 1500
 
 #define BUTTONS_CLOCK_MS 20
 #define MS_TO_TICKS(a) ((a) / (BUTTONS_CLOCK_MS))
@@ -225,7 +225,7 @@ void buttons_clear_all_events(void) {
 void buttons_clock(void) {
 	// exit if any button is pressed after clear event
 	if ((ui32_m_clear_event)
-			&& (buttons_get_up_state() || buttons_get_down_state()
+			&& (buttons_get_up_state() || buttons_get_down_state() || buttons_get_m_state()
 					|| buttons_get_onoff_state())) {
 		return;
 	} else {

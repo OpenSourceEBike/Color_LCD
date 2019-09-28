@@ -7,7 +7,7 @@ static Field wheelMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max speed", &l3_vars.ui8_wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
 						FIELD_EDITABLE_UINT("Circumference", &l3_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
-						FIELD_EDITABLE_ENUM("Speed units", &l3_vars.ui8_units_type, "kph", "mph"),
+						FIELD_EDITABLE_ENUM("Speed unit", &l3_vars.ui8_units_type, "kph", "mph"),
 				FIELD_END };
 
 static Field batteryMenus[] =

@@ -396,12 +396,21 @@ extern const UG_FONT *editable_units_font;
 #define Xby64(n) ((SCREEN_WIDTH * (n)) / 64)
 #define Yby64(n) ((SCREEN_HEIGHT * (n)) / 64)
 
+// Define _S macro which returns long strings on devices with big screens, or short strings on tiny devices
+// eventually we can replace _S with one of the internationalization libraries, and start generating builds
+// with strings in German, Portuguese etc...
+#ifndef SW102
+#define _S(longstr, shortstr) longstr
+#else
+#define _S(longstr, shortstr) shortstr
+#endif
+
 #ifdef SW102
 #define SCREENFN_FORCE_LABELS buttons_get_m_state()
 
 #define SCREENCLICK_START_EDIT M_CLICK
-#define SCREENCLICK_STOP_EDIT M_CLICK
-#define SCREEMCLICK_NEXT_SCREEN ONOFF_LONG_CLICK
+#define SCREENCLICK_STOP_EDIT ONOFF_CLICK
+#define SCREENCLICK_NEXT_SCREEN UPDOWN_CLICK
 
 #define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK
 #define SCREENCLICK_STOP_CUSTOMIZING ONOFF_CLICK
@@ -410,7 +419,7 @@ extern const UG_FONT *editable_units_font;
 
 #define SCREENCLICK_START_EDIT ONOFF_CLICK
 #define SCREENCLICK_STOP_EDIT ONOFF_CLICK
-#define SCREEMCLICK_NEXT_SCREEN UPDOWN_CLICK
+#define SCREENCLICK_NEXT_SCREEN UPDOWN_CLICK
 
 #define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK
 #define SCREENCLICK_STOP_CUSTOMIZING ONOFF_CLICK

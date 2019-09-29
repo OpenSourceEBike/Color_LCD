@@ -315,7 +315,8 @@ typedef struct FieldLayout {
 	ColorOp color :4;
 	LayoutModifier modifier :4; // layouts can tell the field they are showing special rendering options
 
-	AlignmentX align_x : 2; // Align the primary contents of this element within our bounds using this rule
+	AlignmentX align_x : 2; // Align the primary contents of this element within our bounds using this rule (defaults to centered)
+	AlignmentY align_y : 2; // Align the primary contents of this element within our bounds using this rule (defaults to centered)
 	AlignmentX label_align_x : 2; // Align the label using this rule
 	AlignmentY label_align_y : 2; // Align the label using this rule
 	AlignmentX unit_align_x : 2; // Align units using this rule

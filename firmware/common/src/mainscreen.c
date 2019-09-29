@@ -39,13 +39,15 @@ void wheel_speed(void);
 static void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 
+/// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
+bool wd_failure_detected;
 
 //
 // Fields - these might be shared my multiple screens
 //
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
-Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
+Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level, "");
 #ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #else
@@ -415,6 +417,12 @@ void warnings(void) {
 	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, "Temp Shutdown");
 		return;
+	}
+
+	// If we had a watchdog failure, show it forever - so user will report a bug
+	if(wd_failure_detected) {
+    setWarning(ColorError, "Report Bug!");
+    return;
 	}
 
 	// warn faults in yellow

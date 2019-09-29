@@ -714,11 +714,15 @@ static int renderedStrX, renderedStrY;
 // Center justify a string on a line of specified width
 static void putStringCentered(int x, int y, int width, const UG_FONT *font,
 		const char *str) {
-  int maxchars = strlen(str);
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars;
+    int maxchars = strlen(str);
+
+    // Note: we don't need char_h_space for the last char in the string, because the printing won't be adding that pad space
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars - gui.char_h_space;
 
 	if(strwidth > width) { // if string is too long, trim it to fit (to prevent wrapping to next row)
 	  maxchars = width / (font->char_width + gui.char_h_space);
+
+	  assert(maxchars > 0);
 	}
 
 	if (strwidth < width)
@@ -934,7 +938,11 @@ static bool renderEditable(FieldLayout *layout) {
 
 		int y = layout->inset_y; // used as an inset
 		int x = layout->inset_x;
-		AlignmentY align_y = layout->unit_align_y;
+
+		AlignmentY align_y = layout->align_y;
+		// @casainho did you need to customized the vertical alignment of data fields?  If so, I don't think you intended to use unit_align_y
+		// which was only supposed to be for the units field.  I've added an align_y property you can use instead (it defaults to center)
+
 		if (showLabel) {
 			if (!showLabelAtTop) {
 				if (isTwoRows) // put the value on the second line (if the screen is narrow)

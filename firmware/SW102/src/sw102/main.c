@@ -24,7 +24,8 @@
 #include "fault.h"
 #include "nrf_nvic.h"
 #include "rtc.h"
-
+#include "nrf_drv_wdt.h"
+#include "nrf_power.h"
 
 /* Variable definition */
 
@@ -80,7 +81,40 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 }
 
 
+/** Called just before watchdog reset, use to do whatever seems important
+ * @brief WDT events handler.
+ */
+void wdt_event_handler(void)
+{
+    //NOTE: The max amount of time we can spend in WDT interrupt is two cycles of 32768[Hz] clock - after that, reset occurs
+    // currently we don't do anything
+}
 
+static nrf_drv_wdt_channel_id m_channel_id;
+
+void watchdog_start() {
+  // was this current boot caused because of a watchdog failure?
+  uint32_t reason;
+
+  // don't check reset reason if no soft device found, because it is not enabled if we are debugging without bluetooth
+  if(sd_power_reset_reason_get(&reason) == NRF_SUCCESS) {
+    if(reason & NRF_POWER_RESETREAS_DOG_MASK) {
+      APP_ERROR_CHECK(sd_power_reset_reason_clr(NRF_POWER_RESETREAS_DOG_MASK));
+      wd_failure_detected = true;
+    }
+  }
+
+  //Configure WDT.
+  nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
+  APP_ERROR_CHECK(nrf_drv_wdt_init(&config, wdt_event_handler));
+  APP_ERROR_CHECK(nrf_drv_wdt_channel_alloc(&m_channel_id));
+  nrf_drv_wdt_enable();
+}
+
+// Will timeout after 2 secs
+void watchdog_service() {
+  nrf_drv_wdt_channel_feed(m_channel_id);
+}
 
 extern uint32_t __StackTop;
 extern uint32_t __StackLimit;
@@ -121,7 +155,7 @@ int main(void)
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
   // kevinh FIXME - turn off ble while debugging
-  ble_init();
+  // ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
@@ -136,6 +170,8 @@ int main(void)
   while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
     ;
 
+  watchdog_start();
+
   // Enter main loop.
 
   uint32_t lasttick = gui_ticks;
@@ -146,6 +182,9 @@ int main(void)
     uint32_t tick = gui_ticks;
     if (tick != lasttick)
     {
+      // if(tick < 50 * 5) // uncomment to force a watchdog failure after 5 seconds
+      watchdog_service(); // we only service the watchdog if we see our ticks are still increasing
+
       if(tick != lasttick + 1) {
         ticksmissed += (tick - lasttick - 1); // Error!  We fell behind and missed some ticks (probably due to screen draw taking more than 20 msec)
 

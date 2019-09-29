@@ -134,7 +134,7 @@ void eeprom_init_variables(void) {
 	// copy data final variables
 	p_l3_output_vars->ui8_assist_level = m_eeprom_data.ui8_assist_level;
 	p_l3_output_vars->ui16_wheel_perimeter = m_eeprom_data.ui16_wheel_perimeter;
-	p_l3_output_vars->ui8_wheel_max_speed_x10 =
+	p_l3_output_vars->wheel_max_speed_x10 =
 			m_eeprom_data.ui8_wheel_max_speed * 10;
 	p_l3_output_vars->ui8_units_type = m_eeprom_data.ui8_units_type;
 	p_l3_output_vars->ui32_wh_x10_offset = m_eeprom_data.ui32_wh_x10_offset;
@@ -206,7 +206,7 @@ void eeprom_write_variables(void) {
 	m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
 	m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
 	m_eeprom_data.ui8_wheel_max_speed =
-			p_l3_output_vars->ui8_wheel_max_speed_x10 / 10;
+			p_l3_output_vars->wheel_max_speed_x10 / 10;
 	m_eeprom_data.ui8_units_type = p_l3_output_vars->ui8_units_type;
 	m_eeprom_data.ui32_wh_x10_offset = p_l3_output_vars->ui32_wh_x10_offset;
 	m_eeprom_data.ui32_wh_x10_100_percent =

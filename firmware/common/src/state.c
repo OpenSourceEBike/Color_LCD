@@ -759,7 +759,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l2_vars.ui16_battery_low_voltage_cut_off_x10 =
 			l3_vars.ui16_battery_low_voltage_cut_off_x10;
 	l2_vars.ui16_wheel_perimeter = l3_vars.ui16_wheel_perimeter;
-	l2_vars.ui8_wheel_max_speed = l3_vars.ui8_wheel_max_speed_x10 / 10;
+	l2_vars.ui8_wheel_max_speed = l3_vars.wheel_max_speed_x10 / 10;
 	l2_vars.ui8_motor_type = l3_vars.ui8_motor_type;
 	l2_vars.ui8_motor_assistance_startup_without_pedal_rotation =
 			l3_vars.ui8_motor_assistance_startup_without_pedal_rotation;

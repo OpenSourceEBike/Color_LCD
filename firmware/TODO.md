@@ -1,5 +1,7 @@
 # Near term tasks (someone is already working on these)
 
+*Max weel speed can set only to 24 km/h. 2 Times the display is frozen during switch to the menus (no watchdog timer?) only pull the Battery was working (no Key by me :evil: ).
+* add watchdog
 * Update wiki instructions on how to develop for 850C/SW102
 * Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
 

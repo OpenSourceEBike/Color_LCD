@@ -25,6 +25,7 @@
 #include "nrf_nvic.h"
 #include "rtc.h"
 #include "nrf_drv_wdt.h"
+#include "nrf_power.h"
 
 /* Variable definition */
 
@@ -92,6 +93,17 @@ void wdt_event_handler(void)
 static nrf_drv_wdt_channel_id m_channel_id;
 
 void watchdog_start() {
+  // was this current boot caused because of a watchdog failure?
+  uint32_t reason;
+
+  // don't check reset reason if no soft device found, because it is not enabled if we are debugging without bluetooth
+  if(sd_power_reset_reason_get(&reason) == NRF_SUCCESS) {
+    if(reason & NRF_POWER_RESETREAS_DOG_MASK) {
+      APP_ERROR_CHECK(sd_power_reset_reason_clr(NRF_POWER_RESETREAS_DOG_MASK));
+      wd_failure_detected = true;
+    }
+  }
+
   //Configure WDT.
   nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
   APP_ERROR_CHECK(nrf_drv_wdt_init(&config, wdt_event_handler));
@@ -143,7 +155,7 @@ int main(void)
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
   // kevinh FIXME - turn off ble while debugging
-  ble_init();
+  // ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();

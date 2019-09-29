@@ -934,7 +934,11 @@ static bool renderEditable(FieldLayout *layout) {
 
 		int y = layout->inset_y; // used as an inset
 		int x = layout->inset_x;
-		AlignmentY align_y = layout->unit_align_y;
+
+		AlignmentY align_y = layout->align_y;
+		// @casainho did you need to customized the vertical alignment of data fields?  If so, I don't think you intended to use unit_align_y
+		// which was only supposed to be for the units field.  I've added an align_y property you can use instead (it defaults to center)
+
 		if (showLabel) {
 			if (!showLabelAtTop) {
 				if (isTwoRows) // put the value on the second line (if the screen is narrow)

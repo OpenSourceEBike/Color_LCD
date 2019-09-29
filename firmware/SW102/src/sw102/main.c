@@ -24,7 +24,7 @@
 #include "fault.h"
 #include "nrf_nvic.h"
 #include "rtc.h"
-
+#include "nrf_drv_wdt.h"
 
 /* Variable definition */
 
@@ -80,7 +80,29 @@ void lcd_power_off(uint8_t updateDistanceOdo)
 }
 
 
+/** Called just before watchdog reset, use to do whatever seems important
+ * @brief WDT events handler.
+ */
+void wdt_event_handler(void)
+{
+    //NOTE: The max amount of time we can spend in WDT interrupt is two cycles of 32768[Hz] clock - after that, reset occurs
+    // currently we don't do anything
+}
 
+static nrf_drv_wdt_channel_id m_channel_id;
+
+void watchdog_start() {
+  //Configure WDT.
+  nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
+  APP_ERROR_CHECK(nrf_drv_wdt_init(&config, wdt_event_handler));
+  APP_ERROR_CHECK(nrf_drv_wdt_channel_alloc(&m_channel_id));
+  nrf_drv_wdt_enable();
+}
+
+// Will timeout after 2 secs
+void watchdog_service() {
+  nrf_drv_wdt_channel_feed(m_channel_id);
+}
 
 extern uint32_t __StackTop;
 extern uint32_t __StackLimit;
@@ -136,6 +158,8 @@ int main(void)
   while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
     ;
 
+  watchdog_start();
+
   // Enter main loop.
 
   uint32_t lasttick = gui_ticks;
@@ -146,6 +170,9 @@ int main(void)
     uint32_t tick = gui_ticks;
     if (tick != lasttick)
     {
+      // if(tick < 50 * 5) // uncomment to force a watchdog failure after 5 seconds
+      watchdog_service(); // we only service the watchdog if we see our ticks are still increasing
+
       if(tick != lasttick + 1) {
         ticksmissed += (tick - lasttick - 1); // Error!  We fell behind and missed some ticks (probably due to screen draw taking more than 20 msec)
 

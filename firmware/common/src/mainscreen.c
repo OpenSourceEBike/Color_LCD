@@ -47,7 +47,7 @@ bool wd_failure_detected;
 //
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
-Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
+Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level, "");
 #ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #else

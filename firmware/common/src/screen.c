@@ -714,11 +714,15 @@ static int renderedStrX, renderedStrY;
 // Center justify a string on a line of specified width
 static void putStringCentered(int x, int y, int width, const UG_FONT *font,
 		const char *str) {
-  int maxchars = strlen(str);
-	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars;
+    int maxchars = strlen(str);
+
+    // Note: we don't need char_h_space for the last char in the string, because the printing won't be adding that pad space
+	UG_S16 strwidth = (font->char_width + gui.char_h_space) * maxchars - gui.char_h_space;
 
 	if(strwidth > width) { // if string is too long, trim it to fit (to prevent wrapping to next row)
 	  maxchars = width / (font->char_width + gui.char_h_space);
+
+	  assert(maxchars > 0);
 	}
 
 	if (strwidth < width)

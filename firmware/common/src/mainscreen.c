@@ -39,13 +39,15 @@ void wheel_speed(void);
 static void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 
+/// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
+bool wd_failure_detected;
 
 //
 // Fields - these might be shared my multiple screens
 //
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
-Field assistLevelField = FIELD_READONLY_UINT("", &l3_vars.ui8_assist_level, "");
+Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level, "");
 #ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #else
@@ -94,8 +96,8 @@ Field custom3 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[3], customizable
 Field custom4 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[4], customizables);
 
 
-Field bootHeading = FIELD_DRAWTEXTPTR("OpenSource EBike");
-Field bootURL = FIELD_DRAWTEXTPTR("github.com/\nOpenSource-EBike-Firmware");
+Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike"));
+Field bootURL = FIELD_DRAWTEXTPTR(_S("github.com/\nOpenSource-EBike-Firmware", "see github.com"));
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
@@ -135,11 +137,13 @@ Screen bootScreen = {
       .field = &bootURL,
       .font = &SMALL_TEXT_FONT,
     },
+#ifndef SW102
     {
       .x = 0, .y = YbyEighths(4), .height = -1,
       .field = &bootFirmwareVersion,
       .font = &SMALL_TEXT_FONT,
     },
+#endif
     {
       .x = 0, .y = -8, .height = -1,
       .field = &bootVersion,
@@ -415,6 +419,12 @@ void warnings(void) {
 	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, "Temp Shutdown");
 		return;
+	}
+
+	// If we had a watchdog failure, show it forever - so user will report a bug
+	if(wd_failure_detected) {
+    setWarning(ColorError, "Report Bug!");
+    return;
 	}
 
 	// warn faults in yellow

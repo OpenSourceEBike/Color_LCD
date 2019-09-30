@@ -34,3 +34,6 @@ extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations
 void set_conversions();
 bool anyscreen_onpress(buttons_events_t events);
+
+/// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
+extern bool wd_failure_detected;

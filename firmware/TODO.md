@@ -1,5 +1,6 @@
 # Near term tasks (someone is already working on these)
 
+* Revisit bluetooth based bootloader for initial programming on SW102 - I think I have a good plan
 * Update wiki instructions on how to develop for 850C/SW102
 * Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
 
@@ -23,7 +24,6 @@ and https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.s
 * add DFU assistence profile to the SW102 appload
 * make a shutdown screen
 * pack & align eeprom 
-* implement a watchdog function
 
 # Tasks for after release 1.0
 * report pedal power via strava
@@ -170,6 +170,9 @@ the GUI thread.  Use two buffers + a ptr.
 * turn bluetooth back on (so flash writes work)
 * update sw102 to use customizable fields and do a sw102 release
 * check that lights work on info screen
+* implement a watchdog function
+*Max weel speed can set only to 24 km/h. 2 Times the display is frozen during switch to the menus (no watchdog timer?) only pull the Battery was working (no Key by me :evil: ).
+
 
 # Misc notes from kevin not yet formatted
 

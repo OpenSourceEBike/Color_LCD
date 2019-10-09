@@ -1379,8 +1379,10 @@ static void selectNextCustomizableField() {
 	Field *firstCustomizable = NULL; // we haven't found one yet
 	bool wantNext = false;
 
-	if(curCustomizingField)
-		curCustomizingField->dirty = true; // Force the field we are leaving to get redrawn (to not leave turds around)
+	if(curCustomizingField) {
+		// Force the field we are leaving to get redrawn (to not leave turds around)
+    curCustomizingField->customizable.choices[*curCustomizingField->customizable.selector]->dirty = true;
+	}
 
 	while (layout->field) {
 		Field *field = layout->field;
@@ -1413,7 +1415,6 @@ static void selectNextCustomizableField() {
 static void changeCurrentCustomizableField() {
 	Field *s = curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
-
 
 	uint8_t i = *s->customizable.selector;
 

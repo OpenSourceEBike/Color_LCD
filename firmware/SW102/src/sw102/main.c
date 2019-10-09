@@ -145,15 +145,18 @@ uint32_t stack_overflow_debug(void)
  * Check if we should use the softdevice.
  */
 void init_softdevice() {
-  uint32_t *bootloaderaddr = (uint32_t *) 0x10001014;
   uint32_t *softdeviceaddr = (uint32_t *) 0x1000;
 
   if(*softdeviceaddr == 0xffffffff) // definitely no soft device
     useSoftDevice = false;
 
+#if 0
+  uint32_t *bootloaderaddr = (uint32_t *) 0x10001014;
+
   // If we don't have a bootloader, assume a developer is working and wants to use the debugger
   if(*bootloaderaddr == 0xffffffff)
     useSoftDevice = false; // FIXME, instead just use the supply voltage and see if it is below 14V
+#endif
 }
 
 
@@ -175,8 +178,6 @@ int main(void)
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
-  // FIXME
-  // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
   screenShow(&bootScreen);

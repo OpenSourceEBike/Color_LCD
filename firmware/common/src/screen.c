@@ -1363,7 +1363,7 @@ static bool onPressScrollable(buttons_events_t events) {
 	}
 
 // click power button to exit out of menus
-	if (!handled && (events & SCREENCLICK_STOP_EDIT)) {
+	if (!handled && (events & SCREENCLICK_EXIT_SCROLLABLE)) {
 		handled = exitScrollable(); // if we were top scrollable don't claim we handled this press (let rest of app do it)
 	}
 

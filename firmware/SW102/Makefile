@@ -186,16 +186,16 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/toolchain \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
   $(SDK_ROOT)/components/toolchain/gcc \
-  
+
 # Libraries common to all targets
 LIB_FILES += \
 
 include $(COMMON_DIR)/Makefile.common
 
 # Optimization flags release (note - we use -funwind-tables so our app fault handler can reverse engineer the PC of the caller when unsupplied)
-OPT = -Os -g3 
+OPT = -Os -g3
 # Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
-# OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG 
+# OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
 
 # C flags common to all targets
 CFLAGS += $(OPT)
@@ -214,7 +214,7 @@ CFLAGS += -Wall -Werror
 CFLAGS += -mfloat-abi=soft
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
-CFLAGS += -fno-builtin --short-enums 
+CFLAGS += -fno-builtin --short-enums
 
 # C++ flags common to all targets
 CXXFLAGS += \
@@ -276,12 +276,12 @@ gdb:
 # Start a telnet session talking directly to openocd
 openocd-shell:
 	telnet localhost 4444
-	
+
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: s130_nrf51_2.0.1_softdevice.hex
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(SOFT_DEVICE); verify_image $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex; reset halt; resume; shutdown"
-    
+
 # Erase Flash
 erase:
 	@echo Erasing all
@@ -298,7 +298,7 @@ generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 # Note: srec_cmp is part of the 'srecord' debian package, for windows supposedly mergehex does the same thing
 release_build: generate_dfu_package
 	$(NRFUTIL) settings generate --no-backup --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version $(VERSION_NUM) --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
-	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel 
+	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel
 
 # Program a full release build onto the connected device (including bootloader and soft device)
 release_program: release_build
@@ -306,13 +306,13 @@ release_program: release_build
 
 # For developers only: program a board with bootloader+softdevice BUT NO APP, to make sure the bootloader will properly boot if flash settings are corrupted
 blsd_program: generate_dfu_package
-	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel -Output $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex -Intel 
+	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel -Output $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex -Intel
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex; verify_image $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex; echo FLASHED; reset halt; resume; shutdown"
 
 # Generate a transitional bootloader package for factory bootloaders (i.e. the devices from @eyebyesickle)
-generate_transitional: 
+generate_transitional:
 	mkdir -p $(RELEASE_DIRECTORY)
-	/usr/local/bin/nrfutil dfu genpkg --bootloader $(BOOTLOADER_HEX) --sd-req 100 --softdevice $(SOFT_DEVICE) $(RELEASE_DIRECTORY)/sw102-transitional-$(VERSION_STRING).zip
+	/usr/local/bin/nrfutil dfu genpkg --dfu-ver 0.5 --bootloader $(BOOTLOADER_HEX) --sd-req 100 --softdevice $(SOFT_DEVICE) $(RELEASE_DIRECTORY)/sw102-transitional-$(VERSION_STRING).zip
 
 # Generate an OTA package which can be used to reinstall bootloader and soft device on devices already running our bootloader
 # Warning: this is slightly dangerous but useful for testing
@@ -324,4 +324,3 @@ SDK_CONFIG_FILE := $(PROJ_DIR)/include/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
-	

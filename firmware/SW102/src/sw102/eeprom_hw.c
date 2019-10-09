@@ -85,6 +85,9 @@ bool flash_read_words(void *dest, uint16_t length_words)
 
 static bool wait_gc()
 {
+  if(!useSoftDevice)
+    return true; // assume success
+
   gc_done = false;
   fds_gc();
   for (volatile int count = 0; count < 1000 && !gc_done; count++) {
@@ -103,6 +106,9 @@ bool flash_write_words(const void *value, uint16_t length_words)
   fds_record_desc_t record_desc;
   fds_record_chunk_t record_chunk;
   fds_find_token_t ftok;
+
+  if(!useSoftDevice)
+    return true; // FIXME: for this test of working without soft device, we let writes to flash silently fail
 
   wait_gc(); // Before writing we always GC (to ensure there is at least one free record we can use)
 
@@ -147,9 +153,13 @@ bool flash_write_words(const void *value, uint16_t length_words)
  */
 void eeprom_hw_init(void)
 {
+  if(!useSoftDevice)
+    return; // assume success
+
   APP_ERROR_CHECK(fds_register(fds_evt_handler));
 
   APP_ERROR_CHECK(fds_init());
+
   for (volatile int count = 0; count < 1000 && !init_done; count++) {
     sd_app_evt_wait();
     nrf_delay_ms(1);

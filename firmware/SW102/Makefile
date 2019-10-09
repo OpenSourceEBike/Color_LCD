@@ -289,9 +289,10 @@ erase:
 
 # Generate DFU package
 # Note: don't try the application-version-string option - it just dumbly pulls the string as a nubmer info the int32 in the settings (not what we want)
+# Note: we now set debug mode so users can move to prior revisions, not just new ones.
 generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	mkdir -p $(RELEASE_DIRECTORY)
-	$(NRFUTIL) pkg generate --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version $(VERSION_NUM) --hw-version 51 --sd-req 0x87 $(RELEASE_DIRECTORY)/sw102-otaupdate-$(VERSION_STRING).zip
+	$(NRFUTIL) pkg generate --debug-mode --application ./$(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --key-file $(KEYFILE) --application-version $(VERSION_NUM) --hw-version 51 --sd-req 0x87 $(RELEASE_DIRECTORY)/sw102-otaupdate-$(VERSION_STRING).zip
 
 # Generate a prebuilt bin file with bootloader apploand and valid app crc
 # per appendix 1 here: https://devzone.nordicsemi.com/nordic/nordic-blog/b/blog/posts/getting-started-with-nordics-secure-dfu-bootloader

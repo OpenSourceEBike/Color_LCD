@@ -241,7 +241,8 @@ LDFLAGS += --specs=nano.specs -lc -lnosys
 LDFLAGS += -Xlinker -Map=$(OUTPUT_DIRECTORY)/nrf51822_sw102.map
 
 SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex
-BOOTLOADER_HEX = ../../../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex
+# BOOTLOADER_HEX = ../../../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex
+BOOTLOADER_HEX = prebuilt/sw102_bootloader.hex
 KEYFILE := ../../../SW102_LCD_Bluetooth-bootloader/private.key
 
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice

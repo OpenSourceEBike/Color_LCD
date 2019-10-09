@@ -1311,49 +1311,53 @@ static bool onPressScrollable(buttons_events_t events) {
 	if (!s)
 		return false; // no scrollable is active
 
-	if (events & UP_CLICK) {
-		if (s->scrollable.selected >= 1) {
-			s->scrollable.selected--;
-		}
+	Field *curActive = &s->scrollable.entries[s->scrollable.selected];
 
-		if (s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
-			s->scrollable.first = s->scrollable.selected;
+  if (events & (UP_CLICK | DOWN_CLICK)) {
+    // Before we move away, mark the current item as dirty, so it will be redrawn (prevent leaving blinking arrow turds on the screen)
+    curActive->dirty = true;
 
-		forceScrollableRender();
-		handled = true;
-	}
+    // Go to previous
+    if(events & UP_CLICK) {
+      if (s->scrollable.selected >= 1) {
+        s->scrollable.selected--;
+      }
 
-	if (events & DOWN_CLICK) {
-		int numEntries = countEntries(s);
+      if (s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
+        s->scrollable.first = s->scrollable.selected;
+    }
 
-		if (s->scrollable.selected < numEntries - 1) {
-			s->scrollable.selected++;
-		}
+    // Go to next
+    if (events & DOWN_CLICK) {
+      int numEntries = countEntries(s);
 
-		int numDataRows = maxRowsPerScreen - 1;
-		int lastVisibleRow = s->scrollable.first + numDataRows - 1;
-		if (s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
-			s->scrollable.first = s->scrollable.selected - numDataRows + 1;
+      if (s->scrollable.selected < numEntries - 1) {
+        s->scrollable.selected++;
+      }
 
-		forceScrollableRender();
-		handled = true;
-	}
+      int numDataRows = maxRowsPerScreen - 1;
+      int lastVisibleRow = s->scrollable.first + numDataRows - 1;
+      if (s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
+        s->scrollable.first = s->scrollable.selected - numDataRows + 1;
+    }
+
+    forceScrollableRender();
+    handled = true;
+  }
 
 // If we aren't already editing anything, start now (note: we will only be called if some active editable
 // hasn't already handled this button
 	if (events & SCREENCLICK_START_EDIT && !curActiveEditable) {
-		Field *clicked = &s->scrollable.entries[s->scrollable.selected];
-
-		switch (clicked->variant) {
+		switch (curActive->variant) {
 		case FieldEditable:
-			if (!clicked->editable.read_only) { // only start editing non read only fields
-				setActiveEditable(clicked);
+			if (!curActive->editable.read_only) { // only start editing non read only fields
+				setActiveEditable(curActive);
 				handled = true;
 			}
 			break;
 
 		case FieldScrollable:
-			enterScrollable(clicked);
+			enterScrollable(curActive);
 			handled = true;
 			break;
 

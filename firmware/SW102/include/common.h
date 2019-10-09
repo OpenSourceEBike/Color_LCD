@@ -32,4 +32,6 @@
 /* UART Display <-> Motor */
 #define UART0   0
 
+extern bool useSoftDevice;
+
 #endif /* INCLUDE_DEFINITIONS_H_ */

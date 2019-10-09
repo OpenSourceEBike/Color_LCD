@@ -3,6 +3,7 @@
 * Revisit bluetooth based bootloader for initial programming on SW102 - I think I have a good plan
 * Update wiki instructions on how to develop for 850C/SW102
 * Work with 0.20 motor code (ideally by detecting protocol version and let the same build work with either 0.19 or 0.20 motors)
+* Please use M Key!!! You use M also for edit Parameters, please use it also for leaving edit mode. Thanks!
 
 # TODO tasks for beta release
 We define beta releases as: Feature complete, only fixing bugs from that point until release 1.0.

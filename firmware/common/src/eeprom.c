@@ -106,9 +106,16 @@ void eeprom_init() {
 
 	// read the values from EEPROM to array
 	memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
+
+	// if eeprom is blank use defaults
+	// if eeprom version is less than the min required version, wipe and use defaults
+	// if eeprom version is greater than the current app version, user must have downgraded - wipe and use defaults
 	if (!flash_read_words(&m_eeprom_data,
 			sizeof(m_eeprom_data)
-					/ sizeof(uint32_t)) || m_eeprom_data.eeprom_version < EEPROM_MIN_COMPAT_VERSION)
+					/ sizeof(uint32_t))
+	    || m_eeprom_data.eeprom_version < EEPROM_MIN_COMPAT_VERSION
+	    || m_eeprom_data.eeprom_version > EEPROM_VERSION
+	    )
 		// If we are using default data it doesn't get written to flash until someone calls write
 		memcpy(&m_eeprom_data, &m_eeprom_data_defaults,
 				sizeof(m_eeprom_data_defaults));

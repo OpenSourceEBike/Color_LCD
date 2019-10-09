@@ -48,6 +48,8 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 #define GUI_INTERVAL APP_TIMER_TICKS(MSEC_PER_TICK, APP_TIMER_PRESCALER)
 volatile uint32_t gui_ticks;
 
+// assume we should until we init_softdevice()
+bool useSoftDevice = true;
 
 /* Function prototype */
 static void gpio_init(void);
@@ -139,7 +141,23 @@ uint32_t stack_overflow_debug(void)
     return offset;
 }
 
+/**
+ * Check if we should use the softdevice.
+ */
+void init_softdevice() {
+  uint32_t *softdeviceaddr = (uint32_t *) 0x1000;
 
+  if(*softdeviceaddr == 0xffffffff) // definitely no soft device
+    useSoftDevice = false;
+
+#if 0
+  uint32_t *bootloaderaddr = (uint32_t *) 0x10001014;
+
+  // If we don't have a bootloader, assume a developer is working and wants to use the debugger
+  if(*bootloaderaddr == 0xffffffff)
+    useSoftDevice = false; // FIXME, instead just use the supply voltage and see if it is below 14V
+#endif
+}
 
 
 /**
@@ -147,6 +165,7 @@ uint32_t stack_overflow_debug(void)
  */
 int main(void)
 {
+  init_softdevice();
   gpio_init();
   lcd_init();
   uart_init();
@@ -154,13 +173,11 @@ int main(void)
 
   init_app_timers(); // Must be before ble_init! because it sets app timer prescaler
 
-  // kevinh FIXME - turn off ble while debugging
-  // ble_init();
+  if(useSoftDevice)
+    ble_init();
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
-  // FIXME
-  // eeprom_read_configuration(get_configuration_variables());
   system_power(true);
 
   screenShow(&bootScreen);
@@ -202,7 +219,8 @@ int main(void)
       main_idle();
     }
 
-    sd_app_evt_wait(); // let OS threads have time to run
+    if(useSoftDevice)
+      sd_app_evt_wait(); // let OS threads have time to run
   }
 
 }

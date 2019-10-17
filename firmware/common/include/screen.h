@@ -130,8 +130,8 @@ typedef enum {
 } EditableType;
 
 
-#define GRAPH_MAX_POINTS	(256) // Note: we waste one record, to make our ring buffer code easier
-#define GRAPH_INTERVAL_MS 	3500 // graph updates are expensive - do rarely
+#define GRAPH_MAX_POINTS	(236) // Note: we waste one record, to make our ring buffer code easier
+#define GRAPH_INTERVAL_MS 	3810 // graph updates are expensive - do rarely (236 * 3.810 seconds = 15 minutes)
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
 #define GRAPH_COLOR_NORMAL  C_BLUE
 #define GRAPH_COLOR_WARN    C_YELLOW
@@ -140,6 +140,8 @@ typedef enum {
 #define GRAPH_COLOR_AXIS	C_SLATE_GRAY
 #define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
 #define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
+#define GRAPH_XAXIS_FONT   SMALL_TEXT_FONT
+#define GRAPH_GRAPH_LABEL_OFFSET 12
 
 // Assumed period of screenUpdate invoke
 #define UPDATE_INTERVAL_MS 20

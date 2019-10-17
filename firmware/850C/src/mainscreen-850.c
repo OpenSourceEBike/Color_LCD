@@ -84,6 +84,7 @@ static void mainScreenOnDirtyClean() {
 }
 
 void mainScreenOnPostUpdate(void) {
+  // because printing numbers of wheel speed will make dirty the dot, always print it
   // wheel speed print dot
   UG_FillCircle(247, 128, 3, C_WHITE);
 }
@@ -220,8 +221,7 @@ Screen mainScreen = {
     },
     {
       .x = 0, .y = 322,
-      .width = XbyEighths(8),
-      .height = 136,
+      .width = SCREEN_WIDTH, .height = 136,
       .field = &graphs,
     },
     STATUS_BAR,

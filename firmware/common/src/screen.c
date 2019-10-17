@@ -30,6 +30,7 @@
 #include "lcd.h"
 #include "ugui.h"
 #include "fonts.h"
+#include "state.h"
 
 extern UG_GUI gui;
 
@@ -1035,6 +1036,8 @@ static void graphClear(Field *field) {
 
 // Draw our axis lines and min/max numbers
 static void graphLabelAxis(Field *field) {
+  static int32_t max_val_pre = INT32_MAX;
+  static int32_t min_val_pre = INT32_MIN;
 
 	// Only need to draw labels and axis if dirty
 	Field *source = field->graph.source;
@@ -1045,28 +1048,65 @@ static void graphLabelAxis(Field *field) {
 		UG_SetForecolor(GRAPH_COLOR_ACCENT);
 
 		// vertical axis line
-		UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,
-		GRAPH_COLOR_AXIS);
+    UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,
+    GRAPH_COLOR_AXIS);
 
 		// horiz axis line
-		UG_DrawLine(graphXmin, graphYmin, graphXmax, graphYmin,
-		GRAPH_COLOR_AXIS);
+    UG_DrawLine(graphXmin, graphYmin, graphXmin + 236, graphYmin,
+    GRAPH_COLOR_AXIS);
+
+		// x axis scale
+		switch (l3_vars.x_axis_scale) {
+		  case 0:
+		    putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
+		    break;
+
+/*      case 1:
+        putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "30m");
+        break;
+
+      case 2:
+        putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "1h");
+        break;
+
+      case 3:
+        putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "2h");
+        break;*/
+
+		  default:
+		    putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
+		    break;
+		}
 	}
 
 	// draw max value
 	GraphCache *cache = field->graph.cache;
 	char valstr[MAX_FIELD_LEN];
-	if (cache->max_val != INT32_MIN) {
-		getEditableString(source, cache->max_val, valstr);
-		putStringRight(graphXmin, graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+
+	// draw if value changed or dirty
+	if(cache->max_val != max_val_pre ||
+	    field->dirty) {
+	    max_val_pre = cache->max_val;
+
+	    if (cache->max_val != INT32_MIN) {
+	      getEditableString(source, cache->max_val, valstr);
+	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 3,
+	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+	    }
 	}
 
-	// draw min value
-	if (cache->min_val != INT32_MAX) {
-		getEditableString(source, cache->min_val, valstr);
-		putStringRight(graphXmin, graphYmin - GRAPH_MAXVAL_FONT.char_height,
-				&GRAPH_MAXVAL_FONT, valstr);
-	}
+  // draw if value changed or dirty
+  if(cache->min_val != min_val_pre ||
+      field->dirty) {
+      min_val_pre = cache->min_val;
+
+      if (cache->min_val != INT32_MAX) {
+        getEditableString(source, cache->min_val, valstr);
+        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 3,
+                       graphYmin - GRAPH_MAXVAL_FONT.char_height,
+            &GRAPH_MAXVAL_FONT, valstr);
+      }
+  }
 }
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
@@ -1179,23 +1219,24 @@ static bool renderGraph(FieldLayout *layout) {
 		graphAddPoint(field, getEditableNumber(source, true));
 
 	// Set axis coordinates
-	int axisdigits = 5;
+	int axisdigits = 4;
 	int axiswidth = axisdigits
 			* (GRAPH_MAXVAL_FONT.char_width + gui.char_h_space);
 	graphX = layout->x; // upper left of graph
 	graphY = layout->y; // upper left of graph,
 	graphWidth = layout->width; // total draw area width
 	graphHeight = layout->height; // total draw area height
-	graphXmin = graphX + axiswidth; // x loc of 0,0 position
+	graphXmin = graphX + 1 + axiswidth; // x loc of 0,0 position
 	graphXmax = graphX + graphWidth - 1; // x loc of rightmost data point
 	graphYmin = graphY + graphHeight - 1; // y loc of 0,0 position (for min value)
-	graphYmax = graphY + GRAPH_LABEL_FONT.char_height; // y loc of max value
+	graphYmax = graphY + GRAPH_LABEL_FONT.char_height + GRAPH_GRAPH_LABEL_OFFSET; // y loc of max value
 	graphLabelY = graphY; // y loc of the label for field name
 
 	// limit max x based on the number of points we might have (so each point gets its own column
 	if (graphXmin + GRAPH_MAX_POINTS < graphXmax)
 		graphXmax = graphXmin + GRAPH_MAX_POINTS;
 
+	// clear only if needed
 	graphClear(field);
 
 	if(needBlink && !blinkOn)

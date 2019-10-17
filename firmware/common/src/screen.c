@@ -1463,12 +1463,6 @@ static void changeCurrentCustomizableField() {
 
 	uint8_t i = *s->customizable.selector;
 
-	Field *oldSelected = s->customizable.choices[i];
-
-	// If we are leaving a graph, discard that graphs cache (so it will start fresh next time)
-	if(oldSelected->variant == FieldGraph)
-		oldSelected->graph.cache = NULL;
-
 	if (!s->customizable.choices[++i]) // we fell off the end, loop around
 		i = 0;
 

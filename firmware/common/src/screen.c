@@ -467,6 +467,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 						entry->is_selected = (entryNum
 								== field->scrollable.selected);
 						entry->blink = entry->is_selected;
+						r->color = ColorNormal; // force color because r points to a static object that holds previous color
 					} else {
 						r->field = &blankRows[i];
 						r->field->variant = FieldFill;

@@ -152,7 +152,7 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg) {
 	// ug fonts include no blank space at the beginning, so we always include one col of padding
 	UG_FillFrame(layout->x, layout->y, layout->x + layout->width - 1,
 			layout->y + height - 1, back);
-	UG_SetBackcolor(C_TRANSPARENT);
+  UG_SetBackcolor(back);
 	if (!layout->field->blink || blinkOn) // if we are supposed to blink do that
 		putAligned(layout, layout->align_x, AlignTop, layout->inset_x,
 				layout->inset_y, layout->font, msg);

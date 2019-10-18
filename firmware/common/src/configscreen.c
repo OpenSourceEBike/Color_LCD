@@ -7,7 +7,6 @@ static Field wheelMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max speed", &l3_vars.wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
 						FIELD_EDITABLE_UINT("Circumference", &l3_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
-						FIELD_EDITABLE_ENUM("Speed unit", &l3_vars.ui8_units_type, "kph", "mph"),
 				FIELD_END };
 
 static Field batteryMenus[] =
@@ -86,6 +85,7 @@ static Field displayMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Auto poweroff", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
 				// FIELD_EDITABLE_UINT("Reset to defaults", &ui8_reset_to_defaults_counter, "", 0, 255), // FIXME, make sure if the user incs to 10 we are doing the reset
+						FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
 				FIELD_END };
 
 #if 0

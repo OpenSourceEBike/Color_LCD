@@ -1058,7 +1058,7 @@ static void graphLabelAxis(Field *field) {
 		// x axis scale
 		switch (l3_vars.x_axis_scale) {
 		  case 0:
-		    putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
+		    putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
 		    break;
 
 /*      case 1:
@@ -1074,7 +1074,7 @@ static void graphLabelAxis(Field *field) {
         break;*/
 
 		  default:
-		    putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
+		    putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
 		    break;
 		}
 	}
@@ -1090,7 +1090,7 @@ static void graphLabelAxis(Field *field) {
 
 	    if (cache->max_val != INT32_MIN) {
 	      getEditableString(source, cache->max_val, valstr);
-	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 3,
+	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
 	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
 	    }
 	}
@@ -1102,7 +1102,7 @@ static void graphLabelAxis(Field *field) {
 
       if (cache->min_val != INT32_MAX) {
         getEditableString(source, cache->min_val, valstr);
-        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 3,
+        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
                        graphYmin - GRAPH_MAXVAL_FONT.char_height,
             &GRAPH_MAXVAL_FONT, valstr);
       }

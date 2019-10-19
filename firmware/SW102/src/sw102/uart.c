@@ -16,13 +16,15 @@ nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
 typedef struct uart_rx_buff_typedef uart_rx_buff_typedef;
 struct uart_rx_buff_typedef
 {
-  uint8_t uart_rx_data[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_RECEIVE + UART_NUMBER_CRC_BYTES];
+  uint8_t uart_rx_data[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_RECEIVE_V20 + UART_NUMBER_CRC_BYTES];
   uart_rx_buff_typedef* next_uart_rx_buff;
 };
 uart_rx_buff_typedef* uart_rx_buffer;
 volatile uint8_t* uart_rx_data_rdy;
+uint8_t stream_version;
+uint8_t uart_number_bytes_rx, uart_number_bytes_tx;
 
-uint8_t uart_buffer0_tx[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND + UART_NUMBER_CRC_BYTES];
+uint8_t uart_buffer0_tx[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND_V20 + UART_NUMBER_CRC_BYTES];
 
 /* Function prototype */
 static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
@@ -32,6 +34,11 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
  */
 void uart_init(void)
 {
+  /* Init Stream Version */
+  stream_version = 19;
+  uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V19;
+  uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V19;
+
   /* Init RX buffer */
   static uart_rx_buff_typedef rxb1, rxb2;
   rxb1.next_uart_rx_buff = &rxb2;
@@ -47,6 +54,38 @@ void uart_init(void)
   /* Enable & start RX (bytewise scanning for start byte) */
   nrf_drv_uart_rx_enable(&uart0);
   APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
+}
+
+/**
+ * @brief Returns current stream version set
+ */
+uint8_t uart_get_stream_version(void)
+{
+  return stream_version;
+}
+
+/**
+ * @brief Sets stream version for RX
+ */
+void uart_set_stream_version(uint8_t version)
+{
+  switch (version)
+  {
+  case 19:
+    uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V19;
+    uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V19;
+    break;
+
+  case 20:
+    uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V20;
+    uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V20;
+    break;
+
+  default:
+    return;
+  }
+
+  stream_version = version;
 }
 
 /**
@@ -68,11 +107,11 @@ const uint8_t* uart_get_rx_buffer_rdy(void)
   if (rx_rdy != NULL)
   {
     uint16_t crc_rx = 0xffff;
-    for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_RECEIVE; ui8_i++)
+    for (uint8_t ui8_i = 0; ui8_i <= uart_number_bytes_rx; ui8_i++)
       crc16(rx_rdy[ui8_i], &crc_rx);
 
-    if (((((uint16_t) rx_rdy[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2]) << 8)
-        + ((uint16_t) rx_rdy[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1])) != crc_rx)
+    if (((((uint16_t) rx_rdy[uart_number_bytes_rx + 2]) << 8)
+        + ((uint16_t) rx_rdy[uart_number_bytes_rx + 1])) != crc_rx)
       rx_rdy = NULL;  // Invalidate buffer if CRC not OK
   }
 
@@ -93,7 +132,7 @@ uint8_t* uart_get_tx_buffer(void)
 void uart_send_tx_buffer(uint8_t *tx_buffer)
 {
   ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer,
-      UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND + UART_NUMBER_CRC_BYTES);
+      uart_number_bytes_tx + (UART_NUMBER_START_BYTES + UART_NUMBER_CRC_BYTES));
 
   APP_ERROR_CHECK(err_code);
 }
@@ -127,7 +166,7 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
       {
         uart_rx_state_machine = 1;
         APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[1],
-            UART_NUMBER_DATA_BYTES_TO_RECEIVE + UART_NUMBER_CRC_BYTES)); // Start RX of the remaining stream at once
+            uart_number_bytes_rx + UART_NUMBER_CRC_BYTES)); // Start RX of the remaining stream at once
       }
       else
         APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1)); // Next bytewise RX to check for start byte

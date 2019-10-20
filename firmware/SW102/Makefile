@@ -11,16 +11,24 @@ PROJ_DIR := .
 $(OUTPUT_DIRECTORY)/nrf51822_sw102.out: \
   LINKER_SCRIPT  := gcc_nrf51.ld
 
-# dev platform specific.
-# OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
-# OPENOCD_BIN := openocd.exe
-# NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
+PLATFORM := $(if $(filter Windows%,$(OS)),windows,posix)
 
-OPENOCD_PATH := /usr/local/share/openocd/bin
-OPENOCD_BIN := openocd
-NRFUTIL := nrfutil
+# platform specific tool names and paths
+ifeq ($(PLATFORM),windows)
+  # WINDOWS
+  OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin/
+  OPENOCD_BIN := openocd.exe
+  NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
+  SREC_PATH := E:/nrf5/Toolchain/srecord-1.63-win32/
+else
+  # LINUX
+  OPENOCD_PATH := /usr/local/share/openocd/bin/
+  OPENOCD_BIN := openocd
+  NRFUTIL := nrfutil
+  #SREC_PATH := /usr/bin/
+endif
 
-OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)/../scripts/target/nrf51.cfg
+OPENOCD := '$(OPENOCD_PATH)$(OPENOCD_BIN)' -f $(OPENOCD_PATH)../scripts/interface/stlink.cfg -f $(OPENOCD_PATH)../scripts/target/nrf51.cfg
 
 COMMON_DIR := ../common
 
@@ -243,7 +251,8 @@ LDFLAGS += -Xlinker -Map=$(OUTPUT_DIRECTORY)/nrf51822_sw102.map
 SOFT_DEVICE = $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex
 # BOOTLOADER_HEX = ../../../SW102_LCD_Bluetooth-bootloader/_build/sw102_bootloader.hex
 BOOTLOADER_HEX = prebuilt/sw102_bootloader.hex
-KEYFILE := ../../../SW102_LCD_Bluetooth-bootloader/private.key
+# KEYFILE := ../../../SW102_LCD_Bluetooth-bootloader/private.key
+KEYFILE := prebuilt/private.key
 
 .PHONY: $(TARGETS) default all clean help flash flash_softdevice
 
@@ -264,7 +273,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 # Flash the program
 flash_program: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 	@echo Flashing: $<
-	$(OPENOCD) -c "init; reset init; flash write_image erase $<; verify_image $<; echo FLASHED; reset halt; resume; shutdown"
+	$(OPENOCD) -c "init; reset init; flash write_image erase $<; echo FLASHED; reset halt; resume; shutdown"
 
 openocd:
 	@echo Starting OPENOCD shell
@@ -281,7 +290,7 @@ openocd-shell:
 # Flash softdevice
 flash_softdevice:
 	@echo Flashing: s130_nrf51_2.0.1_softdevice.hex
-	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(SOFT_DEVICE); verify_image $(SDK_ROOT)/components/softdevice/s130/hex/s130_nrf51_2.0.1_softdevice.hex; reset halt; resume; shutdown"
+	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(SOFT_DEVICE); verify_image $(SOFT_DEVICE); reset halt; resume; shutdown"
 
 # Erase Flash
 erase:
@@ -300,7 +309,7 @@ generate_dfu_package: $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex
 # Note: srec_cmp is part of the 'srecord' debian package, for windows supposedly mergehex does the same thing
 release_build: generate_dfu_package
 	$(NRFUTIL) settings generate --no-backup --family NRF51 --application $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex --application-version $(VERSION_NUM) --bootloader-version 0 --bl-settings-version 1 $(OUTPUT_DIRECTORY)/bootloader_setting.hex
-	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel
+	$(SREC_PATH)srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel $(OUTPUT_DIRECTORY)/nrf51822_sw102.hex -Intel $(OUTPUT_DIRECTORY)/bootloader_setting.hex -Intel -Output $(RELEASE_DIRECTORY)/sw102-full-$(VERSION_STRING).hex -Intel
 
 # Program a full release build onto the connected device (including bootloader and soft device)
 release_program: release_build
@@ -308,7 +317,7 @@ release_program: release_build
 
 # For developers only: program a board with bootloader+softdevice BUT NO APP, to make sure the bootloader will properly boot if flash settings are corrupted
 blsd_program: generate_dfu_package
-	srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel -Output $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex -Intel
+	$(SREC_PATH)srec_cat -MULTiple $(BOOTLOADER_HEX) -Intel $(SOFT_DEVICE) -Intel -Output $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex -Intel
 	$(OPENOCD) -c "init; reset init; nrf51 mass_erase; flash write_image $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex; verify_image $(RELEASE_DIRECTORY)/sw102-blsdonly-$(VERSION_STRING).hex; echo FLASHED; reset halt; resume; shutdown"
 
 # Generate a transitional bootloader package for factory bootloaders (i.e. the devices from @eyebyesickle)

@@ -242,7 +242,7 @@ void process_rx(void) {
 				p_rx_buffer++;
 				l2_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
 
-				// not needed with this implementation (and with ptr flipflop not needed eitehr)
+				// not needed with this implementation (and with ptr flipflop not needed either)
 				// usart1_reset_received_package();
 			}
 		}
@@ -381,12 +381,12 @@ void send_tx_package(void) {
 
 	// prepare crc of the package
 	uint16_t ui16_crc_tx = 0xffff;
-	for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++) {
+	for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND_V19; ui8_i++) {
 		crc16(ui8_g_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
 	}
-	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 1] =
+	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND_V19 + 1] =
 			(uint8_t) (ui16_crc_tx & 0xff);
-	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 2] =
+	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND_V19 + 2] =
 			(uint8_t) (ui16_crc_tx >> 8) & 0xff;
 
 	// send the full package to UART
@@ -395,7 +395,7 @@ void send_tx_package(void) {
 		uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
 
 	// increment message_id for next package
-	if (++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID) {
+	if (++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID_V19) {
 		ui8_message_id = 0;
 	}
 }

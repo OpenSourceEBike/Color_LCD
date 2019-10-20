@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SW102-new</name>
+	<name>SW102</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -27,7 +27,7 @@
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<location>/home/kevinh/development/ebike/Color_LCD/firmware/common</location>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/common</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>

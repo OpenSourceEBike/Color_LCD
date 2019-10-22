@@ -507,7 +507,7 @@ void l2_calc_battery_voltage_soc(void) {
 }
 
 void l2_calc_wh(void) {
-	static uint8_t ui8_1s_timmer_counter = 0;
+	static uint8_t ui8_1s_timer_counter = 0;
 	uint32_t ui32_temp = 0;
 
 	if (l2_vars.ui16_battery_power_filtered_x50 > 0) {
@@ -516,8 +516,8 @@ void l2_calc_wh(void) {
 	}
 
 	// calc at 1s rate
-	if (ui8_1s_timmer_counter < 10) {
-		ui8_1s_timmer_counter = 0;
+	if (++ui8_1s_timer_counter >= 10) {
+		ui8_1s_timer_counter = 0;
 
 		// avoid zero divisison
 		if (l2_vars.ui32_wh_sum_counter != 0) {
@@ -529,16 +529,15 @@ void l2_calc_wh(void) {
 
 		l2_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10_offset + ui32_temp;
 	}
-	ui8_1s_timmer_counter++;
 }
 
 static void l2_calc_odometer(void) {
+  static uint8_t ui8_1s_timer_counter;
 	uint32_t uint32_temp;
-	static uint8_t ui8_1s_timmer_counter;
 
 	// calc at 1s rate
-	if (ui8_1s_timmer_counter++ >= 10) {
-		ui8_1s_timmer_counter = 0;
+	if (++ui8_1s_timer_counter >= 10) {
+		ui8_1s_timer_counter = 0;
 
 		uint32_temp = (l2_vars.ui32_wheel_speed_sensor_tick_counter
 				- l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)

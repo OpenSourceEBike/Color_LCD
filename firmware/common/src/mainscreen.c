@@ -219,6 +219,7 @@ void lcd_main_screen(void) {
 	warnings();
 	trip_time();
 	wheel_speed();
+	clock_time();
 }
 
 void wheel_speed(void)
@@ -367,7 +368,7 @@ void screen_clock(void) {
 }
 
 void trip_time(void) {
-	struct_rtc_time_t *p_time = rtc_get_time_since_startup();
+	rtc_time_t *p_time = rtc_get_time_since_startup();
 	static int oldmin = -1; // used to prevent unneeded updates
 	static char timestr[8]; // 12:13
 
@@ -463,7 +464,7 @@ void battery_soc(void) {
 
 
 void time(void) {
-	struct_rtc_time_t *p_rtc_time = rtc_get_time();
+	rtc_time_t *p_rtc_time = rtc_get_time();
 
 	// force to be [0 - 12]
 	if (l3_vars.ui8_units_type) { // FIXME, should be based on a different eeprom config value, just because someone is using mph doesn't mean they want 12 hr time

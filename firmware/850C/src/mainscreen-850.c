@@ -24,6 +24,7 @@
 #include "configscreen.h"
 #include "battery_gui.h"
 #include "state.h"
+#include "eeprom.h"
 
 Field batteryField = FIELD_CUSTOM(renderBattery);
 
@@ -292,14 +293,22 @@ void onSetConfigurationClockMinutes(uint32_t v) {
   rtc_set_time(&rtc_time);
 }
 
-void onSetConfigurationLcdBacklightOnBrightness(uint32_t v) {
+void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v) {
 
   l3_vars.ui8_lcd_backlight_on_brightness = v;
   set_lcd_backlight();
 }
 
-void onSetConfigurationLcdBacklightOffBrightness(uint32_t v) {
+void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
 
   l3_vars.ui8_lcd_backlight_off_brightness = v;
   set_lcd_backlight();
+}
+
+void DisplayResetToDefaults(void) {
+
+  if (ui8_g_display_reset_to_defaults) {
+    ui8_g_display_reset_to_defaults = 0;
+    eeprom_init_defaults();
+  }
 }

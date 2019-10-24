@@ -46,7 +46,7 @@ static Field assistMenus[] =
 static Field walkAssistMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_walk_assist_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
-						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
+						FIELD_EDITABLE_UINT("Leveui8_g_reset_to_defaults_counterl 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 2", &l3_vars.ui8_walk_assist_level_factor[1], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 3", &l3_vars.ui8_walk_assist_level_factor[2], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 4", &l3_vars.ui8_walk_assist_level_factor[3], "", 0, 100),
@@ -201,7 +201,7 @@ static Field startupPowerMenus[] = {
   FIELD_END };
 
 static Field motorTempMenus[] = {
-  FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_temperature_limit_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
+  FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_temperature_limit_feature_enabled, "disable", "temperature", "throttle"), // FIXME, share one array of disable/enable strings
   FIELD_EDITABLE_UINT("Min limit", &l3_vars.ui8_motor_temperature_min_value_to_limit, "degC", 0, 125),
   FIELD_EDITABLE_UINT("Max limit", &l3_vars.ui8_motor_temperature_max_value_to_limit, "degC", 0, 125),
   FIELD_END };
@@ -211,14 +211,10 @@ static Field displayMenus[] = {
   FIELD_EDITABLE_UINT("Clock minutes", &ui8_g_configuration_clock_minutes, "", 0, 59, .onPreSetEditable = onSetConfigurationClockMinutes),
   FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
   FIELD_EDITABLE_ENUM("Buttons invert", &l3_vars.ui8_buttons_up_down_invert, "default", "invert"),
-  FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationLcdBacklightOnBrightness),
-  FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationLcdBacklightOffBrightness),
-
+  FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOnBrightness),
+  FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOffBrightness),
   FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
-
-
-  // FIELD_EDITABLE_UINT("Reset to defaults", &ui8_reset_to_defaults_counter, "", 0, 255), // FIXME, make sure if the user incs to 10 we are doing the reset
-
+  FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_display_reset_to_defaults, "no", "yes"),
   FIELD_END };
 
 #if 0
@@ -265,6 +261,8 @@ static Field topMenus[] = {
 #endif
 
 static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
+
+uint8_t ui8_g_display_reset_to_defaults = 0;
 
 static void configScreenOnEnter() {
 	// Set the font preference for this screen

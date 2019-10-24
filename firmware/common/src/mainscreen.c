@@ -219,7 +219,6 @@ void lcd_main_screen(void) {
 	warnings();
 	trip_time();
 	wheel_speed();
-	clock_time();
 }
 
 void wheel_speed(void)
@@ -364,6 +363,10 @@ void screen_clock(void) {
 	}
 
 	lcd_main_screen();
+
+  clock_time();
+  DisplayResetToDefaults();
+
 	screenUpdate();
 }
 

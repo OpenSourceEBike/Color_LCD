@@ -37,8 +37,9 @@ bool anyscreen_onpress(buttons_events_t events);
 void clock_time(void);
 void onSetConfigurationClockHours(uint32_t v);
 void onSetConfigurationClockMinutes(uint32_t v);
-void onSetConfigurationLcdBacklightOnBrightness(uint32_t v);
-void onSetConfigurationLcdBacklightOffBrightness(uint32_t v);
+void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v);
+void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v);
+void DisplayResetToDefaults(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 extern bool wd_failure_detected;

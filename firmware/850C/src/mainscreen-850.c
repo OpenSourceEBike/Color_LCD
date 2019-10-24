@@ -88,7 +88,8 @@ static void mainScreenOnDirtyClean() {
 void mainScreenOnPostUpdate(void) {
   // because printing numbers of wheel speed will make dirty the dot, always print it
   // wheel speed print dot
-  UG_FillCircle(247, 128, 3, C_WHITE);
+//  UG_FillCircle(245, 130, 3, C_WHITE);
+  UG_FillFrame(244, 129, 250, 135, C_WHITE);
 }
 
 /**
@@ -127,7 +128,7 @@ void mainScreenOnPostUpdate(void) {
 	}
 
 //
-// Screens
+// Screenscommon/src/state.c
 //
 Screen mainScreen = {
   .onPress = mainscreen_onpress,
@@ -150,7 +151,7 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = 119, .y = 56,
+      .x = 117, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
       .field = &wheelSpeedIntegerField,

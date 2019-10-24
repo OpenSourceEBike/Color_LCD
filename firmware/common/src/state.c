@@ -23,7 +23,6 @@
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_m_battery_soc_watts_hour;
-uint16_t ui16_m_battery_soc_watts_hour_fixed; // temp hack during merge
 volatile uint32_t ui32_g_layer_2_can_execute;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
@@ -643,9 +642,6 @@ void calc_battery_soc_watts_hour(void) {
 	} else {
 		ui16_m_battery_soc_watts_hour = ui32_temp;
 	}
-
-	// fixed range
-	ui16_m_battery_soc_watts_hour_fixed = 100 - ui32_temp;
 }
 
 // Note: this called from ISR context every 100ms
@@ -712,7 +708,7 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;
 	l3_vars.ui32_wh_x10 = l2_vars.ui32_wh_x10;
 	l3_vars.ui8_braking = l2_vars.ui8_braking;
-	l3_vars.ui8_foc_angle = l2_vars.ui8_foc_angle;
+	l3_vars.ui8_foc_angle = (((uint16_t) l2_vars.ui8_foc_angle) * 14) / 10; // each units is equal to 1.4 degrees ((360 degrees / 256) = 1.4)
 
 	l2_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10_offset;
 	l2_vars.ui16_battery_pack_resistance_x1000 =

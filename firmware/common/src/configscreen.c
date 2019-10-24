@@ -234,13 +234,13 @@ static Field variousMenus[] = {
   FIELD_END };
 
 static Field technicalMenus[] = {
-  FIELD_READONLY_UINT("ADC throttle", &l3_vars.ui8_adc_throttle, ""),
-  FIELD_READONLY_UINT("Throttle", &l3_vars.ui8_throttle, ""),
-  FIELD_READONLY_UINT("ADC Torque", &l3_vars.ui8_adc_pedal_torque_sensor, ""),
-  FIELD_READONLY_UINT("Torque", &l3_vars.ui8_pedal_torque_sensor, ""),
-  FIELD_READONLY_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
-  FIELD_READONLY_UINT("Human power", &l3_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
-  FIELD_READONLY_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, ""),
+  FIELD_READONLY_UINT("ADC throttle sensor", &l3_vars.ui8_adc_throttle, ""),
+  FIELD_READONLY_UINT("Throttle sensor", &l3_vars.ui8_throttle, ""),
+  FIELD_READONLY_UINT("ADC Torque sensor", &l3_vars.ui8_adc_pedal_torque_sensor, ""),
+  FIELD_READONLY_UINT("Torque sensor", &l3_vars.ui8_pedal_torque_sensor, ""),
+  FIELD_READONLY_UINT("Pedal cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
+  FIELD_READONLY_UINT("Pedal Human power", &l3_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
+  FIELD_READONLY_UINT("PWM duty-cycle", &l3_vars.ui8_duty_cycle, ""),
   FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, ""),
   FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, ""),
   FIELD_END };
@@ -250,9 +250,9 @@ static Field topMenus[] = {
   FIELD_SCROLLABLE("Battery", batteryMenus),
   FIELD_SCROLLABLE("Battery SOC", batterySOCMenus),
   FIELD_SCROLLABLE("Assist level", assistMenus),
-  FIELD_SCROLLABLE("Walk", walkAssistMenus),
-  FIELD_SCROLLABLE("Startup power", startupPowerMenus),
-  FIELD_SCROLLABLE("Motor temp", motorTempMenus),
+  FIELD_SCROLLABLE("Walk assist", walkAssistMenus),
+  FIELD_SCROLLABLE("Startup BOOST", startupPowerMenus),
+  FIELD_SCROLLABLE("Motor temperature", motorTempMenus),
   FIELD_SCROLLABLE("Display", displayMenus),
   // FIELD_SCROLLABLE("Offroad", offroadMenus),
   FIELD_SCROLLABLE("Various", variousMenus),
@@ -260,7 +260,7 @@ static Field topMenus[] = {
   FIELD_END };
 #endif
 
-static Field configRoot = FIELD_SCROLLABLE("Config", topMenus);
+static Field configRoot = FIELD_SCROLLABLE("Configurations", topMenus);
 
 uint8_t ui8_g_display_reset_to_defaults = 0;
 

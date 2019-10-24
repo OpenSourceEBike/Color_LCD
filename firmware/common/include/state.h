@@ -181,9 +181,9 @@ typedef struct l3_vars_struct {
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 
-	uint8_t x_axis_scale; // x axis scale
-
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
+
+  uint8_t x_axis_scale; // x axis scale
 
 } l3_vars_t;
 

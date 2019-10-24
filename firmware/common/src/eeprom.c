@@ -101,7 +101,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
 		.field_selectors = { // we somewhat yuckily pick defaults to match the layout on the previous release
 				0, 10, 0, 2, 1 },
-    DEFAULT_VALUE_X_AXIS_SCALE,
+    .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
+    .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
 };
 
 void eeprom_init() {
@@ -210,6 +211,7 @@ void eeprom_init_variables(void) {
 	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, ui8_walk_assist_level_factor);
 	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, field_selectors);
   p_l3_output_vars->x_axis_scale = m_eeprom_data.x_axis_scale;
+  p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
 }
 
 void eeprom_write_variables(void) {
@@ -282,6 +284,7 @@ void eeprom_write_variables(void) {
 	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, ui8_walk_assist_level_factor);
 	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, field_selectors);
   m_eeprom_data.x_axis_scale = p_l3_output_vars->x_axis_scale;
+  m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

@@ -210,7 +210,13 @@ static Field displayMenus[] = {
   FIELD_EDITABLE_UINT("Clock hours", &ui8_g_configuration_clock_hours, "", 0, 23, .onPreSetEditable = onSetConfigurationClockHours),
   FIELD_EDITABLE_UINT("Clock minutes", &ui8_g_configuration_clock_minutes, "", 0, 59, .onPreSetEditable = onSetConfigurationClockMinutes),
   FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
-  FIELD_EDITABLE_UINT("Auto poweroff", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
+  FIELD_EDITABLE_ENUM("Buttons invert", &l3_vars.ui8_buttons_up_down_invert, "default", "invert"),
+  FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationLcdBacklightOnBrightness),
+  FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationLcdBacklightOffBrightness),
+
+  FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
+
+
   // FIELD_EDITABLE_UINT("Reset to defaults", &ui8_reset_to_defaults_counter, "", 0, 255), // FIXME, make sure if the user incs to 10 we are doing the reset
 
   FIELD_END };
@@ -236,7 +242,7 @@ static Field technicalMenus[] = {
   FIELD_READONLY_UINT("Throttle", &l3_vars.ui8_throttle, ""),
   FIELD_READONLY_UINT("ADC Torque", &l3_vars.ui8_adc_pedal_torque_sensor, ""),
   FIELD_READONLY_UINT("Torque", &l3_vars.ui8_pedal_torque_sensor, ""),
-  FIELD_READONL    Y_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
+  FIELD_READONLY_UINT("Cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
   FIELD_READONLY_UINT("Human power", &l3_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
   FIELD_READONLY_UINT("PWM duty cycle", &l3_vars.ui8_duty_cycle, ""),
   FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, ""),

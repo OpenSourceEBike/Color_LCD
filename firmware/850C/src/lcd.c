@@ -212,10 +212,12 @@ void power_off_management(void)
 
 void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 {
-  // force to be min of 20% and max of 100%
-  if(ui8_intensity < 4)
+  ui8_intensity /= 5;
+
+  // force to be min of 5% and max of 100%
+  if(ui8_intensity < 1)
   {
-    ui8_intensity = 4;
+    ui8_intensity = 1;
   }
   else if(ui8_intensity > 20)
   {
@@ -223,7 +225,6 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity)
   }
 
   TIM_SetCompare2(TIM3, ((uint16_t) ui8_intensity) * 2000);
-  // TIM_CtrlPWMOutputs(TIM3, ENABLE); // FIXME, this function is not allowed for TIM3, apparently this PWM output is always on
 }
 
 

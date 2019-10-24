@@ -291,3 +291,15 @@ void onSetConfigurationClockMinutes(uint32_t v) {
   rtc_time.ui8_minutes = v;
   rtc_set_time(&rtc_time);
 }
+
+void onSetConfigurationLcdBacklightOnBrightness(uint32_t v) {
+
+  l3_vars.ui8_lcd_backlight_on_brightness = v;
+  set_lcd_backlight();
+}
+
+void onSetConfigurationLcdBacklightOffBrightness(uint32_t v) {
+
+  l3_vars.ui8_lcd_backlight_off_brightness = v;
+  set_lcd_backlight();
+}

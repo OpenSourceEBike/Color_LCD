@@ -31,6 +31,7 @@
 #include "ugui.h"
 #include "fonts.h"
 #include "state.h"
+#include "mainscreen.h"
 
 extern UG_GUI gui;
 
@@ -389,11 +390,12 @@ static bool exitScrollable() {
 		// Parent was a scrollable, show it
 		f->dirty = true;
 		forceScrollableRelayout = true;
-		return true;
 	} else {
-		// otherwise we just leave the screen showing the top scrollable
-		return false;
+		// otherwise we just leave the screen
+	  showNextScreen();
 	}
+
+  return true;
 }
 
 #define SCROLLABLE_VPAD 4 // extra space between each row (for visual appearance)
@@ -1464,14 +1466,32 @@ static void selectNextCustomizableField() {
 /**
  * For the currently customizing field, advance the target to the next possible choice for the sort of data to show.
  */
-static void changeCurrentCustomizableField() {
+static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 	Field *s = curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
 
 	uint8_t i = *s->customizable.selector;
+	static uint8_t i_max;
 
-	if (!s->customizable.choices[++i]) // we fell off the end, loop around
-		i = 0;
+	static uint8_t ui8_first_time = 1;
+
+	// find number of customized fields
+	if (ui8_first_time) {
+    ui8_first_time = 0;
+
+    for (i_max = 0; s->customizable.choices[i_max] != 0; i_max++)
+      ;
+	}
+
+	if (ui8_direction) {
+    if (!s->customizable.choices[++i]) // we fell off the end, loop around
+      i = 0;
+	} else {
+	  if (i == 0)
+	    i = i_max;
+	  else
+	    i--;
+	}
 
 	*s->customizable.selector = i;
 }
@@ -1492,12 +1512,17 @@ static bool onPressCustomizing(buttons_events_t events) {
 
 	// Change the current customizable field to show the next possible value
 	if (events & UP_CLICK) {
-		changeCurrentCustomizableField();
+		changeCurrentCustomizableField(1);
 		return true;
 	}
 
+  if (events & DOWN_CLICK) {
+    changeCurrentCustomizableField(0);
+    return true;
+  }
+
 	// Go to next customizable field
-	if (events & DOWN_CLICK) {
+	if (events & ONOFF_CLICK) {
 		selectNextCustomizableField();
 		return true;
 	}

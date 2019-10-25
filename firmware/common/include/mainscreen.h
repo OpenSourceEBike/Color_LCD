@@ -5,6 +5,7 @@
 void mainscreen_show();
 void main_idle(); // call every 20ms
 bool mainscreen_onpress(buttons_events_t events);
+void showNextScreen();
 
 extern Screen mainScreen, infoScreen, bootScreen;
 

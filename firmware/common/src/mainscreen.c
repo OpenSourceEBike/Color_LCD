@@ -35,7 +35,7 @@ void wheel_speed(void);
 void battery_soc(void);
 void trip_time(void);
 void wheel_speed(void);
-static void showNextScreen();
+void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
@@ -498,7 +498,7 @@ void walk_assist_state(void) {
 // Screens in a loop, shown when the user short presses the power button
 extern Screen *screens[];
 
-static void showNextScreen() {
+void showNextScreen() {
 	static int nextScreen;
 
 	Screen *next = screens[nextScreen++];

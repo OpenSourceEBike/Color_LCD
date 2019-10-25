@@ -257,144 +257,135 @@ void process_rx(void) {
 		if (has_seen_motor && num_missed_packets++ == 50)
 			APP_ERROR_HANDLER(FAULT_LOSTRX);
 	}
-
 }
 
 void send_tx_package(void) {
 	static uint8_t ui8_message_id = 0;
 
-	uint8_t *ui8_g_usart1_tx_buffer = uart_get_tx_buffer();
+	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
 
 	/************************************************************************************************/
 	// send tx package
 	// start up byte
-	ui8_g_usart1_tx_buffer[0] = 0x59;
-	ui8_g_usart1_tx_buffer[1] = ui8_message_id;
+	ui8_usart1_tx_buffer[0] = 0x59;
+	ui8_usart1_tx_buffer[1] = ui8_message_id;
 
 	if (l2_vars.ui8_walk_assist) {
-		ui8_g_usart1_tx_buffer[2] =
+		ui8_usart1_tx_buffer[2] =
 				l2_vars.ui8_walk_assist_level_factor[((l2_vars.ui8_assist_level)
 						- 1)];
 	} else if (l2_vars.ui8_assist_level) {
-		ui8_g_usart1_tx_buffer[2] =
+		ui8_usart1_tx_buffer[2] =
 				l2_vars.ui8_assist_level_factor[((l2_vars.ui8_assist_level) - 1)];
 	} else {
-		ui8_g_usart1_tx_buffer[2] = 0;
+		ui8_usart1_tx_buffer[2] = 0;
 	}
 
-	// set lights state
-	// walk assist level state
-	// set offroad state
-//  ui8_g_usart1_tx_buffer[3] = (l2_vars.ui8_lights & 1) |
-//      ((l2_vars.ui8_walk_assist & 1) << 1) |
-//      ((l2_vars.ui8_offroad_mode & 1) << 2);
-
-	ui8_g_usart1_tx_buffer[3] = (l2_vars.ui8_lights & 1)
+	ui8_usart1_tx_buffer[3] = (l2_vars.ui8_lights & 1)
 			| ((l2_vars.ui8_walk_assist & 1) << 1);
 
 	// battery power
-	ui8_g_usart1_tx_buffer[4] = l2_vars.ui8_target_max_battery_power;
+	ui8_usart1_tx_buffer[4] = l2_vars.ui8_target_max_battery_power;
 
 	switch (ui8_message_id) {
-	case 0:
-		// battery low voltage cut-off
-		ui8_g_usart1_tx_buffer[5] =
-				(uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
-		ui8_g_usart1_tx_buffer[6] =
-				(uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
-		break;
+    case 0:
+      // battery low voltage cut-off
+      ui8_usart1_tx_buffer[5] =
+          (uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
+      ui8_usart1_tx_buffer[6] =
+          (uint8_t) (l2_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
+      break;
 
-	case 1:
-		// wheel perimeter
-		ui8_g_usart1_tx_buffer[5] = (uint8_t) (l2_vars.ui16_wheel_perimeter
-				& 0xff);
-		ui8_g_usart1_tx_buffer[6] =
-				(uint8_t) (l2_vars.ui16_wheel_perimeter >> 8);
-		break;
+    case 1:
+      // wheel perimeter
+      ui8_usart1_tx_buffer[5] = (uint8_t) (l2_vars.ui16_wheel_perimeter
+          & 0xff);
+      ui8_usart1_tx_buffer[6] =
+          (uint8_t) (l2_vars.ui16_wheel_perimeter >> 8);
+      break;
 
-	case 2:
-		// wheel max speed
-		ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_wheel_max_speed;
+    case 2:
+      // wheel max speed
+      ui8_usart1_tx_buffer[5] = l2_vars.ui8_wheel_max_speed;
 
-		// battery max current
-		ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_battery_max_current;
-		break;
+      // battery max current
+      ui8_usart1_tx_buffer[6] = l2_vars.ui8_battery_max_current;
+      break;
 
-	case 3:
-		ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_motor_type;
+    case 3:
+      ui8_usart1_tx_buffer[5] = l2_vars.ui8_motor_type;
 
-		ui8_g_usart1_tx_buffer[6] = (
-				l2_vars.ui8_startup_motor_power_boost_always ? 1 : 0)
-				| (l2_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
-		break;
+      ui8_usart1_tx_buffer[6] = (
+          l2_vars.ui8_startup_motor_power_boost_always ? 1 : 0)
+          | (l2_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
+      break;
 
-	case 4:
-		// startup motor power boost
-		ui8_g_usart1_tx_buffer[5] =
-				l2_vars.ui8_startup_motor_power_boost_factor[((l2_vars.ui8_assist_level)
-						- 1)];
-		// startup motor power boost time
-		ui8_g_usart1_tx_buffer[6] = l2_vars.ui8_startup_motor_power_boost_time;
-		break;
+    case 4:
+      // startup motor power boost
+      ui8_usart1_tx_buffer[5] =
+          l2_vars.ui8_startup_motor_power_boost_factor[((l2_vars.ui8_assist_level)
+              - 1)];
+      // startup motor power boost time
+      ui8_usart1_tx_buffer[6] = l2_vars.ui8_startup_motor_power_boost_time;
+      break;
 
-	case 5:
-		// startup motor power boost fade time
-		ui8_g_usart1_tx_buffer[5] =
-				l2_vars.ui8_startup_motor_power_boost_fade_time;
-		// boost feature enabled
-		ui8_g_usart1_tx_buffer[6] =
-				(l2_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ?
-						1 : 0;
-		break;
+    case 5:
+      // startup motor power boost fade time
+      ui8_usart1_tx_buffer[5] =
+          l2_vars.ui8_startup_motor_power_boost_fade_time;
+      // boost feature enabled
+      ui8_usart1_tx_buffer[6] =
+          (l2_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ?
+              1 : 0;
+      break;
 
-	case 6:
-		// motor over temperature min and max values to limit
-		ui8_g_usart1_tx_buffer[5] =
-				l2_vars.ui8_motor_temperature_min_value_to_limit;
-		ui8_g_usart1_tx_buffer[6] =
-				l2_vars.ui8_motor_temperature_max_value_to_limit;
-		break;
+    case 6:
+      // motor over temperature min and max values to limit
+      ui8_usart1_tx_buffer[5] =
+          l2_vars.ui8_motor_temperature_min_value_to_limit;
+      ui8_usart1_tx_buffer[6] =
+          l2_vars.ui8_motor_temperature_max_value_to_limit;
+      break;
 
-	case 7:
-		ui8_g_usart1_tx_buffer[5] = l2_vars.ui8_ramp_up_amps_per_second_x10;
+    case 7:
+      ui8_usart1_tx_buffer[5] = l2_vars.ui8_ramp_up_amps_per_second_x10;
 
-		// TODO
-		// target speed for cruise
-		ui8_g_usart1_tx_buffer[6] = 0;
-		break;
+      // TODO
+      // target speed for cruise
+      ui8_usart1_tx_buffer[6] = 0;
+      break;
 
-	case 8:
-		// motor temperature limit function or throttle
-		ui8_g_usart1_tx_buffer[5] =
-				l2_vars.ui8_temperature_limit_feature_enabled & 1;
+    case 8:
+      // motor temperature limit function or throttle
+      ui8_usart1_tx_buffer[5] =
+          l2_vars.ui8_temperature_limit_feature_enabled & 1;
 
-		// motor assistance without pedal rotation enable/disable when startup
-		ui8_g_usart1_tx_buffer[6] =
-				l2_vars.ui8_motor_assistance_startup_without_pedal_rotation;
-		break;
+      // motor assistance without pedal rotation enable/disable when startup
+      ui8_usart1_tx_buffer[6] =
+          l2_vars.ui8_motor_assistance_startup_without_pedal_rotation;
+      break;
 
-	default:
-		ui8_message_id = 0;
-		break;
+    default:
+      ui8_message_id = 0;
+      break;
 	}
 
 	// prepare crc of the package
 	uint16_t ui16_crc_tx = 0xffff;
-	for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND_V19; ui8_i++) {
-		crc16(ui8_g_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
+	for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++) {
+		crc16(ui8_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
 	}
-	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND_V19 + 1] =
+	ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 1] =
 			(uint8_t) (ui16_crc_tx & 0xff);
-	ui8_g_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND_V19 + 2] =
+	ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 2] =
 			(uint8_t) (ui16_crc_tx >> 8) & 0xff;
 
 	// send the full package to UART
-	// start DMA UART transfer
 	if (!is_sim_motor) // If we are simulating received packets never send real packets
-		uart_send_tx_buffer(ui8_g_usart1_tx_buffer);
+		uart_send_tx_buffer(ui8_usart1_tx_buffer);
 
 	// increment message_id for next package
-	if (++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID_V19) {
+	if (++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID) {
 		ui8_message_id = 0;
 	}
 }

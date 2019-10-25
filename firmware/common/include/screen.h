@@ -137,7 +137,7 @@ typedef enum {
 #define GRAPH_COLOR_WARN    C_YELLOW
 #define GRAPH_COLOR_ERROR   C_RED
 #define GRAPH_COLOR_BACKGROUND C_BLACK
-#define GRAPH_COLOR_AXIS	C_SLATE_GRAY
+#define GRAPH_COLOR_AXIS	C_WHITE
 #define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
 #define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
 #define GRAPH_XAXIS_FONT   SMALL_TEXT_FONT
@@ -221,7 +221,7 @@ typedef struct Field {
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
 					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
-		                        void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
+	      				void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
 
 				struct {
@@ -424,7 +424,7 @@ extern const UG_FONT *editable_units_font;
 
 #define SCREENCLICK_START_EDIT ONOFF_CLICK
 #define SCREENCLICK_STOP_EDIT ONOFF_CLICK
-#define SCREENCLICK_EXIT_SCROLLABLE ONOFF_CLICK
+#define SCREENCLICK_EXIT_SCROLLABLE UPDOWN_CLICK
 #define SCREENCLICK_NEXT_SCREEN UPDOWN_CLICK
 
 #define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK

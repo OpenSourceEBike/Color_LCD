@@ -108,7 +108,6 @@ static void bootScreenOnPreUpdate() {
 	uint16_t bvolt = battery_voltage_10x_get();
 
 	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-
   if(is_sim_motor)
     fieldPrintf(&bootStatus, "SIMULATING TSDZ2!");
   else if(has_seen_motor)

@@ -181,9 +181,9 @@ typedef struct l3_vars_struct {
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 
-	uint8_t x_axis_scale; // x axis scale
-
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
+
+  uint8_t x_axis_scale; // x axis scale
 
 } l3_vars_t;
 
@@ -210,7 +210,6 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 void set_lcd_backlight();
 
 extern uint16_t ui16_m_battery_soc_watts_hour;
-extern uint16_t ui16_m_battery_soc_watts_hour_fixed;
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor

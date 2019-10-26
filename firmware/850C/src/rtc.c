@@ -86,7 +86,7 @@ void rtc_init()
 
     // set default time to 0h0m0s
     RTC_WaitForLastTask();
-    struct_rtc_time_t rtc_time =
+    rtc_time_t rtc_time =
       {
         .ui8_hours = 0,
         .ui8_minutes = 0
@@ -119,17 +119,17 @@ void rtc_init()
   BKP_RTCOutputConfig(BKP_RTCOutputSource_None);
 }
 
-void rtc_set_time(struct_rtc_time_t *rtc_time)
+void rtc_set_time(rtc_time_t *rtc_time)
 {
   RTC_WaitForLastTask();
   RTC_SetCounter((((uint32_t) rtc_time->ui8_hours) * 3600) + (((uint32_t) rtc_time->ui8_minutes) * 60));
   RTC_WaitForLastTask();
 }
 
-struct_rtc_time_t* rtc_get_time(void)
+rtc_time_t* rtc_get_time(void)
 {
   uint32_t ui32_temp;
-  static struct_rtc_time_t rtc_time;
+  static rtc_time_t rtc_time;
 
   ui32_temp = RTC_GetCounter() % SECONDS_IN_DAY;
   rtc_time.ui8_hours = ui32_temp / 3600;
@@ -138,10 +138,10 @@ struct_rtc_time_t* rtc_get_time(void)
   return &rtc_time;
 }
 
-struct_rtc_time_t* rtc_get_time_since_startup(void)
+rtc_time_t* rtc_get_time_since_startup(void)
 {
   uint32_t ui32_temp;
-  static struct_rtc_time_t rtc_time;
+  static rtc_time_t rtc_time;
 
   ui32_temp = ui32_seconds_since_startup % SECONDS_IN_DAY;
   rtc_time.ui8_hours = ui32_temp / 3600;

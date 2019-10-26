@@ -35,7 +35,7 @@ void wheel_speed(void);
 void battery_soc(void);
 void trip_time(void);
 void wheel_speed(void);
-static void showNextScreen();
+void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
@@ -108,7 +108,6 @@ static void bootScreenOnPreUpdate() {
 	uint16_t bvolt = battery_voltage_10x_get();
 
 	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-
   if(is_sim_motor)
     fieldPrintf(&bootStatus, "SIMULATING TSDZ2!");
   else if(has_seen_motor)
@@ -363,11 +362,15 @@ void screen_clock(void) {
 	}
 
 	lcd_main_screen();
+
+  clock_time();
+  DisplayResetToDefaults();
+
 	screenUpdate();
 }
 
 void trip_time(void) {
-	struct_rtc_time_t *p_time = rtc_get_time_since_startup();
+	rtc_time_t *p_time = rtc_get_time_since_startup();
 	static int oldmin = -1; // used to prevent unneeded updates
 	static char timestr[8]; // 12:13
 
@@ -463,7 +466,7 @@ void battery_soc(void) {
 
 
 void time(void) {
-	struct_rtc_time_t *p_rtc_time = rtc_get_time();
+	rtc_time_t *p_rtc_time = rtc_get_time();
 
 	// force to be [0 - 12]
 	if (l3_vars.ui8_units_type) { // FIXME, should be based on a different eeprom config value, just because someone is using mph doesn't mean they want 12 hr time
@@ -495,7 +498,7 @@ void walk_assist_state(void) {
 // Screens in a loop, shown when the user short presses the power button
 extern Screen *screens[];
 
-static void showNextScreen() {
+void showNextScreen() {
 	static int nextScreen;
 
 	Screen *next = screens[nextScreen++];

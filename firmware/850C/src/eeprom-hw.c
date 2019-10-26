@@ -20,58 +20,52 @@
 
 #define EEPROM_MAGIC_KEY                ((uint8_t) 0x5a)
 
-#define ADDRESS_KEY 0
-#define KEY 7
-
-int32_t ui32_m_eeprom_page = 0;
-
+static uint32_t ui32_m_eeprom_page = 0;
 
 static void eeprom_erase_page(uint32_t ui32_eeprom_page);
 static uint8_t eeprom_read(uint32_t ui32_address);
 static uint8_t eeprom_read_from_page(uint32_t ui32_address, uint32_t ui32_eeprom_page);
-static uint32_t eeprom_write(uint32_t ui32_address, uint8_t ui8_data);
 // static uint32_t eeprom_write_to_page(uint32_t ui32_address, uint8_t ui8_data, uint32_t ui32_eeprom_page);
-
 
 void eeprom_hw_init() {
 	// Nothing needed on 850C
 }
 
-
 // Set eeprom_page based on which page seems like it might be valid
-void find_valid_page() {
+void find_valid_page()
+{
   // check if both EEPROM pages have invalid values and if so, write default values on page 0
   if((eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 0) != EEPROM_MAGIC_KEY) &&
 	  (eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 1) != EEPROM_MAGIC_KEY))
   {
-	// setup page 0
-	ui32_m_eeprom_page = 0;
-	eeprom_erase_page(ui32_m_eeprom_page);
-	// write EEPROM_MAGIC_KEY and EEPROM_PAGE WRITE_ID
-	eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
-	eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, 1); // start with value 1
+    // setup page 0
+    ui32_m_eeprom_page = 0;
+    eeprom_erase_page(ui32_m_eeprom_page);
+    // write EEPROM_MAGIC_KEY and EEPROM_PAGE WRITE_ID
+    eeprom_write(EEPROM_PAGE_KEY_ADDRESS, EEPROM_MAGIC_KEY);
+    eeprom_write(EEPROM_PAGE_WRITE_ID_ADDRESS, 1); // start with value 1
   }
   // check if both EEPROM pages have valid values...
   else if((eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 0) == EEPROM_MAGIC_KEY) &&
 	  (eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 1) == EEPROM_MAGIC_KEY))
   {
-	// now find the page that has a higher write ID
-	if(eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 1) > eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 0))
-	{
-	  ui32_m_eeprom_page = 1;
-	}
-	else
-	{
-	  ui32_m_eeprom_page = 0;
-	}
+    // now find the page that has a higher write ID
+    if(eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 1) > eeprom_read_from_page(EEPROM_PAGE_WRITE_ID_ADDRESS, 0))
+    {
+      ui32_m_eeprom_page = 1;
+    }
+    else
+    {
+      ui32_m_eeprom_page = 0;
+    }
   }
   else if(eeprom_read_from_page(EEPROM_PAGE_KEY_ADDRESS, 0) == EEPROM_MAGIC_KEY)
   {
-	ui32_m_eeprom_page = 0;
+      ui32_m_eeprom_page = 0;
   }
   else
   {
-	ui32_m_eeprom_page = 1;
+      ui32_m_eeprom_page = 1;
   }
 }
 
@@ -98,7 +92,6 @@ bool flash_read_words(void *dest, uint16_t length_words)
   return true;
 }
 
-
 static void eeprom_write_array(const uint8_t *p_array, uint32_t ui32_len)
 {
   // write the full array
@@ -108,7 +101,6 @@ static void eeprom_write_array(const uint8_t *p_array, uint32_t ui32_len)
     eeprom_write(1 + ui32_i, *p_array++);
   }
 }
-
 
 bool flash_write_words(const void *value, uint16_t length_words)
 {
@@ -128,8 +120,6 @@ bool flash_write_words(const void *value, uint16_t length_words)
 
   return true;
 }
-
-
 
 uint8_t eeprom_read(uint32_t ui32_address)
 {
@@ -160,12 +150,9 @@ uint32_t eeprom_write(uint32_t ui32_address, uint8_t ui8_data)
   return 0;
 }
 
-
 void eeprom_erase_page(uint32_t ui32_eeprom_page)
 {
   FLASH_Unlock();
   FLASH_ErasePage(((uint32_t) EEPROM_START_ADDRESS) + (ui32_eeprom_page * 2048));
   FLASH_Lock();
 }
-
-

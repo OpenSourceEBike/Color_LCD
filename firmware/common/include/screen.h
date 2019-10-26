@@ -137,7 +137,7 @@ typedef enum {
 #define GRAPH_COLOR_WARN    C_YELLOW
 #define GRAPH_COLOR_ERROR   C_RED
 #define GRAPH_COLOR_BACKGROUND C_BLACK
-#define GRAPH_COLOR_AXIS	C_SLATE_GRAY
+#define GRAPH_COLOR_AXIS	C_WHITE
 #define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
 #define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
 #define GRAPH_XAXIS_FONT   SMALL_TEXT_FONT
@@ -219,8 +219,9 @@ typedef struct Field {
 					const char *units;
 					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
-					const uint32_t max_value, min_value; // min/max
+					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
+	      				void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
 
 				struct {
@@ -423,10 +424,10 @@ extern const UG_FONT *editable_units_font;
 
 #define SCREENCLICK_START_EDIT ONOFF_CLICK
 #define SCREENCLICK_STOP_EDIT ONOFF_CLICK
-#define SCREENCLICK_EXIT_SCROLLABLE ONOFF_CLICK
+#define SCREENCLICK_EXIT_SCROLLABLE ONOFF_LONG_CLICK
 #define SCREENCLICK_NEXT_SCREEN UPDOWN_CLICK
 
-#define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK
-#define SCREENCLICK_STOP_CUSTOMIZING ONOFF_CLICK
+#define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK_LONG_CLICK
+#define SCREENCLICK_STOP_CUSTOMIZING ONOFF_LONG_CLICK
 #endif
 

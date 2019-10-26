@@ -24,6 +24,7 @@
 #include "configscreen.h"
 #include "battery_gui.h"
 #include "state.h"
+#include "eeprom.h"
 
 Field batteryField = FIELD_CUSTOM(renderBattery);
 
@@ -41,7 +42,8 @@ Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -
 Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0], &batteryVoltageGraph, &humanPowerGraph, &speedGraph,
 		&motorTempGraph, &pwmDutyGraph, &motorErpsGraph, &motorFOCGraph, &cadenceGraph);
 
-
+uint8_t ui8_g_configuration_clock_hours;
+uint8_t ui8_g_configuration_clock_minutes;
 
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen
@@ -86,7 +88,8 @@ static void mainScreenOnDirtyClean() {
 void mainScreenOnPostUpdate(void) {
   // because printing numbers of wheel speed will make dirty the dot, always print it
   // wheel speed print dot
-  UG_FillCircle(247, 128, 3, C_WHITE);
+//  UG_FillCircle(245, 130, 3, C_WHITE);
+  UG_FillFrame(244, 129, 250, 135, C_WHITE);
 }
 
 /**
@@ -125,7 +128,7 @@ void mainScreenOnPostUpdate(void) {
 	}
 
 //
-// Screens
+// Screenscommon/src/state.c
 //
 Screen mainScreen = {
   .onPress = mainscreen_onpress,
@@ -148,7 +151,7 @@ Screen mainScreen = {
       .border = BorderNone,
     },
     {
-      .x = 119, .y = 56,
+      .x = 117, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
       .field = &wheelSpeedIntegerField,
@@ -245,4 +248,68 @@ void battery_display() {
 		oldsoc = l3_vars.volt_based_soc;
 		batteryField.dirty = true;
 	}
+}
+
+void clock_time(void) {
+  rtc_time_t *p_rtc_time;
+
+  // get current time
+  p_rtc_time = rtc_get_time();
+  ui8_g_configuration_clock_hours = p_rtc_time->ui8_hours;
+  ui8_g_configuration_clock_minutes = p_rtc_time->ui8_minutes;
+
+  // force to be [0 - 12] depending on SI or Ipmerial units
+  if (l3_vars.ui8_units_type) {
+
+    if(ui8_g_configuration_clock_hours > 12) {
+      ui8_g_configuration_clock_hours -= 12;
+    }
+
+    // scrollable.entries[7] --> Display
+      // scrollable.entries[0] --> Clock hours
+    configScreen.fields->field->scrollable.entries[7].scrollable.entries[0].editable.number.max_value = 12;
+  }
+  else {
+    // scrollable.entries[7] --> Display
+      // scrollable.entries[0] --> Clock hours
+    configScreen.fields->field->scrollable.entries[7].scrollable.entries[0].editable.number.max_value = 23;
+  }
+}
+
+void onSetConfigurationClockHours(uint32_t v) {
+  static rtc_time_t rtc_time;
+
+  // save the new clock time
+  rtc_time.ui8_hours = v;
+  rtc_time.ui8_minutes = ui8_g_configuration_clock_minutes;
+  rtc_set_time(&rtc_time);
+}
+
+void onSetConfigurationClockMinutes(uint32_t v) {
+  static rtc_time_t rtc_time;
+
+  // save the new clock time
+  rtc_time.ui8_hours = ui8_g_configuration_clock_hours;
+  rtc_time.ui8_minutes = v;
+  rtc_set_time(&rtc_time);
+}
+
+void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v) {
+
+  l3_vars.ui8_lcd_backlight_on_brightness = v;
+  set_lcd_backlight();
+}
+
+void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
+
+  l3_vars.ui8_lcd_backlight_off_brightness = v;
+  set_lcd_backlight();
+}
+
+void DisplayResetToDefaults(void) {
+
+  if (ui8_g_display_reset_to_defaults) {
+    ui8_g_display_reset_to_defaults = 0;
+    eeprom_init_defaults();
+  }
 }

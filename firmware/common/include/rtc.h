@@ -14,12 +14,12 @@
 typedef struct _rtc_time {
 	uint8_t ui8_hours;
 	uint8_t ui8_minutes;
-} struct_rtc_time_t;
+} rtc_time_t;
 
 void rtc_init(void);
-void rtc_set_time(struct_rtc_time_t *rtc_time);
-struct_rtc_time_t* rtc_get_time(void);
-struct_rtc_time_t* rtc_get_time_since_startup(void);
+void rtc_set_time(rtc_time_t *rtc_time);
+rtc_time_t* rtc_get_time(void);
+rtc_time_t* rtc_get_time_since_startup(void);
 
 extern uint32_t ui32_seconds_since_startup;
 

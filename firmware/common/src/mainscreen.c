@@ -363,8 +363,10 @@ void screen_clock(void) {
 
 	lcd_main_screen();
 
+#ifndef SW102
   clock_time();
   DisplayResetToDefaults();
+#endif
 
 	screenUpdate();
 }

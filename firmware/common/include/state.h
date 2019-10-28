@@ -209,7 +209,7 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 /// Set correct backlight brightness for current headlight state
 void set_lcd_backlight();
 
-extern uint16_t ui16_m_battery_soc_watts_hour;
+extern uint16_t ui16_g_battery_soc_watts_hour;
 extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor

@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
-uint16_t ui16_m_battery_soc_watts_hour;
+uint16_t ui16_g_battery_soc_watts_hour;
 volatile uint32_t ui32_g_layer_2_can_execute;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
@@ -629,9 +629,9 @@ void calc_battery_soc_watts_hour(void) {
 
 	// 100% - current SOC or just current SOC
 	if (!l3_vars.ui8_battery_soc_increment_decrement) {
-		ui16_m_battery_soc_watts_hour = 100 - ui32_temp;
+		ui16_g_battery_soc_watts_hour = 100 - ui32_temp;
 	} else {
-		ui16_m_battery_soc_watts_hour = ui32_temp;
+		ui16_g_battery_soc_watts_hour = ui32_temp;
 	}
 }
 

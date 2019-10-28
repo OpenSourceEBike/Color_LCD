@@ -29,18 +29,35 @@
 Field batteryField = FIELD_CUSTOM(renderBattery);
 
 // We currently don't have any graphs in the SW102, so leave them here until then
-Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
-Field speedGraph = FIELD_GRAPH(&wheelSpeedIntegerField);
-Field motorTempGraph = FIELD_GRAPH(&motorTempField);
-Field motorPowerGraph = FIELD_GRAPH(&maxPowerField);
-Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
-Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
-Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedField);
+Field tripTimeGraph = FIELD_GRAPH(&tripTimeField);
+Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceField);
+Field odoGraph = FIELD_GRAPH(&odoField);
 Field cadenceGraph = FIELD_GRAPH(&cadenceField);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
+Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerField);
 Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-
-Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0], &batteryVoltageGraph, &humanPowerGraph, &speedGraph,
-		&motorTempGraph, &pwmDutyGraph, &motorErpsGraph, &motorFOCGraph, &cadenceGraph);
+Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentField);
+Field batterySOCGraph = FIELD_GRAPH(&batterySOCField);
+Field motorTempGraph = FIELD_GRAPH(&motorTempField);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
+                                  &wheelSpeedGraph,
+                                  &tripTimeGraph,
+                                  &tripDistanceGraph,
+                                  &odoGraph,
+                                  &cadenceGraph,
+                                  &humanPowerGraph,
+                                  &batteryPowerGraph,
+                                  &batteryVoltageGraph,
+                                  &batteryCurrentGraph,
+                                  &batterySOCGraph,
+                                  &motorTempGraph,
+                                  &motorErpsGraph,
+                                  &pwmDutyGraph,
+                                  &motorFOCGraph);
 
 uint8_t ui8_g_configuration_clock_hours;
 uint8_t ui8_g_configuration_clock_minutes;

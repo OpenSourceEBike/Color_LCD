@@ -1481,6 +1481,9 @@ static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 
     for (i_max = 0; s->customizable.choices[i_max] != 0; i_max++)
       ;
+
+    if (i_max > 0)
+      i_max--;
 	}
 
 	if (ui8_direction) {

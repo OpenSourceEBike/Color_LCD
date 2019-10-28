@@ -11,25 +11,29 @@ extern Screen mainScreen, infoScreen, bootScreen;
 
 extern Screen *screens[];
 
-extern Field socField,
-	timeField,
-	assistLevelField,
-	wheelSpeedIntegerField,
-	wheelSpeedDecimalField,
-	maxPowerField,
-	humanPowerField,
-	warnField,
-	tripTimeField,
-	tripDistanceField,
-	odoField,
-	motorTempField,
-	pwmDutyField,
-	motorErpsField,
-	motorFOCField,
-	cadenceField,
-	batteryVoltageField,
+extern Field
+  socField,
+  timeField,
+  assistLevelField,
+  wheelSpeedIntegerField,
+  wheelSpeedDecimalField,
+  tripTimeField,
+  tripDistanceField,
+  odoField,
+  wheelSpeedField,
+  cadenceField,
+  humanPowerField,
+  batteryPowerField,
+  batteryVoltageField,
+  batteryCurrentField,
+  batterySOCField,
+  motorTempField,
+  motorErpsField,
+  pwmDutyField,
+  motorFOCField,
 
-	custom1, custom2, custom3, custom4;
+	custom1, custom2, custom3, custom4,
+	warnField;
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

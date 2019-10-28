@@ -27,6 +27,8 @@ uint8_t ui8_m_wheel_speed_decimal;
 
 static uint8_t ui8_walk_assist_state = 0;
 
+uint16_t ui16_m_battery_current_filtered_x10;
+
 void lcd_main_screen(void);
 void warnings(void);
 void walk_assist_state(void);
@@ -41,6 +43,7 @@ static bool renderWarning(FieldLayout *layout);
 void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
+void batteryCurrent(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 bool wd_failure_detected;
@@ -57,37 +60,41 @@ Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1, .hide_fraction = true);
 #endif
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
-Field maxPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &l3_vars.ui16_battery_power_filtered, "W");
-Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
-Field warnField = FIELD_CUSTOM(renderWarning);
-
+Field wheelSpeedField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
-Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C");
-Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &l3_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
-
-Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cycle, "");
-Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "");
-Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
 Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence, "rpm");
+Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &l3_vars.ui16_battery_power_filtered, "W");
+Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &l3_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
+Field batteryCurrentField = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", .div_digits = 1);
+Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%");
+Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C");
+Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "");
+Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cycle, "");
+Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
+Field warnField = FIELD_CUSTOM(renderWarning);
 
 /**
  * NOTE: The indexes into this array are stored in EEPROM, to prevent user confusion add new options only at the end.
  * If you remove old values, either warn users or bump up eeprom version to force eeprom contents to be discarded.
  */
 Field *customizables[] = {
-		&maxPowerField, // 0
-		&humanPowerField, // 1
-		&tripTimeField, // 2
-		&odoField, // 3
-		&motorTempField, // 4
-		&batteryVoltageField, // 5
-		&pwmDutyField, // 6
-		&motorErpsField, // 7
-		&motorFOCField, // 8
-		&cadenceField, // 9
-		&tripDistanceField, // 10
+    &tripTimeField, // 0
+    &tripDistanceField, // 1
+    &odoField, // 2
+    &wheelSpeedField, // 3
+    &cadenceField, // 4
+		&humanPowerField, // 5
+		&batteryPowerField, // 6
+    &batteryVoltageField, // 7
+    &batteryCurrentField, // 8
+    &batterySOCField, // 9
+		&motorTempField, // 10
+    &motorErpsField, // 11
+		&pwmDutyField, // 12
+		&motorFOCField, // 13
 		NULL
 };
 
@@ -377,6 +384,7 @@ void screen_clock(void) {
   clock_time();
   DisplayResetToDefaults();
   batteryTotalWh();
+  batteryCurrent();
 
 	screenUpdate();
 }
@@ -469,7 +477,7 @@ void warnings(void) {
 
 void battery_soc(void) {
 	if (l3_vars.ui8_battery_soc_enable)
-		fieldPrintf(&socField, "%3d%%", ui16_m_battery_soc_watts_hour);
+		fieldPrintf(&socField, "%3d%%", ui16_g_battery_soc_watts_hour);
 	else
 		fieldPrintf(&socField, "%u.%1uV",
 				l3_vars.ui16_battery_voltage_soc_x10 / 10,
@@ -598,4 +606,9 @@ void DisplayResetToDefaults(void) {
     ui8_g_configuration_display_reset_to_defaults = 0;
     eeprom_init_defaults();
   }
+}
+
+void batteryCurrent(void) {
+
+  ui16_m_battery_current_filtered_x10 = l3_vars.ui16_battery_current_filtered_x5 * 2;
 }

@@ -100,7 +100,12 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
 		.field_selectors = { // we somewhat yuckily pick defaults to match the layout on the previous release
-				0, 10, 0, 2, 1 },
+				0, // trip time
+				1, // trip distance
+				5, // human power
+				6, // motor power
+				3, // wheel speed
+    },
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
 };

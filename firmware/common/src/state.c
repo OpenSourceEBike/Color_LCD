@@ -358,7 +358,7 @@ void send_tx_package(void) {
     case 8:
       // motor temperature limit function or throttle
       ui8_usart1_tx_buffer[5] =
-          l2_vars.ui8_temperature_limit_feature_enabled & 1;
+          l2_vars.ui8_temperature_limit_feature_enabled & 3;
 
       // motor assistance without pedal rotation enable/disable when startup
       ui8_usart1_tx_buffer[6] =

@@ -305,11 +305,3 @@ void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
   l3_vars.ui8_lcd_backlight_off_brightness = v;
   set_lcd_backlight();
 }
-
-void DisplayResetToDefaults(void) {
-
-  if (ui8_g_display_reset_to_defaults) {
-    ui8_g_display_reset_to_defaults = 0;
-    eeprom_init_defaults();
-  }
-}

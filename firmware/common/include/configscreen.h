@@ -4,4 +4,5 @@ void configscreen_show();
 
 extern Screen configScreen;
 
-extern uint8_t ui8_g_display_reset_to_defaults;
+extern uint8_t ui8_g_configuration_display_reset_to_defaults;
+extern uint32_t ui32_g_configuration_wh_100_percent;

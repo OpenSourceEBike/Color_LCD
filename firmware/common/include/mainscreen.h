@@ -40,7 +40,7 @@ void onSetConfigurationClockHours(uint32_t v);
 void onSetConfigurationClockMinutes(uint32_t v);
 void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v);
 void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v);
-void DisplayResetToDefaults(void);
+void onSetConfigurationBatteryTotalWh(uint32_t v);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 extern bool wd_failure_detected;

@@ -153,8 +153,8 @@ static Field batterySOCMenus[] = {
   FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_battery_soc_enable, "disable", "enable"),
   FIELD_EDITABLE_ENUM("Show", &l3_vars.ui8_battery_soc_increment_decrement, "% full", "% used"),
   FIELD_EDITABLE_UINT("Reset at voltage", &l3_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
-  FIELD_EDITABLE_UINT("Battery total Wh", &l3_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Used Wh", &l3_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
+  FIELD_EDITABLE_UINT("Battery total Wh", &ui32_g_configuration_wh_100_percent, "whr", 0, 9990, .inc_step = 10, .onPreSetEditable = onSetConfigurationBatteryTotalWh),
+  FIELD_EDITABLE_UINT("Used Wh", &l3_vars.ui32_wh_x10, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
   FIELD_END };
 
 static Field assistMenus[] = {
@@ -214,7 +214,7 @@ static Field displayMenus[] = {
   FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOnBrightness),
   FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOffBrightness),
   FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
-  FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_display_reset_to_defaults, "no", "yes"),
+  FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
   FIELD_END };
 
 #if 0
@@ -262,7 +262,8 @@ static Field topMenus[] = {
 
 static Field configRoot = FIELD_SCROLLABLE("Configurations", topMenus);
 
-uint8_t ui8_g_display_reset_to_defaults = 0;
+uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
+uint32_t ui32_g_configuration_wh_100_percent = 0;
 
 static void configScreenOnEnter() {
 	// Set the font preference for this screen

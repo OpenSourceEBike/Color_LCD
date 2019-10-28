@@ -21,6 +21,7 @@
 #include "lcd.h"
 #include "adc.h"
 #include "ugui.h"
+#include "configscreen.h"
 
 uint8_t ui8_m_wheel_speed_decimal;
 
@@ -37,6 +38,9 @@ void trip_time(void);
 void wheel_speed(void);
 void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
+void DisplayResetToDefaults(void);
+void onSetConfigurationBatteryTotalWh(uint32_t v);
+void batteryTotalWh(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 bool wd_failure_detected;
@@ -365,6 +369,7 @@ void screen_clock(void) {
 
   clock_time();
   DisplayResetToDefaults();
+  batteryTotalWh();
 
 	screenUpdate();
 }
@@ -568,4 +573,22 @@ void main_idle() {
 		ui8_100ms_timer_counter = 0;
 		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
 	}
+}
+
+void batteryTotalWh(void) {
+
+  ui32_g_configuration_wh_100_percent = l3_vars.ui32_wh_x10_100_percent / 10;
+}
+
+void onSetConfigurationBatteryTotalWh(uint32_t v) {
+
+  l3_vars.ui32_wh_x10_100_percent = v * 10;
+}
+
+void DisplayResetToDefaults(void) {
+
+  if (ui8_g_configuration_display_reset_to_defaults) {
+    ui8_g_configuration_display_reset_to_defaults = 0;
+    eeprom_init_defaults();
+  }
 }

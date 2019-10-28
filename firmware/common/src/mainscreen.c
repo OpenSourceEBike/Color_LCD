@@ -100,7 +100,8 @@ Field custom4 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[4], customizable
 
 
 Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike"));
-Field bootURL = FIELD_DRAWTEXTPTR(_S("github.com/\nOpenSource-EBike-Firmware", "see github.com"));
+Field bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com"));
+Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", "see github.com"));
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
@@ -136,7 +137,13 @@ Screen bootScreen = {
 
     {
       .x = 0, .y = -20, .height = -1,
-      .field = &bootURL,
+      .field = &bootURL_1,
+      .font = &SMALL_TEXT_FONT,
+    },
+
+    {
+      .x = 0, .y = -6, .height = -1,
+      .field = &bootURL_2,
       .font = &SMALL_TEXT_FONT,
     },
 #ifndef SW102

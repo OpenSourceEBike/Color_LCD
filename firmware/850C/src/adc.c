@@ -37,17 +37,27 @@ void adc_init() {
 #define NUM_STEPS 4096 // 12 bit
 
 uint16_t battery_voltage_10x_get() {
-#if 1
+  static uint8_t ui8_first_time = 1;
+  uint32_t rawVoltage;
+
+  // the very first measure need to be discarded as it seems to have a wrong value
+  if (ui8_first_time) {
+    ui8_first_time = 0;
+
+    while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET)
+      ;
+
+    rawVoltage = (uint32_t) ADC_GetConversionValue(ADC1);
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE); // start a conversion for next time.
+  }
+
 	while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET)
 		;
 
-	uint16_t rawv = ADC_GetConversionValue(ADC1);
-	uint32_t v_1000x = (3300UL * rawv) / NUM_STEPS; // voltage at input pin x1000
+	rawVoltage = (uint32_t) ADC_GetConversionValue(ADC1);
+	uint32_t v_1000x = (3300UL * rawVoltage) / NUM_STEPS; // voltage at input pin x1000
 	uint32_t busvolt_10x = (v_1000x * 2083) / 1000 / 10;
 
 	ADC_SoftwareStartConvCmd(ADC1, ENABLE); // start a conversion for next time.
 	return busvolt_10x;
-#else
-	return 480; // return something less than 140 to force sim mode
-#endif
 }

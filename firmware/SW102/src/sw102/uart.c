@@ -74,18 +74,15 @@ void uart_set_stream_version(uint8_t version)
   case 19:
     uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V19;
     uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V19;
+    stream_version = version;
     break;
 
   case 20:
     uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V20;
     uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V20;
+    stream_version = version;
     break;
-
-  default:
-    return;
   }
-
-  stream_version = version;
 }
 
 /**

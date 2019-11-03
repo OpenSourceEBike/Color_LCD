@@ -93,7 +93,7 @@ Screen mainScreen = {
     {
         .x = 0, .y = -2,
         .width = 0, .height = 19,
-        .field = &maxPowerField,
+        .field = &batteryPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
         .border = BorderBottom

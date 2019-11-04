@@ -55,6 +55,7 @@ int main(void)
   timer3_init(); // drives LCD backlight
   lcd_init();
   timer4_init();
+  screen_init();
 
   screenShow(&bootScreen);
 

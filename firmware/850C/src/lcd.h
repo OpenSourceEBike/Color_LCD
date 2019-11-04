@@ -57,9 +57,6 @@ typedef struct _print_number
   uint8_t ui8_decimal_digits;
 } print_number_t;
 
-extern volatile uint32_t ui32_g_graphs_data_array_over_255;
-extern volatile uint32_t ui32_g_first_time;
-
 void lcd_init(void);
 void lcd_clock(void);
 volatile lcd_vars_t* get_lcd_vars(void);

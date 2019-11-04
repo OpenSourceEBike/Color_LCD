@@ -41,8 +41,6 @@ volatile lcd_vars_t m_lcd_vars =
   .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
-volatile uint32_t ui32_g_first_time = 1;
-
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void power_off_management(void);

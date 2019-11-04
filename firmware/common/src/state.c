@@ -24,6 +24,7 @@
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_g_battery_soc_watts_hour;
 volatile uint32_t ui32_g_layer_2_can_execute;
+volatile uint32_t ui32_g_first_time = 1;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
 bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
@@ -582,8 +583,15 @@ static void l2_low_pass_filter_pedal_cadence(void) {
 }
 
 uint8_t first_time_management(void) {
+  static uint32_t ui32_counter = 0;
 	static uint8_t ui8_motor_controller_init = 1;
 	uint8_t ui8_status = 0;
+
+  // count 10 seconds
+  if(++ui32_counter > 500 &&
+      ui32_g_first_time == 1) {
+    ui32_g_first_time = 0;
+  }
 
 	// don't update LCD up to we get first communication package from the motor controller
 	if (ui8_motor_controller_init
@@ -591,24 +599,23 @@ uint8_t first_time_management(void) {
 		ui8_status = 1;
 	}
 	// this will be executed only 1 time at startup
-	else if (ui8_motor_controller_init) {
-		ui8_motor_controller_init = 0;
+  else if(ui8_motor_controller_init &&
+      ui32_g_first_time == 0) {
+    // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
+    if (((uint32_t) l3_vars.ui16_adc_battery_voltage *
+    ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000)
+        > ((uint32_t) l3_vars.ui16_battery_voltage_reset_wh_counter_x10
+            * 1000)) {
+      l3_vars.ui32_wh_x10_offset = 0;
+    }
 
-		// reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
-		if (((uint32_t) l3_vars.ui16_adc_battery_voltage *
-		ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000)
-				> ((uint32_t) l3_vars.ui16_battery_voltage_reset_wh_counter_x10
-						* 1000)) {
-			l3_vars.ui32_wh_x10_offset = 0;
-		}
+    if (l3_vars.ui8_offroad_feature_enabled
+        && l3_vars.ui8_offroad_enabled_on_startup) {
+      l3_vars.ui8_offroad_mode = 1;
+    }
+  }
 
-		if (l3_vars.ui8_offroad_feature_enabled
-				&& l3_vars.ui8_offroad_enabled_on_startup) {
-			l3_vars.ui8_offroad_mode = 1;
-		}
-
-		set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-	}
+	set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
 
 	return ui8_status;
 }

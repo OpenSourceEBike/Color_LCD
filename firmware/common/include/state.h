@@ -192,6 +192,7 @@ l3_vars_t* get_l3_vars(void);
 
 extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern l3_vars_t l3_vars;
+extern volatile uint32_t ui32_g_first_time;
 
 void layer_2(void);
 

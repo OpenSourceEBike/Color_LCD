@@ -64,7 +64,7 @@ Field wheelSpeedField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
-Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence, "rpm");
+Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence_filtered, "rpm");
 Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
 Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &l3_vars.ui16_battery_power_filtered, "W");
 Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &l3_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
@@ -98,6 +98,36 @@ Field *customizables[] = {
 		NULL
 };
 
+// We currently don't have any graphs in the SW102, so leave them here until then
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedField);
+Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceField);
+Field odoGraph = FIELD_GRAPH(&odoField);
+Field cadenceGraph = FIELD_GRAPH(&cadenceField);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
+Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerField);
+Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentField);
+Field batterySOCGraph = FIELD_GRAPH(&batterySOCField);
+Field motorTempGraph = FIELD_GRAPH(&motorTempField);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
+                                  &wheelSpeedGraph,
+                                  &tripDistanceGraph,
+                                  &odoGraph,
+                                  &cadenceGraph,
+                                  &humanPowerGraph,
+                                  &batteryPowerGraph,
+                                  &batteryVoltageGraph,
+                                  &batteryCurrentGraph,
+                                  &batterySOCGraph,
+                                  &motorTempGraph,
+                                  &motorErpsGraph,
+                                  &pwmDutyGraph,
+                                  &motorFOCGraph);
+
+GraphData graphsGraphData[GRAPHS_GRAPH_DATA_SIZE];
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[1], customizables);
@@ -584,6 +614,7 @@ void main_idle() {
 	
 	handle_buttons();
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
+	graphDataProcess();
 	if (++ui8_100ms_timer_counter >= 5) {
 		ui8_100ms_timer_counter = 0;
 		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR

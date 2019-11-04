@@ -66,6 +66,8 @@ static uint32_t screenUpdateCounter;
 static Screen *curScreen;
 static bool screenDirty;
 
+bool graphNeedUpdate = false;
+
 #ifdef SW102
 #define HEADING_FONT FONT_5X12
 #else
@@ -992,29 +994,6 @@ static bool renderCustom(FieldLayout *layout) {
 	return (*layout->field->custom.render)(layout);
 }
 
-// FIXME - support multiple active graphs by assigning cache dynamically
-static GraphCache caches[1];
-
-// Add to our ring buffer and maintain invariants
-static void graphAddPoint(Field *field, int32_t val) {
-	GraphCache *cache = field->graph.cache;
-
-	// add the point
-	cache->points[cache->end_valid] = val;
-	cache->end_valid = (cache->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
-
-	// discard old point if needed
-	bool overfull = cache->start_valid == cache->end_valid;
-	if (overfull)
-		cache->start_valid = (cache->start_valid + 1) % GRAPH_MAX_POINTS;
-
-	// update invariants
-	if (val > cache->max_val)
-		cache->max_val = val;
-	if (val < cache->min_val && val >= field->graph.min_threshold)
-		cache->min_val = val;
-}
-
 static int graphX, // upper left of graph
 		graphY, // upper left of graph,
 		graphWidth, // total draw area width
@@ -1083,28 +1062,28 @@ static void graphLabelAxis(Field *field) {
 	}
 
 	// draw max value
-	GraphCache *cache = field->graph.cache;
+	GraphData *graphData = field->graph.graphData;
 	char valstr[MAX_FIELD_LEN];
 
 	// draw if value changed or dirty
-	if(cache->max_val != max_val_pre ||
+	if(graphData->max_val != max_val_pre ||
 	    field->dirty) {
-	    max_val_pre = cache->max_val;
+	    max_val_pre = graphData->max_val;
 
-	    if (cache->max_val != INT32_MIN) {
-	      getEditableString(source, cache->max_val, valstr);
+	    if (graphData->max_val != INT32_MIN) {
+	      getEditableString(source, graphData->max_val, valstr);
 	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
 	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
 	    }
 	}
 
   // draw if value changed or dirty
-  if(cache->min_val != min_val_pre ||
+  if(graphData->min_val != min_val_pre ||
       field->dirty) {
-      min_val_pre = cache->min_val;
+      min_val_pre = graphData->min_val;
 
-      if (cache->min_val != INT32_MAX) {
-        getEditableString(source, cache->min_val, valstr);
+      if (graphData->min_val != INT32_MAX) {
+        getEditableString(source, graphData->min_val, valstr);
         putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
                        graphYmin - GRAPH_MAXVAL_FONT.char_height,
             &GRAPH_MAXVAL_FONT, valstr);
@@ -1113,7 +1092,7 @@ static void graphLabelAxis(Field *field) {
 }
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
-static inline int32_t graphScaleY(GraphCache *cache, int32_t x) {
+static inline int32_t graphScaleY(GraphData *cache, int32_t x) {
 	if (cache->max_val == cache->min_val) // Until there is a span everything is at wmin
 		return graphYmin;
 
@@ -1124,17 +1103,17 @@ static inline int32_t graphScaleY(GraphCache *cache, int32_t x) {
 }
 
 static void graphDrawPoints(Field *field) {
-	GraphCache *cache = field->graph.cache;
+	GraphData *graphData = field->graph.graphData;
 
-	int ptr = cache->start_valid;
-	if (ptr == cache->end_valid)
+	int ptr = graphData->start_valid;
+	if (ptr == graphData->end_valid)
 		return; // ring buffer is empty
 
 	int x = graphXmin; // the vertical axis line
 
 	int warn_threshold = field->graph.warn_threshold;
 	if (warn_threshold != -1) {
-		warn_threshold = graphScaleY(cache, field->graph.warn_threshold);
+		warn_threshold = graphScaleY(graphData, field->graph.warn_threshold);
 
 		// Make sure our threshold never goes below the areas we are going to draw
 		if (warn_threshold > graphYmin - 1)
@@ -1143,52 +1122,69 @@ static void graphDrawPoints(Field *field) {
 
 	int error_threshold = field->graph.error_threshold;
 	if (error_threshold != -1) {
-		error_threshold = graphScaleY(cache, field->graph.error_threshold);
+		error_threshold = graphScaleY(graphData, field->graph.error_threshold);
 
 		// Make sure our threshold never goes below the areas we are going to draw
 		if (error_threshold > graphYmin - 1)
 			error_threshold = graphYmin - 1;
 	}
 
+	static int delta_y_previous;
 	do {
 		x++; // drawing a new vertical line now
-		int val = cache->points[ptr];
-		int y = graphScaleY(cache, val);
+		int val = graphData->points[ptr];
+		int y = graphScaleY(graphData, val);
+
+		int delta_y_contour;
+		int delta_y_line;
+		int delta_y = graphYmin - y;
+		int delta_y_temp;
 
 		// Draw black space above the line (so we scroll/scale properly)
-		UG_DrawLine(x, graphYmax, x, y - 1, GRAPH_COLOR_BACKGROUND);
+		UG_DrawLine(x, graphYmin, x, graphYmin - delta_y, GRAPH_COLOR_BACKGROUND);
 
-#if 0 // FIXME accent line is pretty ugly
-		 // Draw the accent line
-		 int accent_bottom = y + 2; // we draw the accent line three pixels high
-		 if(accent_bottom >= graphYmin) // don't draw past end of graph
-			 accent_bottom = graphYmin - 1;
+    // force first line to not be full white
+    if(x == (graphXmin + 1)) {
+      delta_y_previous = delta_y;
+    }
 
-		 UG_DrawLine(x, y, x, accent_bottom, GRAPH_COLOR_ACCENT);
-		 y = accent_bottom + 1; // New segment is just below the accent
-#endif
+    // calculate contour
+    delta_y_temp = delta_y;
+    if(delta_y >= delta_y_previous) {
+      delta_y_contour = delta_y - delta_y_previous;
+      delta_y_line = delta_y_previous;
+    } else {
+      delta_y_contour = delta_y_previous - delta_y;
+      delta_y_line = delta_y;
+    }
+    delta_y_previous = delta_y_temp;
 
-		if (error_threshold != -1 && y <= error_threshold) {
-			UG_DrawLine(x, y, x, error_threshold, GRAPH_COLOR_ERROR);
-			y = error_threshold + 1;
-		}
+//		if (error_threshold != -1 && y <= error_threshold) {
+//			UG_DrawLine(x, y, x, error_threshold, GRAPH_COLOR_ERROR);
+//			y = error_threshold + 1;
+//		}
+//
+//		if (warn_threshold != -1 && y <= warn_threshold) {
+//			UG_DrawLine(x, y, x, warn_threshold, GRAPH_COLOR_WARN);
+//			y = warn_threshold + 1;
+//		}
 
-		if (warn_threshold != -1 && y <= warn_threshold) {
-			UG_DrawLine(x, y, x, warn_threshold, GRAPH_COLOR_WARN);
-			y = warn_threshold + 1;
-		}
-
-		UG_DrawLine(x, y, x, graphYmin, GRAPH_COLOR_NORMAL);
+    if (delta_y_line) { // draw lines with contour
+      UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_line, GRAPH_COLOR_NORMAL);
+      UG_DrawLine(x, graphYmin - delta_y_line, x, graphYmin - delta_y_line - delta_y_contour, GRAPH_COLOR_ACCENT);
+    } else { // draw contour only
+      UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_contour, GRAPH_COLOR_ACCENT);
+    }
 
 		ptr = (ptr + 1) % GRAPH_MAX_POINTS; // increment and wrap
-	} while (ptr != cache->end_valid); // we just did the last entry?
+	} while (ptr != graphData->end_valid); // we just did the last entry?
 }
 
 /**
  * Our graphs are invoked for rendering once each blink interval, but most of the time we opt to do nothing.
  */
 static bool renderGraph(FieldLayout *layout) {
-	bool needUpdate = (screenUpdateCounter
+  graphNeedUpdate = (screenUpdateCounter
 			% (GRAPH_INTERVAL_MS / UPDATE_INTERVAL_MS) == 0);
 
 	Field *field = getField(layout);
@@ -1201,25 +1197,11 @@ static bool renderGraph(FieldLayout *layout) {
 		field->dirty = true; // Force a complete redraw if blink changed
 
 	// If we are not dirty and we don't need an update, just return
-	if (!needUpdate && !field->dirty)
+	if (!graphNeedUpdate && !field->dirty)
 		return false;
-
-	if (!field->graph.cache) {
-		GraphCache *cache = field->graph.cache = &caches[0];
-
-		// Reinit cache to empty
-		cache->max_val = INT32_MIN;
-		cache->min_val = INT32_MAX;
-		cache->start_valid = 0;
-		cache->end_valid = 0;
-	}
 
 	Field *source = field->graph.source;
 	assert(source);
-
-	// Pull in the latest point (if we are our periodic update)
-	if (needUpdate)
-		graphAddPoint(field, getEditableNumber(source, true));
 
 	// Set axis coordinates
 	int axisdigits = 4;
@@ -1647,5 +1629,89 @@ void fieldPrintf(Field *field, const char *fmt, ...) {
 	}
 
 	va_end(argp);
+}
+
+void graphDataProcess(void) {
+  static int counter = 0;
+
+  // start update graphs only after a startup delay to avoid wrong values of the variables
+  if (ui32_g_first_time == 0) {
+    // track the number of data process
+    counter++;
+
+    // keep summing every 100ms
+    for (int i = 0; i < GRAPHS_GRAPH_DATA_SIZE; i++) {
+      Field *fieldGraphEditable = graphs.customizable.choices[i]->graph.source;
+      GraphData *graphData = graphs.customizable.choices[i]->graph.graphData;
+
+      // keep summing our value
+      int32_t target = getEditableNumber(fieldGraphEditable, false);
+      graphData->sum_value += target;
+    }
+
+    // now average and store on graph array
+    if (graphNeedUpdate)
+    {
+      graphNeedUpdate = 0;
+
+      int sumDivisor = counter;
+      counter = 0;
+
+      // now calculate the filtered value for each new point and add to graph data array
+      for (int i = 0; i < GRAPHS_GRAPH_DATA_SIZE; i++) {
+        Field *field = graphs.customizable.choices[i];
+        GraphData *graphData = field->graph.graphData;
+
+        switch (i) {
+          // motor FOC angle
+          case 12:
+            graphData->filtered_value = ((graphData->sum_value / sumDivisor) * 14) / 10; // each 1 unit equals to 1.4 degrees
+            break;
+
+          default:
+            graphData->filtered_value = graphData->sum_value / sumDivisor;
+            break;
+        }
+
+        // reset state variables
+        graphData->sum_value = 0;
+
+        // Now add the point to the graph point array
+        // add the point
+        int val = graphData->filtered_value;
+        graphData->points[graphData->end_valid] = val;
+        graphData->end_valid = (graphData->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
+
+        // discard old point if needed
+        bool overfull = graphData->start_valid == graphData->end_valid;
+        if (overfull)
+          graphData->start_valid = (graphData->start_valid + 1) % GRAPH_MAX_POINTS;
+
+        // update invariants
+        if (val > graphData->max_val)
+          graphData->max_val = val;
+        if (val < graphData->min_val && val >= field->graph.min_threshold)
+          graphData->min_val = val;
+      }
+    }
+  }
+}
+
+void graph_init(void) {
+  for (int i = 0; i < GRAPHS_GRAPH_DATA_SIZE; i++) {
+    // Set graph.graphData to point to graphsGraphData[] array
+    graphs.customizable.choices[i]->graph.graphData = &graphsGraphData[i];
+
+    // Init cache to empty
+    GraphData *graphData = graphs.customizable.choices[i]->graph.graphData;
+    graphData->max_val = INT32_MIN;
+    graphData->min_val = INT32_MAX;
+    graphData->start_valid = 0;
+    graphData->end_valid = 0;
+  }
+}
+
+void screen_init(void) {
+  graph_init();
 }
 

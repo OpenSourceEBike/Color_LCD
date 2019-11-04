@@ -156,7 +156,9 @@ typedef struct {
 	int32_t max_val, min_val; // the max/min value we've seen (ever)
 	uint32_t start_valid; // the oldest point in our ring buffer
 	uint32_t end_valid; // the newest point in our ring buffer
-} GraphCache;
+	int32_t sum_value;
+	int32_t filtered_value;
+} GraphData;
 
 struct FieldLayout;
 // Forward declaration
@@ -185,7 +187,7 @@ typedef struct Field {
 
 		struct {
 			struct Field *source; // the data field we are graphing
-			GraphCache *cache;
+			GraphData *graphData;
 			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		} graph;
@@ -386,6 +388,9 @@ void updateReadOnlyStr(Field *field, char *str);
  */
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 
+void screen_init(void);
+void graphDataProcess(void);
+
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
@@ -430,4 +435,3 @@ extern const UG_FONT *editable_units_font;
 #define SCREENCLICK_START_CUSTOMIZING ONOFF_CLICK_LONG_CLICK
 #define SCREENCLICK_STOP_CUSTOMIZING ONOFF_LONG_CLICK
 #endif
-

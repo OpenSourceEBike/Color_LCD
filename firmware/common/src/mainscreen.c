@@ -146,7 +146,6 @@ Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
 static void bootScreenOnPreUpdate() {
-
 	uint16_t bvolt = battery_voltage_10x_get();
 
 	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
@@ -411,7 +410,9 @@ void screen_clock(void) {
 
 	lcd_main_screen();
 
+#ifndef SW102
   clock_time();
+#endif
   DisplayResetToDefaults();
   batteryTotalWh();
   batteryCurrent();

@@ -130,7 +130,8 @@ typedef enum {
 } EditableType;
 
 
-#define GRAPH_MAX_POINTS	(236) // Note: we waste one record, to make our ring buffer code easier
+// max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
+#define GRAPH_MAX_POINTS	(236 * 3) // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_INTERVAL_MS 	3810 // graph updates are expensive - do rarely (236 * 3.810 seconds = 15 minutes)
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
 #define GRAPH_COLOR_NORMAL  C_BLUE
@@ -394,6 +395,8 @@ void graphDataProcess(void);
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
+
+extern uint8_t g_customizableFieldIndex;
 
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)

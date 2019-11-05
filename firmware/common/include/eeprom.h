@@ -64,6 +64,8 @@ typedef struct eeprom_data {
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 
 	uint8_t x_axis_scale; // x axis scale
+	uint8_t customizable_choices_selector;
+	uint8_t customizableFieldIndex;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -144,6 +146,8 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
+#define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
+#define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one
 
 // *************************************************************************** //
 

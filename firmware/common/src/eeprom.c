@@ -108,6 +108,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
     },
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
+    .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
+    .customizableFieldIndex = DEFAULT_CUSTOMIZABLE_FIELD_INDEX,
 };
 
 void eeprom_init() {
@@ -217,6 +219,8 @@ void eeprom_init_variables(void) {
 	COPY_ARRAY(p_l3_output_vars, &m_eeprom_data, field_selectors);
   p_l3_output_vars->x_axis_scale = m_eeprom_data.x_axis_scale;
   p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
+  graphs.customizable.selector = &m_eeprom_data.customizable_choices_selector;
+  g_customizableFieldIndex = m_eeprom_data.customizableFieldIndex;
 }
 
 void eeprom_write_variables(void) {
@@ -290,6 +294,8 @@ void eeprom_write_variables(void) {
 	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, field_selectors);
   m_eeprom_data.x_axis_scale = p_l3_output_vars->x_axis_scale;
   m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
+  m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
+  m_eeprom_data.customizableFieldIndex = g_customizableFieldIndex;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

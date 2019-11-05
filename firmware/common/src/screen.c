@@ -33,6 +33,8 @@
 #include "state.h"
 #include "mainscreen.h"
 
+uint8_t g_customizableFieldIndex;
+
 extern UG_GUI gui;
 
 // If true, the scroll position changed and force a complete redraw
@@ -41,7 +43,7 @@ extern UG_GUI gui;
 static bool forceScrollableRelayout;
 
 // If the user is editing an editable, this will be it
-static Field *curActiveEditable = NULL, *curCustomizingField = NULL;
+static Field *curActiveEditable = NULL, *g_curCustomizingField = NULL;
 
 #define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
 
@@ -818,8 +820,8 @@ static bool renderEditable(FieldLayout *layout) {
 	Field *field = getField(layout);
 	UG_S16 width = layout->width;
 	bool isActive = curActiveEditable == field; // are we being edited right now?
-	bool isCustomizing = curCustomizingField
-			&& curCustomizingField == parentCustomizable;
+	bool isCustomizing = g_curCustomizingField
+			&& g_curCustomizingField == parentCustomizable;
 	bool dirty = field->dirty;
 	bool showLabel = layout->label_align_x != AlignHidden;
 	bool showLabelAtTop = layout->label_align_y == AlignTop;
@@ -1189,8 +1191,8 @@ static bool renderGraph(FieldLayout *layout) {
 
 	Field *field = getField(layout);
 
-	bool isCustomizing = curCustomizingField
-			&& curCustomizingField == parentCustomizable;
+	bool isCustomizing = g_curCustomizingField
+			&& g_curCustomizingField == parentCustomizable;
 	bool needBlink = blinkChanged && isCustomizing;
 
 	if(needBlink)
@@ -1410,46 +1412,52 @@ static bool onPressScrollable(buttons_events_t events) {
  * For the current screen.  Select the next customizable field on the screen (or nothing if there are not suitable
  * fields).  If there isn't a current customizable field, select the first candidate.
  */
-static void selectNextCustomizableField() {
-	FieldLayout *layout = curScreen->fields;
-	Field *firstCustomizable = NULL; // we haven't found one yet
-	bool wantNext = false;
+#define CUSTOMIZABLE_FIELDS_SIZE 5
 
-	if(curCustomizingField) {
-		// Force the field we are leaving to get redrawn (to not leave turds around)
-    curCustomizingField->customizable.choices[*curCustomizingField->customizable.selector]->dirty = true;
+static void selectNextCustomizableField(bool increase) {
+	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE];
+	static uint8_t firstTime = 1;
+
+	// do one first time only
+	if (firstTime) {
+    firstTime = 0;
+
+    // put all pointers on array at NULL
+    memset(&customizableFields, 0, sizeof(customizableFields));
+
+    uint8_t index = 0;
+    FieldLayout *layout = curScreen->fields;
+    while (layout->field) {
+      Field *field = layout->field;
+
+      // let´s find customizable fields only
+      if (field->variant == FieldCustomizable &&
+          index < CUSTOMIZABLE_FIELDS_SIZE) {
+        customizableFields[index++] = field;
+      }
+
+      layout++;
+    }
 	}
 
-	while (layout->field) {
-		Field *field = layout->field;
+	// increment with wrap
+	if (increase) {
+    // Force the field we are leaving to get redrawn (to not leave turds around)
+    if (g_curCustomizingField) {
+      g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector]->dirty = true;
+    }
 
-		if (field->variant == FieldCustomizable) { // We ignore all other fields
-			if (!firstCustomizable)
-				firstCustomizable = field;
-
-			if (wantNext) {
-				// We found the field after our current field, use it.
-				curCustomizingField = field;
-				return;
-			}
-
-			if (field == curCustomizingField) // we found our current field, therefore we should pick the next one we see
-				wantNext = true;
-		}
-
-		layout++;
+    g_customizableFieldIndex = (g_customizableFieldIndex + 1) % CUSTOMIZABLE_FIELDS_SIZE;
 	}
 
-	// We didn't find any fields after our current customizing field (either because curCustomizing is NULL or was
-	// the last on the page.  - use the first one (if we found one at all)
-	curCustomizingField = firstCustomizable;
+	g_curCustomizingField = customizableFields[g_customizableFieldIndex];
 }
 
 /**
  * For the currently customizing field, advance the target to the next possible choice for the sort of data to show.
  */
 static void changeCurrentCustomizableField(uint8_t ui8_direction) {
-	Field *s = curCustomizingField;
+	Field *s = g_curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
 
 	uint8_t i = *s->customizable.selector;
@@ -1487,12 +1495,12 @@ static bool onPressCustomizing(buttons_events_t events) {
 
 	// If we aren't already editing anything, start now (note: we will only be called if some active editable
 	// hasn't already handled this button
-	if (!curCustomizingField && (events & SCREENCLICK_START_CUSTOMIZING)) {
-		selectNextCustomizableField();
+	if (!g_curCustomizingField && (events & SCREENCLICK_START_CUSTOMIZING)) {
+		selectNextCustomizableField(false); // start to customize previous field
 		return true;
 	}
 
-	if (!curCustomizingField) // If we don't now have a customizing field, don't consider any other buttons
+	if (!g_curCustomizingField) // If we don't now have a customizing field, don't consider any other buttons
 		return false;
 
 	// Change the current customizable field to show the next possible value
@@ -1508,16 +1516,16 @@ static bool onPressCustomizing(buttons_events_t events) {
 
 	// Go to next customizable field
 	if (events & ONOFF_CLICK) {
-		selectNextCustomizableField();
+		selectNextCustomizableField(true); // customize next field
 		return true;
 	}
 
 // click power button to exit out of menus
 	if (events & SCREENCLICK_STOP_CUSTOMIZING) {
-		Field *oldSelected = curCustomizingField->customizable.choices[*curCustomizingField->customizable.selector];
+		Field *oldSelected = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
 		oldSelected->dirty = true; // force a redraw (to remove any turds)
 
-		curCustomizingField = NULL;
+		g_curCustomizingField = NULL;
 
 		if(curScreen->onCustomized)
 			(*curScreen->onCustomized)();
@@ -1549,7 +1557,7 @@ bool screenOnPress(buttons_events_t events) {
 // A low level screen render that doesn't use soft device or call exit handlers (useful for the critical fault handler ONLY)
 void panicScreenShow(Screen *screen) {
 	setActiveEditable(NULL);
-	curCustomizingField = NULL;
+	g_curCustomizingField = NULL;
 	scrollableStackPtr = 0; // new screen might not have one, we will find out when we render
 	curScreen = screen;
 	screenDirty = true;

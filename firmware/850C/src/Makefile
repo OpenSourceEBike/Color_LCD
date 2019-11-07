@@ -65,9 +65,11 @@ ODFLAGS = -S
 
 include ../../common/Makefile.common
 
-COMMONSRC = ../../common/src
+COMMONDIR = ../../common/src
 OBJDIR = _build
-SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/fault.c $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c $(COMMONSRC)/configscreen.c $(COMMONSRC)/eeprom.c
+CUSTOM_SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') 
+COMMON_SOURCES = fault.c buttons.c utils.c ugui.c fonts.c state.c screen.c mainscreen.c configscreen.c eeprom.c
+SOURCES = $(CUSTOM_SOURCES) $(foreach x, $(COMMON_SOURCES), $(COMMONDIR)/$(x))
 OBJECTS = $(foreach x, $(basename $(SOURCES)), $(OBJDIR)/$(x).o)
 
 # dev platform specific.
@@ -83,6 +85,7 @@ OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interf
 
 all: main.bin size
 
+# Ignore - useful for debugging makefiles
 test:
 	echo objs $(OBJECTS)
 
@@ -131,10 +134,8 @@ DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
-%.o : %.c
 $(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
 	@mkdir -p $(dir $@) $(DEPDIR)/$(dir $<)
-	# @echo ".compiling"
 	$(COMPILE.c) $(OUTPUT_OPTION) $< 
 	
 $(DEPDIR): ; @mkdir -p $@
@@ -142,4 +143,4 @@ $(DEPDIR): ; @mkdir -p $@
 DEPFILES := $(SOURCES:%.c=$(DEPDIR)/%.d)
 $(DEPFILES):
 
-include $(wildcard $(DEPFILES))
+include $(wildcard $(DEPFILES)) 

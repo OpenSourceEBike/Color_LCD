@@ -157,6 +157,10 @@ void init_softdevice() {
   if(*bootloaderaddr == 0xffffffff)
     useSoftDevice = false; // FIXME, instead just use the supply voltage and see if it is below 14V
 #endif
+
+  // don't use softdevice while debugging
+  // FIXME check if under debugger instead (using openocd callbacks)
+  // useSoftDevice = false;
 }
 
 

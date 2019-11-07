@@ -3,7 +3,16 @@
 #include "screen.h"
 
 // number of GraphData objects in array
+#ifndef SW102
+// @casainho I see you removed the concept of a cache of current graph data.  Which is okay, but unfortunate for
+// the much more limited RAM of the SW102.  I had hoped to allow an unlimited number of graph types on all platforms
+// but only keep a cache of points for the graphs the user is actually showing.  By removing that cache concept
+// we can only allow one graph type on the SW102 (the first one).
+// Someday I might add back the cache code, so that graphs work a bit better on memory constrained devices.
 #define GRAPHS_GRAPH_DATA_SIZE 13
+#else
+#define GRAPHS_GRAPH_DATA_SIZE 1
+#endif
 
 void mainscreen_show();
 void main_idle(); // call every 20ms
@@ -39,7 +48,7 @@ extern Field
 	custom1, custom2, custom3, custom4,
 	warnField;
 
-extern GraphData graphsGraphData[13];
+extern GraphData graphsGraphData[GRAPHS_GRAPH_DATA_SIZE];
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

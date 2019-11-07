@@ -1262,12 +1262,11 @@ static void forceScrollableRender() {
 
 // Mark a new editable as active (and that it now wants to be animated)
 static void setActiveEditable(Field *clicked) {
-  void (*onPreSetEditable)(uint32_t) = curActiveEditable->editable.number.onPreSetEditable;
-
 	if (curActiveEditable) {
 		curActiveEditable->blink = false;
 
 		// callback onPreSetEditable
+	  void (*onPreSetEditable)(uint32_t) = curActiveEditable->editable.number.onPreSetEditable;
 		if (onPreSetEditable)
 		  onPreSetEditable(curEditableValueConverted);
 

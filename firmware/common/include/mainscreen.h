@@ -39,7 +39,7 @@ extern Field
 	custom1, custom2, custom3, custom4,
 	warnField;
 
-extern GraphData graphsGraphData[13];
+extern GraphData graphsGraphData[GRAPHS_GRAPH_DATA_SIZE];
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

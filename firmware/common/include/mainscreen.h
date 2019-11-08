@@ -2,9 +2,6 @@
 
 #include "screen.h"
 
-// number of GraphData objects in array
-#define GRAPHS_GRAPH_DATA_SIZE 13
-
 void mainscreen_show();
 void main_idle(); // call every 20ms
 bool mainscreen_onpress(buttons_events_t events);
@@ -38,8 +35,6 @@ extern Field
   graphs,
 	custom1, custom2, custom3, custom4,
 	warnField;
-
-extern GraphData graphsGraphData[13];
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

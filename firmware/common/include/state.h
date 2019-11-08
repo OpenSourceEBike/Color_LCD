@@ -44,6 +44,7 @@ typedef struct l2_vars_struct {
 	uint32_t ui32_wh_sum_x5;
 	uint32_t ui32_wh_sum_counter;
 	uint32_t ui32_wh_x10;
+	uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
 
 	uint8_t ui8_assist_level;
 	uint8_t ui8_number_of_assist_levels;
@@ -85,6 +86,7 @@ typedef struct l2_vars_struct {
 	uint8_t ui8_offroad_power_limit_div25;
 	// uint16_t ui16_odometer_distance_x10;
 	uint32_t ui32_odometer_x10;
+	uint32_t ui32_trip_x10;
 
 	uint8_t ui8_lights;
 	uint8_t ui8_braking;
@@ -192,7 +194,6 @@ l3_vars_t* get_l3_vars(void);
 
 extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern l3_vars_t l3_vars;
-extern volatile uint32_t ui32_g_first_time;
 
 void layer_2(void);
 

@@ -129,7 +129,25 @@ typedef enum {
 	ReadOnlyStr // Show a simple string
 } EditableType;
 
+typedef enum {
+  GraphTripDistance = 0,
+  GraphOdo,
+  GraphSpeed,
+  GraphCadence,
+  GraphHumanPower,
+  GraphBatteryPower,
+  GraphBatteryVoltage,
+  GraphBatteryCurrent,
+  GraphBatterySOC,
+  GraphMotorTemperature,
+  GraphMotorSpeed,
+  GraphMotorPWM,
+  GraphMotorFOC,
+  GRAPH_VARIANT_SIZE
+} GraphVariant;
 
+// number of GraphData objects in array
+#define GRAPHS_OBJECTS 13
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
 #define GRAPH_MAX_POINTS	(236 * 3) // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_INTERVAL_MS 	3810 // graph updates are expensive - do rarely (236 * 3.810 seconds = 15 minutes)
@@ -147,19 +165,20 @@ typedef enum {
 // Assumed period of screenUpdate invoke
 #define UPDATE_INTERVAL_MS 20
 
+// Real time period
+#define REALTIME_INTERVAL_MS 100
+
 // How often to toggle blink animations
 #define BLINK_INTERVAL_MS  300
 
-// Each _active_ graph needs a graphcache to store past points and invariants.  Currently we use use one,
-// but as soon as we have multiple active graphs we should assign dynamically.
 typedef struct {
-	int32_t points[GRAPH_MAX_POINTS];
-	int32_t max_val, min_val; // the max/min value we've seen (ever)
-	uint32_t start_valid; // the oldest point in our ring buffer
-	uint32_t end_valid; // the newest point in our ring buffer
-	int32_t sum_value;
-	int32_t filtered_value;
-} GraphData;
+  int32_t points[GRAPH_MAX_POINTS];
+  int32_t max_val, min_val; // the max/min value we've seen (ever)
+  uint32_t start_valid; // the oldest point in our ring buffer
+  uint32_t end_valid; // the newest point in our ring buffer
+  int32_t sum;
+} Graphs;
+
 
 struct FieldLayout;
 // Forward declaration
@@ -187,8 +206,8 @@ typedef struct Field {
 		} drawTextPtr;
 
 		struct {
+		  GraphVariant variant;
 			struct Field *source; // the data field we are graphing
-			GraphData *graphData;
 			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		} graph;
@@ -218,7 +237,7 @@ typedef struct Field {
 
 			// the following parameters are particular to the editable type
 			union {
-				struct {
+			  struct {
 					const char *units;
 					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
@@ -262,7 +281,7 @@ typedef struct Field {
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
-#define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
+#define FIELD_GRAPH(v, s, ...) { .variant = FieldGraph, .blink = true, .graph = { .variant = v, .source = s, ##__VA_ARGS__  } }
 #define FIELD_CUSTOMIZABLE_PTR(s, c) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = c  } }
 #define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 
@@ -390,13 +409,18 @@ void updateReadOnlyStr(Field *field, char *str);
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 
 void screen_init(void);
-void graphDataProcess(void);
+void graph_realtime_process(void);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
 
+extern volatile uint8_t g_motorVariablesStabilized;
+
 extern uint8_t g_customizableFieldIndex;
+
+extern Graphs g_graphs[GRAPHS_OBJECTS];
+extern bool g_graphs_ui_update;
 
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)

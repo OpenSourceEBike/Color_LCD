@@ -1113,23 +1113,23 @@ static void graphDrawPoints(Field *field) {
 
 	int x = graphXmin; // the vertical axis line
 
-	int warn_threshold = field->graph.warn_threshold;
-	if (warn_threshold != -1) {
-		warn_threshold = graphScaleY(graph, field->graph.warn_threshold);
-
-		// Make sure our threshold never goes below the areas we are going to draw
-		if (warn_threshold > graphYmin - 1)
-			warn_threshold = graphYmin - 1;
-	}
-
-	int error_threshold = field->graph.error_threshold;
-	if (error_threshold != -1) {
-		error_threshold = graphScaleY(graph, field->graph.error_threshold);
-
-		// Make sure our threshold never goes below the areas we are going to draw
-		if (error_threshold > graphYmin - 1)
-			error_threshold = graphYmin - 1;
-	}
+//	int warn_threshold = field->graph.warn_threshold;
+//	if (warn_threshold != -1) {
+//		warn_threshold = graphScaleY(graph, field->graph.warn_threshold);
+//
+//		// Make sure our threshold never goes below the areas we are going to draw
+//		if (warn_threshold > graphYmin - 1)
+//			warn_threshold = graphYmin - 1;
+//	}
+//
+//	int error_threshold = field->graph.error_threshold;
+//	if (error_threshold != -1) {
+//		error_threshold = graphScaleY(graph, field->graph.error_threshold);
+//
+//		// Make sure our threshold never goes below the areas we are going to draw
+//		if (error_threshold > graphYmin - 1)
+//			error_threshold = graphYmin - 1;
+//	}
 
 	static int delta_y_previous;
 	do {
@@ -1682,8 +1682,7 @@ void graph_realtime_process(void) {
 
     // now calculate the filtered value for each new point and add to graph data array
     uint32_t update_graph_data = (counter_1 % (GRAPH_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
-    if (update_graph_data)
-    {
+    if (update_graph_data) {
       uint32_t filtered;
       uint32_t sumDivisor = counter_2;
       counter_2 = 0;

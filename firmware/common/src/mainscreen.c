@@ -629,7 +629,7 @@ void main_idle() {
 	
 	handle_buttons();
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
-	graph_realtime_process();
+
 	if (++ui8_100ms_timer_counter >= 5) {
 		ui8_100ms_timer_counter = 0;
 		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR

@@ -470,7 +470,7 @@ void warnings(void) {
 	}
 
 	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
-		setWarning(ColorError, "Temp Shutdown");
+		setWarning(ColorError, _S("Temp Shutdown", "Temp Shut"));
 		return;
 	}
 
@@ -482,7 +482,7 @@ void warnings(void) {
 
 	// warn faults in yellow
 	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
-		setWarning(ColorWarning, "Temp Warning");
+		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
 	}
 

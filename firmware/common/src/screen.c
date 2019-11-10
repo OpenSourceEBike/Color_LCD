@@ -190,6 +190,17 @@ static bool renderMesh(FieldLayout *layout) {
 	return true;
 }
 
+static void drawSelectionMarkerForced(FieldLayout *layout) {
+  // Only consider doing this on items that might be animated
+  // we size the cursor to be slightly shorter than the box it is in
+
+  UG_FontSelect(&FONT_CURSORS);
+  UG_PutChar('0', layout->x + layout->width - FONT_CURSORS.char_width, // draw on ride side of line
+      layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
+      layout->field->is_selected && blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
+          C_TRANSPARENT);
+}
+
 /**
  * If we are selected, highlight this item with a bar to the left (on color screens possibly draw a small
  * color pointer or at least color the line something nice.
@@ -197,16 +208,19 @@ static bool renderMesh(FieldLayout *layout) {
 static void drawSelectionMarker(FieldLayout *layout) {
 	// Only consider doing this on items that might be animated
 	// we size the cursor to be slightly shorter than the box it is in
+  Field *field = layout->field;
+  if(!field)
+    return; // Couldn't have cursor
 
-	//  && !curActiveEditable - old code when editing don't blink the selection cursor
-	if (layout->field && layout->field->is_selected) {
-		UG_FontSelect(&FONT_CURSORS);
-		UG_PutChar('0', layout->x + layout->width - FONT_CURSORS.char_width, // draw on ride side of line
-		layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
-		blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
-		C_TRANSPARENT);
+	//  if the field is currently selected we need to blink the cursor
+
+  // also if the field is marked as dirty, we render just in case the reason it is dirty is that is was previously selected
+  // FIXME - is_selected was probably a mistake, refactor to remove all these nasty field type checks
+  bool couldHaveCursor = field->dirty && ((field->variant == FieldEditable && !field->editable.read_only) || field->variant == FieldScrollable);
+
+	if (field->is_selected || couldHaveCursor) {
+		drawSelectionMarkerForced(layout);
 	}
-
 }
 
 /**

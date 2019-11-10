@@ -46,7 +46,7 @@ static Field assistMenus[] =
 static Field walkAssistMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_walk_assist_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
-						FIELD_EDITABLE_UINT("Leveui8_g_reset_to_defaults_counterl 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
+						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 2", &l3_vars.ui8_walk_assist_level_factor[1], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 3", &l3_vars.ui8_walk_assist_level_factor[2], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 4", &l3_vars.ui8_walk_assist_level_factor[3], "", 0, 100),

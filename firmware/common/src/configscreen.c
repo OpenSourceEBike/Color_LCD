@@ -31,7 +31,7 @@ static Field batterySOCMenus[] =
 
 static Field assistMenus[] =
 		{
-						FIELD_EDITABLE_UINT("Num assist levels", &l3_vars.ui8_number_of_assist_levels, "", 1, 9),
+						FIELD_EDITABLE_UINT(_S("Num assist levels", "Num Levels"), &l3_vars.ui8_number_of_assist_levels, "", 1, 9),
 						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_assist_level_factor[0], "", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Level 2", &l3_vars.ui8_assist_level_factor[1], "", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Level 3", &l3_vars.ui8_assist_level_factor[2], "", 0, 255, .div_digits = 1),
@@ -46,7 +46,7 @@ static Field assistMenus[] =
 static Field walkAssistMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_walk_assist_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
-						FIELD_EDITABLE_UINT("Leveui8_g_reset_to_defaults_counterl 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
+						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_walk_assist_level_factor[0], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 2", &l3_vars.ui8_walk_assist_level_factor[1], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 3", &l3_vars.ui8_walk_assist_level_factor[2], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 4", &l3_vars.ui8_walk_assist_level_factor[3], "", 0, 100),
@@ -61,7 +61,8 @@ static Field startupPowerMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_startup_motor_power_boost_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
 						FIELD_EDITABLE_ENUM("Active on", &l3_vars.ui8_startup_motor_power_boost_always, "startup", "always"),
-						FIELD_EDITABLE_ENUM("Limit to max-power", &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
+            FIELD_EDITABLE_ENUM(_S("Need rotation", "Need pedal"), &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "/w pedal", "always"), // FIXME, share one array of disable/enable strings
+						FIELD_EDITABLE_ENUM(_S("Limit to max-power", "Power limit"), &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
 						FIELD_EDITABLE_UINT("Duration", &l3_vars.ui8_startup_motor_power_boost_time, "secs", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Fade", &l3_vars.ui8_startup_motor_power_boost_fade_time, "secs", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_startup_motor_power_boost_factor[0], "", 0, 255, .div_digits = 1),
@@ -103,7 +104,6 @@ static Field offroadMenus[] = {
 static Field variousMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
-						FIELD_EDITABLE_ENUM("Motor assist", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
 				FIELD_END };
 
 static Field technicalMenus[] =
@@ -122,10 +122,10 @@ static Field technicalMenus[] =
 static Field topMenus[] = {
 FIELD_SCROLLABLE("Wheel", wheelMenus),
 FIELD_SCROLLABLE("Battery", batteryMenus),
-FIELD_SCROLLABLE("Battery SOC", batterySOCMenus),
-FIELD_SCROLLABLE("Assist level", assistMenus),
+FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
+FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
 FIELD_SCROLLABLE("Walk", walkAssistMenus),
-FIELD_SCROLLABLE("Startup power", startupPowerMenus),
+FIELD_SCROLLABLE(_S("Startup power", "Start Pwr"), startupPowerMenus),
 FIELD_SCROLLABLE("Motor temp", motorTempMenus),
 FIELD_SCROLLABLE("Display", displayMenus),
 // FIELD_SCROLLABLE("Offroad", offroadMenus),
@@ -187,6 +187,7 @@ static Field startupPowerMenus[] = {
   FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_startup_motor_power_boost_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
   FIELD_EDITABLE_ENUM("Active on", &l3_vars.ui8_startup_motor_power_boost_always, "startup", "always"),
   FIELD_EDITABLE_ENUM("Limit to max-power", &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
+  FIELD_EDITABLE_ENUM("Needs rotation", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
   FIELD_EDITABLE_UINT("Duration", &l3_vars.ui8_startup_motor_power_boost_time, "secs", 0, 255, .div_digits = 1),
   FIELD_EDITABLE_UINT("Fade", &l3_vars.ui8_startup_motor_power_boost_fade_time, "secs", 0, 255, .div_digits = 1),
   FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_startup_motor_power_boost_factor[0], "", 0, 255, .div_digits = 1),
@@ -230,7 +231,6 @@ static Field offroadMenus[] = {
 
 static Field variousMenus[] = {
   FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
-  FIELD_EDITABLE_ENUM("Motor assist", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
   FIELD_END };
 
 static Field technicalMenus[] = {
@@ -260,7 +260,7 @@ static Field topMenus[] = {
   FIELD_END };
 #endif
 
-static Field configRoot = FIELD_SCROLLABLE("Configurations", topMenus);
+static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMenus);
 
 uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
 uint32_t ui32_g_configuration_wh_100_percent = 0;

@@ -122,7 +122,7 @@ static Field technicalMenus[] =
 static Field topMenus[] = {
 FIELD_SCROLLABLE("Wheel", wheelMenus),
 FIELD_SCROLLABLE("Battery", batteryMenus),
-FIELD_SCROLLABLE(_S("Battery SOC", "BAT SOC"), batterySOCMenus),
+FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
 FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
 FIELD_SCROLLABLE("Walk", walkAssistMenus),
 FIELD_SCROLLABLE(_S("Startup power", "Start Pwr"), startupPowerMenus),
@@ -260,7 +260,7 @@ static Field topMenus[] = {
   FIELD_END };
 #endif
 
-static Field configRoot = FIELD_SCROLLABLE("Configurations", topMenus);
+static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMenus);
 
 uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
 uint32_t ui32_g_configuration_wh_100_percent = 0;

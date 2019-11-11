@@ -603,7 +603,7 @@ void calc_battery_soc_watts_hour(void) {
 }
 
 // Note: this called from ISR context every 100ms
-void layer_2(void) {
+void realtime_processing(void) {
 	process_rx();
 	send_tx_package();
 

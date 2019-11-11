@@ -1040,15 +1040,11 @@ static void graphLabelAxis(Field *field) {
     GRAPH_COLOR_AXIS);
 
 		// horiz axis line
-    UG_DrawLine(graphXmin, graphYmin, graphXmin + 236, graphYmin,
+    UG_DrawLine(graphXmin, graphYmin, graphXmin + GRAPH_MAX_POINTS - 1, graphYmin,
     GRAPH_COLOR_AXIS);
 
 		// x axis scale
 		switch (l3_vars.x_axis_scale) {
-		  case 0:
-		    putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
-		    break;
-
 /*      case 1:
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "1h");
         break;
@@ -1057,8 +1053,9 @@ static void graphLabelAxis(Field *field) {
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "4h");
         break;*/
 
+		  case 0:
 		  default:
-		    putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15m");
+        putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15");
 		    break;
 		}
 	}
@@ -1105,11 +1102,23 @@ static inline int32_t graphScaleY(Graphs *graph, int32_t x) {
 }
 
 static void graphDrawPoints(Field *field) {
+  static bool end_valid_overflow = 0;
 	Graphs *graph = &g_graphs[field->graph.variant];
 
 	int ptr = graph->start_valid;
 	if (ptr == graph->end_valid)
 		return; // ring buffer is empty
+
+	uint32_t end_valid = graph->end_valid;
+	if (end_valid == 0)
+	  end_valid_overflow = true;
+
+	if (end_valid_overflow)
+	  end_valid = GRAPH_MAX_POINTS;
+
+  // first, erase the full points draw area
+  UG_FillFrame(graphXmin + 1, graphYmin - 1, graphXmin + end_valid,
+               graphYmax, GRAPH_COLOR_BACKGROUND);
 
 	int x = graphXmin; // the vertical axis line
 
@@ -1652,10 +1661,6 @@ void graph_realtime_process(void) {
     // keep summing every 100ms
     for (GraphVariant graph_variant = 0; graph_variant < GRAPH_VARIANT_SIZE; graph_variant++) {
       switch (graph_variant) {
-        case GraphSpeed:
-          g_graphs[graph_variant].sum += l2_vars.ui16_wheel_speed_x10;
-          break;
-
         case GraphTripDistance:
           g_graphs[graph_variant].sum += l2_vars.ui32_trip_x10;
           break;
@@ -1664,19 +1669,49 @@ void graph_realtime_process(void) {
           g_graphs[graph_variant].sum += l2_vars.ui32_odometer_x10;
           break;
 
-        case GraphCadence:
-          g_graphs[graph_variant].sum += l2_vars.ui8_pedal_cadence_filtered;
+        case GraphSpeed:
+          g_graphs[graph_variant].sum += l2_vars.ui16_wheel_speed_x10;
           break;
 
-        case GraphBatteryVoltage:
-          g_graphs[graph_variant].sum += l2_vars.ui16_battery_voltage_filtered_x10;
+        case GraphCadence:
+          g_graphs[graph_variant].sum += l2_vars.ui8_pedal_cadence_filtered;
           break;
 
         case GraphHumanPower:
           g_graphs[graph_variant].sum += l2_vars.ui16_pedal_power_filtered;
           break;
 
-          //FIXME: add the other objects
+        case GraphBatteryPower:
+          g_graphs[graph_variant].sum += l2_vars.ui16_battery_power_filtered;
+          break;
+
+        case GraphBatteryVoltage:
+          g_graphs[graph_variant].sum += l2_vars.ui16_battery_voltage_filtered_x10;
+          break;
+
+        case GraphBatteryCurrent:
+          g_graphs[graph_variant].sum += l2_vars.ui16_battery_current_filtered_x5;
+          break;
+
+        case GraphBatterySOC:
+          g_graphs[graph_variant].sum += ui16_g_battery_soc_watts_hour;
+          break;
+
+        case GraphMotorSpeed:
+          g_graphs[graph_variant].sum += l2_vars.ui16_motor_speed_erps;
+          break;
+
+        case GraphMotorTemperature:
+          g_graphs[graph_variant].sum += l2_vars.ui8_motor_temperature;
+          break;
+
+        case GraphMotorPWM:
+          g_graphs[graph_variant].sum += l2_vars.ui8_duty_cycle;
+          break;
+
+        case GraphMotorFOC:
+          g_graphs[graph_variant].sum += l2_vars.ui8_foc_angle;
+          break;
       }
     }
 
@@ -1690,10 +1725,14 @@ void graph_realtime_process(void) {
       for (GraphVariant graph_variant = 0; graph_variant < GRAPH_VARIANT_SIZE; graph_variant++) {
           // filter
           switch (graph_variant) {
-          default:
-            filtered = g_graphs[graph_variant].sum / sumDivisor;
-            g_graphs[graph_variant].sum = 0;
-            break;
+            case GraphBatteryCurrent:
+              filtered = (g_graphs[graph_variant].sum * 2) / sumDivisor;
+              break;
+
+            default:
+              filtered = g_graphs[graph_variant].sum / sumDivisor;
+              g_graphs[graph_variant].sum = 0;
+              break;
         }
 
         // Now add the point to the graph point array

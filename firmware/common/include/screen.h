@@ -149,8 +149,8 @@ typedef enum {
 // number of GraphData objects in array
 #define GRAPHS_OBJECTS 13
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
-#define GRAPH_MAX_POINTS	(236 * 3) // Note: we waste one record, to make our ring buffer code easier
-#define GRAPH_INTERVAL_MS 	3810 // graph updates are expensive - do rarely (236 * 3.810 seconds = 15 minutes)
+#define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier
+#define GRAPH_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
 #define GRAPH_COLOR_NORMAL  C_BLUE
 #define GRAPH_COLOR_WARN    C_YELLOW
@@ -172,7 +172,7 @@ typedef enum {
 #define BLINK_INTERVAL_MS  300
 
 typedef struct {
-  int32_t points[GRAPH_MAX_POINTS];
+  int32_t points[GRAPH_MAX_POINTS * 3];
   int32_t max_val, min_val; // the max/min value we've seen (ever)
   uint32_t start_valid; // the oldest point in our ring buffer
   uint32_t end_valid; // the newest point in our ring buffer

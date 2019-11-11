@@ -99,14 +99,14 @@ Field *customizables[] = {
 };
 
 // We currently don't have any graphs in the SW102, so leave them here until then
-Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", NULL, "");
-Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", NULL, "");
-Field odoFieldGraph = FIELD_READONLY_UINT("odometer", NULL, "");
+Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", NULL, "", .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", NULL, "", .div_digits = 1);
+Field odoFieldGraph = FIELD_READONLY_UINT("odometer", NULL, "", .div_digits = 1);
 Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", NULL, "");
 Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", NULL, "");
 Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", NULL, "");
-Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", NULL, "");
-Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", NULL, "");
+Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", NULL, "", .div_digits = 1);
+Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", NULL, "", .div_digits = 1);
 Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", NULL, "");
 Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", NULL, "");
 Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", NULL, "");

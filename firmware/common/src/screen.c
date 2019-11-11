@@ -1033,7 +1033,7 @@ static void graphLabelAxis(Field *field) {
 		UG_SetForecolor(LABEL_COLOR);
 		putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT,
 				source->editable.label);
-		UG_SetForecolor(GRAPH_COLOR_ACCENT);
+		UG_SetForecolor(LABEL_COLOR);
 
 		// vertical axis line
     UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,

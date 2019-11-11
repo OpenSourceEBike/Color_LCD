@@ -1712,6 +1712,10 @@ void graph_realtime_process(void) {
         case GraphMotorFOC:
           g_graphs[graph_variant].sum += l2_vars.ui8_foc_angle;
           break;
+
+        default:
+          assert(0);
+          break;
       }
     }
 

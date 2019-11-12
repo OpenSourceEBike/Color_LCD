@@ -99,33 +99,38 @@ Field *customizables[] = {
 };
 
 // We currently don't have any graphs in the SW102, so leave them here until then
-Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", NULL, "", .div_digits = 1);
-Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", NULL, "", .div_digits = 1);
-Field odoFieldGraph = FIELD_READONLY_UINT("odometer", NULL, "", .div_digits = 1);
-Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", NULL, "");
-Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", NULL, "");
-Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", NULL, "");
-Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", NULL, "", .div_digits = 1);
-Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", NULL, "", .div_digits = 1);
-Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", NULL, "");
-Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", NULL, "");
-Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", NULL, "");
-Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", NULL, "");
-Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", NULL, "");
+// kevinh: I think the following could be probably shared with the defs above (no need to copy and compute twice).  Also high chance of introducing bugs
+// only in one place.
+// Though I'm not sure why you need l2 vs l3 vars in this case.
+Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &l2_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &l2_vars.ui32_trip_x10, "", .div_digits = 1);
+Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &l2_vars.ui32_odometer_x10, "", .div_digits = 1);
+Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &l2_vars.ui8_pedal_cadence_filtered, "");
+Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &l2_vars.ui16_pedal_power_filtered, "");
+Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &l2_vars.ui16_battery_power_filtered, "");
+Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &l2_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
+Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &l2_vars.ui16_battery_current_filtered_x5, "", .div_digits = 1); // FIXME, change this to x10 so div_digits will work
+Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "");
+Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &l2_vars.ui8_motor_temperature, "");
+Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_motor_speed_erps, "");
+Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
+Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
 
-Field wheelSpeedGraph = FIELD_GRAPH(GraphTripDistance, &wheelSpeedFieldGraph);
-Field tripDistanceGraph = FIELD_GRAPH(GraphOdo, &tripDistanceFieldGraph);
-Field odoGraph = FIELD_GRAPH(GraphSpeed, &odoFieldGraph);
-Field cadenceGraph = FIELD_GRAPH(GraphCadence, &cadenceFieldGraph);
-Field humanPowerGraph = FIELD_GRAPH(GraphHumanPower, &humanPowerFieldGraph);
-Field batteryPowerGraph = FIELD_GRAPH(GraphBatteryPower, &batteryPowerFieldGraph);
-Field batteryVoltageGraph = FIELD_GRAPH(GraphBatteryVoltage, &batteryVoltageFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentGraph = FIELD_GRAPH(GraphBatteryCurrent, &batteryCurrentFieldGraph);
-Field batterySOCGraph = FIELD_GRAPH(GraphBatterySOC, &batterySOCFieldGraph);
-Field motorTempGraph = FIELD_GRAPH(GraphMotorTemperature, &motorTempFieldGraph);
-Field motorErpsGraph = FIELD_GRAPH(GraphMotorSpeed, &motorErpsFieldGraph);
-Field pwmDutyGraph = FIELD_GRAPH(GraphMotorPWM, &pwmDutyFieldGraph);
-Field motorFOCGraph = FIELD_GRAPH(GraphMotorFOC, &motorFOCFieldGraph);
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph);
+Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph);
+Field odoGraph = FIELD_GRAPH(&odoFieldGraph);
+Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph);
+Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph);
+Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare);
+Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph);
+Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph);
+
+// Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &wheelSpeedGraph,
                                   &tripDistanceGraph,
@@ -140,6 +145,7 @@ Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &motorErpsGraph,
                                   &pwmDutyGraph,
                                   &motorFOCGraph);
+Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[1], customizables);

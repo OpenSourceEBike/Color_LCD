@@ -36,8 +36,9 @@
 uint8_t g_customizableFieldIndex;
 bool g_graphs_ui_update = false;
 
-Graphs g_graphs[GRAPHS_OBJECTS];
-uint32_t graphs_sums[GRAPHS_OBJECTS];
+static Graph g_graphs[GRAPH_VARIANT_SIZE];
+static int numGraphs = 0;
+// uint32_t graphs_sums[GRAPHS_OBJECTS];
 
 extern UG_GUI gui;
 
@@ -1061,7 +1062,10 @@ static void graphLabelAxis(Field *field) {
 	}
 
 	// draw max value
-	Graphs *graph = &g_graphs[field->graph.variant];
+	Graph *graph = field->graph.data;
+	if(!graph) // no data yet
+		return;
+
 	char valstr[MAX_FIELD_LEN];
 
 	// draw if value changed or dirty
@@ -1091,7 +1095,7 @@ static void graphLabelAxis(Field *field) {
 }
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
-static inline int32_t graphScaleY(Graphs *graph, int32_t x) {
+static inline int32_t graphScaleY(Graph *graph, int32_t x) {
 	if (graph->max_val == graph->min_val) // Until there is a span everything is at wmin
 		return graphYmin;
 
@@ -1103,7 +1107,9 @@ static inline int32_t graphScaleY(Graphs *graph, int32_t x) {
 
 static void graphDrawPoints(Field *field) {
   static bool end_valid_overflow = 0;
-	Graphs *graph = &g_graphs[field->graph.variant];
+	Graph *graph = field->graph.data;
+	if(!graph)
+		return; // no data yet
 
 	int ptr = graph->start_valid;
 	if (ptr == graph->end_valid)
@@ -1652,67 +1658,31 @@ void graph_realtime_process(void) {
   static uint32_t counter_1 = 0;
   static uint32_t counter_2 = 0;
 
+  // for now, reference the graphs global to find all possible data sources
+  extern Field *activeGraphs;
+
   // start update graphs only after a startup delay to avoid wrong values of the variables
-  if (g_motorVariablesStabilized) {
+  // @casainho: Screen code should be a low level library and not depend on ebike specific globals.
+  // if (g_motorVariablesStabilized) {
+  if(activeGraphs) {
     // track the number of data process cycles
     counter_1++;
     counter_2++;
 
     // keep summing every 100ms
-    for (GraphVariant graph_variant = 0; graph_variant < GRAPH_VARIANT_SIZE; graph_variant++) {
-      switch (graph_variant) {
-        case GraphTripDistance:
-          g_graphs[graph_variant].sum += l2_vars.ui32_trip_x10;
-          break;
+    for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
+    	Field *f = activeGraphs->customizable.choices[i];
+    	assert(f->variant == FieldGraph);
 
-        case GraphOdo:
-          g_graphs[graph_variant].sum += l2_vars.ui32_odometer_x10;
-          break;
+    	if(!f->graph.data) { // Select a data pool from our cache
+    		 assert(numGraphs < GRAPH_VARIANT_SIZE);
+     		 f->graph.data = &g_graphs[numGraphs++];
+    	}
 
-        case GraphSpeed:
-          g_graphs[graph_variant].sum += l2_vars.ui16_wheel_speed_x10;
-          break;
+    	Field *fieldGraphEditable = f->graph.source; // get the backing data source for this graph
 
-        case GraphCadence:
-          g_graphs[graph_variant].sum += l2_vars.ui8_pedal_cadence_filtered;
-          break;
-
-        case GraphHumanPower:
-          g_graphs[graph_variant].sum += l2_vars.ui16_pedal_power_filtered;
-          break;
-
-        case GraphBatteryPower:
-          g_graphs[graph_variant].sum += l2_vars.ui16_battery_power_filtered;
-          break;
-
-        case GraphBatteryVoltage:
-          g_graphs[graph_variant].sum += l2_vars.ui16_battery_voltage_filtered_x10;
-          break;
-
-        case GraphBatteryCurrent:
-          g_graphs[graph_variant].sum += l2_vars.ui16_battery_current_filtered_x5;
-          break;
-
-        case GraphBatterySOC:
-          g_graphs[graph_variant].sum += ui16_g_battery_soc_watts_hour;
-          break;
-
-        case GraphMotorSpeed:
-          g_graphs[graph_variant].sum += l2_vars.ui16_motor_speed_erps;
-          break;
-
-        case GraphMotorTemperature:
-          g_graphs[graph_variant].sum += l2_vars.ui8_motor_temperature;
-          break;
-
-        case GraphMotorPWM:
-          g_graphs[graph_variant].sum += l2_vars.ui8_duty_cycle;
-          break;
-
-        case GraphMotorFOC:
-          g_graphs[graph_variant].sum += l2_vars.ui8_foc_angle;
-          break;
-      }
+    	int32_t target = getEditableNumber(fieldGraphEditable, false);
+    	f->graph.data->sum += target;
     }
 
     // now calculate the filtered value for each new point and add to graph data array
@@ -1722,36 +1692,41 @@ void graph_realtime_process(void) {
       uint32_t sumDivisor = counter_2;
       counter_2 = 0;
 
-      for (GraphVariant graph_variant = 0; graph_variant < GRAPH_VARIANT_SIZE; graph_variant++) {
+      for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
+    	  Field *f = activeGraphs->customizable.choices[i];
+    	  Graph *g = f->graph.data;
+    	  assert(g); // better be !NULL by now or we screwed up
+
           // filter
-          switch (graph_variant) {
-            case GraphBatteryCurrent:
-              filtered = (g_graphs[graph_variant].sum * 2) / sumDivisor;
+          switch (f->graph.filter) {
+            case FilterSquare:
+              filtered = (g->sum * 2) / sumDivisor;
               break;
 
-            default:
-              filtered = g_graphs[graph_variant].sum / sumDivisor;
-              g_graphs[graph_variant].sum = 0;
+            case FilterDefault:
+              filtered = g->sum / sumDivisor;
+              g->sum = 0;
               break;
         }
 
         // Now add the point to the graph point array
         // add the point
-        g_graphs[graph_variant].points[g_graphs[graph_variant].end_valid] = filtered;
-        g_graphs[graph_variant].end_valid = (g_graphs[graph_variant].end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
+        g->points[g->end_valid] = filtered;
+        g->end_valid = (g->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
 
         // discard old point if needed
-        bool overfull = g_graphs[graph_variant].start_valid == g_graphs[graph_variant].end_valid;
+        bool overfull = g->start_valid == g->end_valid;
         if (overfull)
-          g_graphs[graph_variant].start_valid = (g_graphs[graph_variant].start_valid + 1) % GRAPH_MAX_POINTS;
+        	g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
 
         // update invariants
-        if (filtered > g_graphs[graph_variant].max_val)
-          g_graphs[graph_variant].max_val = filtered;
+        if (filtered > g->max_val)
+        	g->max_val = filtered;
         // FIXME: field->graph.min_threshold not available here
+        // @casainho now it is available again.  you can get it from f)
 //        if (filtered < graphs[i].min_val && filtered >= field->graph.min_threshold)
-if (filtered < g_graphs[graph_variant].min_val)
-          g_graphs[graph_variant].min_val = filtered;
+if (filtered < g->min_val)
+	g->min_val = filtered;
       }
 
       // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
@@ -1762,11 +1737,11 @@ if (filtered < g_graphs[graph_variant].min_val)
 
 void graph_init(void) {
   // Init graphs to empty
-  for (GraphVariant graph_variant = 0; graph_variant < GRAPH_VARIANT_SIZE; graph_variant++) {
-    g_graphs[graph_variant].max_val = 0;
-    g_graphs[graph_variant].min_val = INT32_MAX;
-    g_graphs[graph_variant].start_valid = 0;
-    g_graphs[graph_variant].end_valid = 0;
+  for (int i = 0; i < GRAPH_VARIANT_SIZE; i++) {
+    g_graphs[i].max_val = 0;
+    g_graphs[i].min_val = INT32_MAX;
+    g_graphs[i].start_valid = 0;
+    g_graphs[i].end_valid = 0;
   }
 }
 

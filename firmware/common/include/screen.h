@@ -129,25 +129,8 @@ typedef enum {
 	ReadOnlyStr // Show a simple string
 } EditableType;
 
-typedef enum {
-  GraphTripDistance = 0,
-  GraphOdo,
-  GraphSpeed,
-  GraphCadence,
-  GraphHumanPower,
-  GraphBatteryPower,
-  GraphBatteryVoltage,
-  GraphBatteryCurrent,
-  GraphBatterySOC,
-  GraphMotorTemperature,
-  GraphMotorSpeed,
-  GraphMotorPWM,
-  GraphMotorFOC,
-  GRAPH_VARIANT_SIZE
-} GraphVariant;
+#define GRAPH_VARIANT_SIZE 13 // same as the former GRAPHS_OBJECT
 
-// number of GraphData objects in array
-#define GRAPHS_OBJECTS 13
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
 #define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
@@ -171,14 +154,23 @@ typedef enum {
 // How often to toggle blink animations
 #define BLINK_INTERVAL_MS  300
 
+/**
+ * This is a cache of past read values for a particular data source.  Currently there is a 1:1 relation
+ * between an instance of this and an element of the graphs.customizable elements.  Eventually we could
+ * relax this relation and keep data only for the most recently displayed graphs
+ */
 typedef struct {
   int32_t points[GRAPH_MAX_POINTS * 3];
   int32_t max_val, min_val; // the max/min value we've seen (ever)
   uint32_t start_valid; // the oldest point in our ring buffer
   uint32_t end_valid; // the newest point in our ring buffer
   int32_t sum;
-} Graphs;
+} Graph; // this should not be plural
 
+typedef enum {
+	FilterDefault = 0,
+	FilterSquare
+} FilterOp;
 
 struct FieldLayout;
 // Forward declaration
@@ -206,8 +198,9 @@ typedef struct Field {
 		} drawTextPtr;
 
 		struct {
-		  GraphVariant variant;
+			Graph *data; // cached data for this graph
 			struct Field *source; // the data field we are graphing
+			FilterOp filter : 2; // allow 4 options for now
 			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		} graph;
@@ -266,7 +259,7 @@ typedef struct Field {
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
 #define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
-  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
+  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
 
 #define FIELD_READONLY_STRING(lbl, targ) { .variant = FieldEditable, \
@@ -281,7 +274,7 @@ typedef struct Field {
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
-#define FIELD_GRAPH(v, s, ...) { .variant = FieldGraph, .blink = true, .graph = { .variant = v, .source = s, ##__VA_ARGS__  } }
+#define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
 #define FIELD_CUSTOMIZABLE_PTR(s, c) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = c  } }
 #define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 
@@ -415,11 +408,8 @@ extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
 
-extern volatile uint8_t g_motorVariablesStabilized;
-
 extern uint8_t g_customizableFieldIndex;
 
-extern Graphs g_graphs[GRAPHS_OBJECTS];
 extern bool g_graphs_ui_update;
 
 // The default is for editables to be two rows tall, with the data value on the second row

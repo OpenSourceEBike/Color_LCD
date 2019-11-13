@@ -1708,21 +1708,21 @@ void graph_realtime_process(void) {
       counter_2 = 0;
 
       for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
-    	  Field *f = activeGraphs->customizable.choices[i];
-    	  Graph *g = f->graph.data;
-    	  assert(g); // better be !NULL by now or we screwed up
+        Field *f = activeGraphs->customizable.choices[i];
+        Graph *g = f->graph.data;
+        assert(g); // better be !NULL by now or we screwed up
 
-          // filter
-          switch (f->graph.filter) {
-            case FilterSquare:
-              filtered = (g->sum * 2) / sumDivisor;
-              break;
+        // filter
+        switch (f->graph.filter) {
+          case FilterSquare:
+            filtered = (g->sum * 2) / sumDivisor;
+            break;
 
-            case FilterDefault:
-              filtered = g->sum / sumDivisor;
-              g->sum = 0;
-              break;
+          case FilterDefault:
+            filtered = g->sum / sumDivisor;
+            break;
         }
+        g->sum = 0;
 
         // Now add the point to the graph point array
         // add the point
@@ -1732,18 +1732,18 @@ void graph_realtime_process(void) {
         // discard old point if needed
         bool overfull = g->start_valid == g->end_valid;
         if (overfull)
-        	g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
+          g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
 
         // update invariants
         if (filtered > g->max_val)
-        	g->max_val = filtered;
+          g->max_val = filtered;
 
         if (filtered < g->min_val && filtered >= f->graph.min_threshold)
           g->min_val = filtered;
-      }
 
-      // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
-      g_graphs_ui_update = true;
+        // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
+        g_graphs_ui_update = true;
+      }
     }
   }
 }

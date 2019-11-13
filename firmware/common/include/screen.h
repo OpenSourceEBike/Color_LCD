@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "ugui.h"
 #include "buttons.h"
+#include "main.h"
 
 /**
  * Main screen notes
@@ -129,7 +130,11 @@ typedef enum {
 	ReadOnlyStr // Show a simple string
 } EditableType;
 
-#define GRAPH_VARIANT_SIZE 13 // same as the former GRAPHS_OBJECT
+#ifdef SW102
+#define GRAPH_VARIANT_SIZE 1 // memory for only 1 graph
+#else
+#define GRAPH_VARIANT_SIZE 13
+#endif
 
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
 #define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier

@@ -65,9 +65,12 @@ ODFLAGS = -S
 
 include ../../common/Makefile.common
 
-COMMONSRC = ../../common/src
-SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') $(COMMONSRC)/fault.c $(COMMONSRC)/buttons.c $(COMMONSRC)/utils.c $(COMMONSRC)/ugui.c $(COMMONSRC)/fonts.c $(COMMONSRC)/state.c $(COMMONSRC)/screen.c $(COMMONSRC)/mainscreen.c $(COMMONSRC)/configscreen.c $(COMMONSRC)/eeprom.c
-OBJECTS=$(foreach x, $(basename $(SOURCES)), $(x).o)
+COMMONDIR = ../../common/src
+OBJDIR = _build
+CUSTOM_SOURCES=$(shell find spl ugui_driver *.c -type f -iname '*.c') 
+COMMON_SOURCES = fault.c buttons.c utils.c ugui.c fonts.c state.c screen.c mainscreen.c configscreen.c eeprom.c
+SOURCES = $(CUSTOM_SOURCES) $(foreach x, $(COMMON_SOURCES), $(COMMONDIR)/$(x))
+OBJECTS = $(foreach x, $(basename $(SOURCES)), $(OBJDIR)/$(x).o)
 
 # dev platform specific.
 # OPENOCD_PATH := E:/nrf5/Toolchain/OpenOCD/0.10.0-12-20190422-2015/bin
@@ -82,12 +85,13 @@ OPENOCD := '$(OPENOCD_PATH)/$(OPENOCD_BIN)' -f $(OPENOCD_PATH)/../scripts/interf
 
 all: main.bin size
 
+# Ignore - useful for debugging makefiles
+test:
+	echo objs $(OBJECTS)
+
 clean: 
 	rm -f main.lst main.elf main.bin
-	rm $(COMMONSRC)/*.o
-	find *.o | xargs rm
-	find spl/src/*.o | xargs rm
-	find spl/CMSIS/*.o | xargs rm
+	rm -rf $(OBJDIR) .deps
 
 flash_serial: main.bin 
 	$(STM32FLASH) main.bin
@@ -119,9 +123,24 @@ main.elf: $(OBJECTS) startup_stm32f10x_md.o
 	@echo "..linking"
 	$(LD)  $^ $(LFLAGS) -o $@
 
-%.o: %.c
-	@echo ".compiling"
-	$(CC) $(CFLAGS) $< -o $@
-
 startup_stm32f10x_md.o:
 	$(AS) $(ASFLAGS) startup_stm32f10x_md.s -o startup_stm32f10x_md.o
+
+#
+# The following makefile magic generates proper dependencies for headerfiles, so that if you change a headerfile
+# the correct C files that use it will be recompiled 
+DEPDIR := .deps
+DEPFLAGS = -MT $@ -MD -MP -MF $(DEPDIR)/$*.d
+
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
+$(OBJDIR)/%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	@mkdir -p $(dir $@) $(DEPDIR)/$(dir $<)
+	$(COMPILE.c) $(OUTPUT_OPTION) $< 
+	
+$(DEPDIR): ; @mkdir -p $@
+
+DEPFILES := $(SOURCES:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES)) 

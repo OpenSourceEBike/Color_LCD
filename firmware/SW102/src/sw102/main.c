@@ -157,6 +157,10 @@ void init_softdevice() {
   if(*bootloaderaddr == 0xffffffff)
     useSoftDevice = false; // FIXME, instead just use the supply voltage and see if it is below 14V
 #endif
+
+  // don't use softdevice while debugging
+  // FIXME check if under debugger instead (using openocd callbacks)
+  // useSoftDevice = false;
 }
 
 
@@ -281,7 +285,7 @@ static void gui_timer_timeout(void *p_context)
     ui32_seconds_since_startup++;
   
   if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
-    layer_2();
+    realtime_processing();
 }
 
 

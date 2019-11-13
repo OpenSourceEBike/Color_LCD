@@ -19,6 +19,8 @@ typedef union
   uint8_t byte[4];
 } U32;
 
+//#define  MAIN_SCREEN_FIELD_LABELS_COLOR C_GRAY
+#define  MAIN_SCREEN_FIELD_LABELS_COLOR C_WHITE_SMOKE
 
 void system_power(bool state);
 

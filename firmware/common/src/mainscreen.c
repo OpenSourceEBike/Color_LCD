@@ -169,7 +169,6 @@ static void bootScreenOnPreUpdate() {
 	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
   if(is_sim_motor) {
     fieldPrintf(&bootStatus, "SIMULATING TSDZ2!");
-    g_motorVariablesStabilized = true;
   }
   else if(has_seen_motor)
     fieldPrintf(&bootStatus, "Found TSDZ2");
@@ -424,7 +423,7 @@ void screen_clock(void) {
 		// receive data from layer 2 to layer 3
 		// send data from layer 3 to layer 2
 		ui32_g_layer_2_can_execute = 0;
-		copy_layer_2_layer_3_vars();
+		copy_rt_to_ui_vars();
 		ui32_g_layer_2_can_execute = 1;
 	}
 

@@ -38,7 +38,6 @@ bool g_graphs_ui_update = false;
 
 static Graph g_graphs[GRAPH_VARIANT_SIZE];
 static int numGraphs = 0;
-// uint32_t graphs_sums[GRAPHS_OBJECTS];
 
 extern UG_GUI gui;
 
@@ -1027,6 +1026,8 @@ static void graphClear(Field *field) {
 static void graphLabelAxis(Field *field) {
   static int32_t max_val_pre = INT32_MAX;
   static int32_t min_val_pre = INT32_MIN;
+  bool draw_y_label_max = true;
+  bool draw_y_label_min = true;
 
 	// Only need to draw labels and axis if dirty
 	Field *source = field->graph.source;
@@ -1066,11 +1067,20 @@ static void graphLabelAxis(Field *field) {
 	if(!graph) // no data yet
 		return;
 
+  // the graph would be an horizontal line at bottom, so, put Y axis labels specific if value is 0 or higher
+  if (graph->min_val == graph->max_val) {
+    if (graph->min_val > 0)
+      draw_y_label_min = false;
+    else
+      draw_y_label_max = false;
+  }
+
 	char valstr[MAX_FIELD_LEN];
 
 	// draw if value changed or dirty
-	if(graph->max_val != max_val_pre ||
-	    field->dirty) {
+	if((graph->max_val != max_val_pre ||
+	    field->dirty) &&
+	    draw_y_label_max) {
 	    max_val_pre = graph->max_val;
 
 	    if (graph->max_val != INT32_MIN) {
@@ -1081,8 +1091,9 @@ static void graphLabelAxis(Field *field) {
 	}
 
   // draw if value changed or dirty
-  if(graph->min_val != min_val_pre ||
-      field->dirty) {
+  if((graph->min_val != min_val_pre ||
+      field->dirty) &&
+      draw_y_label_min){
       min_val_pre = graph->min_val;
 
       if (graph->min_val != INT32_MAX) {
@@ -1152,13 +1163,19 @@ static void graphDrawPoints(Field *field) {
 		int val = graph->points[ptr];
 		int y = graphScaleY(graph, val);
 
+    // the graph would be an horizontal line at bottom, but so force line to be max value
+    if (graph->min_val == graph->max_val &&
+        graph->min_val > 0)
+      y = graphYmax;
+
 		int delta_y_contour;
 		int delta_y_line;
 		int delta_y = graphYmin - y;
 		int delta_y_temp;
 
-		// Draw black space above the line (so we scroll/scale properly)
-		UG_DrawLine(x, graphYmin, x, graphYmin - delta_y, GRAPH_COLOR_BACKGROUND);
+		// this fails when graph rollover
+//		// Draw black space above the line (so we scroll/scale properly)
+//		UG_DrawLine(x, graphYmin, x, graphYmin - delta_y, GRAPH_COLOR_BACKGROUND);
 
     // force first line to not be full white
     if(x == (graphXmin + 1)) {
@@ -1214,7 +1231,7 @@ static bool renderGraph(FieldLayout *layout) {
 	if (g_graphs_ui_update == 0 && !field->dirty)
 		return false;
 
-	// reset this flag, no more graph update untill new data available
+	// reset this flag, no more graph update until new data available
 	g_graphs_ui_update = false;
 
 	Field *source = field->graph.source;
@@ -1662,8 +1679,6 @@ void graph_realtime_process(void) {
   extern Field *activeGraphs;
 
   // start update graphs only after a startup delay to avoid wrong values of the variables
-  // @casainho: Screen code should be a low level library and not depend on ebike specific globals.
-  // if (g_motorVariablesStabilized) {
   if(activeGraphs) {
     // track the number of data process cycles
     counter_1++;
@@ -1688,8 +1703,8 @@ void graph_realtime_process(void) {
     // now calculate the filtered value for each new point and add to graph data array
     uint32_t update_graph_data = (counter_1 % (GRAPH_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
     if (update_graph_data) {
-      uint32_t filtered;
-      uint32_t sumDivisor = counter_2;
+      int32_t filtered;
+      int32_t sumDivisor = counter_2;
       counter_2 = 0;
 
       for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
@@ -1722,11 +1737,9 @@ void graph_realtime_process(void) {
         // update invariants
         if (filtered > g->max_val)
         	g->max_val = filtered;
-        // FIXME: field->graph.min_threshold not available here
-        // @casainho now it is available again.  you can get it from f)
-//        if (filtered < graphs[i].min_val && filtered >= field->graph.min_threshold)
-if (filtered < g->min_val)
-	g->min_val = filtered;
+
+        if (filtered < g->min_val && filtered >= f->graph.min_threshold)
+          g->min_val = filtered;
       }
 
       // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
@@ -1738,7 +1751,7 @@ if (filtered < g->min_val)
 void graph_init(void) {
   // Init graphs to empty
   for (int i = 0; i < GRAPH_VARIANT_SIZE; i++) {
-    g_graphs[i].max_val = 0;
+    g_graphs[i].max_val = INT32_MIN;
     g_graphs[i].min_val = INT32_MAX;
     g_graphs[i].start_valid = 0;
     g_graphs[i].end_valid = 0;

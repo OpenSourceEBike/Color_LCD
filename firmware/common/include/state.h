@@ -201,7 +201,7 @@ void realtime_processing(void);
  * Called from the main thread every 100ms
  *
  */
-void copy_layer_2_layer_3_vars(void);
+void copy_rt_to_ui_vars(void);
 
 /// must be called from main() idle loop
 void automatic_power_off_management(void);
@@ -216,8 +216,6 @@ extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor
 extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
-
-extern volatile uint8_t g_motorVariablesStabilized; // not a screen variable
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7

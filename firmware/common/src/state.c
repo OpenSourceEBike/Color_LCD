@@ -17,14 +17,13 @@
 #include "mainscreen.h"
 #include "eeprom.h"
 #include "buttons.h"
-// #include "adc.h"
 #include "fault.h"
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_g_battery_soc_watts_hour;
 volatile uint32_t ui32_g_layer_2_can_execute;
-volatile uint32_t ui32_g_first_time = 1;
+volatile uint8_t motorVariablesStabilized = 0;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
 bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
@@ -80,6 +79,12 @@ static uint16_t fakeRandom(uint32_t *storage, uint16_t minv, uint16_t maxv) {
  * Pretend we just received a randomized motor packet
  */
 void parse_simmotor() {
+  static uint32_t counter;
+
+  // execute at a slow rate so values can be seen on the graph
+  counter++;
+  if (counter % (3 * 10)) // 3 seconds
+    return;
 
 	const uint32_t min_bat10x = 400;
 	const uint32_t max_bat10x = 546;
@@ -421,22 +426,6 @@ void l2_low_pass_filter_battery_voltage_current_power(void) {
 					* l2_vars.ui16_battery_voltage_filtered_x10;
 	l2_vars.ui16_battery_power_filtered =
 			l2_vars.ui16_battery_power_filtered_x50 / 50;
-
-	// loose resolution under 200W
-	if (l2_vars.ui16_battery_power_filtered < 200) {
-		l2_vars.ui16_battery_power_filtered /= 10;
-		l2_vars.ui16_battery_power_filtered *= 10;
-	}
-	// loose resolution under 400W
-	else if (l2_vars.ui16_battery_power_filtered < 400) {
-		l2_vars.ui16_battery_power_filtered /= 20;
-		l2_vars.ui16_battery_power_filtered *= 20;
-	}
-	// loose resolution all other values
-	else {
-		l2_vars.ui16_battery_power_filtered /= 25;
-		l2_vars.ui16_battery_power_filtered *= 25;
-	}
 }
 
 void l2_low_pass_filter_pedal_torque_and_power(void) {
@@ -460,27 +449,6 @@ void l2_low_pass_filter_pedal_torque_and_power(void) {
 	l2_vars.ui16_pedal_power_filtered =
 			((uint32_t) (ui32_pedal_power_accumulated
 					>> PEDAL_POWER_FILTER_COEFFICIENT));
-
-	if (l2_vars.ui16_pedal_torque_filtered > 200) {
-		l2_vars.ui16_pedal_torque_filtered /= 20;
-		l2_vars.ui16_pedal_torque_filtered *= 20;
-	} else if (l2_vars.ui16_pedal_torque_filtered > 100) {
-		l2_vars.ui16_pedal_torque_filtered /= 10;
-		l2_vars.ui16_pedal_torque_filtered *= 10;
-	} else {
-		// do nothing to original values
-	}
-
-	if (l2_vars.ui16_pedal_power_filtered > 500) {
-		l2_vars.ui16_pedal_power_filtered /= 25;
-		l2_vars.ui16_pedal_power_filtered *= 25;
-	} else if (l2_vars.ui16_pedal_power_filtered > 200) {
-		l2_vars.ui16_pedal_power_filtered /= 20;
-		l2_vars.ui16_pedal_power_filtered *= 20;
-	} else if (l2_vars.ui16_pedal_power_filtered > 10) {
-		l2_vars.ui16_pedal_power_filtered /= 10;
-		l2_vars.ui16_pedal_power_filtered *= 10;
-	}
 }
 
 void l2_calc_battery_voltage_soc(void) {
@@ -545,21 +513,20 @@ static void l2_calc_odometer(void) {
 		// l2_vars.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
 
 		// calculate how many revolutions since last reset and convert to distance traveled
-		uint32_t ui32_temp = (l3_vars.ui32_wheel_speed_sensor_tick_counter
-				- l3_vars.ui32_wheel_speed_sensor_tick_counter_offset)
-				* ((uint32_t) l3_vars.ui16_wheel_perimeter);
+		uint32_t ui32_temp = (l2_vars.ui32_wheel_speed_sensor_tick_counter
+				- l2_vars.ui32_wheel_speed_sensor_tick_counter_offset)
+				* ((uint32_t) l2_vars.ui16_wheel_perimeter);
 
 		// if traveled distance is more than 100 meters update all distance variables and reset
-		if (ui32_temp >= 100000) // 100000 -> 100000 mm -> 0.1 km
-				{
+		if (ui32_temp >= 100000) { // 100000 -> 100000 mm -> 0.1 km
 			// update all distance variables
 			// l3_vars.ui16_distance_since_power_on_x10 += 1;
-			l3_vars.ui32_odometer_x10 += 1;
-			l3_vars.ui32_trip_x10 += 1;
+			l2_vars.ui32_odometer_x10 += 1;
+			l2_vars.ui32_trip_x10 += 1;
 
 			// reset the always incrementing value (up to motor controller power reset) by setting the offset to current value
-			l3_vars.ui32_wheel_speed_sensor_tick_counter_offset =
-					l3_vars.ui32_wheel_speed_sensor_tick_counter;
+			l2_vars.ui32_wheel_speed_sensor_tick_counter_offset =
+					l2_vars.ui32_wheel_speed_sensor_tick_counter;
 		}
 	}
 }
@@ -587,11 +554,14 @@ uint8_t first_time_management(void) {
 	static uint8_t ui8_motor_controller_init = 1;
 	uint8_t ui8_status = 0;
 
-  // count 10 seconds
-  if(++ui32_counter > 500 &&
-      ui32_g_first_time == 1) {
-    ui32_g_first_time = 0;
-  }
+	extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
+
+  // wait 5 seconds to help motor variables data stabilize
+  if (motorVariablesStabilized == 0)
+    if (++ui32_counter > 50) {
+      motorVariablesStabilized = 1;
+  	  activeGraphs = &graphs; // allow graph plotting to start
+    }
 
 	// don't update LCD up to we get first communication package from the motor controller
 	if (ui8_motor_controller_init
@@ -600,7 +570,7 @@ uint8_t first_time_management(void) {
 	}
 	// this will be executed only 1 time at startup
   else if(ui8_motor_controller_init &&
-      ui32_g_first_time == 0) {
+      motorVariablesStabilized) {
     // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
     if (((uint32_t) l3_vars.ui16_adc_battery_voltage *
     ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000)
@@ -615,18 +585,16 @@ uint8_t first_time_management(void) {
     }
   }
 
-	set_lcd_backlight(); // fix backlight levels - FIXME, I'm calling this from interrupt context here which is probably ungood
-
 	return ui8_status;
 }
 
-void calc_battery_soc_watts_hour(void) {
+void l2_calc_battery_soc_watts_hour(void) {
 	uint32_t ui32_temp;
 
-	ui32_temp = l3_vars.ui32_wh_x10 * 100;
+	ui32_temp = l2_vars.ui32_wh_x10 * 100;
 
-	if (l3_vars.ui32_wh_x10_100_percent > 0) {
-		ui32_temp /= l3_vars.ui32_wh_x10_100_percent;
+	if (l2_vars.ui32_wh_x10_100_percent > 0) {
+		ui32_temp /= l2_vars.ui32_wh_x10_100_percent;
 	} else {
 		ui32_temp = 0;
 	}
@@ -635,7 +603,7 @@ void calc_battery_soc_watts_hour(void) {
 		ui32_temp = 100;
 
 	// 100% - current SOC or just current SOC
-	if (!l3_vars.ui8_battery_soc_increment_decrement) {
+	if (!l2_vars.ui8_battery_soc_increment_decrement) {
 		ui16_g_battery_soc_watts_hour = 100 - ui32_temp;
 	} else {
 		ui16_g_battery_soc_watts_hour = ui32_temp;
@@ -643,12 +611,7 @@ void calc_battery_soc_watts_hour(void) {
 }
 
 // Note: this called from ISR context every 100ms
-void layer_2(void) {
-	// this was not ideal because it mean't if unlucky we might miss a 100ms tick sometimes, better to just block the timer from running while doing the brief copy
-	// operation
-	//if(!ui32_g_layer_2_can_execute)
-	//  return;
-
+void realtime_processing(void) {
 	process_rx();
 	send_tx_package();
 
@@ -661,18 +624,18 @@ void layer_2(void) {
 	l2_calc_odometer();
 	l2_calc_wh();
 
-	// graphs_measurements_update();
+	graph_realtime_process();
 	/************************************************************************************************/
 
 	first_time_management();
-	calc_battery_soc_watts_hour();
+	l2_calc_battery_soc_watts_hour();
 }
 
 /**
  * Called from the main thread every 100ms
  *
  */
-void copy_layer_2_layer_3_vars(void) {
+void copy_rt_to_ui_vars(void) {
 	l3_vars.ui16_adc_battery_voltage = l2_vars.ui16_adc_battery_voltage;
 	l3_vars.ui8_battery_current_x5 = l2_vars.ui8_battery_current_x5;
 	l3_vars.ui8_throttle = l2_vars.ui8_throttle;
@@ -682,7 +645,6 @@ void copy_layer_2_layer_3_vars(void) {
 	l3_vars.ui8_duty_cycle = l2_vars.ui8_duty_cycle;
 	l3_vars.ui8_error_states = l2_vars.ui8_error_states;
 	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;
-	;
 	l3_vars.ui8_pedal_cadence = l2_vars.ui8_pedal_cadence;
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =

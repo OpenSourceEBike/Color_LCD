@@ -99,19 +99,38 @@ Field *customizables[] = {
 };
 
 // We currently don't have any graphs in the SW102, so leave them here until then
-Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedField);
-Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceField);
-Field odoGraph = FIELD_GRAPH(&odoField);
-Field cadenceGraph = FIELD_GRAPH(&cadenceField);
-Field humanPowerGraph = FIELD_GRAPH(&humanPowerField);
-Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerField);
-Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageField, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentField);
-Field batterySOCGraph = FIELD_GRAPH(&batterySOCField);
-Field motorTempGraph = FIELD_GRAPH(&motorTempField);
-Field motorErpsGraph = FIELD_GRAPH(&motorErpsField);
-Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyField);
-Field motorFOCGraph = FIELD_GRAPH(&motorFOCField);
+// kevinh: I think the following could be probably shared with the defs above (no need to copy and compute twice).  Also high chance of introducing bugs
+// only in one place.
+// Though I'm not sure why you need l2 vs l3 vars in this case.
+Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &l2_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &l2_vars.ui32_trip_x10, "", .div_digits = 1);
+Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &l2_vars.ui32_odometer_x10, "", .div_digits = 1);
+Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &l2_vars.ui8_pedal_cadence_filtered, "");
+Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &l2_vars.ui16_pedal_power_filtered, "");
+Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &l2_vars.ui16_battery_power_filtered, "");
+Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &l2_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
+Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &l2_vars.ui16_battery_current_filtered_x5, "", .div_digits = 1); // FIXME, change this to x10 so div_digits will work
+Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "");
+Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &l2_vars.ui8_motor_temperature, "");
+Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_motor_speed_erps, "");
+Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
+Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
+
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+
+// Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &wheelSpeedGraph,
                                   &tripDistanceGraph,
@@ -126,8 +145,7 @@ Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &motorErpsGraph,
                                   &pwmDutyGraph,
                                   &motorFOCGraph);
-
-GraphData graphsGraphData[GRAPHS_GRAPH_DATA_SIZE];
+Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[1], customizables);
@@ -404,7 +422,7 @@ void screen_clock(void) {
 		// receive data from layer 2 to layer 3
 		// send data from layer 3 to layer 2
 		ui32_g_layer_2_can_execute = 0;
-		copy_layer_2_layer_3_vars();
+		copy_rt_to_ui_vars();
 		ui32_g_layer_2_can_execute = 1;
 	}
 
@@ -461,6 +479,8 @@ static void setWarning(ColorOp color, const char *str) {
 static const char *motorErrors[] = { "None", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
+  uint32_t motor_temp_limit = l3_vars.ui8_temperature_limit_feature_enabled & 1;
+
 	// High priorty faults in red
 
 	if(l3_vars.ui8_error_states) {
@@ -469,7 +489,8 @@ void warnings(void) {
 		return;
 	}
 
-	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
+	if(motor_temp_limit &&
+	    l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, _S("Temp Shutdown", "Temp Shut"));
 		return;
 	}
@@ -481,7 +502,8 @@ void warnings(void) {
 	}
 
 	// warn faults in yellow
-	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
+  if(motor_temp_limit &&
+      l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
 		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
 	}
@@ -615,7 +637,7 @@ void main_idle() {
 	
 	handle_buttons();
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
-	graphDataProcess();
+
 	if (++ui8_100ms_timer_counter >= 5) {
 		ui8_100ms_timer_counter = 0;
 		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR

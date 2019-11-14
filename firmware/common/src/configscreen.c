@@ -61,8 +61,7 @@ static Field startupPowerMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &l3_vars.ui8_startup_motor_power_boost_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
 						FIELD_EDITABLE_ENUM("Active on", &l3_vars.ui8_startup_motor_power_boost_always, "startup", "always"),
-            FIELD_EDITABLE_ENUM(_S("Need rotation", "Need pedal"), &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "/w pedal", "always"), // FIXME, share one array of disable/enable strings
-						FIELD_EDITABLE_ENUM(_S("Limit to max-power", "Power limit"), &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
+						FIELD_EDITABLE_ENUM("Limit to max-power", &l3_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
 						FIELD_EDITABLE_UINT("Duration", &l3_vars.ui8_startup_motor_power_boost_time, "secs", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Fade", &l3_vars.ui8_startup_motor_power_boost_fade_time, "secs", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Level 1", &l3_vars.ui8_startup_motor_power_boost_factor[0], "", 0, 255, .div_digits = 1),
@@ -104,6 +103,7 @@ static Field offroadMenus[] = {
 static Field variousMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
+						FIELD_EDITABLE_ENUM("Motor assist", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
 				FIELD_END };
 
 static Field technicalMenus[] =

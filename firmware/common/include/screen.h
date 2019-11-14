@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "ugui.h"
 #include "buttons.h"
+#include "main.h"
 
 /**
  * Main screen notes
@@ -129,16 +130,21 @@ typedef enum {
 	ReadOnlyStr // Show a simple string
 } EditableType;
 
+#ifdef SW102
+#define GRAPH_VARIANT_SIZE 1 // memory for only 1 graph
+#else
+#define GRAPH_VARIANT_SIZE 13
+#endif
 
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
-#define GRAPH_MAX_POINTS	(236 * 3) // Note: we waste one record, to make our ring buffer code easier
-#define GRAPH_INTERVAL_MS 	3810 // graph updates are expensive - do rarely (236 * 3.810 seconds = 15 minutes)
+#define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier
+#define GRAPH_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
 #define GRAPH_COLOR_NORMAL  C_BLUE
 #define GRAPH_COLOR_WARN    C_YELLOW
 #define GRAPH_COLOR_ERROR   C_RED
 #define GRAPH_COLOR_BACKGROUND C_BLACK
-#define GRAPH_COLOR_AXIS	C_WHITE
+#define GRAPH_COLOR_AXIS	MAIN_SCREEN_FIELD_LABELS_COLOR
 #define GRAPH_LABEL_FONT	SMALL_TEXT_FONT
 #define GRAPH_MAXVAL_FONT 	SMALL_TEXT_FONT
 #define GRAPH_XAXIS_FONT   SMALL_TEXT_FONT
@@ -147,19 +153,29 @@ typedef enum {
 // Assumed period of screenUpdate invoke
 #define UPDATE_INTERVAL_MS 20
 
+// Real time period
+#define REALTIME_INTERVAL_MS 100
+
 // How often to toggle blink animations
 #define BLINK_INTERVAL_MS  300
 
-// Each _active_ graph needs a graphcache to store past points and invariants.  Currently we use use one,
-// but as soon as we have multiple active graphs we should assign dynamically.
+/**
+ * This is a cache of past read values for a particular data source.  Currently there is a 1:1 relation
+ * between an instance of this and an element of the graphs.customizable elements.  Eventually we could
+ * relax this relation and keep data only for the most recently displayed graphs
+ */
 typedef struct {
-	int32_t points[GRAPH_MAX_POINTS];
-	int32_t max_val, min_val; // the max/min value we've seen (ever)
-	uint32_t start_valid; // the oldest point in our ring buffer
-	uint32_t end_valid; // the newest point in our ring buffer
-	int32_t sum_value;
-	int32_t filtered_value;
-} GraphData;
+  int32_t points[GRAPH_MAX_POINTS * 3];
+  int32_t max_val, min_val; // the max/min value we've seen (ever)
+  int32_t start_valid; // the oldest point in our ring buffer
+  int32_t end_valid; // the newest point in our ring buffer
+  int32_t sum;
+} Graph; // this should not be plural
+
+typedef enum {
+	FilterDefault = 0,
+	FilterSquare
+} FilterOp;
 
 struct FieldLayout;
 // Forward declaration
@@ -187,8 +203,9 @@ typedef struct Field {
 		} drawTextPtr;
 
 		struct {
+			Graph *data; // cached data for this graph
 			struct Field *source; // the data field we are graphing
-			GraphData *graphData;
+			FilterOp filter : 2; // allow 4 options for now
 			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		} graph;
@@ -218,7 +235,7 @@ typedef struct Field {
 
 			// the following parameters are particular to the editable type
 			union {
-				struct {
+			  struct {
 					const char *units;
 					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
@@ -247,7 +264,7 @@ typedef struct Field {
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
 #define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
-  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
+  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
 
 #define FIELD_READONLY_STRING(lbl, targ) { .variant = FieldEditable, \
@@ -390,13 +407,15 @@ void updateReadOnlyStr(Field *field, char *str);
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 
 void screen_init(void);
-void graphDataProcess(void);
+void graph_realtime_process(void);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;
 
 extern uint8_t g_customizableFieldIndex;
+
+extern bool g_graphs_ui_update;
 
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)

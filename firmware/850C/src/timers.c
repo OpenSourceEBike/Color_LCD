@@ -83,8 +83,7 @@ void TIM4_IRQHandler(void)
     /* Clear TIMx TIM_IT_Update pending interrupt bit */
     TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
 
-	  layer_2();
-	  // FIXME - make graphs work again graphs_measurements_update();
+	  realtime_processing();
   }
 }
 

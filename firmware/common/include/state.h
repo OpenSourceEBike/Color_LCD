@@ -44,6 +44,7 @@ typedef struct l2_vars_struct {
 	uint32_t ui32_wh_sum_x5;
 	uint32_t ui32_wh_sum_counter;
 	uint32_t ui32_wh_x10;
+	uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
 
 	uint8_t ui8_assist_level;
 	uint8_t ui8_number_of_assist_levels;
@@ -85,6 +86,7 @@ typedef struct l2_vars_struct {
 	uint8_t ui8_offroad_power_limit_div25;
 	// uint16_t ui16_odometer_distance_x10;
 	uint32_t ui32_odometer_x10;
+	uint32_t ui32_trip_x10;
 
 	uint8_t ui8_lights;
 	uint8_t ui8_braking;
@@ -192,15 +194,14 @@ l3_vars_t* get_l3_vars(void);
 
 extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern l3_vars_t l3_vars;
-extern volatile uint32_t ui32_g_first_time;
 
-void layer_2(void);
+void realtime_processing(void);
 
 /**
  * Called from the main thread every 100ms
  *
  */
-void copy_layer_2_layer_3_vars(void);
+void copy_rt_to_ui_vars(void);
 
 /// must be called from main() idle loop
 void automatic_power_off_management(void);
@@ -215,7 +216,6 @@ extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor
 extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
-
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7

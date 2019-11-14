@@ -554,13 +554,16 @@ uint8_t first_time_management(void) {
 	static uint8_t ui8_motor_controller_init = 1;
 	uint8_t ui8_status = 0;
 
-	extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
 
   // wait 5 seconds to help motor variables data stabilize
   if (motorVariablesStabilized == 0)
     if (++ui32_counter > 50) {
       motorVariablesStabilized = 1;
+#ifndef SW102
+      extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
+
   	  activeGraphs = &graphs; // allow graph plotting to start
+#endif
     }
 
 	// don't update LCD up to we get first communication package from the motor controller

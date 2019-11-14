@@ -116,6 +116,7 @@ Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_mot
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
 
+#ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
@@ -145,6 +146,11 @@ Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &motorErpsGraph,
                                   &pwmDutyGraph,
                                   &motorFOCGraph);
+#else
+Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
+                                  NULL);
+#endif
+
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector

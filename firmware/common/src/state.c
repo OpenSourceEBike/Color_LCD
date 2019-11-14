@@ -79,6 +79,12 @@ static uint16_t fakeRandom(uint32_t *storage, uint16_t minv, uint16_t maxv) {
  * Pretend we just received a randomized motor packet
  */
 void parse_simmotor() {
+  static uint32_t counter;
+
+  // execute at a slow rate so values can be seen on the graph
+  counter++;
+  if (counter % (3 * 10)) // 3 seconds
+    return;
 
 	const uint32_t min_bat10x = 400;
 	const uint32_t max_bat10x = 546;
@@ -552,7 +558,7 @@ uint8_t first_time_management(void) {
 
   // wait 5 seconds to help motor variables data stabilize
   if (motorVariablesStabilized == 0)
-    if (++ui32_counter > 500) {
+    if (++ui32_counter > 50) {
       motorVariablesStabilized = 1;
   	  activeGraphs = &graphs; // allow graph plotting to start
     }

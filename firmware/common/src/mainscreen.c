@@ -116,19 +116,19 @@ Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_mot
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
 
-Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph);
-Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph);
-Field odoGraph = FIELD_GRAPH(&odoFieldGraph);
-Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph);
-Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph);
-Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph);
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare);
-Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph);
-Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph);
-Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph);
-Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph);
-Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph);
+Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 
 // Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
@@ -480,6 +480,8 @@ static void setWarning(ColorOp color, const char *str) {
 static const char *motorErrors[] = { "None", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
+  uint32_t motor_temp_limit = l3_vars.ui8_temperature_limit_feature_enabled & 1;
+
 	// High priorty faults in red
 
 	if(l3_vars.ui8_error_states) {
@@ -488,7 +490,8 @@ void warnings(void) {
 		return;
 	}
 
-	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
+	if(motor_temp_limit &&
+	    l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, "Temp Shutdown");
 		return;
 	}
@@ -500,7 +503,8 @@ void warnings(void) {
 	}
 
 	// warn faults in yellow
-	if(l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
+  if(motor_temp_limit &&
+      l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
 		setWarning(ColorWarning, "Temp Warning");
 		return;
 	}

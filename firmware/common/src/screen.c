@@ -1153,23 +1153,24 @@ static void graphDrawPoints(Field *field) {
 
 	int x = graphXmin; // the vertical axis line
 
-//	int warn_threshold = field->graph.warn_threshold;
-//	if (warn_threshold != -1) {
-//		warn_threshold = graphScaleY(graph, field->graph.warn_threshold);
-//
-//		// Make sure our threshold never goes below the areas we are going to draw
-//		if (warn_threshold > graphYmin - 1)
-//			warn_threshold = graphYmin - 1;
-//	}
-//
-//	int error_threshold = field->graph.error_threshold;
-//	if (error_threshold != -1) {
-//		error_threshold = graphScaleY(graph, field->graph.error_threshold);
-//
-//		// Make sure our threshold never goes below the areas we are going to draw
-//		if (error_threshold > graphYmin - 1)
-//			error_threshold = graphYmin - 1;
-//	}
+	// calculate warn and error thresholds
+	int warn_threshold = field->graph.warn_threshold;
+	if (warn_threshold != -1) {
+		warn_threshold = graphScaleY(graph, field->graph.warn_threshold);
+
+		// Make sure our threshold never goes below the areas we are going to draw
+		if (warn_threshold > graphYmin - 1)
+			warn_threshold = graphYmin - 1;
+	}
+
+	int error_threshold = field->graph.error_threshold;
+	if (error_threshold != -1) {
+		error_threshold = graphScaleY(graph, field->graph.error_threshold);
+
+		// Make sure our threshold never goes below the areas we are going to draw
+		if (error_threshold > graphYmin - 1)
+			error_threshold = graphYmin - 1;
+	}
 
 	static int delta_y_previous;
 	do {
@@ -1179,7 +1180,8 @@ static void graphDrawPoints(Field *field) {
 
     // the graph would be an horizontal line at bottom, but so force line to be max value
     if (graph->min_val == graph->max_val &&
-        graph->min_val > 0)
+        graph->min_val > 0 &&
+        (graph->end_valid > 2)) // ignore very first value as graph->min_val == graph->max_val would always be true
       y = graphYmax;
 
 		int delta_y_contour;
@@ -1207,20 +1209,20 @@ static void graphDrawPoints(Field *field) {
     }
     delta_y_previous = delta_y_temp;
 
-//		if (error_threshold != -1 && y <= error_threshold) {
-//			UG_DrawLine(x, y, x, error_threshold, GRAPH_COLOR_ERROR);
-//			y = error_threshold + 1;
-//		}
-//
-//		if (warn_threshold != -1 && y <= warn_threshold) {
-//			UG_DrawLine(x, y, x, warn_threshold, GRAPH_COLOR_WARN);
-//			y = warn_threshold + 1;
-//		}
-
-    if (delta_y_line) { // draw lines with contour
+    // error line
+		if (error_threshold != -1 && y <= error_threshold) {
+      UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_line, GRAPH_COLOR_ERROR);
+      UG_DrawLine(x, graphYmin - delta_y_line, x, graphYmin - delta_y_line - delta_y_contour, GRAPH_COLOR_ACCENT);
+		} else if (warn_threshold != -1 && y <= warn_threshold) {
+    // warning line
+      UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_line, GRAPH_COLOR_WARN);
+      UG_DrawLine(x, graphYmin - delta_y_line, x, graphYmin - delta_y_line - delta_y_contour, GRAPH_COLOR_ACCENT);
+		} else if (delta_y_line) { // draw lines with contour
+    // regular line
       UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_line, GRAPH_COLOR_NORMAL);
       UG_DrawLine(x, graphYmin - delta_y_line, x, graphYmin - delta_y_line - delta_y_contour, GRAPH_COLOR_ACCENT);
     } else { // draw contour only
+    // countour only
       UG_DrawLine(x, graphYmin, x, graphYmin - delta_y_contour, GRAPH_COLOR_ACCENT);
     }
 

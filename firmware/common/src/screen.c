@@ -842,6 +842,7 @@ static bool renderEditable(FieldLayout *layout) {
 			&& g_curCustomizingField == parentCustomizable;
 	bool dirty = field->dirty;
 	bool showLabel = layout->label_align_x != AlignHidden;
+	bool layoutShowUnits = layout->show_units == Show;
 	bool showLabelAtTop = layout->label_align_y == AlignTop;
 
 	const UG_FONT *font = layout->font ? layout->font : editable_value_font;
@@ -990,7 +991,7 @@ static bool renderEditable(FieldLayout *layout) {
 	}
 
 	// Put units in bottom right (unless we are showing the label)
-	bool showUnits = field->editable.typ == EditUInt && !showLabel;
+	bool showUnits = layoutShowUnits && field->editable.typ == EditUInt && !showLabel;
 	if (showUnits) {
 		const char *units = getUnits(field);
 		int ulen = strlen(units);

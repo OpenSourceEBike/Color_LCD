@@ -146,6 +146,7 @@ Screen mainScreen = {
       .align_x = AlignRight,
       .unit_align_x = AlignRight,
       .unit_align_y = AlignTop,
+      .show_units = Hide,
       .border = BorderNone,
     },
     {
@@ -158,6 +159,7 @@ Screen mainScreen = {
       .align_x = AlignCenter,
       .unit_align_x = AlignCenter,
       .unit_align_y = AlignTop,
+      .show_units = Hide,
       .border = BorderNone,
     },
     {

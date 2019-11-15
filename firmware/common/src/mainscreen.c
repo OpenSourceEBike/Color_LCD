@@ -57,9 +57,9 @@ Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level
 #ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #else
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1, .hide_fraction = true);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
 #endif
-Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "");
+Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph");
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);

@@ -319,6 +319,11 @@ typedef enum {
 	AlignBottom
 } AlignmentY;
 
+typedef enum {
+  Show = 0, // default
+  Hide,
+} ShowUnits;
+
 /**
  * Defines the layout of a field on a particular screen
  */
@@ -344,6 +349,7 @@ typedef struct FieldLayout {
 	AlignmentY label_align_y : 2; // Align the label using this rule
 	AlignmentX unit_align_x : 2; // Align units using this rule
 	AlignmentY unit_align_y : 2; // Align units using this rule
+	ShowUnits show_units : 1; // Show or hide units
 	uint8_t inset_x, inset_y; 		// inset primary content in from sides by this amount
 
 	Field *field; // The field to render in this location

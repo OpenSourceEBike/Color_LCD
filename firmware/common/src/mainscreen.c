@@ -116,6 +116,7 @@ Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_mot
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
 
+#ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
@@ -145,6 +146,11 @@ Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
                                   &motorErpsGraph,
                                   &pwmDutyGraph,
                                   &motorFOCGraph);
+#else
+Field graphs = FIELD_CUSTOMIZABLE(&l3_vars.field_selectors[0],
+                                  NULL);
+#endif
+
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
@@ -156,7 +162,7 @@ Field custom4 = FIELD_CUSTOMIZABLE_PTR(&l3_vars.field_selectors[4], customizable
 
 Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike"));
 Field bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com"));
-Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", "see github.com"));
+Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", ""));
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
 Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
@@ -167,13 +173,12 @@ static void bootScreenOnPreUpdate() {
 	uint16_t bvolt = battery_voltage_10x_get();
 
 	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-  if(is_sim_motor) {
-    fieldPrintf(&bootStatus, "SIMULATING TSDZ2!");
-  }
+  if(is_sim_motor)
+    fieldPrintf(&bootStatus, _S("SIMULATING TSDZ2!", "SIMULATING"));
   else if(has_seen_motor)
     fieldPrintf(&bootStatus, "Found TSDZ2");
   else
-    fieldPrintf(&bootStatus, "Waiting TSDZ2 - (%u.%uV)", bvolt / 10, bvolt % 10);
+    fieldPrintf(&bootStatus, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
 
   // Stop showing only after we release on/off button and we are commutication with motor
   if(buttons_get_onoff_state() == 0 && (has_seen_motor || is_sim_motor))
@@ -492,7 +497,7 @@ void warnings(void) {
 
 	if(motor_temp_limit &&
 	    l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_max_value_to_limit) {
-		setWarning(ColorError, "Temp Shutdown");
+		setWarning(ColorError, _S("Temp Shutdown", "Temp Shut"));
 		return;
 	}
 
@@ -505,7 +510,7 @@ void warnings(void) {
 	// warn faults in yellow
   if(motor_temp_limit &&
       l3_vars.ui8_motor_temperature >= l3_vars.ui8_motor_temperature_min_value_to_limit) {
-		setWarning(ColorWarning, "Temp Warning");
+		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
 	}
 

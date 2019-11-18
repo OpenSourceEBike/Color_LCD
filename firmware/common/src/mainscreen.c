@@ -44,6 +44,7 @@ void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
+void thresholds(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 bool wd_failure_detected;
@@ -440,8 +441,39 @@ void screen_clock(void) {
   DisplayResetToDefaults();
   batteryTotalWh();
   batteryCurrent();
+  thresholds();
 
 	screenUpdate();
+}
+
+void thresholds(void) {
+  int temp;
+
+  // Update our graph thresholds based on current values
+  motorTempGraph.graph.warn_threshold =
+      l3_vars.ui8_motor_temperature_min_value_to_limit;
+  motorTempGraph.graph.error_threshold =
+      l3_vars.ui8_motor_temperature_max_value_to_limit;
+
+  cadenceGraph.graph.error_threshold = 92;
+  cadenceGraph.graph.warn_threshold = 74; // -20%
+
+//  batteryPowerGraph.graph.error_threshold = ;
+//  batteryPowerGraph.graph.warn_threshold = ; // -20%
+
+  temp = l3_vars.ui8_target_max_battery_power * 25;
+  batteryPowerGraph.graph.error_threshold = temp;
+  batteryPowerGraph.graph.warn_threshold = temp - (temp / 5); // -20%
+
+  int battery_max_current_x10 = l3_vars.ui8_battery_max_current * 10;
+  batteryCurrentGraph.graph.error_threshold = battery_max_current_x10;
+  batteryCurrentGraph.graph.warn_threshold = battery_max_current_x10 - (battery_max_current_x10 / 5); // -20%
+
+  motorErpsGraph.graph.error_threshold = 525;
+  motorErpsGraph.graph.warn_threshold = 420; // -20%
+
+  pwmDutyGraph.graph.error_threshold = 254;
+  pwmDutyGraph.graph.warn_threshold = 241; // -20%
 }
 
 void trip_time(void) {

@@ -649,6 +649,7 @@ void copy_rt_to_ui_vars(void) {
 	l3_vars.ui8_error_states = l2_vars.ui8_error_states;
 	l3_vars.ui16_wheel_speed_x10 = l2_vars.ui16_wheel_speed_x10;
 	l3_vars.ui8_pedal_cadence = l2_vars.ui8_pedal_cadence;
+	l3_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence_filtered;
 	l3_vars.ui16_motor_speed_erps = l2_vars.ui16_motor_speed_erps;
 	l3_vars.ui8_temperature_current_limiting_value =
 			l2_vars.ui8_temperature_current_limiting_value;
@@ -665,7 +666,6 @@ void copy_rt_to_ui_vars(void) {
 	l3_vars.ui16_battery_power_filtered = l2_vars.ui16_battery_power_filtered;
 	l3_vars.ui16_pedal_torque_filtered = l2_vars.ui16_pedal_torque_filtered;
 	l3_vars.ui16_pedal_power_filtered = l2_vars.ui16_pedal_power_filtered;
-	l3_vars.ui8_pedal_cadence_filtered = l2_vars.ui8_pedal_cadence_filtered;
 	l3_vars.ui16_battery_voltage_soc_x10 = l2_vars.ui16_battery_voltage_soc_x10;
 	l3_vars.ui32_wh_sum_x5 = l2_vars.ui32_wh_sum_x5;
 	l3_vars.ui32_wh_sum_counter = l2_vars.ui32_wh_sum_counter;

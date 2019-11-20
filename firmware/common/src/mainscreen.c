@@ -447,7 +447,8 @@ void screen_clock(void) {
 }
 
 void thresholds(void) {
-  int temp;
+#ifndef SW102
+  //  int temp;
 
   // Update our graph thresholds based on current values
   motorTempGraph.graph.warn_threshold =
@@ -473,6 +474,7 @@ void thresholds(void) {
 
   pwmDutyGraph.graph.error_threshold = 254;
   pwmDutyGraph.graph.warn_threshold = 241; // -20%
+#endif
 }
 
 void trip_time(void) {

@@ -41,6 +41,8 @@ volatile lcd_vars_t m_lcd_vars =
   .main_screen_state = MAIN_SCREEN_STATE_MAIN,
 };
 
+lcd_IC_t g_lcd_ic_type;
+
 void power_off_management(void);
 void lcd_power_off(uint8_t updateDistanceOdo);
 void power_off_management(void);
@@ -48,7 +50,7 @@ void power_off_management(void);
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
 {
-  bafang_500C_lcd_init();
+  g_lcd_ic_type = bafang_500C_lcd_init();
   UG_FillScreen(C_BLACK);
 
   set_lcd_backlight(); // default to at least some backlight

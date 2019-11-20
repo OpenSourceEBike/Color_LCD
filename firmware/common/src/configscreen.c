@@ -92,6 +92,7 @@ static Field displayMenus[] =
 #endif
 		    FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
         FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
+        FIELD_EDITABLE_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
 		    FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
 				FIELD_END };
 

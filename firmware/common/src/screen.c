@@ -1183,7 +1183,7 @@ static void graphDrawPoints(Field *field) {
     if (graph->min_val == graph->max_val &&
         graph->min_val > 0 &&
         (graph->end_valid > 2)) // ignore very first value as graph->min_val == graph->max_val would always be true
-      y = graphYmax;
+      y = graphYmin - graphYmax;
 
 		int y_contour;
 		int y_line;
@@ -1211,6 +1211,7 @@ static void graphDrawPoints(Field *field) {
 
     // blue zone
     if (val < (warn_threshold - threshold_delta) ||
+        graph->min_val == graph->max_val ||
         threshold_invalid != 0) {
       UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_NORMAL);
       UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);

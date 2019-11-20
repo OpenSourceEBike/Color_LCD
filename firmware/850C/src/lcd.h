@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "main.h"
 #include "ugui.h"
+#include "ugui_driver/ugui_bafang_850c.h"
 
 #define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 
@@ -56,6 +57,8 @@ typedef struct _print_number
   uint8_t ui8_clean_area_all_digits;
   uint8_t ui8_decimal_digits;
 } print_number_t;
+
+extern lcd_IC_t g_lcd_ic_type;
 
 void lcd_init(void);
 void lcd_clock(void);

@@ -458,12 +458,11 @@ void thresholds(void) {
   cadenceGraph.graph.error_threshold = 92;
   cadenceGraph.graph.warn_threshold = 74; // -20%
 
-//  batteryPowerGraph.graph.error_threshold = ;
-//  batteryPowerGraph.graph.warn_threshold = ; // -20%
-
-  temp = l3_vars.ui8_target_max_battery_power * 25;
-  batteryPowerGraph.graph.error_threshold = temp;
-  batteryPowerGraph.graph.warn_threshold = temp - (temp / 5); // -20%
+//  temp = l3_vars.ui8_target_max_battery_power * 25;
+//  batteryPowerGraph.graph.error_threshold = temp;
+//  batteryPowerGraph.graph.warn_threshold = temp - (temp / 5); // -20%
+  batteryPowerGraph.graph.error_threshold = -1;
+  batteryPowerGraph.graph.warn_threshold = -1;
 
   int battery_max_current_x10 = l3_vars.ui8_battery_max_current * 10;
   batteryCurrentGraph.graph.error_threshold = battery_max_current_x10;

@@ -88,7 +88,7 @@ void parse_simmotor() {
 	const uint32_t min_bat10x = 400;
 	const uint32_t max_bat10x = 546;
 	const uint32_t max_cur10x = 140;
-    static uint32_t voltstore, curstore, speedstore, cadencestore = 60, tempstore, diststore, motor_speed;
+  static uint32_t voltstore, curstore, speedstore, cadencestore, tempstore, diststore;
 
 	// per step of ADC ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000
 	// l2_vars.ui16_adc_battery_voltage = battery_voltage_10x_get() * 1000L / ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
@@ -117,25 +117,12 @@ void parse_simmotor() {
 
 	l2_vars.ui8_pedal_torque_sensor = fake(0, 100);
 
-
-//	l2_vars.ui8_pedal_cadence = fakeRandom(&cadencestore, 0, 93);
-
-	cadencestore++;
-	if (cadencestore > 80)
-	  cadencestore = 60;
-
 	l2_vars.ui8_pedal_cadence = fakeRandom(&cadencestore, 0, 93);
-
 
 	l2_vars.ui8_pedal_human_power = fake(0, 100);
 	l2_vars.ui8_duty_cycle = fake(0, 100);
 
-//	l2_vars.ui16_motor_speed_erps = fake(0, 600);
-
-	motor_speed++;
-  if (motor_speed > 525)
-    motor_speed = 200;
-  l2_vars.ui16_motor_speed_erps = fake(0, 600);
+	l2_vars.ui16_motor_speed_erps = fake(0, 600);
 
 	l2_vars.ui8_foc_angle = fake(0, 100);
 

@@ -193,6 +193,7 @@ typedef struct Field {
 	bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
 	bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
 	// bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
+	bool thresholds_color :1; // text/number color will fade to colors depending on thresholds
 
 	union {
 		//FIXME: possibly move these fields out into separate structures, because currently the
@@ -269,7 +270,7 @@ typedef struct Field {
   .editable = { .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
-#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
+#define FIELD_READONLY_UINT(lbl, targ, unt, thr_color, ...) { .variant = FieldEditable, .thresholds_color = thr_color, \
   .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
 

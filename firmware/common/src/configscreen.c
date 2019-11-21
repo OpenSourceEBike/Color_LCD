@@ -16,7 +16,7 @@ static Field batteryMenus[] =
 						FIELD_EDITABLE_UINT("Low cut-off", &l3_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Num cells", &l3_vars.ui8_battery_cells_number, "", 7, 14),
 						FIELD_EDITABLE_UINT("Resistance", &l3_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
-						FIELD_READONLY_UINT("Voltage", &l3_vars.ui16_battery_voltage_soc_x10, "volts", .div_digits = 1),
+						FIELD_READONLY_UINT("Voltage", &l3_vars.ui16_battery_voltage_soc_x10, "volts", false, .div_digits = 1),
 				FIELD_END };
 
 static Field batterySOCMenus[] =
@@ -117,15 +117,15 @@ static Field variousMenus[] =
 
 static Field technicalMenus[] =
 		{
-		    FIELD_READONLY_UINT("ADC throttle sensor", &l3_vars.ui8_adc_throttle, ""),
-		    FIELD_READONLY_UINT("Throttle sensor", &l3_vars.ui8_throttle, ""),
-		    FIELD_READONLY_UINT("ADC Torque sensor", &l3_vars.ui8_adc_pedal_torque_sensor, ""),
-		    FIELD_READONLY_UINT("Torque sensor", &l3_vars.ui8_pedal_torque_sensor, ""),
-		    FIELD_READONLY_UINT("Pedal cadence", &l3_vars.ui8_pedal_cadence, "rpm"),
-		    FIELD_READONLY_UINT("Pedal Human power", &l3_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
-		    FIELD_READONLY_UINT("PWM duty-cycle", &l3_vars.ui8_duty_cycle, ""),
-		    FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, ""),
-		    FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, ""),
+		    FIELD_READONLY_UINT("ADC throttle sensor", &l3_vars.ui8_adc_throttle, "", false),
+		    FIELD_READONLY_UINT("Throttle sensor", &l3_vars.ui8_throttle, "", false),
+		    FIELD_READONLY_UINT("ADC Torque sensor", &l3_vars.ui8_adc_pedal_torque_sensor, "", false),
+		    FIELD_READONLY_UINT("Torque sensor", &l3_vars.ui8_pedal_torque_sensor, "", false),
+		    FIELD_READONLY_UINT("Pedal cadence", &l3_vars.ui8_pedal_cadence, "rpm", false),
+		    FIELD_READONLY_UINT("Pedal Human power", &l3_vars.ui16_pedal_power_x10, "W", false, .div_digits = 1),
+		    FIELD_READONLY_UINT("PWM duty-cycle", &l3_vars.ui8_duty_cycle, "", false),
+		    FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "", false),
+		    FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "", false),
 				FIELD_END };
 
 static Field topMenus[] = {

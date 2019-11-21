@@ -837,8 +837,6 @@ void updateReadOnlyStr(Field *field, char *str) {
 UG_COLOR getEditableColor(Field *f, int32_t val) {
   int32_t warn_threshold = f->editable.number.warn_threshold;
   int32_t error_threshold = f->editable.number.error_threshold;
-  int32_t max_val = f->editable.number.max_value;
-  int32_t min_val = f->editable.number.min_value;
   UG_COLOR color = C_WHITE;
 
   bool threshold_invalid = true;
@@ -849,19 +847,12 @@ UG_COLOR getEditableColor(Field *f, int32_t val) {
 
   // white zone
   if (val < (warn_threshold - threshold_delta) ||
-      min_val == max_val ||
       threshold_invalid != 0) {
     color = C_WHITE;
   // transition zone from white to yellow
   } else if (val >= (warn_threshold - threshold_delta) &&
       val < (warn_threshold)) {
     // calculate color, linear transition from blue to yellow (RGB565)
-    int color_yellow = map(val, // our actual input
-                    warn_threshold - threshold_delta, // start at 0
-                    warn_threshold, // max transition value
-                    0, // min output value
-                    0x3f); // max output value: 6 bits for green color
-
     int color_blue = map(val, // our actual input
                     warn_threshold - threshold_delta , // start at 0
                     warn_threshold, // max transition value
@@ -869,8 +860,8 @@ UG_COLOR getEditableColor(Field *f, int32_t val) {
                     0); // max output value: 5 bits for blue color
 
     color = color_blue |
-        (color_yellow << 5) | // 6 green bits
-        ((color_yellow / 2) << 11); // 5 red bits
+        0x3f << 5 | // 6 green bits
+        0x1f << 11; // 5 red bits
   // yellow zone
   } else if (val >= (warn_threshold) &&
              val < (error_threshold - threshold_delta)) {
@@ -969,11 +960,18 @@ static bool renderEditable(FieldLayout *layout) {
 			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 	}
 
-  // calculate color, linear transition from   to yellow (RGB565)
-  UG_COLOR color = getEditableColor(field, num);
-  if (color != previous_color) {
-    previous_color = color;
+	bool thresholds_color = field->thresholds_color;
+	// see if color should fade depending on thresholds
+	UG_COLOR color;
+	if (thresholds_color)
+    // calculate color, linear transition from white to yellow or red (RGB565)
+    color = getEditableColor(field, num);
+	else
+	  color = C_WHITE;
 
+  // if color changed, then make dirty
+  if (color != field->editable.number.previous_color) {
+      field->editable.number.previous_color = color;
     dirty = true;
   }
 
@@ -1054,6 +1052,7 @@ static bool renderEditable(FieldLayout *layout) {
 			}
 		}
 
+	  UG_SetForecolor(color);
 		putAligned(layout, layout->align_x, align_y, x, y, font, valuestr);
 
 		// Blinking underline cursor when editing, just below value and drawing to the right edge of the box

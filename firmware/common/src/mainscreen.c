@@ -54,27 +54,27 @@ bool wd_failure_detected;
 //
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
-Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level, "");
+Field assistLevelField = FIELD_READONLY_UINT("assist", &l3_vars.ui8_assist_level, "", false, .warn_threshold = -1, .error_threshold = -1);
 #ifdef SW102
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true, .warn_threshold = -1, .error_threshold = -1);
 #else
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", .div_digits = 1, .hide_fraction = true);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true, .warn_threshold = -1, .error_threshold = -1);
 #endif
-Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph");
-Field wheelSpeedField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
+Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedField = FIELD_READONLY_UINT("speed", &l3_vars.ui16_wheel_speed_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
-Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", .div_digits = 1);
-Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", .div_digits = 1);
-Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence_filtered, "rpm");
-Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W");
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &l3_vars.ui16_battery_power_filtered, "W");
-Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &l3_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
-Field batteryCurrentField = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", .div_digits = 1);
-Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%");
-Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C");
-Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "");
-Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cycle, "");
-Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "");
+Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &l3_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field odoField = FIELD_READONLY_UINT("odometer", &l3_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field cadenceField = FIELD_READONLY_UINT("cadence", &l3_vars.ui8_pedal_cadence_filtered, "rpm", true, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerField = FIELD_READONLY_UINT("human power", &l3_vars.ui16_pedal_power_filtered, "W", true, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &l3_vars.ui16_battery_power_filtered, "W", true, .warn_threshold = -1, .error_threshold = -1);
+Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &l3_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryCurrentField = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .warn_threshold = -1, .error_threshold = -1);
+Field motorTempField = FIELD_READONLY_UINT("motor temperature", &l3_vars.ui8_motor_temperature, "C", true, .warn_threshold = -1, .error_threshold = -1);
+Field motorErpsField = FIELD_READONLY_UINT("motor speed", &l3_vars.ui16_motor_speed_erps, "", true, .warn_threshold = -1, .error_threshold = -1);
+Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &l3_vars.ui8_duty_cycle, "", true, .warn_threshold = -1, .error_threshold = -1);
+Field motorFOCField = FIELD_READONLY_UINT("motor foc", &l3_vars.ui8_foc_angle, "", true, .warn_threshold = -1, .error_threshold = -1);
 Field warnField = FIELD_CUSTOM(renderWarning);
 
 /**
@@ -103,19 +103,19 @@ Field *customizables[] = {
 // kevinh: I think the following could be probably shared with the defs above (no need to copy and compute twice).  Also high chance of introducing bugs
 // only in one place.
 // Though I'm not sure why you need l2 vs l3 vars in this case.
-Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &l2_vars.ui16_wheel_speed_x10, "", .div_digits = 1);
-Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &l2_vars.ui32_trip_x10, "", .div_digits = 1);
-Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &l2_vars.ui32_odometer_x10, "", .div_digits = 1);
-Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &l2_vars.ui8_pedal_cadence_filtered, "");
-Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &l2_vars.ui16_pedal_power_filtered, "");
-Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &l2_vars.ui16_battery_power_filtered, "");
-Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &l2_vars.ui16_battery_voltage_filtered_x10, "", .div_digits = 1);
-Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &l2_vars.ui16_battery_current_filtered_x5, "", .div_digits = 1); // FIXME, change this to x10 so div_digits will work
-Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "");
-Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &l2_vars.ui8_motor_temperature, "");
-Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_motor_speed_erps, "");
-Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "");
-Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "");
+Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &l2_vars.ui16_wheel_speed_x10, "", false, .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &l2_vars.ui32_trip_x10, "", false, .div_digits = 1);
+Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &l2_vars.ui32_odometer_x10, "", false, .div_digits = 1);
+Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &l2_vars.ui8_pedal_cadence_filtered, "", false);
+Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &l2_vars.ui16_pedal_power_filtered, "", false);
+Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &l2_vars.ui16_battery_power_filtered, "", false);
+Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &l2_vars.ui16_battery_voltage_filtered_x10, "", false, .div_digits = 1);
+Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &l2_vars.ui16_battery_current_filtered_x5, "", false, .div_digits = 1); // FIXME, change this to x10 so div_digits will work
+Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "", false);
+Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &l2_vars.ui8_motor_temperature, "", false);
+Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &l2_vars.ui16_motor_speed_erps, "", false);
+Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &l2_vars.ui8_duty_cycle, "", false);
+Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &l2_vars.ui8_foc_angle, "", false);
 
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
@@ -475,13 +475,18 @@ void thresholds(void) {
   //  int temp;
 
   // Update our graph thresholds based on current values
-  motorTempGraph.graph.warn_threshold =
-      l3_vars.ui8_motor_temperature_min_value_to_limit;
   motorTempGraph.graph.error_threshold =
       l3_vars.ui8_motor_temperature_max_value_to_limit;
+  motorTempGraph.graph.warn_threshold =
+      l3_vars.ui8_motor_temperature_min_value_to_limit;
+  motorTempField.editable.number.error_threshold = l3_vars.ui8_motor_temperature_max_value_to_limit;
+  motorTempField.editable.number.warn_threshold = l3_vars.ui8_motor_temperature_min_value_to_limit;
+
 
   cadenceGraph.graph.error_threshold = 92;
   cadenceGraph.graph.warn_threshold = 74; // -20%
+  cadenceField.editable.number.error_threshold = 92;
+  cadenceField.editable.number.warn_threshold = 74;
 
 //  temp = l3_vars.ui8_target_max_battery_power * 25;
 //  batteryPowerGraph.graph.error_threshold = temp;
@@ -492,12 +497,18 @@ void thresholds(void) {
   int battery_max_current_x10 = l3_vars.ui8_battery_max_current * 10;
   batteryCurrentGraph.graph.error_threshold = battery_max_current_x10;
   batteryCurrentGraph.graph.warn_threshold = battery_max_current_x10 - (battery_max_current_x10 / 5); // -20%
+  batteryCurrentField.editable.number.error_threshold = batteryCurrentGraph.graph.error_threshold;
+  batteryCurrentField.editable.number.warn_threshold = batteryCurrentGraph.graph.warn_threshold;
 
   motorErpsGraph.graph.error_threshold = 525;
   motorErpsGraph.graph.warn_threshold = 420; // -20%
+  motorErpsField.editable.number.error_threshold = 525;
+  motorErpsField.editable.number.warn_threshold = 420;
 
   pwmDutyGraph.graph.error_threshold = 254;
   pwmDutyGraph.graph.warn_threshold = 241; // -20%
+  pwmDutyField.editable.number.error_threshold = 254;
+  pwmDutyField.editable.number.warn_threshold = 241;
 #endif
 }
 

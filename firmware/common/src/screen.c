@@ -834,6 +834,68 @@ void updateReadOnlyStr(Field *field, char *str) {
 	field->dirty = true;
 }
 
+UG_COLOR getEditableColor(Field *f, int32_t val) {
+  int32_t warn_threshold = f->editable.number.warn_threshold;
+  int32_t error_threshold = f->editable.number.error_threshold;
+  int32_t max_val = f->editable.number.max_value;
+  int32_t min_val = f->editable.number.min_value;
+  UG_COLOR color = C_WHITE;
+
+  bool threshold_invalid = true;
+    if (warn_threshold != -1 && error_threshold != -1)
+      threshold_invalid = false;
+
+  int threshold_delta = (error_threshold - warn_threshold) / 2;
+
+  // white zone
+  if (val < (warn_threshold - threshold_delta) ||
+      min_val == max_val ||
+      threshold_invalid != 0) {
+    color = C_WHITE;
+  // transition zone from white to yellow
+  } else if (val >= (warn_threshold - threshold_delta) &&
+      val < (warn_threshold)) {
+    // calculate color, linear transition from blue to yellow (RGB565)
+    int color_yellow = map(val, // our actual input
+                    warn_threshold - threshold_delta, // start at 0
+                    warn_threshold, // max transition value
+                    0, // min output value
+                    0x3f); // max output value: 6 bits for green color
+
+    int color_blue = map(val, // our actual input
+                    warn_threshold - threshold_delta , // start at 0
+                    warn_threshold, // max transition value
+                    0x1f, // min output value
+                    0); // max output value: 5 bits for blue color
+
+    color = color_blue |
+        (color_yellow << 5) | // 6 green bits
+        ((color_yellow / 2) << 11); // 5 red bits
+  // yellow zone
+  } else if (val >= (warn_threshold) &&
+             val < (error_threshold - threshold_delta)) {
+    color = GRAPH_COLOR_WARN;
+  // transition zone from yellow to red
+  } else if (val >= (error_threshold - threshold_delta) &&
+            val < (error_threshold)) {
+    // calculate color, linear transition from blue to yellow (RGB565)
+    color = map(val, // our actual input
+                   error_threshold - threshold_delta, // start at 0
+                   error_threshold, // max transition value
+                   0x3f, // min output value: 6 bits for green color
+                   0); // max output value
+
+    color = (color << 5) | // 6 green bits
+       (0x1f << 11); // 5 red bits all enable
+    // red zone
+  } else if (val >= (error_threshold)) {
+    color = GRAPH_COLOR_ERROR;
+  }
+
+  return color;
+}
+
+
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes
  * of what we are trying to render and if the same as last time, it will decide to not draw.
@@ -906,6 +968,14 @@ static bool renderEditable(FieldLayout *layout) {
 		if (strlen(valuestr) != strlen(oldvaluestr))
 			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 	}
+
+  // calculate color, linear transition from   to yellow (RGB565)
+  UG_COLOR color = getEditableColor(field, num);
+  if (color != previous_color) {
+    previous_color = color;
+
+    dirty = true;
+  }
 
 	// If not dirty, labels didn't change and we aren't animating then exit
 	bool forceLabelsChanged = forceLabels != oldForceLabels;

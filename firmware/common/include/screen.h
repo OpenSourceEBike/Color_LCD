@@ -245,7 +245,9 @@ typedef struct Field {
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
 					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
-	      				void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
+					UG_COLOR previous_color;
+					int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+          void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
 
 				struct {

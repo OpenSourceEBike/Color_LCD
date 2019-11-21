@@ -1672,7 +1672,7 @@ void screenUpdate() {
 
 	bool didDraw = false; // we only render to hardware if something changed
 
-// Every 200ms toggle any blinking animations
+	// Every 300ms toggle any blinking animations
 	screenUpdateCounter++;
 	blinkChanged = (screenUpdateCounter
 			% (BLINK_INTERVAL_MS / UPDATE_INTERVAL_MS) == 0);
@@ -1723,7 +1723,7 @@ void fieldPrintf(Field *field, const char *fmt, ...) {
 	va_end(argp);
 }
 
-void graph_realtime_process(void) {
+void rt_graph_process(void) {
   static uint32_t counter_1 = 0;
   static uint32_t counter_2 = 0;
 

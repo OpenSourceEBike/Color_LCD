@@ -189,13 +189,14 @@ typedef struct l3_vars_struct {
 
 } l3_vars_t;
 
-// deprecated FIXME, delete
 l3_vars_t* get_l3_vars(void);
 
 extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern l3_vars_t l3_vars;
 
 void realtime_processing(void);
+void rt_processing_stop(void);
+void rt_processing_start(void);
 
 /**
  * Called from the main thread every 100ms
@@ -212,7 +213,6 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 void set_lcd_backlight();
 
 extern uint16_t ui16_g_battery_soc_watts_hour;
-extern volatile uint32_t ui32_g_layer_2_can_execute;
 
 extern bool has_seen_motor; // true once we've received a packet from a real motor
 extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)

@@ -151,7 +151,11 @@ typedef enum {
 #define GRAPH_GRAPH_LABEL_OFFSET 12
 
 // Assumed period of screenUpdate invoke
+#ifdef SW102
 #define UPDATE_INTERVAL_MS 20
+#else
+#define UPDATE_INTERVAL_MS 100
+#endif
 
 // Real time period
 #define REALTIME_INTERVAL_MS 100
@@ -413,7 +417,7 @@ void updateReadOnlyStr(Field *field, char *str);
 bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 
 void screen_init(void);
-void graph_realtime_process(void);
+void rt_graph_process(void);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;

@@ -29,6 +29,9 @@ uint32_t get_seconds(); // how many seconds since boot
 /// msecs since boot (note: will roll over every 50 days)
 uint32_t get_msecs();
 
+void SW102_rt_processing_stop(void);
+void SW102_rt_processing_start(void);
+
 extern Button buttonM, buttonDWN, buttonUP, buttonPWR;
 
 #endif /* INCLUDE_MAIN_H_ */

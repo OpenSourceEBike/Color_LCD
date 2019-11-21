@@ -56,6 +56,16 @@ static void gpio_init(void);
 static void init_app_timers(void);
 /* UART RX/TX */
 
+bool m_rt_processing_stop = false;
+
+void SW102_rt_processing_stop(void) {
+  m_rt_processing_stop = true;
+}
+
+void SW102_rt_processing_start(void) {
+  m_rt_processing_stop = false;
+}
+
 void lcd_power_off(uint8_t updateDistanceOdo)
 {
   l3_vars.ui32_wh_x10_offset = l3_vars.ui32_wh_x10;
@@ -284,7 +294,8 @@ static void gui_timer_timeout(void *p_context)
   if(gui_ticks % (1000 / MSEC_PER_TICK) == 0)
     ui32_seconds_since_startup++;
   
-  if(gui_ticks % (100 / MSEC_PER_TICK) == 0) // every 100ms
+  if((gui_ticks % (100 / MSEC_PER_TICK) == 0) && // every 100ms
+      m_rt_processing_stop == false)
     realtime_processing();
 }
 

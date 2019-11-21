@@ -117,3 +117,21 @@ void timer4_init(void)
   /* TIM4 counter enable */
   TIM_Cmd (TIM4, ENABLE);
 }
+
+void Display850C_rt_processing_stop(void)
+{
+  /* TIM4 counter disable */
+  TIM_Cmd (TIM4, DISABLE);
+
+  /* TIMx TIM_IT_Update disable */
+  TIM_ITConfig (TIM4, TIM_IT_Update, DISABLE);
+}
+
+void Display850C_rt_processing_start(void)
+{
+  /* TIMx TIM_IT_Update enable */
+  TIM_ITConfig (TIM4, TIM_IT_Update, ENABLE);
+
+  /* TIM4 counter enable */
+  TIM_Cmd (TIM4, ENABLE);
+}

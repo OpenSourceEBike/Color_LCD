@@ -420,30 +420,54 @@ void mainscreen_show(void) {
 }
 
 void screen_clock(void) {
-	static uint8_t ui8_counter_100ms = 0;
+#ifndef SW102
+  static int counter_time_ms = 0;
+  int time_ms = 0;
 
-	// every 100ms
-	if (ui8_counter_100ms++ >= 4) {
-		ui8_counter_100ms = 0;
+  // For 850C, no point to processing less than every 100ms, as the data comming from the motor is only updated every 100ms, not less
+  time_ms = get_time_base_counter_1ms();
+  if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
+  {
+    counter_time_ms = time_ms;
 
-		// receive data from layer 2 to layer 3
-		// send data from layer 3 to layer 2
-		ui32_g_layer_2_can_execute = 0;
-		copy_rt_to_ui_vars();
-		ui32_g_layer_2_can_execute = 1;
-	}
+    // exchange data from realtime layer to UI layer
+    // do this in atomic way, disabling the real time layer (should be no problem as
+    // copy_rt_to_ui_vars() should be fast and take a small piece of the 100ms periodic realtime layer processing
+    rt_processing_stop();
+    copy_rt_to_ui_vars();
+    rt_processing_start();
+
+    lcd_main_screen();
+    clock_time();
+    DisplayResetToDefaults();
+    batteryTotalWh();
+    batteryCurrent();
+    thresholds();
+    screenUpdate();
+  }
+
+#else
+  static uint8_t ui8_counter_100ms = 0;
+
+  // every 100ms
+  if (ui8_counter_100ms++ >= 4) {
+    ui8_counter_100ms = 0;
+
+    // exchange data from realtime layer to UI layer
+    // do this in atomic way, disabling the real time layer (should be no problem as
+    // copy_rt_to_ui_vars() should be fast and take a small piece of the 100ms periodic realtime layer processing
+    rt_processing_stop();
+    copy_rt_to_ui_vars();
+    rt_processing_start();
+  }
 
 	lcd_main_screen();
-
-#ifndef SW102
-  clock_time();
-#endif
   DisplayResetToDefaults();
   batteryTotalWh();
   batteryCurrent();
   thresholds();
-
 	screenUpdate();
+#endif
 }
 
 void thresholds(void) {

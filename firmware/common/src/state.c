@@ -22,7 +22,6 @@
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_g_battery_soc_watts_hour;
-volatile uint32_t ui32_g_layer_2_can_execute;
 volatile uint8_t motorVariablesStabilized = 0;
 
 bool has_seen_motor; // true once we've received a packet from a real motor
@@ -161,7 +160,7 @@ void parse_simmotor() {
 
 }
 
-void process_rx(void) {
+void rt_process_rx(void) {
 	static uint32_t num_missed_packets = 0;
 
 	const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
@@ -281,7 +280,7 @@ void process_rx(void) {
 	}
 }
 
-void send_tx_package(void) {
+void rt_send_tx_package(void) {
 	static uint8_t ui8_message_id = 0;
 
 	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
@@ -412,7 +411,7 @@ void send_tx_package(void) {
 	}
 }
 
-void l2_low_pass_filter_battery_voltage_current_power(void) {
+void rt_low_pass_filter_battery_voltage_current_power(void) {
 	static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
 	static uint16_t ui16_battery_current_accumulated_x5 = 0;
 
@@ -444,7 +443,7 @@ void l2_low_pass_filter_battery_voltage_current_power(void) {
 			l2_vars.ui16_battery_power_filtered_x50 / 50;
 }
 
-void l2_low_pass_filter_pedal_torque_and_power(void) {
+void rt_low_pass_filter_pedal_torque_and_power(void) {
 	static uint32_t ui32_pedal_torque_accumulated = 0;
 	static uint32_t ui32_pedal_power_accumulated = 0;
 
@@ -467,7 +466,7 @@ void l2_low_pass_filter_pedal_torque_and_power(void) {
 					>> PEDAL_POWER_FILTER_COEFFICIENT));
 }
 
-void l2_calc_battery_voltage_soc(void) {
+void rt_calc_battery_voltage_soc(void) {
 	uint16_t ui16_fluctuate_battery_voltage_x10;
 
 	// calculate flutuate voltage, that depends on the current and battery pack resistance
@@ -481,7 +480,7 @@ void l2_calc_battery_voltage_soc(void) {
 					+ ui16_fluctuate_battery_voltage_x10;
 }
 
-void l2_calc_wh(void) {
+void rt_calc_wh(void) {
 	static uint8_t ui8_1s_timer_counter = 0;
 	uint32_t ui32_temp = 0;
 
@@ -506,7 +505,7 @@ void l2_calc_wh(void) {
 	}
 }
 
-static void l2_calc_odometer(void) {
+static void rt_calc_odometer(void) {
   static uint8_t ui8_1s_timer_counter;
 	uint32_t uint32_temp;
 
@@ -547,7 +546,7 @@ static void l2_calc_odometer(void) {
 	}
 }
 
-static void l2_low_pass_filter_pedal_cadence(void) {
+static void rt_low_pass_filter_pedal_cadence(void) {
 	static uint16_t ui16_pedal_cadence_accumulated = 0;
 
 	// low pass filter
@@ -565,7 +564,7 @@ static void l2_low_pass_filter_pedal_cadence(void) {
 	}
 }
 
-uint8_t first_time_management(void) {
+uint8_t rt_first_time_management(void) {
   static uint32_t ui32_counter = 0;
 	static uint8_t ui8_motor_controller_init = 1;
 	uint8_t ui8_status = 0;
@@ -607,7 +606,7 @@ uint8_t first_time_management(void) {
 	return ui8_status;
 }
 
-void l2_calc_battery_soc_watts_hour(void) {
+void rt_calc_battery_soc_watts_hour(void) {
 	uint32_t ui32_temp;
 
 	ui32_temp = l2_vars.ui32_wh_x10 * 100;
@@ -629,25 +628,20 @@ void l2_calc_battery_soc_watts_hour(void) {
 	}
 }
 
-// Note: this called from ISR context every 100ms
-void realtime_processing(void) {
-	process_rx();
-	send_tx_package();
+void rt_processing_stop(void) {
+#ifndef SW102
+  Display850C_rt_processing_stop();
+#else
+  SW102_rt_processing_stop();
+#endif
+}
 
-	/************************************************************************************************/
-	// now do all the calculations that must be done every 100ms
-	l2_low_pass_filter_battery_voltage_current_power();
-	l2_low_pass_filter_pedal_torque_and_power();
-	l2_low_pass_filter_pedal_cadence();
-	l2_calc_battery_voltage_soc();
-	l2_calc_odometer();
-	l2_calc_wh();
-
-	graph_realtime_process();
-	/************************************************************************************************/
-
-	first_time_management();
-	l2_calc_battery_soc_watts_hour();
+void rt_processing_start(void) {
+#ifndef SW102
+  Display850C_rt_processing_start();
+#else
+  SW102_rt_processing_start();
+#endif
 }
 
 /**
@@ -839,8 +833,7 @@ void automatic_power_off_management(void) {
 		if ((l3_vars.ui16_wheel_speed_x10 > 0) ||   // wheel speed > 0
 				(l3_vars.ui8_battery_current_x5 > 0) || // battery current > 0
 				(l3_vars.ui8_braking) ||                // braking
-				buttons_get_events())                       // any button active
-				{
+				buttons_get_events()) {                 // any button active
 			ui16_lcd_power_off_time_counter = 0;
 		} else {
 			// increment the automatic power off ticks counter
@@ -848,8 +841,7 @@ void automatic_power_off_management(void) {
 
 			// check if we should power off the LCD
 			if (ui16_lcd_power_off_time_counter
-					>= (l3_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) // have we passed our timeout?
-					{
+					>= (l3_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) { // have we passed our timeout?
 				lcd_power_off(1);
 			}
 		}
@@ -858,3 +850,21 @@ void automatic_power_off_management(void) {
 	}
 }
 
+// Note: this called from ISR context every 100ms
+void realtime_processing(void)
+{
+  rt_process_rx();
+  rt_send_tx_package();
+  /************************************************************************************************/
+  // now do all the calculations that must be done every 100ms
+  rt_low_pass_filter_battery_voltage_current_power();
+  rt_low_pass_filter_pedal_torque_and_power();
+  rt_low_pass_filter_pedal_cadence();
+  rt_calc_battery_voltage_soc();
+  rt_calc_odometer();
+  rt_calc_wh();
+  rt_graph_process();
+  /************************************************************************************************/
+  rt_first_time_management();
+  rt_calc_battery_soc_watts_hour();
+}

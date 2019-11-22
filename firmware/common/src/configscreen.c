@@ -84,19 +84,19 @@ static Field motorTempMenus[] =
 static Field displayMenus[] =
 		{
 #ifndef SW102
-		    FIELD_EDITABLE_UINT("Clock hours", &ui8_g_configuration_clock_hours, "", 0, 23, .onPreSetEditable = onSetConfigurationClockHours),
-		    FIELD_EDITABLE_UINT("Clock minutes", &ui8_g_configuration_clock_minutes, "", 0, 59, .onPreSetEditable = onSetConfigurationClockMinutes),
-        FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOnBrightness),
-        FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOffBrightness),
-        FIELD_EDITABLE_ENUM("Buttons invert", &l3_vars.ui8_buttons_up_down_invert, "default", "invert"),
+  FIELD_EDITABLE_UINT("Clock hours", &ui8_g_configuration_clock_hours, "", 0, 23, .onPreSetEditable = onSetConfigurationClockHours),
+  FIELD_EDITABLE_UINT("Clock minutes", &ui8_g_configuration_clock_minutes, "", 0, 59, .onPreSetEditable = onSetConfigurationClockMinutes),
+  FIELD_EDITABLE_UINT("Brightness on", &l3_vars.ui8_lcd_backlight_on_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOnBrightness),
+  FIELD_EDITABLE_UINT("Brightness off", &l3_vars.ui8_lcd_backlight_off_brightness, "", 5, 100, .inc_step = 5, .onPreSetEditable = onSetConfigurationDisplayLcdBacklightOffBrightness),
+  FIELD_EDITABLE_ENUM("Buttons invert", &l3_vars.ui8_buttons_up_down_invert, "default", "invert"),
 #endif
-		    FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
-        FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
+  FIELD_EDITABLE_UINT("Auto power off", &l3_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
+  FIELD_EDITABLE_ENUM("Units", &l3_vars.ui8_units_type, "SI", "Imperial"),
 #ifndef SW102
-        FIELD_EDITABLE_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
+  FIELD_READONLY_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
 #endif
-		    FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
-				FIELD_END };
+  FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
+  FIELD_END };
 
 #if 0
 static Field offroadMenus[] = {
@@ -109,38 +109,36 @@ static Field offroadMenus[] = {
 };
 #endif
 
-static Field variousMenus[] =
-		{
-						FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
-						FIELD_EDITABLE_ENUM("Motor assist", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
-				FIELD_END };
+static Field variousMenus[] = {
+  FIELD_EDITABLE_ENUM("Motor voltage", &l3_vars.ui8_motor_type, "48V", "36V", "expert"),
+  FIELD_EDITABLE_ENUM("Motor assist", &l3_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
+  FIELD_END };
 
-static Field technicalMenus[] =
-		{
-		    FIELD_READONLY_UINT("ADC throttle sensor", &l3_vars.ui8_adc_throttle, "", false),
-		    FIELD_READONLY_UINT("Throttle sensor", &l3_vars.ui8_throttle, "", false),
-		    FIELD_READONLY_UINT("ADC Torque sensor", &l3_vars.ui8_adc_pedal_torque_sensor, "", false),
-		    FIELD_READONLY_UINT("Torque sensor", &l3_vars.ui8_pedal_torque_sensor, "", false),
-		    FIELD_READONLY_UINT("Pedal cadence", &l3_vars.ui8_pedal_cadence, "rpm", false),
-		    FIELD_READONLY_UINT("Pedal Human power", &l3_vars.ui16_pedal_power_x10, "W", false, .div_digits = 1),
-		    FIELD_READONLY_UINT("PWM duty-cycle", &l3_vars.ui8_duty_cycle, "", false),
-		    FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "", false),
-		    FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "", false),
-				FIELD_END };
+static Field technicalMenus[] = {
+  FIELD_READONLY_UINT("ADC throttle sensor", &l3_vars.ui8_adc_throttle, "", false),
+  FIELD_READONLY_UINT("Throttle sensor", &l3_vars.ui8_throttle, "", false),
+  FIELD_READONLY_UINT("ADC Torque sensor", &l3_vars.ui8_adc_pedal_torque_sensor, "", false),
+  FIELD_READONLY_UINT("Torque sensor", &l3_vars.ui8_pedal_torque_sensor, "", false),
+  FIELD_READONLY_UINT("Pedal cadence", &l3_vars.ui8_pedal_cadence, "rpm", false),
+  FIELD_READONLY_UINT("Pedal Human power", &l3_vars.ui16_pedal_power_x10, "W", false, .div_digits = 1),
+  FIELD_READONLY_UINT("PWM duty-cycle", &l3_vars.ui8_duty_cycle, "", false),
+  FIELD_READONLY_UINT("Motor speed", &l3_vars.ui16_motor_speed_erps, "", false),
+  FIELD_READONLY_UINT("Motor FOC", &l3_vars.ui8_foc_angle, "", false),
+  FIELD_END };
 
 static Field topMenus[] = {
-FIELD_SCROLLABLE("Wheel", wheelMenus),
-FIELD_SCROLLABLE("Battery", batteryMenus),
-FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
-FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
-FIELD_SCROLLABLE("Walk", walkAssistMenus),
-FIELD_SCROLLABLE(_S("Startup BOOST", "Start Pwr"), startupPowerMenus),
-FIELD_SCROLLABLE(_S("Motor temperature", "Motor temp"), motorTempMenus),
-FIELD_SCROLLABLE("Display", displayMenus),
-// FIELD_SCROLLABLE("Offroad", offroadMenus),
-		FIELD_SCROLLABLE("Various", variousMenus),
-		FIELD_SCROLLABLE("Technical", technicalMenus),
-		FIELD_END };
+  FIELD_SCROLLABLE("Wheel", wheelMenus),
+  FIELD_SCROLLABLE("Battery", batteryMenus),
+  FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
+  FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
+  FIELD_SCROLLABLE("Walk", walkAssistMenus),
+  FIELD_SCROLLABLE(_S("Startup BOOST", "Start Pwr"), startupPowerMenus),
+  FIELD_SCROLLABLE(_S("Motor temperature", "Motor temp"), motorTempMenus),
+  FIELD_SCROLLABLE("Display", displayMenus),
+  // FIELD_SCROLLABLE("Offroad", offroadMenus),
+  FIELD_SCROLLABLE("Various", variousMenus),
+  FIELD_SCROLLABLE("Technical", technicalMenus),
+  FIELD_END };
 
 static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMenus);
 

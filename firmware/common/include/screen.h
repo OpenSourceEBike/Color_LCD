@@ -283,6 +283,10 @@ typedef struct Field {
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
+#define FIELD_READONLY_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
+  .editable = { .read_only = true, .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
+      .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
+
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }

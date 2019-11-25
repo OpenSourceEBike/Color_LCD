@@ -36,7 +36,7 @@ buttons_events_t buttons_events = 0;
 #include "pins.h"
 
 uint32_t buttons_get_up_state(void) {
-	if (l3_vars.ui8_buttons_up_down_invert) {
+	if (ui_vars.ui8_buttons_up_down_invert) {
 		return GPIO_ReadInputDataBit(BUTTON_DOWN__PORT, BUTTON_DOWN__PIN) != 0 ?
 				0 : 1;
 	} else {
@@ -46,7 +46,7 @@ uint32_t buttons_get_up_state(void) {
 }
 
 uint32_t buttons_get_down_state(void) {
-	if (l3_vars.ui8_buttons_up_down_invert) {
+	if (ui_vars.ui8_buttons_up_down_invert) {
 		return GPIO_ReadInputDataBit(BUTTON_UP__PORT, BUTTON_UP__PIN) != 0 ?
 				0 : 1;
 	} else {
@@ -68,7 +68,7 @@ uint32_t buttons_get_m_state(void) {
 
 uint32_t buttons_get_up_state (void)
 {
-  if(!l3_vars.ui8_buttons_up_down_invert)
+  if(!ui_vars.ui8_buttons_up_down_invert)
   {
     return PollButton(&buttonUP);
   }
@@ -80,7 +80,7 @@ uint32_t buttons_get_up_state (void)
 
 uint32_t buttons_get_down_state (void)
 {
-  if(l3_vars.ui8_buttons_up_down_invert)
+  if(ui_vars.ui8_buttons_up_down_invert)
   {
     return PollButton(&buttonUP);
   }

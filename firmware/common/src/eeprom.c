@@ -148,7 +148,7 @@ void eeprom_init() {
 }
 
 void eeprom_init_variables(void) {
-	l3_vars_t *p_l3_output_vars = get_l3_vars();
+	ui_vars_t *p_l3_output_vars = get_ui_vars();
 	// copy data final variables
 	p_l3_output_vars->ui8_assist_level = m_eeprom_data.ui8_assist_level;
 	p_l3_output_vars->ui16_wheel_perimeter = m_eeprom_data.ui16_wheel_perimeter;
@@ -224,7 +224,7 @@ void eeprom_init_variables(void) {
 }
 
 void eeprom_write_variables(void) {
-	l3_vars_t *p_l3_output_vars = get_l3_vars();
+	ui_vars_t *p_l3_output_vars = get_ui_vars();
 	m_eeprom_data.ui8_assist_level = p_l3_output_vars->ui8_assist_level;
 	m_eeprom_data.ui16_wheel_perimeter = p_l3_output_vars->ui16_wheel_perimeter;
 	m_eeprom_data.ui8_wheel_max_speed =

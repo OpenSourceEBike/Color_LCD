@@ -55,7 +55,7 @@ static void mainScreenOnDirtyClean() {
   UG_PutString(12, 46, "ASSIST");
 
   // wheel speed
-  if(l3_vars.ui8_units_type == 0)
+  if(ui_vars.ui8_units_type == 0)
   {
     UG_PutString(260, 46 , "KM/H");
   }
@@ -226,8 +226,8 @@ void battery_display() {
 	static uint8_t oldsoc = 0xff;
 
 	// Only trigger redraws if something changed
-	if (l3_vars.volt_based_soc != oldsoc) {
-		oldsoc = l3_vars.volt_based_soc;
+	if (ui_vars.volt_based_soc != oldsoc) {
+		oldsoc = ui_vars.volt_based_soc;
 		batteryField.dirty = true;
 	}
 }
@@ -241,7 +241,7 @@ void clock_time(void) {
   ui8_g_configuration_clock_minutes = p_rtc_time->ui8_minutes;
 
   // force to be [0 - 12] depending on SI or Ipmerial units
-  if (l3_vars.ui8_units_type) {
+  if (ui_vars.ui8_units_type) {
 
     if(ui8_g_configuration_clock_hours > 12) {
       ui8_g_configuration_clock_hours -= 12;
@@ -278,12 +278,12 @@ void onSetConfigurationClockMinutes(uint32_t v) {
 
 void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v) {
 
-  l3_vars.ui8_lcd_backlight_on_brightness = v;
+  ui_vars.ui8_lcd_backlight_on_brightness = v;
   set_lcd_backlight();
 }
 
 void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
 
-  l3_vars.ui8_lcd_backlight_off_brightness = v;
+  ui_vars.ui8_lcd_backlight_off_brightness = v;
   set_lcd_backlight();
 }

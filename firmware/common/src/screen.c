@@ -37,7 +37,7 @@
 uint8_t g_customizableFieldIndex;
 bool g_graphs_ui_update = false;
 
-static Graph g_graphs[GRAPH_VARIANT_SIZE];
+Graph g_graphs[GRAPH_VARIANT_SIZE];
 static int numGraphs = 0;
 
 extern UG_GUI gui;
@@ -960,7 +960,7 @@ static bool renderEditable(FieldLayout *layout) {
 			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 	}
 
-	bool thresholds_color = field->thresholds_color;
+	bool thresholds_color = field->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED;
 	// see if color should fade depending on thresholds
 	UG_COLOR color;
 	if (thresholds_color)
@@ -1134,7 +1134,7 @@ static void graphLabelAxis(Field *field) {
     GRAPH_COLOR_AXIS);
 
 		// x axis scale
-		switch (l3_vars.x_axis_scale) {
+		switch (ui_vars.x_axis_scale) {
 /*      case 1:
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "1h");
         break;
@@ -1237,7 +1237,9 @@ static void graphDrawPoints(Field *field) {
 	int error_threshold = field->graph.error_threshold;
 
 	bool threshold_invalid = true;
-	if (warn_threshold != -1 && error_threshold != -1)
+	if (warn_threshold != -1 ||
+	    error_threshold != -1 ||
+	    field->graph.source->editable.number.auto_thresholds == FIELD_THRESHOLD_DISABLED)
 	  threshold_invalid = false;
 
 	int threshold_delta = (error_threshold - warn_threshold) / 2;
@@ -1856,16 +1858,22 @@ void rt_graph_process(void) {
         if (overfull)
           g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
 
-        // update invariants
-        if (filtered > g->max_val)
-          g->max_val = filtered;
+        if (g->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
+          // update invariants
+          if (filtered > g->max_val)
+            g->max_val = filtered;
 
-        if (filtered < g->min_val && filtered >= f->graph.min_threshold)
-          g->min_val = filtered;
-
-        // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
-        g_graphs_ui_update = true;
+          if (filtered < g->min_val && filtered >= f->graph.min_threshold)
+            g->min_val = filtered;
+        } else {
+          // update invariants
+          g->max_val = g->max;
+          g->min_val = g->min;
+        }
       }
+
+      // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
+      g_graphs_ui_update = true;
     }
   }
 }

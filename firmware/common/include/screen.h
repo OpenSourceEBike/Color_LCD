@@ -163,6 +163,17 @@ typedef enum {
 // How often to toggle blink animations
 #define BLINK_INTERVAL_MS  300
 
+typedef enum {
+  GRAPH_AUTO_MAX_MIN_YES = 0,
+  GRAPH_AUTO_MAX_MIN_NO = 1,
+} graph_auto_max_min_t;
+
+typedef enum {
+  FIELD_THRESHOLD_DISABLED = 0,
+  FIELD_THRESHOLD_AUTO = 1,
+  FIELD_THRESHOLD_MANUAL = 2,
+} field_threshold_t;
+
 /**
  * This is a cache of past read values for a particular data source.  Currently there is a 1:1 relation
  * between an instance of this and an element of the graphs.customizable elements.  Eventually we could
@@ -174,6 +185,9 @@ typedef struct {
   int32_t start_valid; // the oldest point in our ring buffer
   int32_t end_valid; // the newest point in our ring buffer
   int32_t sum;
+  graph_auto_max_min_t auto_max_min;
+  int32_t max;
+  int32_t min;
 } Graph; // this should not be plural
 
 typedef enum {
@@ -193,7 +207,6 @@ typedef struct Field {
 	bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
 	bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
 	// bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
-	bool thresholds_color :1; // text/number color will fade to colors depending on thresholds
 
 	union {
 		//FIXME: possibly move these fields out into separate structures, because currently the
@@ -232,7 +245,7 @@ typedef struct Field {
 		} customizable;
 
 		struct {
-			const char *label; // the label shown in the GUI for this item
+			const char *label; // the label shown in theauto_thresholds GUI for this item
 			void *target; // the data we are showing/manipulating
 			const EditableType typ : 2;
 			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
@@ -242,12 +255,14 @@ typedef struct Field {
 			union {
 			  struct {
 					const char *units;
-					const uint8_t div_digits :4; // how many digits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
+					const uint8_t div_digits :4; // how many auto_thresholdsdigits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
 					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
 					UG_COLOR previous_color;
 					int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+          int8_t auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
+					int32_t config_warn_threshold, config_error_threshold;
           void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
 
@@ -270,7 +285,7 @@ typedef struct Field {
   .editable = { .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
-#define FIELD_READONLY_UINT(lbl, targ, unt, thr_color, ...) { .variant = FieldEditable, .thresholds_color = thr_color, \
+#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
   .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
 
@@ -412,6 +427,8 @@ extern bool screenConvertMiles;
 
 // Set to true if we should automatically convert C -> F
 extern bool screenConvertFarenheit;
+
+extern Graph g_graphs[GRAPH_VARIANT_SIZE];
 
 void fieldPrintf(Field *field, const char *fmt, ...);
 

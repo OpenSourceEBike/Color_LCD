@@ -13,8 +13,7 @@
 #define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
 #define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
 
-
-typedef struct l2_vars_struct {
+typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
@@ -92,7 +91,7 @@ typedef struct l2_vars_struct {
 	uint8_t ui8_braking;
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
-} l2_vars_t;
+} rt_vars_t;
 
 /* Selector positions for customizable fields
  * 0 is the graph,
@@ -100,7 +99,7 @@ typedef struct l2_vars_struct {
  */
 #define NUM_CUSTOMIZABLE_FIELDS 5 // We currently only allow customizing the graph field
 
-typedef struct l3_vars_struct {
+typedef struct ui_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
@@ -187,14 +186,98 @@ typedef struct l3_vars_struct {
 
   uint8_t x_axis_scale; // x axis scale
 
-} l3_vars_t;
+  uint16_t var_speed_graph_auto_max_min;
+  uint16_t var_speed_graph_max_x10;
+  uint16_t var_speed_graph_min_x10;
+  uint16_t var_speed_auto_thresholds;
+  uint16_t var_speed_threshold_max_x10;
+  uint16_t var_speed_threshold_min_x10;
 
-l3_vars_t* get_l3_vars(void);
+  uint32_t var_trip_distance_graph_auto_max_min_x10;
+  uint32_t var_trip_distance_graph_max_x10;
+  uint32_t var_trip_distance_graph_min_x10;
 
-extern volatile l2_vars_t l2_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
-extern l3_vars_t l3_vars;
+  uint32_t var_odo_graph_auto_max_min;
+  uint32_t var_odo_graph_max;
+  uint32_t var_odo_graph_min;
 
-void realtime_processing(void);
+  uint8_t var_cadence_graph_auto_max_min;
+  uint8_t var_cadence_graph_max;
+  uint8_t var_cadence_graph_min;
+  uint8_t var_cadence_auto_thresholds;
+  uint8_t var_cadence_threshold_max;
+  uint8_t var_cadence_threshold_min;
+
+  uint8_t var_human_power_graph_auto_max_min;
+  uint8_t var_human_power_graph_max;
+  uint8_t var_human_power_graph_min;
+  uint8_t var_human_power_auto_thresholds;
+  uint8_t var_human_power_threshold_max;
+  uint8_t var_human_power_threshold_min;
+
+  uint8_t var_battery_power_graph_auto_max_min;
+  uint8_t var_battery_power_graph_max;
+  uint8_t var_battery_power_graph_min;
+  uint8_t var_battery_power_auto_thresholds;
+  uint8_t var_battery_power_threshold_max;
+  uint8_t var_battery_power_threshold_min;
+
+  uint8_t var_battery_voltage_graph_auto_max_min;
+  uint8_t var_battery_voltage_graph_max;
+  uint8_t var_battery_voltage_graph_min;
+  uint8_t var_battery_voltage_auto_thresholds;
+  uint8_t var_battery_voltage_threshold_max;
+  uint8_t var_battery_voltage_threshold_min;
+
+  uint8_t var_battery_current_graph_auto_max_min;
+  uint8_t var_battery_current_graph_max;
+  uint8_t var_battery_current_graph_min;
+  uint8_t var_battery_current_auto_thresholds;
+  uint8_t var_battery_current_threshold_max;
+  uint8_t var_battery_current_threshold_min;
+
+  uint8_t var_battery_soc_graph_auto_max_min;
+  uint8_t var_battery_soc_graph_max;
+  uint8_t var_battery_soc_graph_min;
+  uint8_t var_battery_soc_auto_thresholds;
+  uint8_t var_battery_soc_threshold_max;
+  uint8_t var_battery_soc_threshold_min;
+
+  uint8_t var_motor_temp_graph_auto_max_min;
+  uint8_t var_motor_temp_graph_max;
+  uint8_t var_motor_temp_graph_min;
+  uint8_t var_motor_temp_auto_thresholds;
+  uint8_t var_motor_temp_threshold_max;
+  uint8_t var_motor_temp_threshold_min;
+
+  uint8_t var_motor_erps_graph_auto_max_min;
+  uint8_t var_motor_erps_graph_max;
+  uint8_t var_motor_erps_graph_min;
+  uint8_t var_motor_erps_auto_thresholds;
+  uint8_t var_motor_erps_threshold_max;
+  uint8_t var_motor_erps_threshold_min;
+
+  uint8_t var_motor_pwm_graph_auto_max_min;
+  uint8_t var_motor_pwm_graph_max;
+  uint8_t var_motor_pwm_graph_min;
+  uint8_t var_motor_pwm_auto_thresholds;
+  uint8_t var_motor_pwm_threshold_max;
+  uint8_t var_motor_pwm_threshold_min;
+
+  uint8_t var_motor_foc_graph_auto_max_min;
+  uint8_t var_motor_foc_graph_max;
+  uint8_t var_motor_foc_graph_min;
+  uint8_t var_motor_foc_auto_thresholds;
+  uint8_t var_motor_foc_threshold_max;
+  uint8_t var_motor_foc_threshold_min;
+} ui_vars_t;
+
+ui_vars_t* get_ui_vars(void);
+
+extern volatile rt_vars_t rt_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
+extern ui_vars_t ui_vars;
+
+void rt_processing(void);
 void rt_processing_stop(void);
 void rt_processing_start(void);
 

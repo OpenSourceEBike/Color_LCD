@@ -74,6 +74,7 @@ typedef struct eeprom_data {
 	uint8_t customizable_choices_selector;
 	uint8_t customizableFieldIndex;
 
+#ifndef SW102
 	Graph_eeprom graph_eeprom[GRAPH_VARIANT_SIZE];
 	field_threshold_t wheelSpeedField_auto_thresholds;
 	int32_t wheelSpeedField_config_error_threshold;
@@ -108,6 +109,7 @@ typedef struct eeprom_data {
   field_threshold_t motorFOCField_auto_thresholds;
   int32_t motorFOCField_config_error_threshold;
   int32_t motorFOCField_config_warn_threshold;
+#endif
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;

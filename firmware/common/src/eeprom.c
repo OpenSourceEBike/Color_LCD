@@ -111,6 +111,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
     .customizableFieldIndex = DEFAULT_CUSTOMIZABLE_FIELD_INDEX,
 
+#ifndef SW102
     // enable automatic graph max min for every variable
     .graph_eeprom[0].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[1].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
@@ -135,6 +136,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .motorErpsField_auto_thresholds = FIELD_THRESHOLD_AUTO,
     .pwmDutyField_auto_thresholds = FIELD_THRESHOLD_AUTO,
     .motorFOCField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+#endif
 };
 
 void eeprom_init() {
@@ -247,6 +249,7 @@ void eeprom_init_variables(void) {
   graphs.customizable.selector = &m_eeprom_data.customizable_choices_selector;
   g_customizableFieldIndex = m_eeprom_data.customizableFieldIndex;
 
+#ifndef SW102
   for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
     g_graphs[i].auto_max_min = m_eeprom_data.graph_eeprom[i].auto_max_min;
     g_graphs[i].max = m_eeprom_data.graph_eeprom[i].max;
@@ -282,6 +285,7 @@ void eeprom_init_variables(void) {
   motorFOCField.editable.number.auto_thresholds = m_eeprom_data.motorFOCField_auto_thresholds;
   motorFOCField.editable.number.config_error_threshold = m_eeprom_data.motorFOCField_config_error_threshold;
   motorFOCField.editable.number.config_warn_threshold = m_eeprom_data.motorFOCField_config_warn_threshold;
+#endif
 }
 
 void eeprom_write_variables(void) {
@@ -358,6 +362,7 @@ void eeprom_write_variables(void) {
   m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
   m_eeprom_data.customizableFieldIndex = g_customizableFieldIndex;
 
+#ifndef SW102
   for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
     m_eeprom_data.graph_eeprom[i].auto_max_min = g_graphs[i].auto_max_min;
     m_eeprom_data.graph_eeprom[i].max = g_graphs[i].max;
@@ -393,6 +398,7 @@ void eeprom_write_variables(void) {
   m_eeprom_data.motorFOCField_auto_thresholds = motorFOCField.editable.number.auto_thresholds;
   m_eeprom_data.motorFOCField_config_error_threshold = motorFOCField.editable.number.config_error_threshold;
   m_eeprom_data.motorFOCField_config_warn_threshold = motorFOCField.editable.number.config_warn_threshold;
+#endif
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

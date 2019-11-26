@@ -261,7 +261,7 @@ typedef struct Field {
 					const uint32_t inc_step; // if zero, then 1 is assumed
 					UG_COLOR previous_color;
 					int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
-          int8_t auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
+					field_threshold_t auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
 					int32_t config_warn_threshold, config_error_threshold;
           void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;

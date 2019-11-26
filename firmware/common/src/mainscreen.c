@@ -65,16 +65,16 @@ Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .warn_threshold = -1, .error_threshold = -1);
-Field humanPowerField = FIELD_READONLY_UINT("human power", &ui_vars.ui16_pedal_power_filtered, "W", true, .warn_threshold = -1, .error_threshold = -1);
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui_vars.ui16_battery_power_filtered, "W", true, .warn_threshold = -1, .error_threshold = -1);
+Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerField = FIELD_READONLY_UINT("human power", &ui_vars.ui16_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui_vars.ui16_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batteryCurrentField = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .warn_threshold = -1, .error_threshold = -1);
-Field motorTempField = FIELD_READONLY_UINT("motor temperature", &ui_vars.ui8_motor_temperature, "C", true, .warn_threshold = -1, .error_threshold = -1);
-Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .warn_threshold = -1, .error_threshold = -1);
-Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &ui_vars.ui8_duty_cycle, "", true, .warn_threshold = -1, .error_threshold = -1);
-Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .warn_threshold = -1, .error_threshold = -1);
+Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field motorTempField = FIELD_READONLY_UINT("motor temperature", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field warnField = FIELD_CUSTOM(renderWarning);
 
 /**
@@ -523,7 +523,7 @@ void thresholds(void) {
     int32_t temp = (int32_t) ui_vars.ui16_battery_low_voltage_cut_off_x10;
     batteryVoltageField.editable.number.error_threshold = temp;
     temp *= 10;
-    batteryVoltageField.editable.number.warn_threshold = (temp + (temp / 5)) / 10; // -20%
+    batteryVoltageField.editable.number.warn_threshold = (temp + (temp / 20)) / 10; // -5%
   } else if (batteryVoltageField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     batteryVoltageField.editable.number.error_threshold = batteryVoltageField.editable.number.config_error_threshold;
     batteryVoltageField.editable.number.warn_threshold = batteryVoltageField.editable.number.config_warn_threshold;
@@ -558,18 +558,6 @@ void thresholds(void) {
   batterySOCFieldGraph.editable.number.auto_thresholds = batterySOCField.editable.number.auto_thresholds;
   batterySOCGraph.graph.error_threshold = batterySOCField.editable.number.error_threshold;
   batterySOCGraph.graph.warn_threshold = batterySOCField.editable.number.warn_threshold;
-
-  if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
-    motorTempField.editable.number.error_threshold = (int32_t) ui_vars.ui8_motor_temperature_max_value_to_limit;
-    motorTempField.editable.number.warn_threshold = (int32_t) ui_vars.ui8_motor_temperature_min_value_to_limit;
-  } else if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
-    motorTempField.editable.number.error_threshold = motorTempField.editable.number.config_error_threshold;
-    motorTempField.editable.number.warn_threshold = motorTempField.editable.number.config_warn_threshold;
-  }
-  // replicate the state to the other field
-  motorTempFieldGraph.editable.number.auto_thresholds = motorTempField.editable.number.auto_thresholds;
-  motorTempGraph.graph.error_threshold = motorTempField.editable.number.error_threshold;
-  motorTempGraph.graph.warn_threshold = motorTempField.editable.number.warn_threshold;
 
   if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     motorTempField.editable.number.error_threshold = (int32_t) ui_vars.ui8_motor_temperature_max_value_to_limit;

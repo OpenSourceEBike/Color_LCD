@@ -11,11 +11,18 @@
 
 #include "lcd.h"
 #include "state.h"
+#include "screen.h"
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x14
-#define EEPROM_VERSION 0x14
+#define EEPROM_MIN_COMPAT_VERSION 0x15
+#define EEPROM_VERSION 0x15
+
+typedef struct {
+  graph_auto_max_min_t auto_max_min;
+  int32_t max;
+  int32_t min;
+} Graph_eeprom;
 
 typedef struct eeprom_data {
 	uint8_t eeprom_version; // Used to detect changes in eeprom encoding, if != EEPROM_VERSION we will not use it
@@ -66,6 +73,41 @@ typedef struct eeprom_data {
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t customizable_choices_selector;
 	uint8_t customizableFieldIndex;
+
+	Graph_eeprom graph_eeprom[GRAPH_VARIANT_SIZE];
+	field_threshold_t wheelSpeedField_auto_thresholds;
+	int32_t wheelSpeedField_config_error_threshold;
+	int32_t wheelSpeedField_config_warn_threshold;
+	field_threshold_t cadenceField_auto_thresholds;
+  int32_t cadenceField_config_error_threshold;
+  int32_t cadenceField_config_warn_threshold;
+  field_threshold_t humanPowerField_auto_thresholds;
+  int32_t humanPowerField_config_error_threshold;
+  int32_t humanPowerField_config_warn_threshold;
+  field_threshold_t batteryPowerField_auto_thresholds;
+  int32_t batteryPowerField_config_error_threshold;
+  int32_t batteryPowerField_config_warn_threshold;
+  field_threshold_t batteryVoltageField_auto_thresholds;
+  int32_t batteryVoltageField_config_error_threshold;
+  int32_t batteryVoltageField_config_warn_threshold;
+  field_threshold_t batteryCurrentField_auto_thresholds;
+  int32_t batteryCurrentField_config_error_threshold;
+  int32_t batteryCurrentField_config_warn_threshold;
+  field_threshold_t batterySOCField_auto_thresholds;
+  int32_t batterySOCField_config_error_threshold;
+  int32_t batterySOCField_config_warn_threshold;
+  field_threshold_t motorTempField_auto_thresholds;
+  int32_t motorTempField_config_error_threshold;
+  int32_t motorTempField_config_warn_threshold;
+  field_threshold_t motorErpsField_auto_thresholds;
+  int32_t motorErpsField_config_error_threshold;
+  int32_t motorErpsField_config_warn_threshold;
+  field_threshold_t pwmDutyField_auto_thresholds;
+  int32_t pwmDutyField_config_error_threshold;
+  int32_t pwmDutyField_config_warn_threshold;
+  field_threshold_t motorFOCField_auto_thresholds;
+  int32_t motorFOCField_config_error_threshold;
+  int32_t motorFOCField_config_warn_threshold;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;

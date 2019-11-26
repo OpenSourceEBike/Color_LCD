@@ -110,6 +110,31 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
     .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
     .customizableFieldIndex = DEFAULT_CUSTOMIZABLE_FIELD_INDEX,
+
+    // enable automatic graph max min for every variable
+    .graph_eeprom[0].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[1].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[2].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[3].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[4].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[5].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[6].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[7].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[8].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[9].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[10].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[11].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[12].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+
+    .wheelSpeedField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .cadenceField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .batteryPowerField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .batteryVoltageField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .batteryCurrentField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .motorTempField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .motorErpsField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .pwmDutyField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .motorFOCField_auto_thresholds = FIELD_THRESHOLD_AUTO,
 };
 
 void eeprom_init() {
@@ -221,6 +246,42 @@ void eeprom_init_variables(void) {
   p_l3_output_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
   graphs.customizable.selector = &m_eeprom_data.customizable_choices_selector;
   g_customizableFieldIndex = m_eeprom_data.customizableFieldIndex;
+
+  for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
+    g_graphs[i].auto_max_min = m_eeprom_data.graph_eeprom[i].auto_max_min;
+    g_graphs[i].max = m_eeprom_data.graph_eeprom[i].max;
+    g_graphs[i].min = m_eeprom_data.graph_eeprom[i].min;
+  }
+  wheelSpeedField.editable.number.auto_thresholds = m_eeprom_data.wheelSpeedField_auto_thresholds;
+  wheelSpeedField.editable.number.config_error_threshold = m_eeprom_data.wheelSpeedField_config_error_threshold;
+  wheelSpeedField.editable.number.config_warn_threshold = m_eeprom_data.wheelSpeedField_config_warn_threshold;
+  cadenceField.editable.number.auto_thresholds = m_eeprom_data.cadenceField_auto_thresholds;
+  cadenceField.editable.number.config_error_threshold = m_eeprom_data.cadenceField_config_error_threshold;
+  cadenceField.editable.number.config_warn_threshold = m_eeprom_data.cadenceField_config_warn_threshold;
+  humanPowerField.editable.number.auto_thresholds = m_eeprom_data.humanPowerField_auto_thresholds;
+  humanPowerField.editable.number.config_error_threshold = m_eeprom_data.humanPowerField_config_error_threshold;
+  humanPowerField.editable.number.config_warn_threshold = m_eeprom_data.humanPowerField_config_warn_threshold;
+  batteryPowerField.editable.number.auto_thresholds = m_eeprom_data.batteryPowerField_auto_thresholds;
+  batteryPowerField.editable.number.config_error_threshold = m_eeprom_data.batteryPowerField_config_error_threshold;
+  batteryPowerField.editable.number.config_warn_threshold = m_eeprom_data.batteryPowerField_config_warn_threshold;
+  batteryVoltageField.editable.number.auto_thresholds = m_eeprom_data.batteryVoltageField_auto_thresholds;
+  batteryVoltageField.editable.number.config_error_threshold = m_eeprom_data.batteryVoltageField_config_error_threshold;
+  batteryVoltageField.editable.number.config_warn_threshold = m_eeprom_data.batteryVoltageField_config_warn_threshold;
+  batteryCurrentField.editable.number.auto_thresholds = m_eeprom_data.batteryCurrentField_auto_thresholds;
+  batteryCurrentField.editable.number.config_error_threshold = m_eeprom_data.batteryCurrentField_config_error_threshold;
+  batteryCurrentField.editable.number.config_warn_threshold = m_eeprom_data.batteryCurrentField_config_warn_threshold;
+  motorTempField.editable.number.auto_thresholds = m_eeprom_data.motorTempField_auto_thresholds;
+  motorTempField.editable.number.config_error_threshold = m_eeprom_data.motorTempField_config_error_threshold;
+  motorTempField.editable.number.config_warn_threshold = m_eeprom_data.motorTempField_config_warn_threshold;
+  motorErpsField.editable.number.auto_thresholds = m_eeprom_data.motorErpsField_auto_thresholds;
+  motorErpsField.editable.number.config_error_threshold = m_eeprom_data.motorErpsField_config_error_threshold;
+  motorErpsField.editable.number.config_warn_threshold = m_eeprom_data.motorErpsField_config_warn_threshold;
+  pwmDutyField.editable.number.auto_thresholds = m_eeprom_data.pwmDutyField_auto_thresholds;
+  pwmDutyField.editable.number.config_error_threshold = m_eeprom_data.pwmDutyField_config_error_threshold;
+  pwmDutyField.editable.number.config_warn_threshold = m_eeprom_data.pwmDutyField_config_warn_threshold;
+  motorFOCField.editable.number.auto_thresholds = m_eeprom_data.motorFOCField_auto_thresholds;
+  motorFOCField.editable.number.config_error_threshold = m_eeprom_data.motorFOCField_config_error_threshold;
+  motorFOCField.editable.number.config_warn_threshold = m_eeprom_data.motorFOCField_config_warn_threshold;
 }
 
 void eeprom_write_variables(void) {
@@ -296,6 +357,42 @@ void eeprom_write_variables(void) {
   m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
   m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
   m_eeprom_data.customizableFieldIndex = g_customizableFieldIndex;
+
+  for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
+    m_eeprom_data.graph_eeprom[i].auto_max_min = g_graphs[i].auto_max_min;
+    m_eeprom_data.graph_eeprom[i].max = g_graphs[i].max;
+    m_eeprom_data.graph_eeprom[i].min = g_graphs[i].min;
+  }
+  m_eeprom_data.wheelSpeedField_auto_thresholds = wheelSpeedField.editable.number.auto_thresholds;
+  m_eeprom_data.wheelSpeedField_config_error_threshold = wheelSpeedField.editable.number.config_error_threshold;
+  m_eeprom_data.wheelSpeedField_config_warn_threshold = wheelSpeedField.editable.number.config_warn_threshold;
+  m_eeprom_data.cadenceField_auto_thresholds = cadenceField.editable.number.auto_thresholds;
+  m_eeprom_data.cadenceField_config_error_threshold = cadenceField.editable.number.config_error_threshold;
+  m_eeprom_data.cadenceField_config_warn_threshold = cadenceField.editable.number.config_warn_threshold;
+  m_eeprom_data.humanPowerField_auto_thresholds = humanPowerField.editable.number.auto_thresholds;
+  m_eeprom_data.humanPowerField_config_error_threshold = humanPowerField.editable.number.config_error_threshold;
+  m_eeprom_data.humanPowerField_config_warn_threshold = humanPowerField.editable.number.config_warn_threshold;
+  m_eeprom_data.batteryPowerField_auto_thresholds = batteryPowerField.editable.number.auto_thresholds;
+  m_eeprom_data.batteryPowerField_config_error_threshold = batteryPowerField.editable.number.config_error_threshold;
+  m_eeprom_data.batteryPowerField_config_warn_threshold = batteryPowerField.editable.number.config_warn_threshold;
+  m_eeprom_data.batteryVoltageField_auto_thresholds = batteryVoltageField.editable.number.auto_thresholds;
+  m_eeprom_data.batteryVoltageField_config_error_threshold = batteryVoltageField.editable.number.config_error_threshold;
+  m_eeprom_data.batteryVoltageField_config_warn_threshold = batteryVoltageField.editable.number.config_warn_threshold;
+  m_eeprom_data.batteryCurrentField_auto_thresholds = batteryCurrentField.editable.number.auto_thresholds;
+  m_eeprom_data.batteryCurrentField_config_error_threshold = batteryCurrentField.editable.number.config_error_threshold;
+  m_eeprom_data.batteryCurrentField_config_warn_threshold = batteryCurrentField.editable.number.config_warn_threshold;
+  m_eeprom_data.motorTempField_auto_thresholds = motorTempField.editable.number.auto_thresholds;
+  m_eeprom_data.motorTempField_config_error_threshold = motorTempField.editable.number.config_error_threshold;
+  m_eeprom_data.motorTempField_config_warn_threshold = motorTempField.editable.number.config_warn_threshold;
+  m_eeprom_data.motorErpsField_auto_thresholds = motorErpsField.editable.number.auto_thresholds;
+  m_eeprom_data.motorErpsField_config_error_threshold = motorErpsField.editable.number.config_error_threshold;
+  m_eeprom_data.motorErpsField_config_warn_threshold = motorErpsField.editable.number.config_warn_threshold;
+  m_eeprom_data.pwmDutyField_auto_thresholds = pwmDutyField.editable.number.auto_thresholds;
+  m_eeprom_data.pwmDutyField_config_error_threshold = pwmDutyField.editable.number.config_error_threshold;
+  m_eeprom_data.pwmDutyField_config_warn_threshold = pwmDutyField.editable.number.config_warn_threshold;
+  m_eeprom_data.motorFOCField_auto_thresholds = motorFOCField.editable.number.auto_thresholds;
+  m_eeprom_data.motorFOCField_config_error_threshold = motorFOCField.editable.number.config_error_threshold;
+  m_eeprom_data.motorFOCField_config_warn_threshold = motorFOCField.editable.number.config_warn_threshold;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

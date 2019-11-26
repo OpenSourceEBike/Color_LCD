@@ -176,8 +176,8 @@ static void csc_measurement(ble_cscs_meas_t * p_measurement)
     mm_per_sec = KPH_TO_MM_PER_SEC * 20;
 
     wheel_revolution_mm     += mm_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
-    m_cumulative_wheel_revs += wheel_revolution_mm / l3_vars.ui16_wheel_perimeter;
-    wheel_revolution_mm     %= l3_vars.ui16_wheel_perimeter;
+    m_cumulative_wheel_revs += wheel_revolution_mm / ui_vars.ui16_wheel_perimeter;
+    wheel_revolution_mm     %= ui_vars.ui16_wheel_perimeter;
 
     p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
     p_measurement->last_wheel_event_time =
@@ -321,7 +321,7 @@ static ble_bas_t  m_bas;                                                        
 static void battery_level_update(void)
 {
     uint32_t err_code;
-    uint8_t  battery_level = l3_vars.volt_based_soc; // from 0 to 100
+    uint8_t  battery_level = ui_vars.volt_based_soc; // from 0 to 100
 
     err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&

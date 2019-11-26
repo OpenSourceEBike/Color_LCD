@@ -479,48 +479,145 @@ void thresholds(void) {
     wheelSpeedField.editable.number.error_threshold = wheelSpeedField.editable.number.config_error_threshold;
     wheelSpeedField.editable.number.warn_threshold = wheelSpeedField.editable.number.config_warn_threshold;
   }
-
   // replicate the state to the other field
   wheelSpeedFieldGraph.editable.number.auto_thresholds = wheelSpeedField.editable.number.auto_thresholds;
   wheelSpeedGraph.graph.error_threshold = wheelSpeedField.editable.number.error_threshold;
   wheelSpeedGraph.graph.warn_threshold = wheelSpeedField.editable.number.warn_threshold;
 
+  if (cadenceField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    cadenceField.editable.number.error_threshold = 92;
+    cadenceField.editable.number.warn_threshold = 74; // -20%
+  } else if (cadenceField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    cadenceField.editable.number.error_threshold = cadenceField.editable.number.config_error_threshold;
+    cadenceField.editable.number.warn_threshold = cadenceField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  cadenceFieldGraph.editable.number.auto_thresholds = cadenceField.editable.number.auto_thresholds;
+  cadenceGraph.graph.error_threshold = cadenceField.editable.number.error_threshold;
+  cadenceGraph.graph.warn_threshold = cadenceField.editable.number.warn_threshold;
 
-  // Update our graph thresholds based on current values
-  motorTempGraph.graph.error_threshold =
-      ui_vars.ui8_motor_temperature_max_value_to_limit;
-  motorTempGraph.graph.warn_threshold =
-      ui_vars.ui8_motor_temperature_min_value_to_limit;
-  motorTempField.editable.number.error_threshold = ui_vars.ui8_motor_temperature_max_value_to_limit;
-  motorTempField.editable.number.warn_threshold = ui_vars.ui8_motor_temperature_min_value_to_limit;
+  if (humanPowerField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    humanPowerField.editable.number.error_threshold = humanPowerField.editable.number.config_error_threshold;
+    humanPowerField.editable.number.warn_threshold = humanPowerField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  humanPowerFieldGraph.editable.number.auto_thresholds = humanPowerField.editable.number.auto_thresholds;
+  humanPowerGraph.graph.error_threshold = humanPowerField.editable.number.error_threshold;
+  humanPowerGraph.graph.warn_threshold = humanPowerField.editable.number.warn_threshold;
 
+  if (batteryPowerField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    int32_t temp = (int32_t) (((int32_t) ui_vars.ui8_battery_max_current * (int32_t) ui_vars.ui8_battery_cells_number) * (float) LI_ION_CELL_VOLTS_90);
+    batteryPowerField.editable.number.error_threshold = temp;
+    temp *= 10; // power * 10
+    batteryPowerField.editable.number.warn_threshold = (temp - (temp / 5)) / 10; // -20%
+  } else if (batteryPowerField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    batteryPowerField.editable.number.error_threshold = batteryPowerField.editable.number.config_error_threshold;
+    batteryPowerField.editable.number.warn_threshold = batteryPowerField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  batteryPowerFieldGraph.editable.number.auto_thresholds = batteryPowerField.editable.number.auto_thresholds;
+  batteryPowerGraph.graph.error_threshold = batteryPowerField.editable.number.error_threshold;
+  batteryPowerGraph.graph.warn_threshold = batteryPowerField.editable.number.warn_threshold;
 
-  cadenceGraph.graph.error_threshold = 92;
-  cadenceGraph.graph.warn_threshold = 74; // -20%
-  cadenceField.editable.number.error_threshold = 92;
-  cadenceField.editable.number.warn_threshold = 74;
+  if (batteryVoltageField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    int32_t temp = (int32_t) ui_vars.ui16_battery_low_voltage_cut_off_x10;
+    batteryVoltageField.editable.number.error_threshold = temp;
+    temp *= 10;
+    batteryVoltageField.editable.number.warn_threshold = (temp + (temp / 5)) / 10; // -20%
+  } else if (batteryVoltageField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    batteryVoltageField.editable.number.error_threshold = batteryVoltageField.editable.number.config_error_threshold;
+    batteryVoltageField.editable.number.warn_threshold = batteryVoltageField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  batteryVoltageFieldGraph.editable.number.auto_thresholds = batteryVoltageField.editable.number.auto_thresholds;
+  batteryVoltageGraph.graph.error_threshold = batteryVoltageField.editable.number.error_threshold;
+  batteryVoltageGraph.graph.warn_threshold = batteryVoltageField.editable.number.warn_threshold;
 
-//  temp = l3_vars.ui8_target_max_battery_power * 25;
-//  batteryPowerGraph.graph.error_threshold = temp;
-//  batteryPowerGraph.graph.warn_threshold = temp - (temp / 5); // -20%
-  batteryPowerGraph.graph.error_threshold = -1;
-  batteryPowerGraph.graph.warn_threshold = -1;
+  if (batteryCurrentField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    int32_t temp = (int32_t) ui_vars.ui8_battery_max_current * 10;
+    batteryCurrentField.editable.number.error_threshold = temp;
+    temp *= 10; // current_x10 * 10
+    batteryCurrentField.editable.number.warn_threshold = (temp - (temp / 5)) / 10; // -20%
+  } else if (batteryCurrentField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    batteryCurrentField.editable.number.error_threshold = batteryCurrentField.editable.number.config_error_threshold;
+    batteryCurrentField.editable.number.warn_threshold = batteryCurrentField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  batteryCurrentFieldGraph.editable.number.auto_thresholds = batteryCurrentField.editable.number.auto_thresholds;
+  batteryCurrentGraph.graph.error_threshold = batteryCurrentField.editable.number.error_threshold;
+  batteryCurrentGraph.graph.warn_threshold = batteryCurrentField.editable.number.warn_threshold;
 
-  int battery_max_current_x10 = ui_vars.ui8_battery_max_current * 10;
-  batteryCurrentGraph.graph.error_threshold = battery_max_current_x10;
-  batteryCurrentGraph.graph.warn_threshold = battery_max_current_x10 - (battery_max_current_x10 / 5); // -20%
-  batteryCurrentField.editable.number.error_threshold = batteryCurrentGraph.graph.error_threshold;
-  batteryCurrentField.editable.number.warn_threshold = batteryCurrentGraph.graph.warn_threshold;
+  if (batterySOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    batterySOCField.editable.number.error_threshold = 10;
+    batterySOCField.editable.number.warn_threshold = 25;
+  } else if (batterySOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    batterySOCField.editable.number.error_threshold = batterySOCField.editable.number.config_error_threshold;
+    batterySOCField.editable.number.warn_threshold = batterySOCField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  batterySOCFieldGraph.editable.number.auto_thresholds = batterySOCField.editable.number.auto_thresholds;
+  batterySOCGraph.graph.error_threshold = batterySOCField.editable.number.error_threshold;
+  batterySOCGraph.graph.warn_threshold = batterySOCField.editable.number.warn_threshold;
 
-  motorErpsGraph.graph.error_threshold = 525;
-  motorErpsGraph.graph.warn_threshold = 420; // -20%
-  motorErpsField.editable.number.error_threshold = 525;
-  motorErpsField.editable.number.warn_threshold = 420;
+  if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    motorTempField.editable.number.error_threshold = (int32_t) ui_vars.ui8_motor_temperature_max_value_to_limit;
+    motorTempField.editable.number.warn_threshold = (int32_t) ui_vars.ui8_motor_temperature_min_value_to_limit;
+  } else if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    motorTempField.editable.number.error_threshold = motorTempField.editable.number.config_error_threshold;
+    motorTempField.editable.number.warn_threshold = motorTempField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  motorTempFieldGraph.editable.number.auto_thresholds = motorTempField.editable.number.auto_thresholds;
+  motorTempGraph.graph.error_threshold = motorTempField.editable.number.error_threshold;
+  motorTempGraph.graph.warn_threshold = motorTempField.editable.number.warn_threshold;
 
-  pwmDutyGraph.graph.error_threshold = 254;
-  pwmDutyGraph.graph.warn_threshold = 241; // -20%
-  pwmDutyField.editable.number.error_threshold = 254;
-  pwmDutyField.editable.number.warn_threshold = 241;
+  if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    motorTempField.editable.number.error_threshold = (int32_t) ui_vars.ui8_motor_temperature_max_value_to_limit;
+    motorTempField.editable.number.warn_threshold = (int32_t) ui_vars.ui8_motor_temperature_min_value_to_limit;
+  } else if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    motorTempField.editable.number.error_threshold = motorTempField.editable.number.config_error_threshold;
+    motorTempField.editable.number.warn_threshold = motorTempField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  motorTempFieldGraph.editable.number.auto_thresholds = motorTempField.editable.number.auto_thresholds;
+  motorTempGraph.graph.error_threshold = motorTempField.editable.number.error_threshold;
+  motorTempGraph.graph.warn_threshold = motorTempField.editable.number.warn_threshold;
+
+  if (motorErpsField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    motorErpsField.editable.number.error_threshold = 525;
+    motorErpsField.editable.number.warn_threshold = 420; // -20%
+  } else if (motorErpsField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    motorErpsField.editable.number.error_threshold = motorErpsField.editable.number.config_error_threshold;
+    motorErpsField.editable.number.warn_threshold = motorErpsField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  motorErpsFieldGraph.editable.number.auto_thresholds = motorErpsField.editable.number.auto_thresholds;
+  motorErpsGraph.graph.error_threshold = motorErpsField.editable.number.error_threshold;
+  motorErpsGraph.graph.warn_threshold = motorErpsField.editable.number.warn_threshold;
+
+  if (pwmDutyField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    pwmDutyField.editable.number.error_threshold = 254;
+    pwmDutyField.editable.number.warn_threshold = 241; // -20%
+  } else if (pwmDutyField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    pwmDutyField.editable.number.error_threshold = pwmDutyField.editable.number.config_error_threshold;
+    pwmDutyField.editable.number.warn_threshold = pwmDutyField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  pwmDutyFieldGraph.editable.number.auto_thresholds = pwmDutyField.editable.number.auto_thresholds;
+  pwmDutyGraph.graph.error_threshold = pwmDutyField.editable.number.error_threshold;
+  pwmDutyGraph.graph.warn_threshold = pwmDutyField.editable.number.warn_threshold;
+
+  if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    motorFOCField.editable.number.error_threshold = 8;
+    motorFOCField.editable.number.warn_threshold = 6; // -20%
+  } else if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    motorFOCField.editable.number.error_threshold = motorFOCField.editable.number.config_error_threshold;
+    motorFOCField.editable.number.warn_threshold = motorFOCField.editable.number.config_warn_threshold;
+  }
+  // replicate the state to the other field
+  motorFOCFieldGraph.editable.number.auto_thresholds = motorFOCField.editable.number.auto_thresholds;
+  motorFOCGraph.graph.error_threshold = motorFOCField.editable.number.error_threshold;
+  motorFOCGraph.graph.warn_threshold = motorFOCField.editable.number.warn_threshold;
 #endif
 }
 

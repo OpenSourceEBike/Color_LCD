@@ -119,111 +119,111 @@ static Field varSpeedMenus[] = {
   FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[0].auto_max_min, "yes", "no"),
   FIELD_EDITABLE_UINT("Graph max", &g_graphs[0].max, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_EDITABLE_UINT("Graph min", &g_graphs[0].min, "", 0, 2000, .div_digits = 1, .inc_step = 10),
-  FIELD_EDITABLE_ENUM("Thresholds", &wheelSpeedField.editable.number.auto_thresholds, "disabled", "auto", "manual"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &wheelSpeedField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Graph min thr.", &wheelSpeedField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_ENUM("Thresholds", &wheelSpeedField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+  FIELD_EDITABLE_UINT("Max threshold", &wheelSpeedField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Min threshold", &wheelSpeedField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varTripDistanceMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_trip_distance_graph_auto_max_min_x10, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_trip_distance_graph_max_x10, "", 0, UINT32_MAX, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_trip_distance_graph_min_x10, "", 0, UINT32_MAX, .inc_step = 10),
+  FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[1].auto_max_min, "yes", "no"),
+  FIELD_EDITABLE_UINT("Graph max", &g_graphs[1].max, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Graph min", &g_graphs[1].min, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varOdoMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_odo_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_odo_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_odo_graph_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[2].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[2].max, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[2].min, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varCadenceMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_cadence_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_cadence_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_cadence_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_cadence_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_cadence_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_cadence_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[3].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[3].max, "", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[3].min, "", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &cadenceField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &cadenceField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &cadenceField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varHumanPowerMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_human_power_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_human_power_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_human_power_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_human_power_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_human_power_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_human_power_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[4].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[4].max, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[4].min, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_ENUM("Thresholds", &humanPowerField.editable.number.auto_thresholds, "disabled", "manual"),
+    FIELD_EDITABLE_UINT("Max threshold", &humanPowerField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &humanPowerField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varBatteryPowerMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_battery_power_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_battery_power_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_battery_power_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_battery_power_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_battery_power_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_battery_power_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[5].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[5].max, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[5].min, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_ENUM("Thresholds", &batteryPowerField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &batteryPowerField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &batteryPowerField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varBatteryVoltageMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_battery_voltage_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_battery_voltage_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_battery_voltage_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_battery_voltage_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_battery_voltage_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_battery_voltage_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[6].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[6].max, "", 0, 1000, .div_digits = 1, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[6].min, "", 0, 1000, .div_digits = 1, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &batteryVoltageField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &batteryVoltageField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &batteryVoltageField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varBatteryCurrentMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_battery_current_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_battery_current_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_battery_current_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_battery_current_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_battery_current_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_battery_current_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[7].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[7].max, "", 0, 50, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[7].min, "", 0, 50, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &batteryCurrentField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &batteryCurrentField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &batteryCurrentField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varBatterySOCMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_battery_soc_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_battery_soc_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_battery_soc_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_battery_soc_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_battery_soc_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_battery_soc_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[8].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[8].max, "", 0, 100, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[8].min, "", 0, 100, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &batterySOCField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &batterySOCField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &batterySOCField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varMotorTempMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_motor_temp_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_motor_temp_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_motor_temp_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_motor_temp_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_motor_temp_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_motor_temp_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[9].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[9].max, "", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[9].min, "", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &motorTempField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &motorTempField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &motorTempField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varMotorERPSMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_motor_erps_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_motor_erps_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_motor_erps_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_motor_erps_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_motor_erps_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_motor_erps_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[10].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[10].max, "", 0, 2000, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[10].min, "", 0, 2000, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &motorErpsField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &motorErpsField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &motorErpsField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varMotorPWMMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_motor_pwm_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_motor_pwm_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_motor_pwm_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_motor_pwm_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_motor_pwm_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_motor_pwm_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[11].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[11].max, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[11].min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &pwmDutyField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &pwmDutyField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &pwmDutyField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varMotorFOCMenus[] = {
-  FIELD_EDITABLE_ENUM("Graph auto max min", &ui_vars.var_motor_foc_graph_auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &ui_vars.var_motor_foc_graph_auto_max_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min", &ui_vars.var_motor_foc_graph_min, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_ENUM("Auto thresholds", &ui_vars.var_motor_foc_auto_thresholds, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max thr.", &ui_vars.var_motor_foc_threshold_max, "", 0, 255, .inc_step = 1),
-  FIELD_EDITABLE_UINT("Graph min thr.", &ui_vars.var_motor_foc_threshold_min, "", 0, 255, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[12].auto_max_min, "yes", "no"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[12].max, "", 0, 60, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[12].min, "", 0, 60, .inc_step = 1),
+    FIELD_EDITABLE_ENUM("Thresholds", &motorFOCField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
+    FIELD_EDITABLE_UINT("Max threshold", &motorFOCField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Min threshold", &motorFOCField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field variablesMenus[] = {

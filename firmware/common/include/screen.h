@@ -170,8 +170,8 @@ typedef enum {
 
 typedef enum {
   FIELD_THRESHOLD_DISABLED = 0,
-  FIELD_THRESHOLD_AUTO = 1,
-  FIELD_THRESHOLD_MANUAL = 2,
+  FIELD_THRESHOLD_MANUAL = 1,
+  FIELD_THRESHOLD_AUTO = 2,
 } field_threshold_t;
 
 /**

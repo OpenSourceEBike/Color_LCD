@@ -1236,10 +1236,19 @@ static void graphDrawPoints(Field *field) {
 	int warn_threshold = field->graph.warn_threshold;
 	int error_threshold = field->graph.error_threshold;
 
+	// find if thresholds are inverted, like in the case of battery voltage
+	bool threshold_inverted = false;
+	if (error_threshold < warn_threshold) {
+    threshold_inverted = true;
+    int temp = error_threshold;
+    error_threshold = warn_threshold;
+    warn_threshold = temp;
+	}
+
 	bool threshold_invalid = true;
 	if (warn_threshold != -1 ||
 	    error_threshold != -1 ||
-	    field->graph.source->editable.number.auto_thresholds == FIELD_THRESHOLD_DISABLED)
+	    field->graph.source->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
 	  threshold_invalid = false;
 
 	int threshold_delta = (error_threshold - warn_threshold) / 2;
@@ -1260,10 +1269,6 @@ static void graphDrawPoints(Field *field) {
 		int y_line;
 		int y_temp;
 
-		// this fails when graph rollover
-//		// Draw black space above the line (so we scroll/scale properly)
-//		UG_DrawLine(x, graphYmin, x, graphYmin - delta_y, GRAPH_COLOR_BACKGROUND);
-
     // force first line to not be full white
     if(x == (graphXmin + 1)) {
       y_previous = y;
@@ -1280,61 +1285,121 @@ static void graphDrawPoints(Field *field) {
     }
     y_previous = y_temp;
 
-    // blue zone
-    if (val < (warn_threshold - threshold_delta) ||
-        graph->min_val == graph->max_val ||
-        threshold_invalid != 0) {
-      UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_NORMAL);
-      UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
-    // transition zone from blue to yellow
-	  } else if (val >= (warn_threshold - threshold_delta) &&
-        val < (warn_threshold)) {
-      // calculate color, linear transition from blue to yellow (RGB565)
-      int color_yellow = map(val, // our actual input
-                      warn_threshold - threshold_delta, // start at 0
-                      warn_threshold, // max transition value
-                      0, // min output value
-                      0x3f); // max output value: 6 bits for green color
+    if (threshold_inverted == false) {
+      // blue zone
+      if (val < (warn_threshold - threshold_delta) ||
+          graph->min_val == graph->max_val ||
+          threshold_invalid != 0) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_NORMAL);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+      // transition zone from blue to yellow
+      } else if (val >= (warn_threshold - threshold_delta) &&
+          val < (warn_threshold)) {
+        // calculate color, linear transition from blue to yellow (RGB565)
+        int color_yellow = map(val, // our actual input
+                        warn_threshold - threshold_delta, // start at 0
+                        warn_threshold, // max transition value
+                        0, // min output value
+                        0x3f); // max output value: 6 bits for green color
 
-      int color_blue = map(val, // our actual input
-                      warn_threshold - threshold_delta , // start at 0
-                      warn_threshold, // max transition value
-                      0x1f, // min output value
-                      0); // max output value: 5 bits for blue color
+        int color_blue = map(val, // our actual input
+                        warn_threshold - threshold_delta , // start at 0
+                        warn_threshold, // max transition value
+                        0x1f, // min output value
+                        0); // max output value: 5 bits for blue color
 
-      int color = color_blue |
-          (color_yellow << 5) | // 6 green bits
-          ((color_yellow / 2) << 11); // 5 red bits
+        int color = color_blue |
+            (color_yellow << 5) | // 6 green bits
+            ((color_yellow / 2) << 11); // 5 red bits
 
-      UG_DrawLine(x, graphYmin, x, graphYmin - y_line, color);
-      UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
-    // yellow zone
-    } else if (val >= (warn_threshold) &&
-               val < (error_threshold - threshold_delta)) {
-      UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_WARN);
-      UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
-    // transition zone from yellow to red
-    } else if (val >= (error_threshold - threshold_delta) &&
-              val < (error_threshold)) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, color);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+      // yellow zone
+      } else if (val >= (warn_threshold) &&
+                 val < (error_threshold - threshold_delta)) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_WARN);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+      // transition zone from yellow to red
+      } else if (val >= (error_threshold - threshold_delta) &&
+                val < (error_threshold)) {
+        // calculate color, linear transition from blue to yellow (RGB565)
+        int color = map(val, // our actual input
+                       error_threshold - threshold_delta, // start at 0
+                       error_threshold, // max transition value
+                       0x3f, // min output value: 6 bits for green color
+                       0); // max output value
+
+        color = (color << 5) | // 6 green bits
+           (0x1f << 11); // 5 red bits all enable
+
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, color);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+        // red zone
+      } else if (val >= (error_threshold)) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_ERROR);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+      }
+    } else {
+      // red zone
+      if (val <= (warn_threshold)) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_ERROR);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+
+      // transition zone from red to yellow
+      } else if (val > warn_threshold &&
+               val <= (warn_threshold + threshold_delta)) {
       // calculate color, linear transition from blue to yellow (RGB565)
       int color = map(val, // our actual input
-                     error_threshold - threshold_delta, // start at 0
-                     error_threshold, // max transition value
-                     0x3f, // min output value: 6 bits for green color
-                     0); // max output value
+                     warn_threshold,
+                     warn_threshold + threshold_delta,
+                     0,
+                     0x3f);
 
       color = (color << 5) | // 6 green bits
          (0x1f << 11); // 5 red bits all enable
 
       UG_DrawLine(x, graphYmin, x, graphYmin - y_line, color);
       UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
-      // red zone
-    } else if (val >= (error_threshold)) {
-      UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_ERROR);
-      UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+
+      // yellow zone
+      } else if (val > (warn_threshold + threshold_delta) &&
+                 val <= error_threshold) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_WARN);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+
+      // transition zone from yellow to blue
+      } else if (val > error_threshold &&
+                 val <= (error_threshold + threshold_delta)) {
+        // calculate color, linear transition from blue to yellow (RGB565)
+        int color_yellow = map(val, // our actual input
+                        error_threshold,
+                        error_threshold + threshold_delta,
+                        0x3f, // min output value
+                        0); // max output value: 6 bits for green color
+
+        int color_blue = map(val, // our actual input
+                        error_threshold,
+                        error_threshold + threshold_delta,
+                        0, // min output value
+                        0x1f); // max output value: 5 bits for blue color
+
+        int color = color_blue |
+            (color_yellow << 5) | // 6 green bits
+            ((color_yellow / 2) << 11); // 5 red bits
+
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, color);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+
+        // blue zone
+      } else if (val > (error_threshold + threshold_delta) ||
+            graph->min_val == graph->max_val ||
+            threshold_invalid != 0) {
+        UG_DrawLine(x, graphYmin, x, graphYmin - y_line, GRAPH_COLOR_NORMAL);
+        UG_DrawLine(x, graphYmin - y_line, x, graphYmin - y_line - y_contour, GRAPH_COLOR_ACCENT);
+      }
     }
 
-		ptr = (ptr + 1) % GRAPH_MAX_POINTS; // increment and wrap
+    ptr = (ptr + 1) % GRAPH_MAX_POINTS; // increment and wrap
 	} while (ptr != graph->end_valid); // we just did the last entry?
 }
 

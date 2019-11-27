@@ -182,6 +182,7 @@ typedef enum {
 typedef struct {
   int32_t points[GRAPH_MAX_POINTS * 3];
   int32_t max_val, min_val; // the max/min value we've seen (ever)
+  int32_t max_val_bck, min_val_bck;
   int32_t start_valid; // the oldest point in our ring buffer
   int32_t end_valid; // the newest point in our ring buffer
   int32_t sum;

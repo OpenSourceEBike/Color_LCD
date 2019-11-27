@@ -1923,17 +1923,27 @@ void rt_graph_process(void) {
         if (overfull)
           g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
 
-        if (g->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
-          // update invariants
-          if (filtered > g->max_val)
-            g->max_val = filtered;
+        // update invariants
+        if (filtered > g->max_val_bck)
+          g->max_val_bck = filtered;
 
-          if (filtered < g->min_val && filtered >= f->graph.min_threshold)
-            g->min_val = filtered;
+        if (filtered < g->min_val_bck && filtered >= f->graph.min_threshold)
+          g->min_val_bck = filtered;
+
+        if (g->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
+          g->max_val = g->max_val_bck;
+          g->min_val = g->min_val_bck;
         } else {
-          // update invariants
-          g->max_val = g->max;
-          g->min_val = g->min;
+          // see if real max and mins are over predefined values and if so, override
+          if (g->max_val_bck > g->max)
+            g->max_val = g->max_val_bck;
+          else
+            g->max_val = g->max;
+
+          if (g->min_val_bck < g->min)
+            g->min_val = g->min_val_bck;
+          else
+            g->min_val = g->min;
         }
       }
 

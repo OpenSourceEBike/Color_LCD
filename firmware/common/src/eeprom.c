@@ -113,7 +113,10 @@ const eeprom_data_t m_eeprom_data_defaults = {
 
 #ifndef SW102
     // enable automatic graph max min for every variable
-    .graph_eeprom[0].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[0].auto_max_min = GRAPH_AUTO_MAX_MIN_NO,
+    .graph_eeprom[0].max = 350, // 35 km/h
+    .graph_eeprom[0].min = 0,
+
     .graph_eeprom[1].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[2].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[3].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,

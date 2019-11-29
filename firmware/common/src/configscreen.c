@@ -249,10 +249,12 @@ static Field technicalMenus[] = {
   FIELD_READONLY_UINT("ADC Torque sensor", &ui_vars.ui8_adc_pedal_torque_sensor, ""),
   FIELD_READONLY_UINT("Torque sensor", &ui_vars.ui8_pedal_torque_sensor, ""),
   FIELD_READONLY_UINT("Pedal cadence", &ui_vars.ui8_pedal_cadence, "rpm"),
+  FIELD_READONLY_UINT("Pedal right", &ui_vars.ui8_pas_pedal_right, ""),
   FIELD_READONLY_UINT("Pedal Human power", &ui_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
   FIELD_READONLY_UINT("PWM duty-cycle", &ui_vars.ui8_duty_cycle, ""),
   FIELD_READONLY_UINT("Motor speed", &ui_vars.ui16_motor_speed_erps, ""),
   FIELD_READONLY_UINT("Motor FOC", &ui_vars.ui8_foc_angle, ""),
+  FIELD_READONLY_UINT("Hall sensors", &ui_vars.ui8_motor_hall_sensors, ""),
   FIELD_END };
 
 static Field topMenus[] = {

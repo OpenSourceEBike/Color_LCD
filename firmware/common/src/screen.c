@@ -599,6 +599,22 @@ static int32_t getEditableNumber(Field *field, bool withConversion) {
 	return num;
 }
 
+// Convert from SI to Imperial
+int32_t convertToImperial(int32_t val, ConvertToImperialType type) {
+
+  switch (type) {
+    case ConvertToImperial_speed:
+      val = (val * 100) / 161; // div by 1.609 for km->mi
+      break;
+
+    case ConvertToImperial_temperature:
+      val = 32 + (val * 9) / 5;
+      break;
+  }
+
+  return val;
+}
+
 // Set the numeric value of an editable number, properly handling different possible byte encodings
 static void setEditableNumber(Field *field, uint32_t v, bool withConversion) {
 	if (withConversion) {
@@ -1172,6 +1188,7 @@ static void graphLabelAxis(Field *field) {
 	    max_val_pre = graph->max_val;
 
 	    if (graph->max_val != INT32_MIN) {
+	      int32_t val = getEditableNumber(field, true);
 	      getEditableString(source, graph->max_val, valstr);
 	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
 	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
@@ -1228,7 +1245,7 @@ static void graphDrawPoints(Field *field) {
 	  end_valid = GRAPH_MAX_POINTS;
 
   // first, erase the full points draw area
-  UG_FillFrame(graphXmin + 1, graphYmin - 1, graphXmin + end_valid,
+  UG_FillFrame(graphXmin + 1, graphYmin - 1, graphXmin + GRAPH_MAX_POINTS,
                graphYmax, GRAPH_COLOR_BACKGROUND);
 
 	int x = graphXmin; // the vertical axis line

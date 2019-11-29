@@ -27,6 +27,8 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_pedal_cadence;
 	uint16_t ui16_motor_speed_erps;
 	uint8_t ui8_foc_angle;
+	uint8_t ui8_motor_hall_sensors;
+	uint8_t ui8_pas_pedal_right;
 	uint8_t ui8_temperature_current_limiting_value;
 	uint8_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;
@@ -113,6 +115,8 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_pedal_cadence;
 	uint16_t ui16_motor_speed_erps;
 	uint8_t ui8_foc_angle;
+	uint8_t ui8_motor_hall_sensors;
+	uint8_t ui8_pas_pedal_right;
 	uint8_t ui8_temperature_current_limiting_value;
 	uint8_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;

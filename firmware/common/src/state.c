@@ -182,6 +182,8 @@ void rt_process_rx(void) {
 
 				uint8_t ui8_temp = *p_rx_buffer;
 				rt_vars.ui8_braking = ui8_temp & 1;
+				rt_vars.ui8_motor_hall_sensors = (ui8_temp >> 1) & 7;
+				rt_vars.ui8_pas_pedal_right = (ui8_temp >> 4) & 1;
 				p_rx_buffer++;
 
 				rt_vars.ui8_adc_throttle = *p_rx_buffer;
@@ -648,6 +650,8 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui8_pedal_cadence = rt_vars.ui8_pedal_cadence;
 	ui_vars.ui8_pedal_cadence_filtered = rt_vars.ui8_pedal_cadence_filtered;
 	ui_vars.ui16_motor_speed_erps = rt_vars.ui16_motor_speed_erps;
+	ui_vars.ui8_motor_hall_sensors = rt_vars.ui8_motor_hall_sensors;
+	ui_vars.ui8_pas_pedal_right = rt_vars.ui8_pas_pedal_right;
 	ui_vars.ui8_temperature_current_limiting_value =
 			rt_vars.ui8_temperature_current_limiting_value;
 	ui_vars.ui8_motor_temperature = rt_vars.ui8_motor_temperature;

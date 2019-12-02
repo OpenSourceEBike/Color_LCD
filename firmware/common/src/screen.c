@@ -1188,7 +1188,7 @@ static void graphLabelAxis(Field *field) {
 	    max_val_pre = graph->max_val;
 
 	    if (graph->max_val != INT32_MIN) {
-	      int32_t val = getEditableNumber(field, true);
+//	      int32_t val = getEditableNumber(field, true);
 	      getEditableString(source, graph->max_val, valstr);
 	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
 	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);

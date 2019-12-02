@@ -24,7 +24,7 @@ static Field batterySOCMenus[] =
 						FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_battery_soc_enable, "disable", "enable"),
 						FIELD_EDITABLE_ENUM("Show", &ui_vars.ui8_battery_soc_increment_decrement, "% full", "% used"),
 						FIELD_EDITABLE_UINT(_S("Reset at voltage", "Reset at"), &ui_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
-						FIELD_EDITABLE_UINT(_S("Battery total Wh", "Battery total"), &ui_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .inc_step = 10),
+						FIELD_EDITABLE_UINT(_S("Battery total Wh", "Battery total"), &ui_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .div_digits = 1, .inc_step = 100),
 						FIELD_EDITABLE_UINT("Used Wh", &ui_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
 				FIELD_END };
 

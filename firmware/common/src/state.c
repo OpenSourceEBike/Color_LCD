@@ -674,9 +674,9 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui8_braking = rt_vars.ui8_braking;
 	ui_vars.ui8_foc_angle = (((uint16_t) rt_vars.ui8_foc_angle) * 14) / 10; // each units is equal to 1.4 degrees ((360 degrees / 256) = 1.4)
 
+  rt_vars.ui32_wh_x10_100_percent = ui_vars.ui32_wh_x10_100_percent;
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;
-	rt_vars.ui16_battery_pack_resistance_x1000 =
-			ui_vars.ui16_battery_pack_resistance_x1000;
+	rt_vars.ui16_battery_pack_resistance_x1000 = ui_vars.ui16_battery_pack_resistance_x1000;
 	rt_vars.ui8_assist_level = ui_vars.ui8_assist_level;
 	rt_vars.ui8_assist_level_factor[0] = ui_vars.ui8_assist_level_factor[0];
 	rt_vars.ui8_assist_level_factor[1] = ui_vars.ui8_assist_level_factor[1];
@@ -763,6 +763,56 @@ void copy_rt_to_ui_vars(void) {
 			ui_vars.ui8_offroad_power_limit_enabled;
 	rt_vars.ui8_offroad_power_limit_div25 =
 			ui_vars.ui8_offroad_power_limit_div25;
+
+  // Some l3 vars are derived only from other l3 vars
+  uint32_t ui32_battery_cells_number_x10 =
+      (uint32_t) (ui_vars.ui8_battery_cells_number * 10);
+
+  uint8_t volt_based_soc;
+  if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_90))) {
+    volt_based_soc = 95;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_80))) {
+    volt_based_soc = 85;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_70))) {
+    volt_based_soc = 75;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_60))) {
+    volt_based_soc = 65;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_50))) {
+    volt_based_soc = 55;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_40))) {
+    volt_based_soc = 45;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_30))) {
+    volt_based_soc = 35;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_20))) {
+    volt_based_soc = 25;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_10))) {
+    volt_based_soc = 15;
+  } else if (ui_vars.ui16_battery_voltage_soc_x10
+      > ((uint16_t) ((float) ui32_battery_cells_number_x10
+          * LI_ION_CELL_VOLTS_0))) {
+    volt_based_soc = 5;
+  } else {
+    volt_based_soc = 0;
+  }
+  ui_vars.volt_based_soc = volt_based_soc;
 }
 
 /// must be called from main() idle loop

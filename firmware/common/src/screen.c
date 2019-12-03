@@ -891,53 +891,108 @@ UG_COLOR getEditableColor(Field *f, int32_t val) {
   int32_t error_threshold = convertToImperialIfNeeded(f, f->editable.number.error_threshold);
   UG_COLOR color = C_WHITE;
 
+  // find if thresholds are inverted, like in the case of battery voltage
+  bool threshold_inverted = false;
+  if (error_threshold < warn_threshold) {
+    threshold_inverted = true;
+    int temp = error_threshold;
+    error_threshold = warn_threshold;
+    warn_threshold = temp;
+  }
+
   bool threshold_invalid = true;
-    if (warn_threshold != -1 && error_threshold != -1)
-      threshold_invalid = false;
+  if (warn_threshold != -1 ||
+      error_threshold != -1 ||
+      f->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
+    threshold_invalid = false;
 
   int threshold_delta = (error_threshold - warn_threshold) / 2;
 
-  // white zone
-  if (val < (warn_threshold - threshold_delta) ||
-      threshold_invalid != 0) {
-    color = C_WHITE;
-  // transition zone from white to yellow
-  } else if (val >= (warn_threshold - threshold_delta) &&
-      val < (warn_threshold)) {
-    // calculate color, linear transition from blue to yellow (RGB565)
-    int color_blue = map(val, // our actual input
-                    warn_threshold - threshold_delta , // start at 0
-                    warn_threshold, // max transition value
-                    0x1f, // min output value
-                    0); // max output value: 5 bits for blue color
+  if (threshold_inverted == false) {
+    // white zone
+    if (val < (warn_threshold - threshold_delta) ||
+        threshold_invalid != 0) {
+      color = C_WHITE;
+    // transition zone from white to yellow
+    } else if (val >= (warn_threshold - threshold_delta) &&
+        val < (warn_threshold)) {
+      // calculate color, linear transition from blue to yellow (RGB565)
+      int color_blue = map(val, // our actual input
+                      warn_threshold - threshold_delta , // start at 0
+                      warn_threshold, // max transition value
+                      0x1f, // min output value
+                      0); // max output value: 5 bits for blue color
 
-    color = color_blue |
-        0x3f << 5 | // 6 green bits
-        0x1f << 11; // 5 red bits
-  // yellow zone
-  } else if (val >= (warn_threshold) &&
-             val < (error_threshold - threshold_delta)) {
-    color = GRAPH_COLOR_WARN;
-  // transition zone from yellow to red
-  } else if (val >= (error_threshold - threshold_delta) &&
-            val < (error_threshold)) {
-    // calculate color, linear transition from blue to yellow (RGB565)
-    color = map(val, // our actual input
-                   error_threshold - threshold_delta, // start at 0
-                   error_threshold, // max transition value
-                   0x3f, // min output value: 6 bits for green color
-                   0); // max output value
+      color = color_blue |
+          0x3f << 5 | // 6 green bits
+          0x1f << 11; // 5 red bits
 
-    color = (color << 5) | // 6 green bits
-       (0x1f << 11); // 5 red bits all enable
+    // yellow zone
+    } else if (val >= (warn_threshold) &&
+               val < (error_threshold - threshold_delta)) {
+      color = GRAPH_COLOR_WARN;
+    // transition zone from yellow to red
+    } else if (val >= (error_threshold - threshold_delta) &&
+              val < (error_threshold)) {
+      // calculate color, linear transition from blue to yellow (RGB565)
+      color = map(val, // our actual input
+                     error_threshold - threshold_delta, // start at 0
+                     error_threshold, // max transition value
+                     0x3f, // min output value: 6 bits for green color
+                     0); // max output value
+
+      color = (color << 5) | // 6 green bits
+         (0x1f << 11); // 5 red bits all enable
+      // red zone
+    } else if (val >= (error_threshold)) {
+      color = GRAPH_COLOR_ERROR;
+    }
+  } else {
     // red zone
-  } else if (val >= (error_threshold)) {
-    color = GRAPH_COLOR_ERROR;
+    if (val <= (warn_threshold)) {
+      color = GRAPH_COLOR_ERROR;
+
+    // transition zone from red to yellow
+    } else if (val > warn_threshold &&
+             val <= (warn_threshold + threshold_delta)) {
+      // calculate color, linear transition from blue to yellow (RGB565)
+      color = map(val, // our actual input
+                 warn_threshold,
+                 warn_threshold + threshold_delta,
+                 0,
+                 0x3f);
+
+      color = (color << 5) | // 6 green bits
+          (0x1f << 11); // 5 red bits all enable
+
+    // yellow zone
+    } else if (val > (warn_threshold + threshold_delta) &&
+               val <= error_threshold) {
+      color = GRAPH_COLOR_WARN;
+
+    // transition zone from yellow to white
+    } else if (val > error_threshold &&
+               val <= (error_threshold + threshold_delta)) {
+        // calculate color, linear transition from blue to yellow (RGB565)
+        int color_blue = map(val, // our actual input
+                        error_threshold + threshold_delta , // start at 0
+                        error_threshold, // max transition value
+                        0, // min output value
+                        0x1f); // max output value: 5 bits for blue color
+
+        color = color_blue |
+            0x3f << 5 | // 6 green bits
+            0x1f << 11; // 5 red bits
+
+      // white zone
+    } else if (val > (error_threshold + threshold_delta) ||
+          threshold_invalid != 0) {
+      color = C_WHITE;
+    }
   }
 
   return color;
 }
-
 
 /**
  * This render operator is smart enough to do its own dirty managment.  If you set dirty, it will definitely redraw.  Otherwise it will check the actual data bytes

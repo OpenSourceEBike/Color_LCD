@@ -887,8 +887,8 @@ void updateReadOnlyStr(Field *field, char *str) {
 }
 
 UG_COLOR getEditableColor(Field *f, int32_t val) {
-  int32_t warn_threshold = f->editable.number.warn_threshold;
-  int32_t error_threshold = f->editable.number.error_threshold;
+  int32_t warn_threshold = convertToImperialIfNeeded(f, f->editable.number.warn_threshold);
+  int32_t error_threshold = convertToImperialIfNeeded(f, f->editable.number.error_threshold);
   UG_COLOR color = C_WHITE;
 
   bool threshold_invalid = true;
@@ -1287,8 +1287,8 @@ static void graphDrawPoints(Field *field) {
 	int x = graphXmin; // the vertical axis line
 
 	// user may had used imperial units
-	int warn_threshold = convertFromImperialIfNeeded(source, field->graph.warn_threshold);
-	int error_threshold = convertFromImperialIfNeeded(source, field->graph.error_threshold);
+	int warn_threshold = convertToImperialIfNeeded(source, field->graph.warn_threshold);
+	int error_threshold = convertToImperialIfNeeded(source, field->graph.error_threshold);
 
 	// find if thresholds are inverted, like in the case of battery voltage
 	bool threshold_inverted = false;

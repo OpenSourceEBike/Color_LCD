@@ -673,6 +673,8 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui32_wh_x10 = rt_vars.ui32_wh_x10;
 	ui_vars.ui8_braking = rt_vars.ui8_braking;
 	ui_vars.ui8_foc_angle = (((uint16_t) rt_vars.ui8_foc_angle) * 14) / 10; // each units is equal to 1.4 degrees ((360 degrees / 256) = 1.4)
+	ui_vars.ui32_trip_x10 = rt_vars.ui32_trip_x10;
+	ui_vars.ui32_odometer_x10 = rt_vars.ui32_odometer_x10;
 
   rt_vars.ui32_wh_x10_100_percent = ui_vars.ui32_wh_x10_100_percent;
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;

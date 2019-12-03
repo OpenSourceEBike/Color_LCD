@@ -68,12 +68,12 @@ Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field humanPowerField = FIELD_READONLY_UINT("human power", &ui_vars.ui16_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui_vars.ui16_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field batteryVoltageField = FIELD_READONLY_UINT("battery voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentField = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field motorTempField = FIELD_READONLY_UINT("motor temperature", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field pwmDutyField = FIELD_READONLY_UINT("pwm duty-cycle", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field pwmDutyField = FIELD_READONLY_UINT("motor pwm", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field warnField = FIELD_CUSTOM(renderWarning);
 

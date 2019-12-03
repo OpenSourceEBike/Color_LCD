@@ -1972,10 +1972,18 @@ void rt_graph_process(void) {
         g->points[g->end_valid] = filtered;
         g->end_valid = (g->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
 
-        // discard old point if needed
+        // discard old point if needed and find new max/mins
         bool overfull = g->start_valid == g->end_valid;
-        if (overfull)
+        if (overfull) {
+          //
+          if (g->points[g->start_valid] == g->max_val_bck) {
+            // TODO: find new max
+          } else if (g->points[g->start_valid] == g->min_val_bck) {
+            // TODO: find new min
+          }
+
           g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
+        }
 
         // update invariants
         if (filtered > g->max_val_bck)

@@ -132,8 +132,10 @@ typedef enum {
 
 typedef enum {
   ConvertToImperial_speed = 0,
+  ConvertFromImperial_speed,
   ConvertToImperial_temperature,
-} ConvertToImperialType;
+  ConvertFromImperial_temperature,
+} ConvertUnitsType;
 
 #ifdef SW102
 #define GRAPH_VARIANT_SIZE 1 // memory for only 1 graph
@@ -449,7 +451,7 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg);
 void screen_init(void);
 void rt_graph_process(void);
 
-int32_t convertToImperial(int32_t val, ConvertToImperialType type);
+int32_t convertUnits(int32_t val, ConvertUnitsType type);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;

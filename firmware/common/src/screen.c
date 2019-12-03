@@ -567,52 +567,88 @@ bool screenConvertFarenheit = false;
 // Get the numeric value of an editable number, properly handling different possible byte encodings
 // if withConversion, convert from SI units if necessary
 static int32_t getEditableNumber(Field *field, bool withConversion) {
-	assert(field->variant == FieldEditable);
+  assert(field->variant == FieldEditable);
 
-	int32_t num;
-	switch (field->editable.size) {
-	case 1:
-		num = *(uint8_t*) field->editable.target;
-		break;
-	case 2:
-		num = *(int16_t*) field->editable.target;
-		break;
-	case 4:
-		num = *(int32_t*) field->editable.target;
-		break;
-	default:
-		assert(0);
-		return 0;
-	}
+  int32_t num;
+  switch (field->editable.size) {
+  case 1:
+    num = *(uint8_t*) field->editable.target;
+    break;
+  case 2:
+    num = *(int16_t*) field->editable.target;
+    break;
+  case 4:
+    num = *(int32_t*) field->editable.target;
+    break;
+  default:
+    assert(0);
+    return 0;
+  }
 
-	if (withConversion) {
-		const char *units = field->editable.number.units;
-		if (screenConvertMiles
-				&& (strcasecmp(units, "kph") == 0
-						|| strcasecmp(units, "km") == 0))
-			num = (num * 100) / 161; // div by 1.609 for km->mi
+  if (withConversion) {
+    const char *units = field->editable.number.units;
+    if (screenConvertMiles
+        && (strcasecmp(units, "kph") == 0
+            || strcasecmp(units, "km") == 0))
+      num = (num * 100) / 161; // div by 1.609 for km->mi
 
-		if (screenConvertFarenheit && strcmp(units, "C") == 0)
-			num = 32 + (num * 9) / 5;
-	}
+    if (screenConvertFarenheit && strcmp(units, "C") == 0)
+      num = 32 + (num * 9) / 5;
+  }
 
-	return num;
+  return num;
 }
 
 // Convert from SI to Imperial
-int32_t convertToImperial(int32_t val, ConvertToImperialType type) {
+int32_t convertUnits(int32_t val, ConvertUnitsType type) {
 
   switch (type) {
     case ConvertToImperial_speed:
       val = (val * 100) / 161; // div by 1.609 for km->mi
       break;
 
+    case ConvertFromImperial_speed:
+      val = (val * 161) / 100; // mul by 1.609 for km->mi
+      break;
+
     case ConvertToImperial_temperature:
       val = 32 + (val * 9) / 5;
+      break;
+
+    case ConvertFromImperial_temperature:
+      val = ((val * 100) / 180) - 32;
       break;
   }
 
   return val;
+}
+
+int32_t convertToImperialIfNeeded(Field *field, int32_t num) {
+
+  const char *units = field->editable.number.units;
+  if (screenConvertMiles
+      && (strcasecmp(units, "kph") == 0
+          || strcasecmp(units, "km") == 0))
+    num = convertUnits(num, ConvertToImperial_speed);
+
+  if (screenConvertFarenheit && strcmp(units, "C") == 0)
+    num = convertUnits(num, ConvertToImperial_temperature);
+
+  return num;
+}
+
+int32_t convertFromImperialIfNeeded(Field *field, int32_t num) {
+
+  const char *units = field->editable.number.units;
+  if (screenConvertMiles
+      && (strcasecmp(units, "kph") == 0
+          || strcasecmp(units, "km") == 0))
+    num = convertUnits(num, ConvertFromImperial_speed);
+
+  if (screenConvertFarenheit && strcmp(units, "C") == 0)
+    num = convertUnits(num, ConvertFromImperial_temperature);
+
+  return num;
 }
 
 // Set the numeric value of an editable number, properly handling different possible byte encodings
@@ -1188,10 +1224,9 @@ static void graphLabelAxis(Field *field) {
 	    max_val_pre = graph->max_val;
 
 	    if (graph->max_val != INT32_MIN) {
-//	      int32_t val = getEditableNumber(field, true);
-	      getEditableString(source, graph->max_val, valstr);
-	      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
-	                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+        getEditableString(source, graph->max_val, valstr);
+        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
+                       graphYmax, &GRAPH_MAXVAL_FONT, valstr);
 	    }
 	}
 
@@ -1230,6 +1265,7 @@ static inline int32_t graphScaleY(Graph *graph, int32_t x) {
 static void graphDrawPoints(Field *field) {
   static bool end_valid_overflow = 0;
 	Graph *graph = field->graph.data;
+  Field *source = field->graph.source;
 	if(!graph)
 		return; // no data yet
 
@@ -1250,8 +1286,9 @@ static void graphDrawPoints(Field *field) {
 
 	int x = graphXmin; // the vertical axis line
 
-	int warn_threshold = field->graph.warn_threshold;
-	int error_threshold = field->graph.error_threshold;
+	// user may had used imperial units
+	int warn_threshold = convertFromImperialIfNeeded(source, field->graph.warn_threshold);
+	int error_threshold = convertFromImperialIfNeeded(source, field->graph.error_threshold);
 
 	// find if thresholds are inverted, like in the case of battery voltage
 	bool threshold_inverted = false;
@@ -1901,7 +1938,7 @@ void rt_graph_process(void) {
 
     	Field *fieldGraphEditable = f->graph.source; // get the backing data source for this graph
 
-    	int32_t target = getEditableNumber(fieldGraphEditable, false);
+    	int32_t target = getEditableNumber(fieldGraphEditable, true);
     	f->graph.data->sum += target;
     }
 

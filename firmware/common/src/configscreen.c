@@ -77,8 +77,8 @@ static Field startupPowerMenus[] =
 static Field motorTempMenus[] =
 		{
 						FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_temperature_limit_feature_enabled, "disable", "temperature", "throttle"), // FIXME, share one array of disable/enable strings
-						FIELD_EDITABLE_UINT("Min limit", &ui_vars.ui8_motor_temperature_min_value_to_limit, "degC", 0, 125),
-						FIELD_EDITABLE_UINT("Max limit", &ui_vars.ui8_motor_temperature_max_value_to_limit, "degC", 0, 125),
+						FIELD_EDITABLE_UINT("Min limit", &ui_vars.ui8_motor_temperature_min_value_to_limit, "C", 0, 255),
+						FIELD_EDITABLE_UINT("Max limit", &ui_vars.ui8_motor_temperature_max_value_to_limit, "C", 0, 255),
 				FIELD_END };
 
 static Field displayMenus[] =
@@ -117,23 +117,23 @@ static Field variousMenus[] = {
 #ifndef SW102
 static Field varSpeedMenus[] = {
   FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[0].auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &g_graphs[0].max, "", 0, 2000, .div_digits = 1, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Graph min", &g_graphs[0].min, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Graph max", &g_graphs[0].max, "km", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Graph min", &g_graphs[0].min, "km", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_EDITABLE_ENUM("Thresholds", &wheelSpeedField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
-  FIELD_EDITABLE_UINT("Max threshold", &wheelSpeedField.editable.number.config_error_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Min threshold", &wheelSpeedField.editable.number.config_warn_threshold, "", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Max threshold", &wheelSpeedField.editable.number.config_error_threshold, "km", 0, 2000, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Min threshold", &wheelSpeedField.editable.number.config_warn_threshold, "km", 0, 2000, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varTripDistanceMenus[] = {
   FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[1].auto_max_min, "yes", "no"),
-  FIELD_EDITABLE_UINT("Graph max", &g_graphs[1].max, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
-  FIELD_EDITABLE_UINT("Graph min", &g_graphs[1].min, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Graph max", &g_graphs[1].max, "km", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+  FIELD_EDITABLE_UINT("Graph min", &g_graphs[1].min, "km", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varOdoMenus[] = {
     FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[2].auto_max_min, "yes", "no"),
-    FIELD_EDITABLE_UINT("Graph max", &g_graphs[2].max, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
-    FIELD_EDITABLE_UINT("Graph min", &g_graphs[2].min, "", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[2].max, "km", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[2].min, "km", 0, INT32_MAX, .div_digits = 1, .inc_step = 10),
   FIELD_END };
 
 static Field varCadenceMenus[] = {
@@ -192,11 +192,11 @@ static Field varBatterySOCMenus[] = {
 
 static Field varMotorTempMenus[] = {
     FIELD_EDITABLE_ENUM("Graph auto max min", &g_graphs[9].auto_max_min, "yes", "no"),
-    FIELD_EDITABLE_UINT("Graph max", &g_graphs[9].max, "", 0, 200, .inc_step = 1),
-    FIELD_EDITABLE_UINT("Graph min", &g_graphs[9].min, "", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphs[9].max, "C", 0, 200, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphs[9].min, "C", 0, 200, .inc_step = 1),
     FIELD_EDITABLE_ENUM("Thresholds", &motorTempField.editable.number.auto_thresholds, "disabled", "manual", "auto"),
-    FIELD_EDITABLE_UINT("Max threshold", &motorTempField.editable.number.config_error_threshold, "", 0, 200, .div_digits = 1, .inc_step = 1),
-    FIELD_EDITABLE_UINT("Min threshold", &motorTempField.editable.number.config_warn_threshold, "", 0, 200, .div_digits = 1, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Max threshold", &motorTempField.editable.number.config_error_threshold, "C", 0, 200, .div_digits = 1, .inc_step = 1),
+    FIELD_EDITABLE_UINT("Min threshold", &motorTempField.editable.number.config_warn_threshold, "C", 0, 200, .div_digits = 1, .inc_step = 1),
   FIELD_END };
 
 static Field varMotorERPSMenus[] = {
@@ -307,5 +307,3 @@ Screen configScreen = {
 .fields = {
 		{ .color = ColorNormal, .field = &configRoot },
 		{ .field = NULL } } };
-
-

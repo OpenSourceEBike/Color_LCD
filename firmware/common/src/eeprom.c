@@ -309,7 +309,7 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_ramp_up_amps_per_second_x10;
 	m_eeprom_data.ui8_battery_cells_number =
 			p_l3_output_vars->ui8_battery_cells_number;
-	m_eepromfucntionlity_data.ui16_battery_low_voltage_cut_off_x10 =
+	m_eeprom_data.ui16_battery_low_voltage_cut_off_x10 =
 			p_l3_output_vars->ui16_battery_low_voltage_cut_off_x10;
 	m_eeprom_data.ui8_motor_type = p_l3_output_vars->ui8_motor_type;
 	m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation =
@@ -370,7 +370,7 @@ void eeprom_write_variables(void) {
     m_eeprom_data.graph_eeprom[i].auto_max_min = g_graphs[i].auto_max_min;
     m_eeprom_data.graph_eeprom[i].max = g_graphs[i].max;
     m_eeprom_data.graph_eeprom[i].min = g_graphs[i].min;
-  }fucntionlity
+  }
   m_eeprom_data.wheelSpeedField_auto_thresholds = wheelSpeedField.editable.number.auto_thresholds;
   m_eeprom_data.wheelSpeedField_config_error_threshold = wheelSpeedField.editable.number.config_error_threshold;
   m_eeprom_data.wheelSpeedField_config_warn_threshold = wheelSpeedField.editable.number.config_warn_threshold;

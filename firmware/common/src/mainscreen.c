@@ -61,7 +61,7 @@ Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true, .warn_threshold = -1, .error_threshold = -1);
 #endif
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false, .warn_threshold = -1, .error_threshold = -1);
-Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
@@ -103,16 +103,16 @@ Field *customizables[] = {
 // kevinh: I think the following could be probably shared with the defs above (no need to copy and compute twice).  Also high chance of introducing bugs
 // only in one place.
 // Though I'm not sure why you need l2 vs l3 vars in this case.
-Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &rt_vars.ui16_wheel_speed_x10, "", false, .div_digits = 1);
-Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &rt_vars.ui32_trip_x10, "", false, .div_digits = 1);
-Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &rt_vars.ui32_odometer_x10, "", false, .div_digits = 1);
+Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &rt_vars.ui16_wheel_speed_x10, "km", false, .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &rt_vars.ui32_trip_x10, "km", false, .div_digits = 1);
+Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &rt_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &rt_vars.ui8_pedal_cadence_filtered, "", false);
 Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &rt_vars.ui16_pedal_power_filtered, "", false);
 Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &rt_vars.ui16_battery_power_filtered, "", false);
 Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &rt_vars.ui16_battery_voltage_filtered_x10, "", false, .div_digits = 1);
 Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &rt_vars.ui16_battery_current_filtered_x5, "", false, .div_digits = 1); // FIXME, change this to x10 so div_digits will work
 Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "", false);
-Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &rt_vars.ui8_motor_temperature, "", false);
+Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &rt_vars.ui8_motor_temperature, "C", false);
 Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &rt_vars.ui16_motor_speed_erps, "", false);
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_duty_cycle, "", false);
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);

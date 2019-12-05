@@ -2109,7 +2109,7 @@ void rt_graph_process(void) {
       g_graphs_ui_update[1] = true;
     }
 
-    update_graph_data = (counter_1 % (GRAPH_DATA_3_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
+    update_graph_data = (counter_1 % (GRAPH_DATA_2_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
     if (update_graph_data) {
       updateGraphData(2, counter_2[2]);
       counter_2[2] = 0;

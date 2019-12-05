@@ -145,7 +145,9 @@ typedef enum {
 
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
 #define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier
-#define GRAPH_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
+#define GRAPH_DATA_0_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
+#define GRAPH_DATA_1_INTERVAL_MS  14575 // graph updates are expensive - do rarely (247 * 14.575 seconds = 1h minutes)
+#define GRAPH_DATA_2_INTERVAL_MS  58300 // graph updates are expensive - do rarely (247 * 58.300 seconds = 4h minutes)
 #define GRAPH_COLOR_ACCENT  C_WHITE // Drawn as a top line on the graph
 #define GRAPH_COLOR_NORMAL  C_BLUE
 #define GRAPH_COLOR_WARN    C_YELLOW

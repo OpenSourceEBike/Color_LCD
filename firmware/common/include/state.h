@@ -188,8 +188,6 @@ typedef struct ui_vars_struct {
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 
-  uint8_t x_axis_scale; // x axis scale
-
   uint16_t var_speed_graph_auto_max_min;
   uint16_t var_speed_graph_max_x10;
   uint16_t var_speed_graph_min_x10;

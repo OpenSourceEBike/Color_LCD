@@ -35,10 +35,10 @@
 #include "utils.h"
 
 uint8_t g_customizableFieldIndex;
-bool g_graphs_ui_update = false;
+volatile bool g_graphs_ui_update[3] = { false, false, false };
 
-Graph g_graphs[GRAPH_VARIANT_SIZE];
-static int numGraphs = 0;
+GraphVars g_graphVars[GRAPH_VARIANT_SIZE];
+GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
 
 extern UG_GUI gui;
 
@@ -1223,6 +1223,7 @@ static void graphLabelAxis(Field *field) {
   static int32_t min_val_pre = INT32_MIN;
   bool draw_y_label_max = true;
   bool draw_y_label_min = true;
+  uint8_t x_axis_scale = field->graph.x_axis_scale;
 
 	// Only need to draw labels and axis if dirty
 	Field *source = field->graph.source;
@@ -1241,24 +1242,24 @@ static void graphLabelAxis(Field *field) {
     GRAPH_COLOR_AXIS);
 
 		// x axis scale
-		switch (ui_vars.x_axis_scale) {
-/*      case 1:
+		switch (x_axis_scale) {
+      default:
+      case 0:
+        putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15");
+        break;
+
+      case 1:
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "1h");
         break;
 
       case 2:
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "4h");
-        break;*/
-
-		  case 0:
-		  default:
-        putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15");
-		    break;
+        break;
 		}
 	}
 
 	// draw max value
-	Graph *graph = field->graph.data;
+	GraphData *graph = field->graph.data[x_axis_scale];
 	if(!graph) // no data yet
 		return;
 
@@ -1301,7 +1302,7 @@ static void graphLabelAxis(Field *field) {
 }
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
-static inline int32_t graphScaleY(Graph *graph, int32_t x) {
+static inline int32_t graphScaleY(GraphData *graph, int32_t x) {
 //	if (graph->max_val == graph->min_val) // Until there is a span everything is at wmin
 //		return graphYmin;
 //
@@ -1319,7 +1320,8 @@ static inline int32_t graphScaleY(Graph *graph, int32_t x) {
 
 static void graphDrawPoints(Field *field) {
   static bool end_valid_overflow = 0;
-	Graph *graph = field->graph.data;
+  uint8_t x_axis_scale = field->graph.x_axis_scale;
+	GraphData *graph = field->graph.data[x_axis_scale];
   Field *source = field->graph.source;
 	if(!graph)
 		return; // no data yet
@@ -1525,12 +1527,17 @@ static bool renderGraph(FieldLayout *layout) {
 	if(needBlink)
 		field->dirty = true; // Force a complete redraw if blink changed
 
-	// If we are not dirty and we don't need an update, just return
-	if (g_graphs_ui_update == 0 && !field->dirty)
+  // If we are not dirty and we don't need an update, just return
+	if (!((g_graphs_ui_update[0] == true && field->graph.x_axis_scale == 0) ||
+	    (g_graphs_ui_update[1] == true && field->graph.x_axis_scale == 1) ||
+	    (g_graphs_ui_update[2] == true && field->graph.x_axis_scale == 2)) &&
+	        !field->dirty)
 		return false;
 
 	// reset this flag, no more graph update until new data available
-	g_graphs_ui_update = false;
+	g_graphs_ui_update[0] = false;
+	g_graphs_ui_update[1] = false;
+	g_graphs_ui_update[2] = false;
 
 	Field *source = field->graph.source;
 	assert(source);
@@ -1968,104 +1975,147 @@ void fieldPrintf(Field *field, const char *fmt, ...) {
 	va_end(argp);
 }
 
+void updateGraphData(uint8_t index, uint16_t sumDivisor) {
+  int32_t filtered;
+
+  // for now, reference the graphs global to find all possible data sources
+  extern Field *activeGraphs;
+
+  for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
+    Field *f = activeGraphs->customizable.choices[i];
+    GraphData *graphData = f->graph.data[index];
+    assert(graphData); // better be !NULL by now or we screwed up
+
+    // filter
+    switch (f->graph.filter) {
+      case FilterSquare:
+        filtered = (graphData->sum * 2) / sumDivisor;
+        break;
+
+      case FilterDefault:
+      default:
+        filtered = graphData->sum / sumDivisor;
+        break;
+    }
+    graphData->sum = 0;
+
+    // Now add the point to the graph point array
+    // add the point
+    graphData->points[graphData->end_valid] = filtered;
+    graphData->end_valid = (graphData->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
+
+    // discard old point if needed and find new max/mins
+    bool overfull = graphData->start_valid == graphData->end_valid;
+    if (overfull) {
+      //
+      if (graphData->points[graphData->start_valid] == graphData->max_val_bck) {
+        // TODO: find new max
+      } else if (graphData->points[graphData->start_valid] == graphData->min_val_bck) {
+        // TODO: find new min
+      }
+
+      graphData->start_valid = (graphData->start_valid + 1) % GRAPH_MAX_POINTS;
+
+      // increase X axis scale when graph is full
+      if (f->graph.x_axis_scale_config == GRAPH_X_AXIS_SCALE_AUTO) {
+          if ((index == 0 && f->graph.x_axis_scale == 0) ||
+              (index == 1 && f->graph.x_axis_scale == 1)) {
+            f->graph.x_axis_scale++;
+            f->dirty = true; // force dirty so the new scale will be draw
+          }
+      }
+    }
+
+    // update invariants
+    if (filtered > graphData->max_val_bck)
+      graphData->max_val_bck = filtered;
+
+    if (filtered < graphData->min_val_bck && filtered >= f->graph.min_threshold)
+      graphData->min_val_bck = filtered;
+
+    if (f->graph.graph_vars->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
+      graphData->max_val = graphData->max_val_bck;
+      graphData->min_val = graphData->min_val_bck;
+    } else {
+      // see if real max and mins are over predefined values and if so, override
+      if (graphData->max_val_bck > graphData->max)
+        graphData->max_val = graphData->max_val_bck;
+      else
+        graphData->max_val = graphData->max;
+
+      if (graphData->min_val_bck < graphData->min)
+        graphData->min_val = graphData->min_val_bck;
+      else
+        graphData->min_val = graphData->min;
+    }
+  }
+}
+
 void rt_graph_process(void) {
+  static int numGraphs = 0;
   static uint32_t counter_1 = 0;
-  static uint32_t counter_2 = 0;
+  static uint16_t counter_2[3] = {0, 0 , 0};
 
   // for now, reference the graphs global to find all possible data sources
   extern Field *activeGraphs;
 
   // start update graphs only after a startup delay to avoid wrong values of the variables
-  if(activeGraphs) {
+  if (activeGraphs) {
     // track the number of data process cycles
     counter_1++;
-    counter_2++;
+    counter_2[0]++;
+    counter_2[1]++;
+    counter_2[2]++;
 
     // keep summing every 100ms
     for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
     	Field *f = activeGraphs->customizable.choices[i];
     	assert(f->variant == FieldGraph);
 
-    	if(!f->graph.data) { // Select a data pool from our cache
-    		 assert(numGraphs < GRAPH_VARIANT_SIZE);
-     		 f->graph.data = &g_graphs[numGraphs++];
+    	// Select a data pool from our cache
+    	if(!f->graph.data[0]) {
+        assert(numGraphs < GRAPH_VARIANT_SIZE);
+        f->graph.data[0] = &g_graphData[numGraphs][0];
+        f->graph.data[1] = &g_graphData[numGraphs][1];
+        f->graph.data[2] = &g_graphData[numGraphs][2];
+        numGraphs++;
     	}
 
     	Field *fieldGraphEditable = f->graph.source; // get the backing data source for this graph
 
     	int32_t target = getEditableNumber(fieldGraphEditable, true);
-    	f->graph.data->sum += target;
+    	f->graph.data[0]->sum += target;
+    	f->graph.data[1]->sum += target;
+    	f->graph.data[2]->sum += target;
     }
 
     // now calculate the filtered value for each new point and add to graph data array
-    uint32_t update_graph_data = (counter_1 % (GRAPH_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
+    uint32_t update_graph_data;
+    update_graph_data = (counter_1 % (GRAPH_DATA_0_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
     if (update_graph_data) {
-      int32_t filtered;
-      int32_t sumDivisor = counter_2;
-      counter_2 = 0;
-
-      for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
-        Field *f = activeGraphs->customizable.choices[i];
-        Graph *g = f->graph.data;
-        assert(g); // better be !NULL by now or we screwed up
-
-        // filter
-        switch (f->graph.filter) {
-          case FilterSquare:
-            filtered = (g->sum * 2) / sumDivisor;
-            break;
-
-          case FilterDefault:
-          default:
-            filtered = g->sum / sumDivisor;
-            break;
-        }
-        g->sum = 0;
-
-        // Now add the point to the graph point array
-        // add the point
-        g->points[g->end_valid] = filtered;
-        g->end_valid = (g->end_valid + 1) % GRAPH_MAX_POINTS; // inc ptr with wrap
-
-        // discard old point if needed and find new max/mins
-        bool overfull = g->start_valid == g->end_valid;
-        if (overfull) {
-          //
-          if (g->points[g->start_valid] == g->max_val_bck) {
-            // TODO: find new max
-          } else if (g->points[g->start_valid] == g->min_val_bck) {
-            // TODO: find new min
-          }
-
-          g->start_valid = (g->start_valid + 1) % GRAPH_MAX_POINTS;
-        }
-
-        // update invariants
-        if (filtered > g->max_val_bck)
-          g->max_val_bck = filtered;
-
-        if (filtered < g->min_val_bck && filtered >= f->graph.min_threshold)
-          g->min_val_bck = filtered;
-
-        if (g->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
-          g->max_val = g->max_val_bck;
-          g->min_val = g->min_val_bck;
-        } else {
-          // see if real max and mins are over predefined values and if so, override
-          if (g->max_val_bck > g->max)
-            g->max_val = g->max_val_bck;
-          else
-            g->max_val = g->max;
-
-          if (g->min_val_bck < g->min)
-            g->min_val = g->min_val_bck;
-          else
-            g->min_val = g->min;
-        }
-      }
+      updateGraphData(0, counter_2[0]);
+      counter_2[0] = 0;
 
       // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
-      g_graphs_ui_update = true;
+      g_graphs_ui_update[0] = true;
+    }
+
+    update_graph_data = (counter_1 % (GRAPH_DATA_1_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
+    if (update_graph_data) {
+      updateGraphData(1, counter_2[1]);
+      counter_2[1] = 0;
+
+      // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
+      g_graphs_ui_update[1] = true;
+    }
+
+    update_graph_data = (counter_1 % (GRAPH_DATA_3_INTERVAL_MS / REALTIME_INTERVAL_MS) == 0);
+    if (update_graph_data) {
+      updateGraphData(2, counter_2[2]);
+      counter_2[2] = 0;
+
+      // signal that UI can now update the graph and so access his data (should have plenty of time to access the data)
+      g_graphs_ui_update[2] = true;
     }
   }
 }
@@ -2073,10 +2123,12 @@ void rt_graph_process(void) {
 void graph_init(void) {
   // Init graphs to empty
   for (int i = 0; i < GRAPH_VARIANT_SIZE; i++) {
-    g_graphs[i].max_val = INT32_MIN;
-    g_graphs[i].min_val = INT32_MAX;
-    g_graphs[i].start_valid = 0;
-    g_graphs[i].end_valid = 0;
+    for (int j = 0; j < 3; j++) {
+      g_graphData[i][j].max_val = INT32_MIN;
+      g_graphData[i][j].min_val = INT32_MAX;
+      g_graphData[i][j].start_valid = 0;
+      g_graphData[i][j].end_valid = 0;
+    }
   }
 }
 

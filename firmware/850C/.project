@@ -30,4 +30,15 @@
 			<locationURI>PARENT-1-PROJECT_LOC/common</locationURI>
 		</link>
 	</linkedResources>
+	<filteredResources>
+		<filter>
+			<id>1575454775276</id>
+			<name></name>
+			<type>22</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-*.o</arguments>
+			</matcher>
+		</filter>
+	</filteredResources>
 </projectDescription>

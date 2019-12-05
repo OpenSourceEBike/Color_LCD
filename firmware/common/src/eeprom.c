@@ -247,16 +247,16 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_walk_assist_feature_enabled;
 	COPY_ARRAY(p_ui_vars, &m_eeprom_data, ui8_walk_assist_level_factor);
 	COPY_ARRAY(p_ui_vars, &m_eeprom_data, field_selectors);
-  p_ui_vars->x_axis_scale = m_eeprom_data.x_axis_scale;
+//  p_ui_vars->x_axis_scale = m_eeprom_data.x_axis_scale;
   p_ui_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
   graphs.customizable.selector = &m_eeprom_data.customizable_choices_selector;
   g_customizableFieldIndex = m_eeprom_data.customizableFieldIndex;
 
 #ifndef SW102
   for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
-    g_graphs[i].auto_max_min = m_eeprom_data.graph_eeprom[i].auto_max_min;
-    g_graphs[i].max = m_eeprom_data.graph_eeprom[i].max;
-    g_graphs[i].min = m_eeprom_data.graph_eeprom[i].min;
+    g_graphVars[i].auto_max_min = m_eeprom_data.graph_eeprom[i].auto_max_min;
+    g_graphVars[i].max = m_eeprom_data.graph_eeprom[i].max;
+    g_graphVars[i].min = m_eeprom_data.graph_eeprom[i].min;
   }
   wheelSpeedField.editable.number.auto_thresholds = m_eeprom_data.wheelSpeedField_auto_thresholds;
   wheelSpeedField.editable.number.config_error_threshold = m_eeprom_data.wheelSpeedField_config_error_threshold;
@@ -360,16 +360,16 @@ void eeprom_write_variables(void) {
 			p_l3_output_vars->ui8_walk_assist_feature_enabled;
 	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, ui8_walk_assist_level_factor);
 	COPY_ARRAY(&m_eeprom_data, p_l3_output_vars, field_selectors);
-  m_eeprom_data.x_axis_scale = p_l3_output_vars->x_axis_scale;
+//  m_eeprom_data.x_axis_scale = p_l3_output_vars->x_axis_scale;
   m_eeprom_data.ui8_buttons_up_down_invert = p_l3_output_vars->ui8_buttons_up_down_invert;
   m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
   m_eeprom_data.customizableFieldIndex = g_customizableFieldIndex;
 
 #ifndef SW102
   for (uint8_t i = 0; i < GRAPH_VARIANT_SIZE; i++) {
-    m_eeprom_data.graph_eeprom[i].auto_max_min = g_graphs[i].auto_max_min;
-    m_eeprom_data.graph_eeprom[i].max = g_graphs[i].max;
-    m_eeprom_data.graph_eeprom[i].min = g_graphs[i].min;
+    m_eeprom_data.graph_eeprom[i].auto_max_min = g_graphVars[i].auto_max_min;
+    m_eeprom_data.graph_eeprom[i].max = g_graphVars[i].max;
+    m_eeprom_data.graph_eeprom[i].min = g_graphVars[i].min;
   }
   m_eeprom_data.wheelSpeedField_auto_thresholds = wheelSpeedField.editable.number.auto_thresholds;
   m_eeprom_data.wheelSpeedField_config_error_threshold = wheelSpeedField.editable.number.config_error_threshold;

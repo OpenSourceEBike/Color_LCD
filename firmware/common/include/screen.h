@@ -172,8 +172,13 @@ typedef enum {
 
 typedef enum {
   GRAPH_AUTO_MAX_MIN_YES = 0,
-  GRAPH_AUTO_MAX_MIN_NO = 1,
+  GRAPH_AUTO_MAX_MIN_NO,
 } graph_auto_max_min_t;
+
+typedef enum {
+  GRAPH_X_AXIS_SCALE_AUTO = 0,
+  GRAPH_X_AXIS_SCALE_MANUAL,
+} graph_x_axis_scale_config_t;
 
 typedef enum {
   FIELD_THRESHOLD_DISABLED = 0,
@@ -187,16 +192,21 @@ typedef enum {
  * relax this relation and keep data only for the most recently displayed graphs
  */
 typedef struct {
-  int32_t points[GRAPH_MAX_POINTS * 3];
+  graph_auto_max_min_t auto_max_min;
+  int32_t max;
+  int32_t min;
+} GraphVars; // this should not be plural
+
+typedef struct {
+  int32_t points[GRAPH_MAX_POINTS];
   int32_t max_val, min_val; // the max/min value we've seen (ever)
   int32_t max_val_bck, min_val_bck;
   int32_t start_valid; // the oldest point in our ring buffer
   int32_t end_valid; // the newest point in our ring buffer
   int32_t sum;
-  graph_auto_max_min_t auto_max_min;
   int32_t max;
   int32_t min;
-} Graph; // this should not be plural
+} GraphData;
 
 typedef enum {
 	FilterDefault = 0,
@@ -229,11 +239,15 @@ typedef struct Field {
 		} drawTextPtr;
 
 		struct {
-			Graph *data; // cached data for this graph
+			GraphData *data[3]; // cached data for this graph
+			GraphVars *graph_vars;
 			struct Field *source; // the data field we are graphing
 			FilterOp filter : 2; // allow 4 options for now
 			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
+		  graph_auto_max_min_t auto_max_min;
+		  uint8_t x_axis_scale; // x axis scale
+		  graph_x_axis_scale_config_t x_axis_scale_config; // x axis scale
 		} graph;
 
 		struct {
@@ -436,7 +450,8 @@ extern bool screenConvertMiles;
 // Set to true if we should automatically convert C -> F
 extern bool screenConvertFarenheit;
 
-extern Graph g_graphs[GRAPH_VARIANT_SIZE];
+extern GraphVars g_graphVars[GRAPH_VARIANT_SIZE]; // this is needed to be used on configurations otherwise I could not make code build
+extern GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
 
 void fieldPrintf(Field *field, const char *fmt, ...);
 
@@ -459,7 +474,7 @@ extern const UG_FONT *editable_units_font;
 
 extern uint8_t g_customizableFieldIndex;
 
-extern bool g_graphs_ui_update;
+extern volatile bool g_graphs_ui_update[3];
 
 // The default is for editables to be two rows tall, with the data value on the second row
 // define this as 1 if you want them to be one row tall (because you have a wide enough screen)

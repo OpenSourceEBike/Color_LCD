@@ -92,11 +92,8 @@ void lcd_set_backlight_intensity(uint8_t ui8_intensity)
 
 void lcd_power_off(uint8_t updateDistanceOdo)
 {
-//  if (updateDistanceOdo)
-//  {
-    ui_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10;
-//    ui_vars.ui32_odometer_x10 += ((uint32_t) ui_vars.ui16_odometer_distance_x10);
-//  }
+  // save current battery Wh
+  ui_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10;
 
   // save the variables on EEPROM
   eeprom_write_variables ();

@@ -27,13 +27,15 @@ volatile uint8_t motorVariablesStabilized = 0;
 bool has_seen_motor; // true once we've received a packet from a real motor
 bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 
-// kevinh: I don't think volatile is probably needed here
-volatile rt_vars_t rt_vars;
-
+rt_vars_t rt_vars;
 ui_vars_t ui_vars;
 
 ui_vars_t* get_ui_vars(void) {
 	return &ui_vars;
+}
+
+rt_vars_t* get_rt_vars(void) {
+  return &rt_vars;
 }
 
 /// Set correct backlight brightness for current headlight state
@@ -496,25 +498,10 @@ void rt_calc_wh(void) {
 
 static void rt_calc_odometer(void) {
   static uint8_t ui8_1s_timer_counter;
-	uint32_t uint32_temp;
 
 	// calc at 1s rate
 	if (++ui8_1s_timer_counter >= 10) {
 		ui8_1s_timer_counter = 0;
-
-		uint32_temp = (rt_vars.ui32_wheel_speed_sensor_tick_counter
-				- ui_vars.ui32_wheel_speed_sensor_tick_counter_offset)
-				* ((uint32_t) rt_vars.ui16_wheel_perimeter);
-		// avoid division by 0
-		if (uint32_temp > 100000) {
-			uint32_temp /= 100000;
-		}  // milimmeters to 0.1kms
-		else {
-			uint32_temp = 0;
-		}
-
-		// now store the value on the global variable
-		// l2_vars.ui16_odometer_distance_x10 = (uint16_t) uint32_temp;
 
 		// calculate how many revolutions since last reset and convert to distance traveled
 		uint32_t ui32_temp = (rt_vars.ui32_wheel_speed_sensor_tick_counter
@@ -766,7 +753,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_offroad_power_limit_div25 =
 			ui_vars.ui8_offroad_power_limit_div25;
 
-  // Some l3 vars are derived only from other l3 vars
+  // Some ui vars are derived only from other ui vars
   uint32_t ui32_battery_cells_number_x10 =
       (uint32_t) (ui_vars.ui8_battery_cells_number * 10);
 

@@ -85,7 +85,6 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_offroad_speed_limit;
 	uint8_t ui8_offroad_power_limit_enabled;
 	uint8_t ui8_offroad_power_limit_div25;
-	// uint16_t ui16_odometer_distance_x10;
 	uint32_t ui32_odometer_x10;
 	uint32_t ui32_trip_x10;
 
@@ -173,9 +172,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_offroad_speed_limit;
 	uint8_t ui8_offroad_power_limit_enabled;
 	uint8_t ui8_offroad_power_limit_div25;
-	// uint16_t ui16_odometer_distance_x10;
 	uint32_t ui32_odometer_x10;
-	// uint16_t ui16_distance_since_power_on_x10;
 	uint32_t ui32_trip_x10;
 
 	uint8_t ui8_lights;
@@ -275,8 +272,9 @@ typedef struct ui_vars_struct {
 } ui_vars_t;
 
 ui_vars_t* get_ui_vars(void);
+rt_vars_t* get_rt_vars(void);
 
-extern volatile rt_vars_t rt_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
+extern rt_vars_t rt_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern ui_vars_t ui_vars;
 
 void rt_processing(void);

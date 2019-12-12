@@ -7,6 +7,7 @@ static Field wheelMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max speed", &ui_vars.wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
 						FIELD_EDITABLE_UINT("Circumference", &ui_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
+						FIELD_EDITABLE_UINT("Odometer", &ui_vars.ui32_odometer_x10, "km", 0, UINT32_MAX, .div_digits = 1, .inc_step = 100, .onPreSetEditable = onSetConfigurationWheelOdometer),
 				FIELD_END };
 
 static Field batteryMenus[] =

@@ -837,3 +837,9 @@ void batteryCurrent(void) {
 
   ui16_m_battery_current_filtered_x10 = ui_vars.ui16_battery_current_filtered_x5 * 2;
 }
+
+void onSetConfigurationWheelOdometer(uint32_t v) {
+
+  // let's update the main variable used for calculations of odometer
+  rt_vars.ui32_odometer_x10 = v;
+}

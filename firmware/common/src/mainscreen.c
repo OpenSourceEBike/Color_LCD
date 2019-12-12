@@ -700,12 +700,23 @@ void warnings(void) {
 }
 
 void battery_soc(void) {
-	if (ui_vars.ui8_battery_soc_enable)
-		fieldPrintf(&socField, "%3d%%", ui16_g_battery_soc_watts_hour);
-	else
-		fieldPrintf(&socField, "%u.%1uV",
-				ui_vars.ui16_battery_voltage_soc_x10 / 10,
-				ui_vars.ui16_battery_voltage_soc_x10 % 10);
+  switch (ui_vars.ui8_battery_soc_enable) {
+    default:
+    case 0:
+      // clear the area
+      fieldPrintf(&socField, "");
+      break;
+
+    case 1:
+      fieldPrintf(&socField, "%3d%%", ui16_g_battery_soc_watts_hour);
+      break;
+
+    case 2:
+      fieldPrintf(&socField, "%u.%1uV",
+          ui_vars.ui16_battery_voltage_soc_x10 / 10,
+          ui_vars.ui16_battery_voltage_soc_x10 % 10);
+      break;
+  }
 }
 
 

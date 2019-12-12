@@ -55,7 +55,6 @@ typedef struct rt_vars_struct {
 	uint32_t ui32_wh_x10_offset;
 	uint32_t ui32_wh_x10_100_percent;
 	uint8_t ui8_battery_soc_enable;
-	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_target_max_battery_power;
 	uint8_t ui8_battery_cells_number;
 	uint8_t ui8_battery_max_current;
@@ -77,7 +76,6 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;
-	// uint8_t ui8_lcd_power_off_time_minutes;
 	uint8_t ui8_lcd_backlight_on_brightness;
 	uint8_t ui8_lcd_backlight_off_brightness;
 	uint8_t ui8_offroad_feature_enabled;
@@ -142,7 +140,7 @@ typedef struct ui_vars_struct {
 	uint32_t ui32_wh_x10_offset;
 	uint32_t ui32_wh_x10_100_percent;
 	uint8_t ui8_battery_soc_enable;
-	uint8_t ui8_battery_soc_increment_decrement;
+	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_target_max_battery_power;
 	uint8_t ui8_battery_cells_number;
 	uint8_t ui8_battery_max_current;

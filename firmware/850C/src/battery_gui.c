@@ -128,7 +128,11 @@ bool renderBattery(FieldLayout *layout)
   bool drawContents = true;
   if(drawContents)
   {
-    uint8_t ui32_battery_bar_number = ui_vars.volt_based_soc / (90 / 10); // scale SOC so anything greater than 90% is 10 bars, and zero is zero.
+    uint8_t ui32_battery_bar_number;
+    if (ui_vars.ui8_battery_soc_symbol)
+      ui32_battery_bar_number = ui_vars.volt_based_soc / (90 / 10); // scale SOC so anything greater than 90% is 10 bars, and zero is zero.
+    else
+      ui32_battery_bar_number = ui16_g_battery_soc_watts_hour / 10;
 
     // find the color to draw the bars
     if(ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }

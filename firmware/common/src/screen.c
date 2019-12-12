@@ -1632,15 +1632,6 @@ static void graphDrawPoints(Field *field) {
 static bool renderGraph(FieldLayout *layout) {
 	Field *field = getField(layout);
 
-//	// if we are customizing the X axis, execute only this code to draw the axis
-//	if (g_CustomizingGraphXAxis) {
-//    if(blinkChanged)
-//      graphLabelAxisCustomize(field);
-//
-//    if (g_changeXAxisTrigger == false)
-//      return false;
-//	}
-
   if (g_CustomizingGraphXAxis)
     graphLabelAxisCustomize(field);
 
@@ -1959,26 +1950,6 @@ static void changeXAxis(uint8_t ui8_direction) {
     else
       g_CustomizingGraphXAxis->graph.x_axis_scale_config = 3;
   }
-
-
-//  switch (g_CustomizingGraphXAxis->graph.x_axis_scale_config) {
-//    default:
-//    case GRAPH_X_AXIS_SCALE_15M:
-//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_15M;
-//      break;
-//
-//    case GRAPH_X_AXIS_SCALE_1H:
-//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
-//      break;
-//
-//    case GRAPH_X_AXIS_SCALE_4H:
-//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
-//      break;
-//
-//    case GRAPH_X_AXIS_SCALE_AUTO:
-//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_AUTO;
-//      break;
-//  }
 
   g_changeXAxisTrigger = true;
 }

@@ -596,12 +596,7 @@ void rt_calc_battery_soc_watts_hour(void) {
 	if (ui32_temp > 100)
 		ui32_temp = 100;
 
-	// 100% - current SOC or just current SOC
-	if (!rt_vars.ui8_battery_soc_increment_decrement) {
-		ui16_g_battery_soc_watts_hour = 100 - ui32_temp;
-	} else {
-		ui16_g_battery_soc_watts_hour = ui32_temp;
-	}
+  ui16_g_battery_soc_watts_hour = 100 - ui32_temp;
 }
 
 void rt_processing_stop(void) {

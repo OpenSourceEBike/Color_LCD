@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x16
-#define EEPROM_VERSION 0x16
+#define EEPROM_MIN_COMPAT_VERSION 0x17
+#define EEPROM_VERSION 0x17
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -34,6 +34,7 @@ typedef struct eeprom_data {
 	uint32_t ui32_wh_x10_offset;
 	uint32_t ui32_wh_x10_100_percent;
 	uint8_t ui8_battery_soc_enable;
+	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint8_t ui8_battery_cells_number;
@@ -64,12 +65,8 @@ typedef struct eeprom_data {
 	uint32_t ui32_odometer_x10;
 	uint8_t ui8_walk_assist_feature_enabled;
 	uint8_t ui8_walk_assist_level_factor[9];
-
-	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_buttons_up_down_invert;
-
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
-
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t customizable_choices_selector;
 	uint8_t customizableFieldIndex;
@@ -140,8 +137,9 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
-#define DEFAULT_VALUE_HW_X10_100_PERCENT                            0
-#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      0
+#define DEFAULT_VALUE_HW_X10_100_PERCENT                            5000 // default to a battery of 500 Wh
+#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
+#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
 #define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   50 // 5.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled

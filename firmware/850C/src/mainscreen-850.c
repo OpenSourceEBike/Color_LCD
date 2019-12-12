@@ -96,6 +96,7 @@ void mainScreenOnPostUpdate(void) {
       .x = 8 + ((7 + 1 + 1) * 10) + (1 * 2) + 10, .y = 2, \
       .width = -5, .height = -1, \
       .font = &REGULAR_TEXT_FONT, \
+      .align_x = AlignLeft, \
       .unit_align_x = AlignLeft, \
       .field = &socField \
   }, \
@@ -220,16 +221,23 @@ Screen mainScreen = {
 // Screens in a loop, shown when the user short presses the power button
 Screen *screens[] = { &mainScreen, &configScreen, NULL };
 
-
 // Show our battery graphic
 void battery_display() {
-	static uint8_t oldsoc = 0xff;
+	static uint8_t old_soc = 0xff;
 
 	// Only trigger redraws if something changed
-	if (ui_vars.volt_based_soc != oldsoc) {
-		oldsoc = ui_vars.volt_based_soc;
-		batteryField.dirty = true;
-	}
+  if (ui_vars.ui8_battery_soc_symbol) {
+    if (ui_vars.volt_based_soc != old_soc) {
+      old_soc = ui_vars.volt_based_soc;
+      batteryField.dirty = true;
+    }
+  }
+  else {
+    if (ui16_g_battery_soc_watts_hour != old_soc) {
+      old_soc = ui16_g_battery_soc_watts_hour;
+      batteryField.dirty = true;
+    }
+  }
 }
 
 void clock_time(void) {

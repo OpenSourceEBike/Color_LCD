@@ -178,8 +178,10 @@ typedef enum {
 } graph_auto_max_min_t;
 
 typedef enum {
-  GRAPH_X_AXIS_SCALE_AUTO = 0,
-  GRAPH_X_AXIS_SCALE_MANUAL,
+  GRAPH_X_AXIS_SCALE_15M = 0,
+  GRAPH_X_AXIS_SCALE_1H = 1,
+  GRAPH_X_AXIS_SCALE_4H = 2,
+  GRAPH_X_AXIS_SCALE_AUTO = 3,
 } graph_x_axis_scale_config_t;
 
 typedef enum {
@@ -249,7 +251,7 @@ typedef struct Field {
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		  graph_auto_max_min_t auto_max_min;
 		  uint8_t x_axis_scale; // x axis scale
-		  graph_x_axis_scale_config_t x_axis_scale_config; // x axis scale
+		  graph_x_axis_scale_config_t x_axis_scale_config; // x axis scale configuration
 		} graph;
 
 		struct {

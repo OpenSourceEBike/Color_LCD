@@ -34,7 +34,26 @@ extern Field
   motorTempGraph,
   graphs,
 	custom1, custom2, custom3, custom4,
-	warnField;
+#ifdef SW102
+  warnField; // just close previous definition
+#endif
+#ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
+  warnField,
+
+  wheelSpeedGraph,
+  tripDistanceGraph,
+  odoGraph,
+  cadenceGraph,
+  humanPowerGraph,
+  batteryPowerGraph,
+  batteryVoltageGraph,
+  batteryCurrentGraph,
+  batterySOCGraph,
+  motorTempGraph,
+  motorErpsGraph,
+  pwmDutyGraph,
+  motorFOCGraph;
+#endif
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

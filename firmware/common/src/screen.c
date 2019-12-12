@@ -48,7 +48,10 @@ extern UG_GUI gui;
 static bool forceScrollableRelayout;
 
 // If the user is editing an editable, this will be it
-static Field *curActiveEditable = NULL, *g_curCustomizingField = NULL;
+static Field *curActiveEditable = NULL, *g_curCustomizingField = NULL, *g_CustomizingGraphXAxis = NULL;
+
+volatile bool g_changeXAxisTrigger = false;
+volatile uint8_t g_xAxisReferenceScale = 0;
 
 #define MAX_SCROLLABLE_DEPTH 3 // How deep can we nest scrollables in our stack
 
@@ -1213,37 +1216,22 @@ static void graphClear(Field *field) {
 	if (field->dirty) {
 		// clear all
 		UG_FillFrame(graphX, graphY, graphX + graphWidth - 1,
-				graphY + graphHeight - 1, GRAPH_COLOR_BACKGROUND);
+				graphY + graphHeight, GRAPH_COLOR_BACKGROUND);
 	}
 }
 
 // Draw our axis lines and min/max numbers
-static void graphLabelAxis(Field *field) {
-  static int32_t max_val_pre = INT32_MAX;
-  static int32_t min_val_pre = INT32_MIN;
-  bool draw_y_label_max = true;
-  bool draw_y_label_min = true;
-  uint8_t x_axis_scale = field->graph.x_axis_scale;
+static void graphLabelAxisCustomize(Field *field) {
+  uint8_t x_axis_scale_config = field->graph.x_axis_scale_config;
 
-	// Only need to draw labels and axis if dirty
-	Field *source = field->graph.source;
-	if (field->dirty) {
-		UG_SetForecolor(LABEL_COLOR);
-		putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT,
-				source->editable.label);
-		UG_SetForecolor(LABEL_COLOR);
+  if (blinkOn == false) {
+    putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "  ");
+  } else {
+    UG_SetForecolor(LABEL_COLOR);
+    UG_SetForecolor(LABEL_COLOR);
 
-		// vertical axis line
-    UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,
-    GRAPH_COLOR_AXIS);
-
-		// horiz axis line
-    UG_DrawLine(graphXmin, graphYmin, graphXmin + GRAPH_MAX_POINTS - 1, graphYmin,
-    GRAPH_COLOR_AXIS);
-
-		// x axis scale
-		switch (x_axis_scale) {
-      default:
+    // x axis scale
+    switch (x_axis_scale_config) {
       case 0:
         putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15");
         break;
@@ -1255,13 +1243,46 @@ static void graphLabelAxis(Field *field) {
       case 2:
         putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "4h");
         break;
-		}
-	}
 
-	// draw max value
-	GraphData *graph = field->graph.data[x_axis_scale];
-	if(!graph) // no data yet
-		return;
+      case 3:
+      default:
+        putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "au");
+        break;
+    }
+  }
+
+  if (g_changeXAxisTrigger) {
+    switch (x_axis_scale_config) {
+      default:
+      case GRAPH_X_AXIS_SCALE_15M:
+      case GRAPH_X_AXIS_SCALE_1H:
+      case GRAPH_X_AXIS_SCALE_4H:
+        field->graph.x_axis_scale = x_axis_scale_config;
+        break;
+
+      // use reference scale for the auto mode
+      // bits of g_xAxisReferenceScale are set dependind on reference the scale
+      case GRAPH_X_AXIS_SCALE_AUTO:
+        if (g_xAxisReferenceScale & 2)
+          field->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
+        else if (g_xAxisReferenceScale & 1)
+          field->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
+        break;
+    }
+  }
+
+  // draw max value
+  // x axis scale
+  static int32_t max_val_pre = INT32_MAX;
+  static int32_t min_val_pre = INT32_MIN;
+  bool draw_y_label_max = true;
+  bool draw_y_label_min = true;
+  uint8_t x_axis_scale;
+  x_axis_scale = field->graph.x_axis_scale;
+  Field *source = field->graph.source;
+  GraphData *graph = field->graph.data[x_axis_scale];
+  if(!graph) // no data yet
+    return;
 
   // the graph would be an horizontal line at bottom, so, put Y axis labels specific if value is 0 or higher
   if (graph->min_val == graph->max_val) {
@@ -1271,25 +1292,115 @@ static void graphLabelAxis(Field *field) {
       draw_y_label_max = false;
   }
 
-	char valstr[MAX_FIELD_LEN];
+  char valstr[MAX_FIELD_LEN];
 
-	// draw if value changed or dirty
-	if((graph->max_val != max_val_pre ||
-	    field->dirty) &&
-	    draw_y_label_max) {
-	    max_val_pre = graph->max_val;
+  // draw if value changed or dirty
+  if((graph->max_val != max_val_pre ||
+      blinkChanged ||
+      g_changeXAxisTrigger) &&
+      draw_y_label_max) {
+    max_val_pre = graph->max_val;
 
-	    if (graph->max_val != INT32_MIN) {
-        getEditableString(source, graph->max_val, valstr);
-        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
-                       graphYmax, &GRAPH_MAXVAL_FONT, valstr);
-	    }
-	}
+    if (graph->max_val != INT32_MIN) {
+      getEditableString(source, graph->max_val, valstr);
+      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
+                     graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+    }
+  }
 
   // draw if value changed or dirty
   if((graph->min_val != min_val_pre ||
-      field->dirty) &&
-      draw_y_label_min){
+      blinkChanged ||
+      g_changeXAxisTrigger) &&
+      draw_y_label_min) {
+    min_val_pre = graph->min_val;
+
+    if (graph->min_val != INT32_MAX) {
+      getEditableString(source, graph->min_val, valstr);
+      putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
+                     graphYmin - GRAPH_MAXVAL_FONT.char_height,
+          &GRAPH_MAXVAL_FONT, valstr);
+    }
+  }
+}
+
+// Draw our axis lines and min/max numbers
+static void graphLabelAxis(Field *field) {
+  static int32_t max_val_pre = INT32_MAX;
+  static int32_t min_val_pre = INT32_MIN;
+  bool draw_y_label_max = true;
+  bool draw_y_label_min = true;
+
+	// Only need to draw labels and axis if dirty
+	Field *source = field->graph.source;
+	if (field->dirty ||
+	    g_graphs_ui_update[0] == true ||
+      g_graphs_ui_update[1] == true ||
+      g_graphs_ui_update[2] == true) {
+		UG_SetForecolor(LABEL_COLOR);
+		putStringCentered(graphX, graphLabelY, graphWidth, &GRAPH_LABEL_FONT,
+				source->editable.label);
+		UG_SetForecolor(LABEL_COLOR);
+
+		// vertical axis line
+    UG_DrawLine(graphXmin, graphYmin, graphXmin, graphYmax,
+    GRAPH_COLOR_AXIS);
+
+		// horiz axis line
+    UG_DrawLine(graphXmin, graphYmin, graphXmin + GRAPH_MAX_POINTS, graphYmin, C_DIM_GRAY);
+
+		// x axis scale
+    uint8_t x_axis_scale;
+    x_axis_scale = field->graph.x_axis_scale;
+    if (g_CustomizingGraphXAxis == NULL) {
+      switch (x_axis_scale) {
+        default:
+        case 0:
+          putStringRight(SCREEN_WIDTH - 1, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "15");
+          break;
+
+        case 1:
+          putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "1h");
+          break;
+
+        case 2:
+          putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "4h");
+          break;
+      }
+    }
+
+    // draw max value
+    GraphData *graph = field->graph.data[x_axis_scale];
+    if(!graph) // no data yet
+      return;
+
+    // the graph would be an horizontal line at bottom, so, put Y axis labels specific if value is 0 or higher
+    if (graph->min_val == graph->max_val) {
+      if (graph->min_val > 0)
+        draw_y_label_min = false;
+      else
+        draw_y_label_max = false;
+    }
+
+    char valstr[MAX_FIELD_LEN];
+
+    // draw if value changed or dirty
+    if((graph->max_val != max_val_pre ||
+        field->dirty) &&
+        draw_y_label_max) {
+      max_val_pre = graph->max_val;
+
+      if (graph->max_val != INT32_MIN) {
+        getEditableString(source, graph->max_val, valstr);
+        putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
+                       graphYmax, &GRAPH_MAXVAL_FONT, valstr);
+      }
+    }
+
+    // draw if value changed or dirty
+    if((graph->min_val != min_val_pre ||
+        field->dirty) &&
+        draw_y_label_min) {
       min_val_pre = graph->min_val;
 
       if (graph->min_val != INT32_MAX) {
@@ -1298,7 +1409,8 @@ static void graphLabelAxis(Field *field) {
                        graphYmin - GRAPH_MAXVAL_FONT.char_height,
             &GRAPH_MAXVAL_FONT, valstr);
       }
-  }
+    }
+	}
 }
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
@@ -1520,24 +1632,31 @@ static void graphDrawPoints(Field *field) {
 static bool renderGraph(FieldLayout *layout) {
 	Field *field = getField(layout);
 
+//	// if we are customizing the X axis, execute only this code to draw the axis
+//	if (g_CustomizingGraphXAxis) {
+//    if(blinkChanged)
+//      graphLabelAxisCustomize(field);
+//
+//    if (g_changeXAxisTrigger == false)
+//      return false;
+//	}
+
+  if (g_CustomizingGraphXAxis)
+    graphLabelAxisCustomize(field);
+
 	bool isCustomizing = g_curCustomizingField
 			&& g_curCustomizingField == parentCustomizable;
-	bool needBlink = blinkChanged && isCustomizing;
+	bool needBlink = (blinkChanged && isCustomizing) || g_changeXAxisTrigger;
 
-	if(needBlink)
+	if (needBlink)
 		field->dirty = true; // Force a complete redraw if blink changed
 
   // If we are not dirty and we don't need an update, just return
-	if (!((g_graphs_ui_update[0] == true && field->graph.x_axis_scale == 0) ||
-	    (g_graphs_ui_update[1] == true && field->graph.x_axis_scale == 1) ||
-	    (g_graphs_ui_update[2] == true && field->graph.x_axis_scale == 2)) &&
+	if ((!(g_graphs_ui_update[0] == true ||
+	    g_graphs_ui_update[1] == true ||
+	    g_graphs_ui_update[2] == true)) &&
 	        !field->dirty)
 		return false;
-
-	// reset this flag, no more graph update until new data available
-	g_graphs_ui_update[0] = false;
-	g_graphs_ui_update[1] = false;
-	g_graphs_ui_update[2] = false;
 
 	Field *source = field->graph.source;
 	assert(source);
@@ -1568,6 +1687,11 @@ static bool renderGraph(FieldLayout *layout) {
 
 	graphLabelAxis(field);
 	graphDrawPoints(field);
+
+	g_changeXAxisTrigger = false;
+  g_graphs_ui_update[0] = false;
+  g_graphs_ui_update[1] = false;
+  g_graphs_ui_update[2] = false;
 
 	return true;
 }
@@ -1825,48 +1949,112 @@ static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 	*s->customizable.selector = i;
 }
 
+static void changeXAxis(uint8_t ui8_direction) {
+  if (ui8_direction) {
+    g_CustomizingGraphXAxis->graph.x_axis_scale_config =
+        (g_CustomizingGraphXAxis->graph.x_axis_scale_config + 1) % 4;
+  } else {
+    if (g_CustomizingGraphXAxis->graph.x_axis_scale_config > 0)
+      g_CustomizingGraphXAxis->graph.x_axis_scale_config--;
+    else
+      g_CustomizingGraphXAxis->graph.x_axis_scale_config = 3;
+  }
+
+
+//  switch (g_CustomizingGraphXAxis->graph.x_axis_scale_config) {
+//    default:
+//    case GRAPH_X_AXIS_SCALE_15M:
+//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_15M;
+//      break;
+//
+//    case GRAPH_X_AXIS_SCALE_1H:
+//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
+//      break;
+//
+//    case GRAPH_X_AXIS_SCALE_4H:
+//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
+//      break;
+//
+//    case GRAPH_X_AXIS_SCALE_AUTO:
+//      g_CustomizingGraphXAxis->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_AUTO;
+//      break;
+//  }
+
+  g_changeXAxisTrigger = true;
+}
+
 // Returns true if we've handled the event (and therefore it should be cleared)
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
 static bool onPressCustomizing(buttons_events_t events) {
+  static Field *g_curCustomizingFieldBackup = NULL;
+
 
 	// If we aren't already editing anything, start now (note: we will only be called if some active editable
 	// hasn't already handled this button
-	if (!g_curCustomizingField && (events & SCREENCLICK_START_CUSTOMIZING)) {
+	if (!g_curCustomizingField && (events & SCREENCLICK_START_CUSTOMIZING) &&
+	    g_CustomizingGraphXAxis == NULL) {
 		selectNextCustomizableField(false); // start to customize previous field
 		return true;
 	}
 
-	if (!g_curCustomizingField) // If we don't now have a customizing field, don't consider any other buttons
+	if (!g_curCustomizingField &&  // If we don't now have a customizing field, don't consider any other buttons
+	    g_CustomizingGraphXAxis == NULL)
 		return false;
 
 	// Change the current customizable field to show the next possible value
 	if (events & UP_CLICK) {
-		changeCurrentCustomizableField(1);
+	  if (g_CustomizingGraphXAxis == NULL)
+	    changeCurrentCustomizableField(1);
+	  else
+	    changeXAxis(1);
+
 		return true;
 	}
 
   if (events & DOWN_CLICK) {
-    changeCurrentCustomizableField(0);
+      if (g_CustomizingGraphXAxis == NULL)
+        changeCurrentCustomizableField(0);
+      else
+        changeXAxis(0);
     return true;
   }
 
 	// Go to next customizable field
-	if (events & ONOFF_CLICK) {
+	if (events & ONOFF_CLICK &&
+	    g_CustomizingGraphXAxis == NULL) {
 		selectNextCustomizableField(true); // customize next field
 		return true;
 	}
 
+  // Customize the X axis
+  if (events & UPDOWN_CLICK) {
+    if (g_CustomizingGraphXAxis) {
+      g_curCustomizingField = g_curCustomizingFieldBackup;
+      g_CustomizingGraphXAxis->dirty = true;
+      g_CustomizingGraphXAxis = NULL;
+    } else {
+      g_CustomizingGraphXAxis = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
+      g_CustomizingGraphXAxis->dirty = true;
+      g_curCustomizingFieldBackup = g_curCustomizingField;
+      g_curCustomizingField = NULL;
+    }
+
+    return true;
+  }
+
 // click power button to exit out of menus
 	if (events & SCREENCLICK_STOP_CUSTOMIZING) {
-		Field *oldSelected = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
-		oldSelected->dirty = true; // force a redraw (to remove any turds)
+    Field *oldSelected = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
+    oldSelected->dirty = true; // force a redraw (to remove any turds)
 
-		g_curCustomizingField = NULL;
+    g_curCustomizingField = NULL;
+    g_CustomizingGraphXAxis->dirty = true;
+    g_CustomizingGraphXAxis = NULL;
 
-		if(curScreen->onCustomized)
-			(*curScreen->onCustomized)();
+    if(curScreen->onCustomized)
+      (*curScreen->onCustomized)();
 
-		return true;
+    return true;
 	}
 
 	return false;
@@ -2007,7 +2195,6 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
     // discard old point if needed and find new max/mins
     bool overfull = graphData->start_valid == graphData->end_valid;
     if (overfull) {
-      //
       if (graphData->points[graphData->start_valid] == graphData->max_val_bck) {
         // TODO: find new max
       } else if (graphData->points[graphData->start_valid] == graphData->min_val_bck) {
@@ -2016,13 +2203,33 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
 
       graphData->start_valid = (graphData->start_valid + 1) % GRAPH_MAX_POINTS;
 
+      // store reference x axis scale
+      switch (index) {
+        case GRAPH_X_AXIS_SCALE_15M:
+          g_xAxisReferenceScale |= 1;
+          break;
+
+        case GRAPH_X_AXIS_SCALE_1H:
+          g_xAxisReferenceScale |= 2;
+          break;
+      }
+
       // increase X axis scale when graph is full
       if (f->graph.x_axis_scale_config == GRAPH_X_AXIS_SCALE_AUTO) {
-          if ((index == 0 && f->graph.x_axis_scale == 0) ||
-              (index == 1 && f->graph.x_axis_scale == 1)) {
-            f->graph.x_axis_scale++;
-            f->dirty = true; // force dirty so the new scale will be draw
+        // use reference scale for the auto mode
+        // bits of g_xAxisReferenceScale are set dependind on reference the scale
+        if (g_xAxisReferenceScale & 2) {
+          if (f->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_4H) {
+            f->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
+            g_changeXAxisTrigger = true;
           }
+        }
+        else if (g_xAxisReferenceScale & 1) {
+          if (f->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_1H) {
+            f->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
+            g_changeXAxisTrigger = true;
+          }
+        }
       }
     }
 

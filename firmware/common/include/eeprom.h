@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x15
-#define EEPROM_VERSION 0x15
+#define EEPROM_MIN_COMPAT_VERSION 0x16
+#define EEPROM_VERSION 0x16
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -76,39 +76,52 @@ typedef struct eeprom_data {
 
 #ifndef SW102
 	Graph_eeprom graph_eeprom[GRAPH_VARIANT_SIZE];
+  uint8_t tripDistanceField_x_axis_scale_config;
+  uint8_t odoField_x_axis_scale_config;
 	field_threshold_t wheelSpeedField_auto_thresholds;
 	int32_t wheelSpeedField_config_error_threshold;
 	int32_t wheelSpeedField_config_warn_threshold;
+	uint8_t wheelSpeedField_x_axis_scale_config;
 	field_threshold_t cadenceField_auto_thresholds;
   int32_t cadenceField_config_error_threshold;
   int32_t cadenceField_config_warn_threshold;
+  uint8_t cadenceField_x_axis_scale_config;
   field_threshold_t humanPowerField_auto_thresholds;
   int32_t humanPowerField_config_error_threshold;
   int32_t humanPowerField_config_warn_threshold;
+  uint8_t humanPowerField_x_axis_scale_config;
   field_threshold_t batteryPowerField_auto_thresholds;
   int32_t batteryPowerField_config_error_threshold;
   int32_t batteryPowerField_config_warn_threshold;
+  uint8_t batteryPowerField_x_axis_scale_config;
   field_threshold_t batteryVoltageField_auto_thresholds;
   int32_t batteryVoltageField_config_error_threshold;
   int32_t batteryVoltageField_config_warn_threshold;
+  uint8_t batteryVoltageField_x_axis_scale_config;
   field_threshold_t batteryCurrentField_auto_thresholds;
   int32_t batteryCurrentField_config_error_threshold;
   int32_t batteryCurrentField_config_warn_threshold;
+  uint8_t batteryCurrentField_x_axis_scale_config;
   field_threshold_t batterySOCField_auto_thresholds;
   int32_t batterySOCField_config_error_threshold;
   int32_t batterySOCField_config_warn_threshold;
+  uint8_t batterySOCField_x_axis_scale_config;
   field_threshold_t motorTempField_auto_thresholds;
   int32_t motorTempField_config_error_threshold;
   int32_t motorTempField_config_warn_threshold;
+  uint8_t motorTempField_x_axis_scale_config;
   field_threshold_t motorErpsField_auto_thresholds;
   int32_t motorErpsField_config_error_threshold;
   int32_t motorErpsField_config_warn_threshold;
+  uint8_t motorErpsField_x_axis_scale_config;
   field_threshold_t pwmDutyField_auto_thresholds;
   int32_t pwmDutyField_config_error_threshold;
   int32_t pwmDutyField_config_warn_threshold;
+  uint8_t pwmDutyField_x_axis_scale_config;
   field_threshold_t motorFOCField_auto_thresholds;
   int32_t motorFOCField_config_error_threshold;
   int32_t motorFOCField_config_warn_threshold;
+  uint8_t motorFOCField_x_axis_scale_config;
 #endif
 
 // FIXME align to 32 bit value by end of structure and pack other fields

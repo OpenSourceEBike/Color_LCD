@@ -5,13 +5,14 @@
 
 // error codes from common.h in the controller code, used for ui8_error_states
 #define NO_ERROR                                0
-#define ERROR_MOTOR_BLOCKED                     1
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
-#define ERROR_NO_SPEED_SENSOR_DETECTED          5
-#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
-#define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
+#define ERROR_NO_CONFIGURATIONS                 (1 << 1)
+#define ERROR_MOTOR_BLOCKED                     (1 << 2)
+#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    (1 << 3)
+#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     (1 << 4)
+#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  (1 << 5)
+#define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 6)
+#define ERROR_LOW_CONTROLLER_VOLTAGE            (1 << 7) // controller works with no less than 15 V so give error code if voltage is too low
+#define ERROR_MAX                               ERROR_LOW_CONTROLLER_VOLTAGE
 
 typedef enum {
   COMMUNICATIONS_READY = 0,
@@ -21,7 +22,9 @@ typedef enum {
   COMMUNICATIONS_WAIT_CONFIGURATIONS,
 } communications_state_t;
 
-extern communications_state_t g_communications_state;
+extern volatile communications_state_t g_communications_state;
+
+extern bool g_tsdz2_configurations_set;
 
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
@@ -75,15 +78,15 @@ typedef struct rt_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint8_t ui8_assist_level_factor[10];
+	uint8_t ui8_assist_level_factor[9];
 	uint8_t ui8_walk_assist_feature_enabled;
-	uint8_t ui8_walk_assist_level_factor[10];
+	uint8_t ui8_walk_assist_level_factor[9];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint8_t ui8_startup_motor_power_boost_factor[10];
+	uint8_t ui8_startup_motor_power_boost_factor[9];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;

@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
+#include "state.h"
 
 uint8_t ui8_m_wheel_speed_decimal;
 
@@ -177,15 +178,14 @@ static void bootScreenOnPreUpdate() {
   if(g_is_sim_motor)
     fieldPrintf(&bootStatus, _S("SIMULATING TSDZ2!", "SIMULATING"));
 
-  // start by asking the TSDZ2 firmware version
-  if (g_tsdz2_firmware_version.major == 0xff) // if version is invalid, like at startup
-    if (g_communications_state == COMMUNICATIONS_READY)
-      g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION; // ask for TSDZ2 firmware version
-
-  if(g_has_seen_motor)
-    fieldPrintf(&bootStatus, "Found TSDZ2");
-  else
+  if(g_has_seen_motor) {
+    fieldPrintf(&bootStatus, "TSDZ2 firmware: %u.%u.%u",
+    g_tsdz2_firmware_version.major,
+    g_tsdz2_firmware_version.minor,
+    g_tsdz2_firmware_version.patch);
+  } else {
     fieldPrintf(&bootStatus, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
+  }
 
   // Stop showing only after we release on/off button and we are commutication with motor
   if(buttons_get_onoff_state() == 0 && (g_has_seen_motor || g_is_sim_motor))
@@ -436,13 +436,6 @@ void screen_clock(void) {
   {
     counter_time_ms = time_ms;
 
-    // exchange data from realtime layer to UI layer
-    // do this in atomic way, disabling the real time layer (should be no problem as
-    // copy_rt_to_ui_vars() should be fast and take a small piece of the 100ms periodic realtime layer processing
-    rt_processing_stop();
-    copy_rt_to_ui_vars();
-    rt_processing_start();
-
     lcd_main_screen();
     clock_time();
     DisplayResetToDefaults();
@@ -644,16 +637,7 @@ static void setWarning(ColorOp color, const char *str) {
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 
-
-#define NO_ERROR                                0
-#define ERROR_MOTOR_BLOCKED                     1
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
-#define ERROR_NO_SPEED_SENSOR_DETECTED          5
-#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
-
-static const char *motorErrors[] = { "None", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+static const char *motorErrors[] = { "None", "No config", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
@@ -810,15 +794,37 @@ static void handle_buttons() {
 
 /// Call every 20ms from the main thread.
 void main_idle() {
-	static uint8_t ui8_100ms_timer_counter = 0;
-	
+  static int counter_time_ms = 0;
+  int time_ms = 0;
+
+  // no point to processing less than every 100ms, as the data comming from the motor is only updated every 100ms, not less
+  time_ms = get_time_base_counter_1ms();
+  if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
+  {
+    counter_time_ms = time_ms;
+
+    // exchange data from realtime layer to UI layer
+    // do this in atomic way, disabling the real time layer (should be no problem as
+    // copy_rt_to_ui_vars() should be fast and take a small piece of the 100ms periodic realtime layer processing
+    rt_processing_stop();
+    copy_rt_to_ui_vars();
+    rt_processing_start();
+
+    // asking the TSDZ2 firmware version and this will happen only once (at startup)
+    if (g_tsdz2_firmware_version.major == 0xff) { // if version is invalid, like at startup
+      if (g_communications_state == COMMUNICATIONS_READY)
+        g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION;
+    // after we get firmware version, set the TSDZ2 configurations
+    } else if (g_tsdz2_configurations_set == false) {
+      if (g_communications_state == COMMUNICATIONS_READY)
+        g_communications_state = COMMUNICATIONS_SET_CONFIGURATIONS; // set configuration to TSDZ2
+    }
+
+    automatic_power_off_management();
+  }
+
 	handle_buttons();
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
-
-	if (++ui8_100ms_timer_counter >= 5) {
-		ui8_100ms_timer_counter = 0;
-		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
-	}
 }
 
 void batteryTotalWh(void) {

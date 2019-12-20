@@ -18,7 +18,7 @@ void uart_send_tx_buffer(uint8_t *tx_buffer);
 #define UART_MAX_NUMBER_MESSAGE_ID_V20          6
 
 #define UART_NUMBER_DATA_BYTES_TO_RECEIVE       25
-#define UART_NUMBER_DATA_BYTES_TO_SEND          6
+#define UART_NUMBER_DATA_BYTES_TO_SEND          26
 #define UART_MAX_NUMBER_MESSAGE_ID              8
 
 #define UART_NUMBER_CRC_BYTES                   2

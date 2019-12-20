@@ -2,7 +2,7 @@
 #include "uart.h"
 #include "usart1.h"
 
-uint8_t ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 3];
+uint8_t ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND];
 
 /**
  * @brief Init UART peripheral

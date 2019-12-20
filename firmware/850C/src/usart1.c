@@ -36,7 +36,7 @@ void usart1_init(void)
   DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART1->DR);
   DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) uart_get_tx_buffer();
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-  DMA_InitStructure.DMA_BufferSize = UART_NUMBER_DATA_BYTES_TO_SEND + 3;
+  DMA_InitStructure.DMA_BufferSize = UART_NUMBER_DATA_BYTES_TO_SEND;
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;

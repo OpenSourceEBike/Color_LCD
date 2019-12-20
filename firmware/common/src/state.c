@@ -28,10 +28,12 @@ volatile uint8_t motorVariablesStabilized = 0;
 bool g_has_seen_motor; // true once we've received a packet from a real motor
 bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 
-uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
-communications_state_t g_communications_state = 0;
+volatile uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
+volatile communications_state_t g_communications_state = 0;
 
 tsdz2_firmware_version_t g_tsdz2_firmware_version = { 0xff, 0, 0 };
+
+bool g_tsdz2_configurations_set = false;
 
 // kevinh: I don't think volatile is probably needed here
 volatile rt_vars_t rt_vars;
@@ -154,7 +156,6 @@ void parse_simmotor() {
 }
 
 void rt_send_tx_package(uint8_t type) {
-  uint8_t len = 3; // minimun is 1 byte type of frame + 2 bytes CRC
   uint8_t crc_len = 3; // minimun is 3
 	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
 
@@ -162,7 +163,7 @@ void rt_send_tx_package(uint8_t type) {
 	// send tx package
 	// start up byte
 	ui8_usart1_tx_buffer[0] = 0x59;
-
+  ui8_usart1_tx_buffer[1] = crc_len;
   // type of the frame
 	ui8_usart1_tx_buffer[2] = type;
 
@@ -170,12 +171,68 @@ void rt_send_tx_package(uint8_t type) {
 	  case 0:
 	    break;
 
+    // set configurations
 	  case 1:
+      if (rt_vars.ui8_walk_assist) {
+        ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_walk_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+      } else if (rt_vars.ui8_assist_level) {
+        ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+      }
+
+      ui8_usart1_tx_buffer[4] |= (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
+
+      // battery power
+      ui8_usart1_tx_buffer[5] = rt_vars.ui8_target_max_battery_power;
+
+      // battery low voltage cut-off
+      ui8_usart1_tx_buffer[6] = (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
+      ui8_usart1_tx_buffer[7] = (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
+
+      // wheel perimeter
+      ui8_usart1_tx_buffer[8] = (uint8_t) (rt_vars.ui16_wheel_perimeter & 0xff);
+      ui8_usart1_tx_buffer[9] = (uint8_t) (rt_vars.ui16_wheel_perimeter >> 8);
+
+      // wheel max speed
+      ui8_usart1_tx_buffer[10] = rt_vars.ui8_wheel_max_speed;
+
+      // battery max current
+      ui8_usart1_tx_buffer[11] = rt_vars.ui8_battery_max_current;
+
+      ui8_usart1_tx_buffer[12] = rt_vars.ui8_motor_type;
+
+      ui8_usart1_tx_buffer[13] = (rt_vars.ui8_startup_motor_power_boost_always ? 1 : 0)
+          | (rt_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
+
+      // startup motor power boost
+      ui8_usart1_tx_buffer[14] = rt_vars.ui8_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
+      // startup motor power boost time
+      ui8_usart1_tx_buffer[15] = rt_vars.ui8_startup_motor_power_boost_time;
+
+      // startup motor power boost fade time
+      ui8_usart1_tx_buffer[16] = rt_vars.ui8_startup_motor_power_boost_fade_time;
+      // boost feature enabled
+      ui8_usart1_tx_buffer[17] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ? 1 : 0;
+
+      // motor over temperature min and max values to limit
+      ui8_usart1_tx_buffer[18] = rt_vars.ui8_motor_temperature_min_value_to_limit;
+      ui8_usart1_tx_buffer[19] = rt_vars.ui8_motor_temperature_max_value_to_limit;
+
+      ui8_usart1_tx_buffer[20] = rt_vars.ui8_ramp_up_amps_per_second_x10;
+
+      // TODO
+      // target speed for cruise
+      ui8_usart1_tx_buffer[21] = 0;
+
+      // motor temperature limit function or throttle
+      ui8_usart1_tx_buffer[22] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
+
+      // motor assistance without pedal rotation enable/disable when startup
+      ui8_usart1_tx_buffer[23] = rt_vars.ui8_motor_assistance_startup_without_pedal_rotation;
+
+      crc_len = 24;
+      ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 	}
-
-  // type of the frame
-  ui8_usart1_tx_buffer[1] = len;
 
 	// prepare crc of the package
 	uint16_t ui16_crc_tx = 0xffff;
@@ -472,35 +529,12 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;
 	rt_vars.ui16_battery_pack_resistance_x1000 = ui_vars.ui16_battery_pack_resistance_x1000;
 	rt_vars.ui8_assist_level = ui_vars.ui8_assist_level;
-	rt_vars.ui8_assist_level_factor[0] = ui_vars.ui8_assist_level_factor[0];
-	rt_vars.ui8_assist_level_factor[1] = ui_vars.ui8_assist_level_factor[1];
-	rt_vars.ui8_assist_level_factor[2] = ui_vars.ui8_assist_level_factor[2];
-	rt_vars.ui8_assist_level_factor[3] = ui_vars.ui8_assist_level_factor[3];
-	rt_vars.ui8_assist_level_factor[4] = ui_vars.ui8_assist_level_factor[4];
-	rt_vars.ui8_assist_level_factor[5] = ui_vars.ui8_assist_level_factor[5];
-	rt_vars.ui8_assist_level_factor[6] = ui_vars.ui8_assist_level_factor[6];
-	rt_vars.ui8_assist_level_factor[7] = ui_vars.ui8_assist_level_factor[7];
-	rt_vars.ui8_assist_level_factor[8] = ui_vars.ui8_assist_level_factor[8];
-	rt_vars.ui8_walk_assist_feature_enabled =
-			ui_vars.ui8_walk_assist_feature_enabled;
-	rt_vars.ui8_walk_assist_level_factor[0] =
-			ui_vars.ui8_walk_assist_level_factor[0];
-	rt_vars.ui8_walk_assist_level_factor[1] =
-			ui_vars.ui8_walk_assist_level_factor[1];
-	rt_vars.ui8_walk_assist_level_factor[2] =
-			ui_vars.ui8_walk_assist_level_factor[2];
-	rt_vars.ui8_walk_assist_level_factor[3] =
-			ui_vars.ui8_walk_assist_level_factor[3];
-	rt_vars.ui8_walk_assist_level_factor[4] =
-			ui_vars.ui8_walk_assist_level_factor[4];
-	rt_vars.ui8_walk_assist_level_factor[5] =
-			ui_vars.ui8_walk_assist_level_factor[5];
-	rt_vars.ui8_walk_assist_level_factor[6] =
-			ui_vars.ui8_walk_assist_level_factor[6];
-	rt_vars.ui8_walk_assist_level_factor[7] =
-			ui_vars.ui8_walk_assist_level_factor[7];
-	rt_vars.ui8_walk_assist_level_factor[8] =
-			ui_vars.ui8_walk_assist_level_factor[8];
+	for (uint8_t i = 0; i < 9; i++) {
+	  rt_vars.ui8_assist_level_factor[i] = ui_vars.ui8_assist_level_factor[i];
+	}
+  for (uint8_t i = 0; i < 9; i++) {
+    rt_vars.ui8_walk_assist_level_factor[i] = ui_vars.ui8_walk_assist_level_factor[i];
+  }
 	rt_vars.ui8_lights = ui_vars.ui8_lights;
 	rt_vars.ui8_walk_assist = ui_vars.ui8_walk_assist;
 	rt_vars.ui8_offroad_mode = ui_vars.ui8_offroad_mode;
@@ -523,24 +557,9 @@ void copy_rt_to_ui_vars(void) {
 			ui_vars.ui8_startup_motor_power_boost_limit_power;
 	rt_vars.ui8_startup_motor_power_boost_time =
 			ui_vars.ui8_startup_motor_power_boost_time;
-	rt_vars.ui8_startup_motor_power_boost_factor[1] =
-			ui_vars.ui8_startup_motor_power_boost_factor[0];
-	rt_vars.ui8_startup_motor_power_boost_factor[2] =
-			ui_vars.ui8_startup_motor_power_boost_factor[1];
-	rt_vars.ui8_startup_motor_power_boost_factor[3] =
-			ui_vars.ui8_startup_motor_power_boost_factor[2];
-	rt_vars.ui8_startup_motor_power_boost_factor[4] =
-			ui_vars.ui8_startup_motor_power_boost_factor[3];
-	rt_vars.ui8_startup_motor_power_boost_factor[5] =
-			ui_vars.ui8_startup_motor_power_boost_factor[4];
-	rt_vars.ui8_startup_motor_power_boost_factor[6] =
-			ui_vars.ui8_startup_motor_power_boost_factor[5];
-	rt_vars.ui8_startup_motor_power_boost_factor[7] =
-			ui_vars.ui8_startup_motor_power_boost_factor[7];
-	rt_vars.ui8_startup_motor_power_boost_factor[8] =
-			ui_vars.ui8_startup_motor_power_boost_factor[8];
-	rt_vars.ui8_startup_motor_power_boost_factor[9] =
-			ui_vars.ui8_startup_motor_power_boost_factor[9];
+  for (uint8_t i = 0; i < 9; i++) {
+    rt_vars.ui8_startup_motor_power_boost_factor[i] = ui_vars.ui8_startup_motor_power_boost_factor[i];
+  }
 	rt_vars.ui8_startup_motor_power_boost_fade_time =
 			ui_vars.ui8_startup_motor_power_boost_fade_time;
 	rt_vars.ui8_startup_motor_power_boost_feature_enabled =
@@ -657,8 +676,10 @@ void communications(void) {
           break;
 
         case 1:
+          g_tsdz2_configurations_set = true;
           g_communications_state = COMMUNICATIONS_READY;
           ui8_cnt = 0;
+          g_has_seen_motor = true; // after setting the configurations, we can consider the motor is ready
           break;
 
         // firmware version
@@ -666,9 +687,16 @@ void communications(void) {
           g_tsdz2_firmware_version.major = p_rx_buffer[3];
           g_tsdz2_firmware_version.minor = p_rx_buffer[4];
           g_tsdz2_firmware_version.patch = p_rx_buffer[5];
+
+          // check to see if the firmware is valid
+          if (g_tsdz2_firmware_version.major != atoi(TSDZ2_FIRMWARE_MAJOR) ||
+              g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
+            APP_ERROR_HANDLER(FAULT_TSDZ2_WRONG_FIRMWARE);
+            g_tsdz2_firmware_version.major = 0xff; // invalidate the version
+          }
+
           g_communications_state = COMMUNICATIONS_READY;
           ui8_cnt = 0;
-          g_has_seen_motor = true;
           break;
       }
     }

@@ -70,7 +70,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.ui16_battery_voltage_reset_wh_counter_x10 =
 		DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10,
 		.ui8_lcd_power_off_time_minutes =
-		DEFAULT_VALUE_LCD_POWER_OFF_TIME, .ui8_lcd_backlight_on_brightness =
+		DEFAULT_VALUE_LCD_POWER_OFF_TIME,
+		.ui8_lcd_backlight_on_brightness =
 		DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS,
 		.ui8_lcd_backlight_off_brightness =
 		DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS,

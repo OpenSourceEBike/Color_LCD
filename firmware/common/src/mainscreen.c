@@ -173,16 +173,22 @@ Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
 static void bootScreenOnPreUpdate() {
 	uint16_t bvolt = battery_voltage_10x_get();
 
-	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-  if(is_sim_motor)
+	g_is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
+  if(g_is_sim_motor)
     fieldPrintf(&bootStatus, _S("SIMULATING TSDZ2!", "SIMULATING"));
-  else if(has_seen_motor)
+
+  // start by asking the TSDZ2 firmware version
+  if (g_tsdz2_firmware_version.major == 0xff) // if version is invalid, like at startup
+    if (g_communications_state == COMMUNICATIONS_READY)
+      g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION; // ask for TSDZ2 firmware version
+
+  if(g_has_seen_motor)
     fieldPrintf(&bootStatus, "Found TSDZ2");
   else
     fieldPrintf(&bootStatus, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
 
   // Stop showing only after we release on/off button and we are commutication with motor
-  if(buttons_get_onoff_state() == 0 && (has_seen_motor || is_sim_motor))
+  if(buttons_get_onoff_state() == 0 && (g_has_seen_motor || g_is_sim_motor))
     showNextScreen();
 }
 

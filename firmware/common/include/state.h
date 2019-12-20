@@ -13,6 +13,16 @@
 #define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
 #define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
 
+typedef enum {
+  COMMUNICATIONS_READY = 0,
+  COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION,
+  COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION,
+  COMMUNICATIONS_SET_CONFIGURATIONS,
+  COMMUNICATIONS_WAIT_CONFIGURATIONS,
+} communications_state_t;
+
+extern communications_state_t g_communications_state;
+
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
@@ -281,6 +291,12 @@ ui_vars_t* get_ui_vars(void);
 extern volatile rt_vars_t rt_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern ui_vars_t ui_vars;
 
+typedef struct {
+  uint8_t major;
+  uint8_t minor;
+  uint8_t patch;
+} tsdz2_firmware_version_t;
+
 void rt_processing(void);
 void rt_processing_stop(void);
 void rt_processing_start(void);
@@ -301,8 +317,9 @@ void set_lcd_backlight();
 
 extern uint16_t ui16_g_battery_soc_watts_hour;
 
-extern bool has_seen_motor; // true once we've received a packet from a real motor
-extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+extern bool g_has_seen_motor; // true once we've received a packet from a real motor
+extern bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7

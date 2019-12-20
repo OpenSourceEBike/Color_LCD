@@ -18,14 +18,20 @@
 #include "eeprom.h"
 #include "buttons.h"
 #include "fault.h"
+#include "state.h"
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint16_t ui16_g_battery_soc_watts_hour;
 volatile uint8_t motorVariablesStabilized = 0;
 
-bool has_seen_motor; // true once we've received a packet from a real motor
-bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+bool g_has_seen_motor; // true once we've received a packet from a real motor
+bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+
+uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
+communications_state_t g_communications_state = 0;
+
+tsdz2_firmware_version_t g_tsdz2_firmware_version = { 0xff, 0, 0 };
 
 // kevinh: I don't think volatile is probably needed here
 volatile rt_vars_t rt_vars;
@@ -147,257 +153,43 @@ void parse_simmotor() {
 
 }
 
-void rt_process_rx(void) {
-	static uint32_t num_missed_packets = 0;
-
-	const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
-
-	// process rx package if we are simulating or the UART had a packet
-	if (is_sim_motor || p_rx_buffer) {
-		if (is_sim_motor)
-			parse_simmotor();
-		else if (p_rx_buffer) {
-			// now process rx data
-			// only if first byte is equal to package start byte
-			if (*p_rx_buffer == 67) {
-				has_seen_motor = true;
-				num_missed_packets = 0; // reset missed packet count
-
-				p_rx_buffer++;
-
-				rt_vars.ui16_adc_battery_voltage = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui16_adc_battery_voltage |= ((uint16_t) (*p_rx_buffer
-						& 0x30)) << 4;
-				p_rx_buffer++;
-
-				rt_vars.ui8_battery_current_x5 = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui16_wheel_speed_x10 = (uint16_t) *p_rx_buffer;
-				p_rx_buffer++;
-				rt_vars.ui16_wheel_speed_x10 += ((uint16_t) *p_rx_buffer << 8);
-				p_rx_buffer++;
-
-				uint8_t ui8_temp = *p_rx_buffer;
-				rt_vars.ui8_braking = ui8_temp & 1;
-				rt_vars.ui8_motor_hall_sensors = (ui8_temp >> 1) & 7;
-				rt_vars.ui8_pas_pedal_right = (ui8_temp >> 4) & 1;
-				p_rx_buffer++;
-
-				rt_vars.ui8_adc_throttle = *p_rx_buffer;
-				p_rx_buffer++;
-
-				if (rt_vars.ui8_temperature_limit_feature_enabled) {
-					rt_vars.ui8_motor_temperature = *p_rx_buffer;
-				} else {
-					rt_vars.ui8_throttle = *p_rx_buffer;
-				}
-				p_rx_buffer++;
-
-				rt_vars.ui8_adc_pedal_torque_sensor = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui8_pedal_torque_sensor = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui8_pedal_cadence = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui8_pedal_human_power = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui8_duty_cycle = *p_rx_buffer;
-				p_rx_buffer++;
-
-				rt_vars.ui16_motor_speed_erps = (uint16_t) *p_rx_buffer;
-				p_rx_buffer++;
-				rt_vars.ui16_motor_speed_erps += ((uint16_t) *p_rx_buffer << 8);
-				p_rx_buffer++;
-
-				rt_vars.ui8_foc_angle = *p_rx_buffer;
-				p_rx_buffer++;
-
-				// error states
-				rt_vars.ui8_error_states = *p_rx_buffer;
-				p_rx_buffer++;
-
-				// temperature actual limiting value
-				rt_vars.ui8_temperature_current_limiting_value = *p_rx_buffer;
-				p_rx_buffer++;
-
-				// wheel_speed_sensor_tick_counter
-				uint32_t ui32_wheel_speed_sensor_tick_temp;
-				ui32_wheel_speed_sensor_tick_temp = ((uint32_t) *p_rx_buffer);
-				p_rx_buffer++;
-				ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer)
-						<< 8);
-				p_rx_buffer++;
-				ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) *p_rx_buffer)
-						<< 16);
-				rt_vars.ui32_wheel_speed_sensor_tick_counter =
-						ui32_wheel_speed_sensor_tick_temp;
-				p_rx_buffer++;
-
-				// ui16_pedal_torque_x10
-				rt_vars.ui16_pedal_torque_x10 = (uint16_t) *p_rx_buffer;
-				p_rx_buffer++;
-				rt_vars.ui16_pedal_torque_x10 += ((uint16_t) *p_rx_buffer << 8);
-				p_rx_buffer++;
-
-				// ui16_pedal_power_x10
-				rt_vars.ui16_pedal_power_x10 = (uint16_t) *p_rx_buffer;
-				p_rx_buffer++;
-				rt_vars.ui16_pedal_power_x10 += ((uint16_t) *p_rx_buffer << 8);
-
-				// not needed with this implementation (and with ptr flipflop not needed either)
-				// usart1_reset_received_package();
-			}
-		}
-
-		// let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
-		ui8_m_usart1_received_first_package++;
-		if (ui8_m_usart1_received_first_package > 10)
-			ui8_m_usart1_received_first_package = 10;
-	} else {
-		// We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
-		// unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
-		// and wait for 10 seconds of missed packets.
-		if (has_seen_motor && num_missed_packets++ == 50)
-			APP_ERROR_HANDLER(FAULT_LOSTRX);
-	}
-}
-
-void rt_send_tx_package(void) {
-	static uint8_t ui8_message_id = 0;
-
+void rt_send_tx_package(uint8_t type) {
+  uint8_t len = 3; // minimun is 1 byte type of frame + 2 bytes CRC
+  uint8_t crc_len = 3; // minimun is 3
 	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
 
 	/************************************************************************************************/
 	// send tx package
 	// start up byte
 	ui8_usart1_tx_buffer[0] = 0x59;
-	ui8_usart1_tx_buffer[1] = ui8_message_id;
 
-	if (rt_vars.ui8_walk_assist) {
-		ui8_usart1_tx_buffer[2] =
-				rt_vars.ui8_walk_assist_level_factor[((rt_vars.ui8_assist_level)
-						- 1)];
-	} else if (rt_vars.ui8_assist_level) {
-		ui8_usart1_tx_buffer[2] =
-				rt_vars.ui8_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
-	} else {
-		ui8_usart1_tx_buffer[2] = 0;
+  // type of the frame
+	ui8_usart1_tx_buffer[2] = type;
+
+	switch (type) {
+	  case 0:
+	    break;
+
+	  case 1:
+	    break;
 	}
 
-	ui8_usart1_tx_buffer[3] = (rt_vars.ui8_lights & 1)
-			| ((rt_vars.ui8_walk_assist & 1) << 1);
-
-	// battery power
-	ui8_usart1_tx_buffer[4] = rt_vars.ui8_target_max_battery_power;
-
-	switch (ui8_message_id) {
-    case 0:
-      // battery low voltage cut-off
-      ui8_usart1_tx_buffer[5] =
-          (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
-      ui8_usart1_tx_buffer[6] =
-          (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
-      break;
-
-    case 1:
-      // wheel perimeter
-      ui8_usart1_tx_buffer[5] = (uint8_t) (rt_vars.ui16_wheel_perimeter
-          & 0xff);
-      ui8_usart1_tx_buffer[6] =
-          (uint8_t) (rt_vars.ui16_wheel_perimeter >> 8);
-      break;
-
-    case 2:
-      // wheel max speed
-      ui8_usart1_tx_buffer[5] = rt_vars.ui8_wheel_max_speed;
-
-      // battery max current
-      ui8_usart1_tx_buffer[6] = rt_vars.ui8_battery_max_current;
-      break;
-
-    case 3:
-      ui8_usart1_tx_buffer[5] = rt_vars.ui8_motor_type;
-
-      ui8_usart1_tx_buffer[6] = (
-          rt_vars.ui8_startup_motor_power_boost_always ? 1 : 0)
-          | (rt_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
-      break;
-
-    case 4:
-      // startup motor power boost
-      ui8_usart1_tx_buffer[5] =
-          rt_vars.ui8_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level)
-              - 1)];
-      // startup motor power boost time
-      ui8_usart1_tx_buffer[6] = rt_vars.ui8_startup_motor_power_boost_time;
-      break;
-
-    case 5:
-      // startup motor power boost fade time
-      ui8_usart1_tx_buffer[5] =
-          rt_vars.ui8_startup_motor_power_boost_fade_time;
-      // boost feature enabled
-      ui8_usart1_tx_buffer[6] =
-          (rt_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ?
-              1 : 0;
-      break;
-
-    case 6:
-      // motor over temperature min and max values to limit
-      ui8_usart1_tx_buffer[5] =
-          rt_vars.ui8_motor_temperature_min_value_to_limit;
-      ui8_usart1_tx_buffer[6] =
-          rt_vars.ui8_motor_temperature_max_value_to_limit;
-      break;
-
-    case 7:
-      ui8_usart1_tx_buffer[5] = rt_vars.ui8_ramp_up_amps_per_second_x10;
-
-      // TODO
-      // target speed for cruise
-      ui8_usart1_tx_buffer[6] = 0;
-      break;
-
-    case 8:
-      // motor temperature limit function or throttle
-      ui8_usart1_tx_buffer[5] =
-          rt_vars.ui8_temperature_limit_feature_enabled & 3;
-
-      // motor assistance without pedal rotation enable/disable when startup
-      ui8_usart1_tx_buffer[6] =
-          rt_vars.ui8_motor_assistance_startup_without_pedal_rotation;
-      break;
-
-    default:
-      ui8_message_id = 0;
-      break;
-	}
+  // type of the frame
+  ui8_usart1_tx_buffer[1] = len;
 
 	// prepare crc of the package
 	uint16_t ui16_crc_tx = 0xffff;
-	for (uint8_t ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_SEND; ui8_i++) {
+	for (uint8_t ui8_i = 0; ui8_i < crc_len; ui8_i++) {
 		crc16(ui8_usart1_tx_buffer[ui8_i], &ui16_crc_tx);
 	}
-	ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 1] =
+	ui8_usart1_tx_buffer[crc_len] =
 			(uint8_t) (ui16_crc_tx & 0xff);
-	ui8_usart1_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND + 2] =
+	ui8_usart1_tx_buffer[crc_len + 1] =
 			(uint8_t) (ui16_crc_tx >> 8) & 0xff;
 
 	// send the full package to UART
-	if (!is_sim_motor) // If we are simulating received packets never send real packets
+	if (!g_is_sim_motor) // If we are simulating received packets never send real packets
 		uart_send_tx_buffer(ui8_usart1_tx_buffer);
-
-	// increment message_id for next package
-	if (++ui8_message_id > UART_MAX_NUMBER_MESSAGE_ID) {
-		ui8_message_id = 0;
-	}
 }
 
 void rt_low_pass_filter_battery_voltage_current_power(void) {
@@ -843,11 +635,94 @@ void automatic_power_off_management(void) {
 	}
 }
 
+void communications(void) {
+//  static uint8_t state = 0;
+  static uint32_t num_missed_packets = 0;
+  uint8_t ui8_frame_type = 0;
+  uint8_t ui8_cnt = 0;
+
+  const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
+
+  // process rx package if we are simulating or the UART had a packet
+  if (g_is_sim_motor || p_rx_buffer) {
+    if (g_is_sim_motor)
+      parse_simmotor();
+    else if (p_rx_buffer) {
+      // now process rx data
+      num_missed_packets = 0; // reset missed packet count
+
+      ui8_frame_type = p_rx_buffer[2];
+      switch (ui8_frame_type) {
+        case 0:
+          break;
+
+        case 1:
+          g_communications_state = COMMUNICATIONS_READY;
+          ui8_cnt = 0;
+          break;
+
+        // firmware version
+        case 2:
+          g_tsdz2_firmware_version.major = p_rx_buffer[3];
+          g_tsdz2_firmware_version.minor = p_rx_buffer[4];
+          g_tsdz2_firmware_version.patch = p_rx_buffer[5];
+          g_communications_state = COMMUNICATIONS_READY;
+          ui8_cnt = 0;
+          g_has_seen_motor = true;
+          break;
+      }
+    }
+
+    // let's wait for 10 packages, seems that first ADC battery voltages have incorrect values
+    ui8_m_usart1_received_first_package++;
+    if (ui8_m_usart1_received_first_package > 10)
+      ui8_m_usart1_received_first_package = 10;
+  } else {
+    // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
+    // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
+    // and wait for 10 seconds of missed packets.
+    if (g_has_seen_motor && num_missed_packets++ == 50)
+      APP_ERROR_HANDLER(FAULT_LOSTRX);
+  }
+
+  // only if we are receiving communications from TSDZ2
+  switch (g_communications_state) {
+    case COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION:
+      rt_send_tx_package(2);
+      g_communications_state = COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION;
+      break;
+
+    case COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION:
+      rt_send_tx_package(2);
+      ++ui8_cnt;
+      if (ui8_cnt > 5)
+        APP_ERROR_HANDLER(FAULT_LOSTRX);
+      break;
+
+    case COMMUNICATIONS_READY:
+      break;
+
+    case COMMUNICATIONS_SET_CONFIGURATIONS:
+      rt_send_tx_package(1);
+      g_communications_state = COMMUNICATIONS_WAIT_CONFIGURATIONS;
+      break;
+
+    case COMMUNICATIONS_WAIT_CONFIGURATIONS:
+      rt_send_tx_package(1);
+      ++ui8_cnt;
+      if (ui8_cnt > 5)
+        APP_ERROR_HANDLER(FAULT_LOSTRX);
+      break;
+
+    default:
+      break;
+  }
+}
+
 // Note: this called from ISR context every 100ms
 void rt_processing(void)
 {
-  rt_process_rx();
-  rt_send_tx_package();
+  communications();
   /************************************************************************************************/
   // now do all the calculations that must be done every 100ms
   rt_low_pass_filter_battery_voltage_current_power();

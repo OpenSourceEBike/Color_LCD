@@ -290,6 +290,10 @@ static void configExit() {
 	// save the variables on EEPROM
 	eeprom_write_variables();
 	set_conversions(); // we just changed units
+
+	// send the configurations to TSDZ2
+  if (g_communications_state == COMMUNICATIONS_READY)
+    g_communications_state = COMMUNICATIONS_SET_CONFIGURATIONS;
 }
 
 static void configPreUpdate() {

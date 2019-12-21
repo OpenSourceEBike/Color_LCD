@@ -18,7 +18,7 @@
 #include "main.h"
 #include "uart.h"
 
-uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
+uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
 volatile uint8_t ui8_received_package_flag = 0;
 
 void usart1_init(void)
@@ -92,7 +92,7 @@ void USART1_IRQHandler()
 {
   uint8_t ui8_byte_received;
   static uint8_t ui8_state_machine = 0;
-  static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
+  static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
   static uint8_t ui8_rx_cnt = 0;
   static uint8_t ui8_rx_len;
   uint8_t ui8_i;
@@ -136,21 +136,21 @@ void USART1_IRQHandler()
       ++ui8_rx_cnt;
 
       // reset if it is the last byte of the package and index is out of bounds
-      if (ui8_rx_cnt >= ui8_rx_len)
+      if (ui8_rx_cnt >= ui8_rx[1])
       {
         ui8_rx_cnt = 0;
         ui8_state_machine = 0;
 
         // just to make easy next calculations
         ui16_crc_rx = 0xffff;
-        for (ui8_i = 0; ui8_i < ui8_rx_len; ui8_i++)
+        for (ui8_i = 0; ui8_i < ui8_rx[1]; ui8_i++)
         {
           crc16(ui8_rx[ui8_i], &ui16_crc_rx);
         }
 
         // if CRC is correct read the package
-        if (((((uint16_t) ui8_rx[ui8_rx_len + 1]) << 8) +
-              ((uint16_t) ui8_rx[ui8_rx_len])) == ui16_crc_rx)
+        if (((((uint16_t) ui8_rx[ui8_rx[1] + 1]) << 8) +
+              ((uint16_t) ui8_rx[ui8_rx[1]])) == ui16_crc_rx)
         {
           // copy to the other buffer only if we processed already the last package
           if(!ui8_received_package_flag)
@@ -158,7 +158,7 @@ void USART1_IRQHandler()
             ui8_received_package_flag = 1;
 
             // store the received data to rx_buffer
-            memcpy(ui8_rx_buffer, ui8_rx, ui8_rx_len + 2);
+            memcpy(ui8_rx_buffer, ui8_rx, ui8_rx[1] + 2);
           }
         }
       }

@@ -94,7 +94,6 @@ void USART1_IRQHandler()
   static uint8_t ui8_state_machine = 0;
   static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
   static uint8_t ui8_rx_cnt = 0;
-  static uint8_t ui8_rx_len;
   uint8_t ui8_i;
   uint16_t ui16_crc_rx;
 
@@ -127,7 +126,6 @@ void USART1_IRQHandler()
 
       case 1:
         ui8_rx[1] = ui8_byte_received;
-        ui8_rx_len = ui8_byte_received;
         ui8_state_machine = 2;
       break;
 

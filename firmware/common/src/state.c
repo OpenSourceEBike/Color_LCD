@@ -121,9 +121,9 @@ void parse_simmotor() {
 		rt_vars.ui8_throttle = fake(0, 100);
 	}
 
-	rt_vars.ui8_adc_pedal_torque_sensor = fake(0, 100);
+	rt_vars.ui16_adc_pedal_torque_sensor = fake(0, 1023);
 
-	rt_vars.ui8_pedal_torque_sensor = fake(0, 100);
+	rt_vars.ui8_pedal_weight = fake(0, 100);
 
 	rt_vars.ui8_pedal_cadence = fakeRandom(&cadencestore, 0, 93);
 
@@ -198,38 +198,51 @@ void rt_send_tx_package(uint8_t type) {
       // battery max current
       ui8_usart1_tx_buffer[8] = rt_vars.ui8_battery_max_current;
 
-      ui8_usart1_tx_buffer[9] = rt_vars.ui8_motor_type;
-
-      ui8_usart1_tx_buffer[10] = (rt_vars.ui8_startup_motor_power_boost_always ? 1 : 0)
-          | (rt_vars.ui8_startup_motor_power_boost_limit_power ? 2 : 0);
+      ui8_usart1_tx_buffer[9] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled ? 1 : 0) |
+          (rt_vars.ui8_startup_motor_power_boost_always ? 2 : 0) |
+          (rt_vars.ui8_startup_motor_power_boost_limit_power ? 4 : 0) |
+          (rt_vars.ui8_torque_sensor_calibration_feature_enabled ? 8 : 0) |
+          (rt_vars.ui8_torque_sensor_calibration_pedal_ground ? 16 : 0) |
+          (rt_vars.ui8_motor_assistance_startup_without_pedal_rotation ? 32 : 0) |
+          (rt_vars.ui8_motor_type ? 64 : 0);
 
       // startup motor power boost
-      ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
+      ui8_usart1_tx_buffer[10] = rt_vars.ui8_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
       // startup motor power boost time
-      ui8_usart1_tx_buffer[12] = rt_vars.ui8_startup_motor_power_boost_time;
-
+      ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_time;
       // startup motor power boost fade time
-      ui8_usart1_tx_buffer[13] = rt_vars.ui8_startup_motor_power_boost_fade_time;
-      // boost feature enabled
-      ui8_usart1_tx_buffer[14] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled & 1) ? 1 : 0;
+      ui8_usart1_tx_buffer[12] = rt_vars.ui8_startup_motor_power_boost_fade_time;
 
       // motor over temperature min and max values to limit
-      ui8_usart1_tx_buffer[15] = rt_vars.ui8_motor_temperature_min_value_to_limit;
-      ui8_usart1_tx_buffer[16] = rt_vars.ui8_motor_temperature_max_value_to_limit;
+      ui8_usart1_tx_buffer[13] = rt_vars.ui8_motor_temperature_min_value_to_limit;
+      ui8_usart1_tx_buffer[14] = rt_vars.ui8_motor_temperature_max_value_to_limit;
 
-      ui8_usart1_tx_buffer[17] = rt_vars.ui8_ramp_up_amps_per_second_x10;
+      ui8_usart1_tx_buffer[15] = rt_vars.ui8_ramp_up_amps_per_second_x10;
 
       // TODO
       // target speed for cruise
-      ui8_usart1_tx_buffer[18] = 0;
+      ui8_usart1_tx_buffer[16] = 0;
 
       // motor temperature limit function or throttle
-      ui8_usart1_tx_buffer[19] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
+      ui8_usart1_tx_buffer[17] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
 
-      // motor assistance without pedal rotation enable/disable when startup
-      ui8_usart1_tx_buffer[20] = rt_vars.ui8_motor_assistance_startup_without_pedal_rotation;
+      // torques sensor calibration tables
+      uint8_t j = 18;
+      for (uint8_t i = 0; i < 8; i++) {
+        ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_left[i][0];
+        ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_left[i][0] >> 8);
+        ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_left[i][1];
+        ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_left[i][1] >> 8);
+      }
 
-      crc_len = 21;
+      for (uint8_t i = 0; i < 8; i++) {
+        ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_right[i][0];
+        ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_right[i][0] >> 8);
+        ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_right[i][1];
+        ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_right[i][1] >> 8);
+      }
+
+      crc_len = 82;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 	}
@@ -490,8 +503,8 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui16_adc_battery_voltage = rt_vars.ui16_adc_battery_voltage;
 	ui_vars.ui8_battery_current_x5 = rt_vars.ui8_battery_current_x5;
 	ui_vars.ui8_throttle = rt_vars.ui8_throttle;
-	ui_vars.ui8_adc_pedal_torque_sensor = rt_vars.ui8_adc_pedal_torque_sensor;
-	ui_vars.ui8_pedal_torque_sensor = rt_vars.ui8_pedal_torque_sensor;
+	ui_vars.ui16_adc_pedal_torque_sensor = rt_vars.ui16_adc_pedal_torque_sensor;
+	ui_vars.ui8_pedal_weight = rt_vars.ui8_pedal_weight;
 	ui_vars.ui8_pedal_human_power = rt_vars.ui8_pedal_human_power;
 	ui_vars.ui8_duty_cycle = rt_vars.ui8_duty_cycle;
 	ui_vars.ui8_error_states = rt_vars.ui8_error_states;
@@ -576,6 +589,11 @@ void copy_rt_to_ui_vars(void) {
 			ui_vars.ui8_offroad_power_limit_enabled;
 	rt_vars.ui8_offroad_power_limit_div25 =
 			ui_vars.ui8_offroad_power_limit_div25;
+  rt_vars.ui8_torque_sensor_calibration_pedal_ground =
+      ui_vars.ui8_torque_sensor_calibration_pedal_ground;
+
+  rt_vars.ui8_torque_sensor_calibration_feature_enabled = ui_vars.ui8_torque_sensor_calibration_feature_enabled;
+  rt_vars.ui8_torque_sensor_calibration_pedal_ground = ui_vars.ui8_torque_sensor_calibration_pedal_ground;
 
   // Some l3 vars are derived only from other l3 vars
   uint32_t ui32_battery_cells_number_x10 =
@@ -693,8 +711,8 @@ void communications(void) {
             rt_vars.ui8_throttle = p_rx_buffer[10];
           }
 
-          rt_vars.ui8_adc_pedal_torque_sensor = p_rx_buffer[11];
-          rt_vars.ui8_pedal_torque_sensor = p_rx_buffer[12];
+          rt_vars.ui16_adc_pedal_torque_sensor = ((uint16_t) p_rx_buffer[11]) | (((uint16_t) (p_rx_buffer[7] & 0xC0)) << 2);
+          rt_vars.ui8_pedal_weight = p_rx_buffer[12];
           rt_vars.ui8_pedal_cadence = p_rx_buffer[13];
           rt_vars.ui8_pedal_human_power = p_rx_buffer[14];
           rt_vars.ui8_duty_cycle = p_rx_buffer[15];
@@ -812,3 +830,67 @@ void rt_processing(void)
   rt_first_time_management();
   rt_calc_battery_soc_watts_hour();
 }
+
+void prepare_torque_sensor_calibration_table(void) {
+  static bool first_time = true;
+
+  // we need to make this atomic
+  rt_processing_stop();
+
+//  // at the very first time, copy the weigth values from one table to the other
+//  if (first_time) {
+//    first_time = false;
+//
+//    // get the delta values of ADC steps per kg
+//    for (uint8_t i = 0; i < 8; i++) {
+//        rt_vars.ui16_torque_sensor_calibration_table_left[i][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][0];
+//        rt_vars.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][0];
+//    }
+//  }
+
+  // get the delta values of ADC steps per kg
+  for (uint8_t i = 1; i < 8; i++) {
+    // get the deltas x100
+    rt_vars.ui16_torque_sensor_calibration_table_left[i][1] =
+        ((ui_vars.ui16_torque_sensor_calibration_table_left[i][0] - ui_vars.ui16_torque_sensor_calibration_table_left[i - 1][0]) * 100) /
+        (ui_vars.ui16_torque_sensor_calibration_table_left[i][1] - ui_vars.ui16_torque_sensor_calibration_table_left[i - 1][1]);
+
+    rt_vars.ui16_torque_sensor_calibration_table_right[i][1] =
+        ((ui_vars.ui16_torque_sensor_calibration_table_right[i][0] - ui_vars.ui16_torque_sensor_calibration_table_right[i - 1][0]) * 100) /
+        (ui_vars.ui16_torque_sensor_calibration_table_right[i][1] - ui_vars.ui16_torque_sensor_calibration_table_right[i - 1][1]);
+
+    rt_vars.ui16_torque_sensor_calibration_table_left[i][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][1];
+    rt_vars.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][1];
+  }
+  // very first table value need to the calculated here
+  rt_vars.ui16_torque_sensor_calibration_table_left[0][0] = ui_vars.ui16_torque_sensor_calibration_table_left[0][1]; // the first delta is equal the the second one
+  rt_vars.ui16_torque_sensor_calibration_table_right[0][0] = ui_vars.ui16_torque_sensor_calibration_table_right[0][1]; // the first delta is equal the the second one
+
+  rt_vars.ui16_torque_sensor_calibration_table_left[0][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][1];
+  rt_vars.ui16_torque_sensor_calibration_table_right[0][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][1];
+
+  rt_processing_start();
+}
+
+
+{ 304, 16 },
+{ 336, 16 },
+{ 364, 18 },
+{ 380, 31 },
+{ 388, 50 },
+{ 404, 150 },
+{ 408, 350 },
+{ 422, 379 },
+};
+uint16_t ui16_torque_sensor_linearize_left[TORQUE_SENSOR_LINEARIZE_NR_POINTS][2] =
+{
+// ADC 10 bits step, steps_per_kg_x100
+{ 304, 18 },
+{ 332, 18 },
+{ 356, 21 },
+{ 372, 31 },
+{ 380, 50 },
+{ 396, 150 },
+{ 402, 233 },
+{ 416, 331 },
+

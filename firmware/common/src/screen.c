@@ -564,6 +564,9 @@ bool screenConvertMiles = false;
 // Set to true if we should automatically convert C -> F
 bool screenConvertFarenheit = false;
 
+// Set to true if we should automatically convert kg -> lb
+bool screenConvertPounds = false;
+
 // Get the numeric value of an editable number, properly handling different possible byte encodings
 // if withConversion, convert from SI units if necessary
 static int32_t getEditableNumber(Field *field, bool withConversion) {
@@ -594,6 +597,9 @@ static int32_t getEditableNumber(Field *field, bool withConversion) {
 
     if (screenConvertFarenheit && strcmp(units, "C") == 0)
       num = 32 + (num * 9) / 5;
+
+    if (screenConvertPounds && strcmp(units, "kg") == 0)
+      num = (num * 220) / 100;
   }
 
   return num;
@@ -618,6 +624,14 @@ int32_t convertUnits(int32_t val, ConvertUnitsType type) {
     case ConvertFromImperial_temperature:
       val = ((val * 100) / 180) - 32;
       break;
+
+    case ConvertToImperial_mass:
+      val = (val * 220) / 100;
+      break;
+
+    case ConvertFromImperial_mass:
+      val = (val * 100) / 220;
+      break;
   }
 
   return val;
@@ -634,6 +648,9 @@ int32_t convertToImperialIfNeeded(Field *field, int32_t num) {
   if (screenConvertFarenheit && strcmp(units, "C") == 0)
     num = convertUnits(num, ConvertToImperial_temperature);
 
+  if (screenConvertPounds && strcmp(units, "kg") == 0)
+    num = convertUnits(num, ConvertToImperial_mass);
+
   return num;
 }
 
@@ -648,6 +665,9 @@ int32_t convertFromImperialIfNeeded(Field *field, int32_t num) {
   if (screenConvertFarenheit && strcmp(units, "C") == 0)
     num = convertUnits(num, ConvertFromImperial_temperature);
 
+  if (screenConvertPounds && strcmp(units, "kg") == 0)
+    num = convertUnits(num, ConvertFromImperial_mass);
+
   return num;
 }
 
@@ -658,10 +678,13 @@ static void setEditableNumber(Field *field, uint32_t v, bool withConversion) {
 		if (screenConvertMiles
 				&& (strcasecmp(units, "kph") == 0
 						|| strcasecmp(units, "km") == 0))
-			v = (v * 161) / 100; // mult by 1.609 for km->mi
+      v = convertUnits(v, ConvertFromImperial_speed);
 
 		if (screenConvertFarenheit && strcmp(units, "C") == 0)
-			v = ((v - 32) * 5) / 9;
+		  v = convertUnits(v, ConvertFromImperial_temperature);
+
+    if (screenConvertPounds && strcmp(units, "kg") == 0)
+      v = convertUnits(v, ConvertFromImperial_mass);
 	}
 
 	switch (field->editable.size) {
@@ -751,6 +774,11 @@ static const char* getUnits(Field *field) {
 		if (strcmp(units, "C") == 0)
 			return "F";
 	}
+
+  if (screenConvertPounds) {
+    if (strcmp(units, "kg") == 0)
+      return "lb";
+  }
 
 	return units;
 }

@@ -28,6 +28,44 @@ static Field batterySOCMenus[] =
 						FIELD_EDITABLE_UINT("Used Wh", &ui_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
 				FIELD_END };
 
+static Field torqueSensorMenus[] =
+    {
+            FIELD_EDITABLE_ENUM("Calibration", &ui_vars.ui8_torque_sensor_calibration_feature_enabled, "disable", "enable"),
+            FIELD_EDITABLE_ENUM(_S("Start pedal ground", "Pedal ground"), &ui_vars.ui8_torque_sensor_calibration_pedal_ground, "left", "right"),
+            FIELD_EDITABLE_UINT(_S("Left weight 1", "L weight 1"), &ui_vars.ui16_torque_sensor_calibration_table_left[0][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 1", &ui_vars.ui16_torque_sensor_calibration_table_left[0][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 2", "L weight 2"), &ui_vars.ui16_torque_sensor_calibration_table_left[1][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 2", &ui_vars.ui16_torque_sensor_calibration_table_left[1][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 3", "L weight 3"), &ui_vars.ui16_torque_sensor_calibration_table_left[2][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 3", &ui_vars.ui16_torque_sensor_calibration_table_left[2][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 4", "L weight 4"), &ui_vars.ui16_torque_sensor_calibration_table_left[3][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 4", &ui_vars.ui16_torque_sensor_calibration_table_left[3][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 5", "L weight 5"), &ui_vars.ui16_torque_sensor_calibration_table_left[4][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 5", &ui_vars.ui16_torque_sensor_calibration_table_left[4][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 6", "L weight 6"), &ui_vars.ui16_torque_sensor_calibration_table_left[5][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 6", &ui_vars.ui16_torque_sensor_calibration_table_left[5][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 7", "L weight 7"), &ui_vars.ui16_torque_sensor_calibration_table_left[6][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 7", &ui_vars.ui16_torque_sensor_calibration_table_left[6][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Left weight 8", "L weight 8"), &ui_vars.ui16_torque_sensor_calibration_table_left[7][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 8", &ui_vars.ui16_torque_sensor_calibration_table_left[7][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 1", "R weight 1"), &ui_vars.ui16_torque_sensor_calibration_table_right[0][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 1", &ui_vars.ui16_torque_sensor_calibration_table_right[0][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 2", "R weight 2"), &ui_vars.ui16_torque_sensor_calibration_table_right[1][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 2", &ui_vars.ui16_torque_sensor_calibration_table_right[1][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 3", "R weight 3"), &ui_vars.ui16_torque_sensor_calibration_table_right[2][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 3", &ui_vars.ui16_torque_sensor_calibration_table_right[2][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 4", "R weight 4"), &ui_vars.ui16_torque_sensor_calibration_table_right[3][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 4", &ui_vars.ui16_torque_sensor_calibration_table_right[3][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 5", "R weight 5"), &ui_vars.ui16_torque_sensor_calibration_table_right[4][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 5", &ui_vars.ui16_torque_sensor_calibration_table_right[4][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 6", "R weight 6"), &ui_vars.ui16_torque_sensor_calibration_table_right[5][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 6", &ui_vars.ui16_torque_sensor_calibration_table_right[5][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 7", "R weight 7"), &ui_vars.ui16_torque_sensor_calibration_table_right[6][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 7", &ui_vars.ui16_torque_sensor_calibration_table_right[6][1], "", 0, 1023),
+            FIELD_EDITABLE_UINT(_S("Right weight 8", "R weight 8"), &ui_vars.ui16_torque_sensor_calibration_table_right[7][0], "kg", 0, 200),
+            FIELD_EDITABLE_UINT("ADC 8", &ui_vars.ui16_torque_sensor_calibration_table_right[7][1], "", 0, 1023),
+        FIELD_END };
+
 static Field assistMenus[] =
 		{
 						FIELD_EDITABLE_UINT(_S("Num assist levels", "Num Levels"), &ui_vars.ui8_number_of_assist_levels, "", 1, 9),
@@ -246,10 +284,10 @@ static Field variablesMenus[] = {
 static Field technicalMenus[] = {
   FIELD_READONLY_UINT("ADC throttle sensor", &ui_vars.ui8_adc_throttle, ""),
   FIELD_READONLY_UINT("Throttle sensor", &ui_vars.ui8_throttle, ""),
-  FIELD_READONLY_UINT("ADC Torque sensor", &ui_vars.ui8_adc_pedal_torque_sensor, ""),
-  FIELD_READONLY_UINT("Torque sensor", &ui_vars.ui8_pedal_torque_sensor, ""),
+  FIELD_READONLY_UINT("ADC torque sensor", &ui_vars.ui16_adc_pedal_torque_sensor, ""),
+  FIELD_READONLY_ENUM("Pedal side", &ui_vars.ui8_pas_pedal_right, "left", "right"),
+  FIELD_READONLY_UINT("Pedal weight", &ui_vars.ui8_pedal_weight, ""),
   FIELD_READONLY_UINT("Pedal cadence", &ui_vars.ui8_pedal_cadence, "rpm"),
-  FIELD_READONLY_UINT("Pedal right", &ui_vars.ui8_pas_pedal_right, ""),
   FIELD_READONLY_UINT("Pedal Human power", &ui_vars.ui16_pedal_power_x10, "W", .div_digits = 1),
   FIELD_READONLY_UINT("PWM duty-cycle", &ui_vars.ui8_duty_cycle, ""),
   FIELD_READONLY_UINT("Motor speed", &ui_vars.ui16_motor_speed_erps, ""),
@@ -261,6 +299,7 @@ static Field topMenus[] = {
   FIELD_SCROLLABLE("Wheel", wheelMenus),
   FIELD_SCROLLABLE("Battery", batteryMenus),
   FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
+  FIELD_SCROLLABLE(_S("Torque sensor", "Torque sen"), torqueSensorMenus),
   FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
   FIELD_SCROLLABLE(_S("Walk assist", "Walk"), walkAssistMenus),
   FIELD_SCROLLABLE(_S("Startup BOOST", "Start Pwr"), startupPowerMenus),
@@ -287,6 +326,8 @@ static void configScreenOnEnter() {
 }
 
 static void configExit() {
+  prepare_torque_sensor_calibration_table();
+
 	// save the variables on EEPROM
 	eeprom_write_variables();
 	set_conversions(); // we just changed units

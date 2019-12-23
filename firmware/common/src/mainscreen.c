@@ -284,6 +284,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 void set_conversions() {
   screenConvertMiles = ui_vars.ui8_units_type != 0; // Set initial value on unit conversions (FIXME, move this someplace better)
   screenConvertFarenheit = screenConvertMiles; // FIXME, should be based on a different eeprom config value
+  screenConvertPounds = screenConvertMiles;
 }
 
 void lcd_main_screen(void) {
@@ -816,8 +817,10 @@ void main_idle() {
         g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION;
     // after we get firmware version, set the TSDZ2 configurations
     } else if (g_tsdz2_configurations_set == false) {
-      if (g_communications_state == COMMUNICATIONS_READY)
+      if (g_communications_state == COMMUNICATIONS_READY) {
+        prepare_torque_sensor_calibration_table(); // we need to first prepare the table
         g_communications_state = COMMUNICATIONS_SET_CONFIGURATIONS; // set configuration to TSDZ2
+      }
     }
 
     automatic_power_off_management();

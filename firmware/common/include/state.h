@@ -31,8 +31,8 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
-	uint8_t ui8_adc_pedal_torque_sensor;
-	uint8_t ui8_pedal_torque_sensor;
+	uint16_t ui16_adc_pedal_torque_sensor;
+	uint8_t ui8_pedal_weight;
 	uint8_t ui8_pedal_human_power;
 	uint8_t ui8_duty_cycle;
 	uint8_t ui8_error_states;
@@ -106,6 +106,11 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_braking;
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
+
+  uint8_t ui8_torque_sensor_calibration_feature_enabled;
+  uint8_t ui8_torque_sensor_calibration_pedal_ground;
+  uint16_t ui16_torque_sensor_calibration_table_left[8][2];
+  uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 } rt_vars_t;
 
 /* Selector positions for customizable fields
@@ -119,8 +124,8 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
-	uint8_t ui8_adc_pedal_torque_sensor;
-	uint8_t ui8_pedal_torque_sensor;
+	uint16_t ui16_adc_pedal_torque_sensor;
+	uint8_t ui8_pedal_weight;
 	uint8_t ui8_pedal_human_power;
 	uint8_t ui8_duty_cycle;
 	uint8_t ui8_error_states;
@@ -196,6 +201,11 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
 	uint8_t ui8_buttons_up_down_invert;
+
+	uint8_t ui8_torque_sensor_calibration_feature_enabled;
+	uint8_t ui8_torque_sensor_calibration_pedal_ground;
+	uint16_t ui16_torque_sensor_calibration_table_left[8][2];
+	uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 
@@ -317,6 +327,8 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 
 /// Set correct backlight brightness for current headlight state
 void set_lcd_backlight();
+
+void prepare_torque_sensor_calibration_table(void);
 
 extern uint16_t ui16_g_battery_soc_watts_hour;
 

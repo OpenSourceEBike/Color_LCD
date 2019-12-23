@@ -67,6 +67,10 @@ typedef struct eeprom_data {
 
 	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_buttons_up_down_invert;
+  uint8_t ui8_torque_sensor_calibration_feature_enabled;
+  uint8_t ui8_torque_sensor_calibration_pedal_ground;
+  uint16_t ui16_torque_sensor_calibration_table_left[8][2];
+  uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 

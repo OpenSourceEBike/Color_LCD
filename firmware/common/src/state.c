@@ -226,7 +226,7 @@ void rt_send_tx_package(uint8_t type) {
       // motor temperature limit function or throttle
       ui8_usart1_tx_buffer[17] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
 
-      // torques sensor calibration tables
+      // torque sensor calibration tables
       uint8_t j = 18;
       for (uint8_t i = 0; i < 8; i++) {
         ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_left[i][0];
@@ -837,16 +837,15 @@ void prepare_torque_sensor_calibration_table(void) {
   // we need to make this atomic
   rt_processing_stop();
 
-//  // at the very first time, copy the weigth values from one table to the other
-//  if (first_time) {
-//    first_time = false;
-//
-//    // get the delta values of ADC steps per kg
-//    for (uint8_t i = 0; i < 8; i++) {
-//        rt_vars.ui16_torque_sensor_calibration_table_left[i][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][0];
-//        rt_vars.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][0];
-//    }
-//  }
+  // at the very first time, copy the ADC values from one table to the other
+  if (first_time) {
+    first_time = false;
+
+    for (uint8_t i = 0; i < 8; i++) {
+        rt_vars.ui16_torque_sensor_calibration_table_left[i][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][1];
+        rt_vars.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][1];
+    }
+  }
 
   // get the delta values of ADC steps per kg
   for (uint8_t i = 1; i < 8; i++) {
@@ -858,39 +857,11 @@ void prepare_torque_sensor_calibration_table(void) {
     rt_vars.ui16_torque_sensor_calibration_table_right[i][1] =
         ((ui_vars.ui16_torque_sensor_calibration_table_right[i][0] - ui_vars.ui16_torque_sensor_calibration_table_right[i - 1][0]) * 100) /
         (ui_vars.ui16_torque_sensor_calibration_table_right[i][1] - ui_vars.ui16_torque_sensor_calibration_table_right[i - 1][1]);
-
-    rt_vars.ui16_torque_sensor_calibration_table_left[i][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][1];
-    rt_vars.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][1];
   }
   // very first table value need to the calculated here
-  rt_vars.ui16_torque_sensor_calibration_table_left[0][0] = ui_vars.ui16_torque_sensor_calibration_table_left[0][1]; // the first delta is equal the the second one
-  rt_vars.ui16_torque_sensor_calibration_table_right[0][0] = ui_vars.ui16_torque_sensor_calibration_table_right[0][1]; // the first delta is equal the the second one
+  rt_vars.ui16_torque_sensor_calibration_table_left[0][1] = rt_vars.ui16_torque_sensor_calibration_table_left[1][1]; // the first delta is equal the the second one
+  rt_vars.ui16_torque_sensor_calibration_table_right[0][1] = rt_vars.ui16_torque_sensor_calibration_table_right[1][1]; // the first delta is equal the the second one
 
-  rt_vars.ui16_torque_sensor_calibration_table_left[0][0] = ui_vars.ui16_torque_sensor_calibration_table_left[i][1];
-  rt_vars.ui16_torque_sensor_calibration_table_right[0][0] = ui_vars.ui16_torque_sensor_calibration_table_right[i][1];
 
   rt_processing_start();
 }
-
-
-{ 304, 16 },
-{ 336, 16 },
-{ 364, 18 },
-{ 380, 31 },
-{ 388, 50 },
-{ 404, 150 },
-{ 408, 350 },
-{ 422, 379 },
-};
-uint16_t ui16_torque_sensor_linearize_left[TORQUE_SENSOR_LINEARIZE_NR_POINTS][2] =
-{
-// ADC 10 bits step, steps_per_kg_x100
-{ 304, 18 },
-{ 332, 18 },
-{ 356, 21 },
-{ 372, 31 },
-{ 380, 50 },
-{ 396, 150 },
-{ 402, 233 },
-{ 416, 331 },
-

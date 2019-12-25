@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x15
-#define EEPROM_VERSION 0x15
+#define EEPROM_MIN_COMPAT_VERSION 0x18
+#define EEPROM_VERSION 0x18
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -196,6 +196,42 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 #define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one
+
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                304
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_2             5
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                332
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_3             10
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                356
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_4             15
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                372
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_5             19
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                380
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             43
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                396
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             57
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                402
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_8             110
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                416
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_1             0
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                304
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_2             5
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                336
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_3             10
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                364
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_4             15
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                380
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_5             19
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                388
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             43
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                404
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             57
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                408
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             110
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                422
+
 
 // *************************************************************************** //
 

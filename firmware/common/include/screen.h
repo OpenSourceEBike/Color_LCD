@@ -307,8 +307,9 @@ typedef struct Field {
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
+// C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_READONLY_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
-  .editable = { .read_only = true, .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
+  .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
 #define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }

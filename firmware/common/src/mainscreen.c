@@ -171,7 +171,8 @@ Field bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com"));
 Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", ""));
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
+Field bootStatus1 = FIELD_DRAWTEXT(.msg = "Keep pedals free and wait");
+Field bootStatus2 = FIELD_DRAWTEXT(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
@@ -180,15 +181,15 @@ static void bootScreenOnPreUpdate() {
 
 	g_is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
   if(g_is_sim_motor)
-    fieldPrintf(&bootStatus, _S("SIMULATING TSDZ2!", "SIMULATING"));
+    fieldPrintf(&bootStatus2, _S("SIMULATING TSDZ2!", "SIMULATING"));
 
   if(g_has_seen_motor) {
-    fieldPrintf(&bootStatus, "TSDZ2 firmware: %u.%u.%u",
+    fieldPrintf(&bootStatus2, "TSDZ2 firmware: %u.%u.%u",
     g_tsdz2_firmware_version.major,
     g_tsdz2_firmware_version.minor,
     g_tsdz2_firmware_version.patch);
   } else {
-    fieldPrintf(&bootStatus, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
+    fieldPrintf(&bootStatus2, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
   }
 
   // Stop showing only after we release on/off button and we are commutication with motor
@@ -217,9 +218,14 @@ Screen bootScreen = {
       .field = &bootURL_2,
       .font = &SMALL_TEXT_FONT,
     },
-#ifndef SW102
     {
       .x = 0, .y = YbyEighths(4), .height = -1,
+      .field = &bootStatus1,
+      .font = &SMALL_TEXT_FONT,
+    },
+#ifndef SW102
+    {
+      .x = 0, .y = YbyEighths(6), .height = -1,
       .field = &bootFirmwareVersion,
       .font = &SMALL_TEXT_FONT,
     },
@@ -230,8 +236,8 @@ Screen bootScreen = {
       .font = &SMALL_TEXT_FONT,
     },
     {
-      .x = 0, .y = YbyEighths(6), .height = -1,
-      .field = &bootStatus,
+      .x = 0, .y = YbyEighths(7), .height = -1,
+      .field = &bootStatus2,
       .font = &SMALL_TEXT_FONT,
     },
     {
@@ -869,14 +875,9 @@ void batteryPower(void) {
     ui16_m_battery_power_filtered *= 10;
   }
   // loose resolution under 400W
-  else if (ui16_m_battery_power_filtered < 400) {
+  else if (ui16_m_battery_power_filtered < 500) {
     ui16_m_battery_power_filtered /= 20;
     ui16_m_battery_power_filtered *= 20;
-  }
-  // loose resolution all other values
-  else {
-    ui16_m_battery_power_filtered /= 25;
-    ui16_m_battery_power_filtered *= 25;
   }
 }
 
@@ -885,14 +886,14 @@ void pedalPower(void) {
   ui16_m_pedal_power_filtered = ui_vars.ui16_pedal_power;
 
   if (ui16_m_pedal_power_filtered > 500) {
-    ui16_m_pedal_power_filtered /= 25;
-    ui16_m_pedal_power_filtered *= 25;
-  } else if (ui16_m_pedal_power_filtered > 200) {
     ui16_m_pedal_power_filtered /= 20;
     ui16_m_pedal_power_filtered *= 20;
-  } else if (ui16_m_pedal_power_filtered > 10) {
+  } else if (ui16_m_pedal_power_filtered > 200) {
     ui16_m_pedal_power_filtered /= 10;
     ui16_m_pedal_power_filtered *= 10;
+  } else if (ui16_m_pedal_power_filtered > 10) {
+    ui16_m_pedal_power_filtered /= 5;
+    ui16_m_pedal_power_filtered *= 5;
   }
 }
 

@@ -671,12 +671,13 @@ void communications(void) {
       ui8_frame_type = p_rx_buffer[2];
       switch (ui8_frame_type) {
         case 0:
-          rt_vars.ui16_adc_battery_voltage = p_rx_buffer[3];
-          rt_vars.ui16_adc_battery_voltage |= ((uint16_t) (p_rx_buffer[4]
-              & 0x30)) << 4;
+          rt_vars.ui16_adc_battery_voltage = p_rx_buffer[3] | (((uint16_t) (p_rx_buffer[4] & 0x30)) << 4);
           rt_vars.ui8_battery_current_x5 = p_rx_buffer[5];
-          rt_vars.ui16_wheel_speed_x10 = (uint16_t) p_rx_buffer[6];
-          rt_vars.ui16_wheel_speed_x10 += ((uint16_t) p_rx_buffer[7] << 8);
+          rt_vars.ui16_wheel_speed_x10 = ((uint16_t) p_rx_buffer[6]) | (((uint16_t) p_rx_buffer[7] << 8));
+
+          // for some reason, the previous value of rt_vars.ui16_wheel_speed_x10 is 16384, because p_rx_buffer[7] is 64,
+          // this even when rx_buffer[6] and rx_buffer[7] are both 0 on the motor controller
+          rt_vars.ui16_wheel_speed_x10 = rt_vars.ui16_wheel_speed_x10 & 0x7ff; // 0x7ff = 204.7km/h
 
           uint8_t ui8_temp = p_rx_buffer[8];
           rt_vars.ui8_braking = ui8_temp & 1;
@@ -696,23 +697,17 @@ void communications(void) {
 
           rt_vars.ui8_pedal_cadence = p_rx_buffer[14];
           rt_vars.ui8_duty_cycle = p_rx_buffer[15];
-          rt_vars.ui16_motor_speed_erps = (uint16_t) p_rx_buffer[16];
-          rt_vars.ui16_motor_speed_erps += ((uint16_t) p_rx_buffer[17] << 8);
+          rt_vars.ui16_motor_speed_erps = ((uint16_t) p_rx_buffer[16]) | ((uint16_t) p_rx_buffer[17] << 8);
           rt_vars.ui8_foc_angle = p_rx_buffer[18];
           rt_vars.ui8_error_states = p_rx_buffer[19];
           rt_vars.ui8_temperature_current_limiting_value = p_rx_buffer[20];
 
           uint32_t ui32_wheel_speed_sensor_tick_temp;
-          ui32_wheel_speed_sensor_tick_temp = ((uint32_t) p_rx_buffer[21]);
-          ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) p_rx_buffer[22])
-              << 8);
-          ui32_wheel_speed_sensor_tick_temp |= (((uint32_t) p_rx_buffer[23])
-              << 16);
-          rt_vars.ui32_wheel_speed_sensor_tick_counter =
-              ui32_wheel_speed_sensor_tick_temp;
+          ui32_wheel_speed_sensor_tick_temp = ((uint32_t) p_rx_buffer[21]) |
+              (((uint32_t) p_rx_buffer[22]) << 8) | (((uint32_t) p_rx_buffer[23]) << 16);
+          rt_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
 
-          rt_vars.ui16_pedal_power_x10 = (uint16_t) p_rx_buffer[24];
-          rt_vars.ui16_pedal_power_x10 += ((uint16_t) p_rx_buffer[25] << 8);
+          rt_vars.ui16_pedal_power_x10 = ((uint16_t) p_rx_buffer[24]) | ((uint16_t) p_rx_buffer[25] << 8);
 
           periodic_answer_received = true;
           break;
@@ -733,7 +728,10 @@ void communications(void) {
           // check to see if the firmware is valid
           if (g_tsdz2_firmware_version.major != atoi(TSDZ2_FIRMWARE_MAJOR) ||
               g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
-            APP_ERROR_HANDLER(FAULT_TSDZ2_WRONG_FIRMWARE);
+//            APP_ERROR_HANDLER(FAULT_TSDZ2_WRONG_FIRMWARE);
+            fieldPrintf(&bootStatus2, "TSDZ2 firmware error");
+            while (1); // block here
+
             g_tsdz2_firmware_version.major = 0xff; // invalidate the version
           }
 

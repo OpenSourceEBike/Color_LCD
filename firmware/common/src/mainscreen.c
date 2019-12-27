@@ -29,6 +29,8 @@ uint8_t ui8_m_wheel_speed_decimal;
 static uint8_t ui8_walk_assist_state = 0;
 
 uint16_t ui16_m_battery_current_filtered_x10;
+uint16_t ui16_m_battery_power_filtered;
+uint16_t ui16_m_pedal_power_filtered;
 
 void lcd_main_screen(void);
 void warnings(void);
@@ -45,6 +47,8 @@ void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
+void batteryPower(void);
+void pedalPower(void);
 void thresholds(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
@@ -67,8 +71,8 @@ Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field humanPowerField = FIELD_READONLY_UINT("human power", &ui_vars.ui16_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui_vars.ui16_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
@@ -315,7 +319,7 @@ void power(void) {
 
   if(!m_lcd_vars.ui8_lcd_menu_max_power)
   {
-    _ui16_battery_power_filtered = ui_vars.ui16_battery_power_filtered;
+    _ui16_battery_power_filtered = ui_vars.ui16_battery_power;
 
     if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         m_lcd_vars.ui32_main_screen_draw_static_info ||
@@ -442,6 +446,8 @@ void screen_clock(void) {
     DisplayResetToDefaults();
     batteryTotalWh();
     batteryCurrent();
+    batteryPower();
+    pedalPower();
     thresholds();
     screenUpdate();
   }
@@ -852,3 +858,42 @@ void batteryCurrent(void) {
 
   ui16_m_battery_current_filtered_x10 = ui_vars.ui16_battery_current_filtered_x5 * 2;
 }
+
+void batteryPower(void) {
+
+  ui16_m_battery_power_filtered = ui_vars.ui16_battery_power;
+
+  // loose resolution under 200W
+  if (ui16_m_battery_power_filtered < 200) {
+    ui16_m_battery_power_filtered /= 10;
+    ui16_m_battery_power_filtered *= 10;
+  }
+  // loose resolution under 400W
+  else if (ui16_m_battery_power_filtered < 400) {
+    ui16_m_battery_power_filtered /= 20;
+    ui16_m_battery_power_filtered *= 20;
+  }
+  // loose resolution all other values
+  else {
+    ui16_m_battery_power_filtered /= 25;
+    ui16_m_battery_power_filtered *= 25;
+  }
+}
+
+void pedalPower(void) {
+
+  ui16_m_pedal_power_filtered = ui_vars.ui16_pedal_power;
+
+  if (ui16_m_pedal_power_filtered > 500) {
+    ui16_m_pedal_power_filtered /= 25;
+    ui16_m_pedal_power_filtered *= 25;
+  } else if (ui16_m_pedal_power_filtered > 200) {
+    ui16_m_pedal_power_filtered /= 20;
+    ui16_m_pedal_power_filtered *= 20;
+  } else if (ui16_m_pedal_power_filtered > 10) {
+    ui16_m_pedal_power_filtered /= 10;
+    ui16_m_pedal_power_filtered *= 10;
+  }
+}
+
+

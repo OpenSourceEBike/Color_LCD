@@ -13,7 +13,6 @@
 #include "screen.h"
 #include "rtc.h"
 #include "fonts.h"
-#include "config.h"
 #include "uart.h"
 #include "mainscreen.h"
 #include "eeprom.h"

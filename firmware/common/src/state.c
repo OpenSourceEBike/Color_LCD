@@ -127,7 +127,6 @@ void parse_simmotor() {
 
 	rt_vars.ui8_pedal_cadence = fakeRandom(&cadencestore, 0, 93);
 
-	rt_vars.ui8_pedal_human_power = fake(0, 100);
 	rt_vars.ui8_duty_cycle = fake(0, 100);
 
 	rt_vars.ui16_motor_speed_erps = fake(0, 600);
@@ -146,13 +145,6 @@ void parse_simmotor() {
         rt_vars.ui32_wheel_speed_sensor_tick_counter += 1;
         diststore -= rt_vars.ui16_wheel_perimeter;
     }
-
-	// ui16_pedal_torque_x10
-	rt_vars.ui16_pedal_torque_x10 = fake(10, 1000);
-
-	// ui16_pedal_power_x10
-	rt_vars.ui16_pedal_power_x10 = fake(10, 1000);
-
 }
 
 void rt_send_tx_package(uint8_t type) {
@@ -175,7 +167,7 @@ void rt_send_tx_package(uint8_t type) {
         ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
       }
 
-      ui8_usart1_tx_buffer[4] |= (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
+      ui8_usart1_tx_buffer[4] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
       ui8_usart1_tx_buffer[5] = rt_vars.ui8_target_max_battery_power;
 
       crc_len = 6;
@@ -294,18 +286,8 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
 			rt_vars.ui16_battery_power_filtered_x50 / 50;
 }
 
-void rt_low_pass_filter_pedal_torque_and_power(void) {
-	static uint32_t ui32_pedal_torque_accumulated = 0;
+void rt_low_pass_filter_pedal_power(void) {
 	static uint32_t ui32_pedal_power_accumulated = 0;
-
-	// low pass filter
-	ui32_pedal_torque_accumulated -= ui32_pedal_torque_accumulated
-			>> PEDAL_TORQUE_FILTER_COEFFICIENT;
-	ui32_pedal_torque_accumulated += (uint32_t) rt_vars.ui16_pedal_torque_x10
-			/ 10;
-	rt_vars.ui16_pedal_torque_filtered =
-			((uint32_t) (ui32_pedal_torque_accumulated
-					>> PEDAL_TORQUE_FILTER_COEFFICIENT));
 
 	// low pass filter
 	ui32_pedal_power_accumulated -= ui32_pedal_power_accumulated
@@ -420,7 +402,6 @@ uint8_t rt_first_time_management(void) {
 	static uint8_t ui8_motor_controller_init = 1;
 	uint8_t ui8_status = 0;
 
-
   // wait 5 seconds to help motor variables data stabilize
   if (motorVariablesStabilized == 0)
     if (++ui32_counter > 50) {
@@ -504,8 +485,8 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui8_battery_current_x5 = rt_vars.ui8_battery_current_x5;
 	ui_vars.ui8_throttle = rt_vars.ui8_throttle;
 	ui_vars.ui16_adc_pedal_torque_sensor = rt_vars.ui16_adc_pedal_torque_sensor;
+	ui_vars.ui8_pedal_weight_with_offset = rt_vars.ui8_pedal_weight_with_offset;
 	ui_vars.ui8_pedal_weight = rt_vars.ui8_pedal_weight;
-	ui_vars.ui8_pedal_human_power = rt_vars.ui8_pedal_human_power;
 	ui_vars.ui8_duty_cycle = rt_vars.ui8_duty_cycle;
 	ui_vars.ui8_error_states = rt_vars.ui8_error_states;
 	ui_vars.ui16_wheel_speed_x10 = rt_vars.ui16_wheel_speed_x10;
@@ -519,16 +500,14 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui8_motor_temperature = rt_vars.ui8_motor_temperature;
 	ui_vars.ui32_wheel_speed_sensor_tick_counter =
 			rt_vars.ui32_wheel_speed_sensor_tick_counter;
-	ui_vars.ui16_pedal_power_x10 = rt_vars.ui16_pedal_power_x10;
 	ui_vars.ui16_battery_voltage_filtered_x10 =
 			rt_vars.ui16_battery_voltage_filtered_x10;
 	ui_vars.ui16_battery_current_filtered_x5 =
 			rt_vars.ui16_battery_current_filtered_x5;
 	ui_vars.ui16_battery_power_filtered_x50 =
 			rt_vars.ui16_battery_power_filtered_x50;
-	ui_vars.ui16_battery_power_filtered = rt_vars.ui16_battery_power_filtered;
-	ui_vars.ui16_pedal_torque_filtered = rt_vars.ui16_pedal_torque_filtered;
-	ui_vars.ui16_pedal_power_filtered = rt_vars.ui16_pedal_power_filtered;
+	ui_vars.ui16_battery_power = rt_vars.ui16_battery_power_filtered;
+	ui_vars.ui16_pedal_power = rt_vars.ui16_pedal_power_filtered;
 	ui_vars.ui16_battery_voltage_soc_x10 = rt_vars.ui16_battery_voltage_soc_x10;
 	ui_vars.ui32_wh_sum_x5 = rt_vars.ui32_wh_sum_x5;
 	ui_vars.ui32_wh_sum_counter = rt_vars.ui32_wh_sum_counter;
@@ -712,9 +691,10 @@ void communications(void) {
           }
 
           rt_vars.ui16_adc_pedal_torque_sensor = ((uint16_t) p_rx_buffer[11]) | (((uint16_t) (p_rx_buffer[7] & 0xC0)) << 2);
-          rt_vars.ui8_pedal_weight = p_rx_buffer[12];
-          rt_vars.ui8_pedal_cadence = p_rx_buffer[13];
-          rt_vars.ui8_pedal_human_power = p_rx_buffer[14];
+          rt_vars.ui8_pedal_weight_with_offset = p_rx_buffer[12];
+          rt_vars.ui8_pedal_weight = p_rx_buffer[13];
+
+          rt_vars.ui8_pedal_cadence = p_rx_buffer[14];
           rt_vars.ui8_duty_cycle = p_rx_buffer[15];
           rt_vars.ui16_motor_speed_erps = (uint16_t) p_rx_buffer[16];
           rt_vars.ui16_motor_speed_erps += ((uint16_t) p_rx_buffer[17] << 8);
@@ -731,10 +711,8 @@ void communications(void) {
           rt_vars.ui32_wheel_speed_sensor_tick_counter =
               ui32_wheel_speed_sensor_tick_temp;
 
-          rt_vars.ui16_pedal_torque_x10 = (uint16_t) p_rx_buffer[24];
-          rt_vars.ui16_pedal_torque_x10 += ((uint16_t) p_rx_buffer[25] << 8);
-          rt_vars.ui16_pedal_power_x10 = (uint16_t) p_rx_buffer[26];
-          rt_vars.ui16_pedal_power_x10 += ((uint16_t) p_rx_buffer[27] << 8);
+          rt_vars.ui16_pedal_power_x10 = (uint16_t) p_rx_buffer[24];
+          rt_vars.ui16_pedal_power_x10 += ((uint16_t) p_rx_buffer[25] << 8);
 
           periodic_answer_received = true;
           break;
@@ -820,7 +798,7 @@ void rt_processing(void)
   /************************************************************************************************/
   // now do all the calculations that must be done every 100ms
   rt_low_pass_filter_battery_voltage_current_power();
-  rt_low_pass_filter_pedal_torque_and_power();
+  rt_low_pass_filter_pedal_power();
   rt_low_pass_filter_pedal_cadence();
   rt_calc_battery_voltage_soc();
   rt_calc_odometer();

@@ -11,7 +11,6 @@
 #include "stm32f10x_gpio.h"
 #include "stdio.h"
 #include "main.h"
-#include "config.h"
 #include "utils.h"
 #include "pins.h"
 #include "lcd.h"

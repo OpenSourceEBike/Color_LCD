@@ -135,6 +135,8 @@ typedef enum {
   ConvertFromImperial_speed,
   ConvertToImperial_temperature,
   ConvertFromImperial_temperature,
+  ConvertToImperial_mass,
+  ConvertFromImperial_mass,
 } ConvertUnitsType;
 
 #ifdef SW102
@@ -318,12 +320,12 @@ typedef struct Field {
 #define FIELD_READONLY_STRING(lbl, targ) { .variant = FieldEditable, \
   .editable = { .read_only = true, .typ = ReadOnlyStr, .label = lbl, .target = targ, .size = sizeof(*targ)  } }
 
-
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
+// C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
 #define FIELD_READONLY_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
   .editable = { .read_only = true, .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
@@ -453,6 +455,8 @@ extern bool screenConvertMiles;
 
 // Set to true if we should automatically convert C -> F
 extern bool screenConvertFarenheit;
+
+extern bool screenConvertPounds;
 
 extern GraphVars g_graphVars[GRAPH_VARIANT_SIZE]; // this is needed to be used on configurations otherwise I could not make code build
 extern GraphData g_graphData[GRAPH_VARIANT_SIZE][3];

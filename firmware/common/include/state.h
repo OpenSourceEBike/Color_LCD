@@ -5,22 +5,36 @@
 
 // error codes from common.h in the controller code, used for ui8_error_states
 #define NO_ERROR                                0
-#define ERROR_MOTOR_BLOCKED                     1
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
-#define ERROR_NO_SPEED_SENSOR_DETECTED          5
-#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
-#define ERROR_MAX 								ERROR_LOW_CONTROLLER_VOLTAGE
+#define ERROR_NO_CONFIGURATIONS                 (1 << 1)
+#define ERROR_MOTOR_BLOCKED                     (1 << 2)
+#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    (1 << 3)
+#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     (1 << 4)
+#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  (1 << 5)
+#define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 6)
+#define ERROR_LOW_CONTROLLER_VOLTAGE            (1 << 7) // controller works with no less than 15 V so give error code if voltage is too low
+#define ERROR_MAX                               ERROR_LOW_CONTROLLER_VOLTAGE
+
+typedef enum {
+  COMMUNICATIONS_READY = 0,
+  COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION,
+  COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION,
+  COMMUNICATIONS_SET_CONFIGURATIONS,
+  COMMUNICATIONS_WAIT_CONFIGURATIONS,
+} communications_state_t;
+
+extern volatile communications_state_t g_communications_state;
+
+extern bool g_tsdz2_configurations_set;
 
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
-	uint8_t ui8_adc_pedal_torque_sensor;
-	uint8_t ui8_pedal_torque_sensor;
-	uint8_t ui8_pedal_human_power;
+	uint16_t ui16_adc_pedal_torque_sensor;
+	uint8_t ui8_pedal_weight_with_offset;
+	uint8_t ui8_pedal_weight;
+	uint16_t ui16_pedal_power_x10;
 	uint8_t ui8_duty_cycle;
 	uint8_t ui8_error_states;
 	uint16_t ui16_wheel_speed_x10;
@@ -32,13 +46,10 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_temperature_current_limiting_value;
 	uint8_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;
-	uint16_t ui16_pedal_torque_x10;
-	uint16_t ui16_pedal_power_x10;
 	uint16_t ui16_battery_voltage_filtered_x10;
 	uint16_t ui16_battery_current_filtered_x5;
 	uint16_t ui16_battery_power_filtered_x50;
 	uint16_t ui16_battery_power_filtered;
-	uint16_t ui16_pedal_torque_filtered;
 	uint16_t ui16_pedal_power_filtered;
 	uint8_t ui8_pedal_cadence_filtered;
 	uint16_t ui16_battery_voltage_soc_x10;
@@ -64,15 +75,15 @@ typedef struct rt_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint8_t ui8_assist_level_factor[10];
+	uint8_t ui8_assist_level_factor[9];
 	uint8_t ui8_walk_assist_feature_enabled;
-	uint8_t ui8_walk_assist_level_factor[10];
+	uint8_t ui8_walk_assist_level_factor[9];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint8_t ui8_startup_motor_power_boost_factor[10];
+	uint8_t ui8_startup_motor_power_boost_factor[9];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;
@@ -90,6 +101,11 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_braking;
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
+
+  uint8_t ui8_torque_sensor_calibration_feature_enabled;
+  uint8_t ui8_torque_sensor_calibration_pedal_ground;
+  uint16_t ui16_torque_sensor_calibration_table_left[8][2];
+  uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 } rt_vars_t;
 
 /* Selector positions for customizable fields
@@ -103,9 +119,9 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_battery_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
-	uint8_t ui8_adc_pedal_torque_sensor;
-	uint8_t ui8_pedal_torque_sensor;
-	uint8_t ui8_pedal_human_power;
+	uint16_t ui16_adc_pedal_torque_sensor;
+	uint8_t ui8_pedal_weight_with_offset;
+	uint8_t ui8_pedal_weight;
 	uint8_t ui8_duty_cycle;
 	uint8_t ui8_error_states;
 	uint16_t ui16_wheel_speed_x10;
@@ -118,14 +134,12 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_motor_temperature;
 	uint32_t ui32_wheel_speed_sensor_tick_counter;
 	uint32_t ui32_wheel_speed_sensor_tick_counter_offset;
-	uint16_t ui16_pedal_torque_x10;
-	uint16_t ui16_pedal_power_x10;
 	uint16_t ui16_battery_voltage_filtered_x10;
 	uint16_t ui16_battery_current_filtered_x5;
 	uint16_t ui16_battery_power_filtered_x50;
-	uint16_t ui16_battery_power_filtered;
+	uint16_t ui16_battery_power;
 	uint16_t ui16_pedal_torque_filtered;
-	uint16_t ui16_pedal_power_filtered;
+	uint16_t ui16_pedal_power;
 	uint8_t ui8_pedal_cadence_filtered;
 	uint16_t ui16_battery_voltage_soc_x10;
 	uint32_t ui32_wh_sum_x5;
@@ -178,6 +192,11 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_walk_assist;
 	uint8_t ui8_offroad_mode;
 	uint8_t ui8_buttons_up_down_invert;
+
+	uint8_t ui8_torque_sensor_calibration_feature_enabled;
+	uint8_t ui8_torque_sensor_calibration_pedal_ground;
+	uint16_t ui16_torque_sensor_calibration_table_left[8][2];
+	uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 
 	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 
@@ -275,6 +294,12 @@ rt_vars_t* get_rt_vars(void);
 extern rt_vars_t rt_vars; // FIXME - this shouldn't be exposed outside of state.c - but currently mid merge
 extern ui_vars_t ui_vars;
 
+typedef struct {
+  uint8_t major;
+  uint8_t minor;
+  uint8_t patch;
+} tsdz2_firmware_version_t;
+
 void rt_processing(void);
 void rt_processing_stop(void);
 void rt_processing_start(void);
@@ -293,10 +318,13 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 /// Set correct backlight brightness for current headlight state
 void set_lcd_backlight();
 
+void prepare_torque_sensor_calibration_table(void);
+
 extern uint16_t ui16_g_battery_soc_watts_hour;
 
-extern bool has_seen_motor; // true once we've received a packet from a real motor
-extern bool is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+extern bool g_has_seen_motor; // true once we've received a packet from a real motor
+extern bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
+extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7
@@ -324,7 +352,6 @@ extern bool is_sim_motor; // true if we are simulating a motor (and therefore no
 // 0 equal to no filtering and no delay, higher values will increase filtering but will also add bigger delay
 #define BATTERY_VOLTAGE_FILTER_COEFFICIENT 3
 #define BATTERY_CURRENT_FILTER_COEFFICIENT 2
-#define PEDAL_TORQUE_FILTER_COEFFICIENT    2
 #define PEDAL_POWER_FILTER_COEFFICIENT     3
-#define PEDAL_CADENCE_FILTER_COEFFICIENT   2
+#define PEDAL_CADENCE_FILTER_COEFFICIENT   3
 

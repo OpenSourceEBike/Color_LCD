@@ -22,12 +22,15 @@
 #include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
+#include "state.h"
 
 uint8_t ui8_m_wheel_speed_decimal;
 
 static uint8_t ui8_walk_assist_state = 0;
 
 uint16_t ui16_m_battery_current_filtered_x10;
+uint16_t ui16_m_battery_power_filtered;
+uint16_t ui16_m_pedal_power_filtered;
 
 void lcd_main_screen(void);
 void warnings(void);
@@ -44,6 +47,8 @@ void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
+void batteryPower(void);
+void pedalPower(void);
 void thresholds(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
@@ -66,8 +71,8 @@ Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field humanPowerField = FIELD_READONLY_UINT("human power", &ui_vars.ui16_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui_vars.ui16_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
 Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
 Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
@@ -166,23 +171,29 @@ Field bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com"));
 Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", ""));
 Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
 Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
-Field bootStatus = FIELD_DRAWTEXT(.msg = "Booting...");
+Field bootStatus1 = FIELD_DRAWTEXT(.msg = "Keep pedals free and wait");
+Field bootStatus2 = FIELD_DRAWTEXT(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
 static void bootScreenOnPreUpdate() {
 	uint16_t bvolt = battery_voltage_10x_get();
 
-	is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-  if(is_sim_motor)
-    fieldPrintf(&bootStatus, _S("SIMULATING TSDZ2!", "SIMULATING"));
-  else if(has_seen_motor)
-    fieldPrintf(&bootStatus, "Found TSDZ2");
-  else
-    fieldPrintf(&bootStatus, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
+	g_is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
+  if(g_is_sim_motor)
+    fieldPrintf(&bootStatus2, _S("SIMULATING TSDZ2!", "SIMULATING"));
+
+  if(g_has_seen_motor) {
+    fieldPrintf(&bootStatus2, "TSDZ2 firmware: %u.%u.%u",
+    g_tsdz2_firmware_version.major,
+    g_tsdz2_firmware_version.minor,
+    g_tsdz2_firmware_version.patch);
+  } else {
+    fieldPrintf(&bootStatus2, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
+  }
 
   // Stop showing only after we release on/off button and we are commutication with motor
-  if(buttons_get_onoff_state() == 0 && (has_seen_motor || is_sim_motor))
+  if(buttons_get_onoff_state() == 0 && (g_has_seen_motor || g_is_sim_motor))
     showNextScreen();
 }
 
@@ -207,9 +218,14 @@ Screen bootScreen = {
       .field = &bootURL_2,
       .font = &SMALL_TEXT_FONT,
     },
-#ifndef SW102
     {
       .x = 0, .y = YbyEighths(4), .height = -1,
+      .field = &bootStatus1,
+      .font = &SMALL_TEXT_FONT,
+    },
+#ifndef SW102
+    {
+      .x = 0, .y = YbyEighths(6), .height = -1,
       .field = &bootFirmwareVersion,
       .font = &SMALL_TEXT_FONT,
     },
@@ -220,8 +236,8 @@ Screen bootScreen = {
       .font = &SMALL_TEXT_FONT,
     },
     {
-      .x = 0, .y = YbyEighths(6), .height = -1,
-      .field = &bootStatus,
+      .x = 0, .y = YbyEighths(7), .height = -1,
+      .field = &bootStatus2,
       .font = &SMALL_TEXT_FONT,
     },
     {
@@ -278,6 +294,7 @@ bool mainscreen_onpress(buttons_events_t events) {
 void set_conversions() {
   screenConvertMiles = ui_vars.ui8_units_type != 0; // Set initial value on unit conversions (FIXME, move this someplace better)
   screenConvertFarenheit = screenConvertMiles; // FIXME, should be based on a different eeprom config value
+  screenConvertPounds = screenConvertMiles;
 }
 
 void lcd_main_screen(void) {
@@ -308,7 +325,7 @@ void power(void) {
 
   if(!m_lcd_vars.ui8_lcd_menu_max_power)
   {
-    _ui16_battery_power_filtered = ui_vars.ui16_battery_power_filtered;
+    _ui16_battery_power_filtered = ui_vars.ui16_battery_power;
 
     if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
         m_lcd_vars.ui32_main_screen_draw_static_info ||
@@ -442,6 +459,8 @@ void screen_clock(void) {
     DisplayResetToDefaults();
     batteryTotalWh();
     batteryCurrent();
+    batteryPower();
+    pedalPower();
     thresholds();
     screenUpdate();
   }
@@ -638,16 +657,7 @@ static void setWarning(ColorOp color, const char *str) {
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 
-
-#define NO_ERROR                                0
-#define ERROR_MOTOR_BLOCKED                     1
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    2
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     3
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  4
-#define ERROR_NO_SPEED_SENSOR_DETECTED          5
-#define ERROR_LOW_CONTROLLER_VOLTAGE            6 // controller works with no less than 15 V so give error code if voltage is too low
-
-static const char *motorErrors[] = { "None", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+static const char *motorErrors[] = { "None", "No config", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
@@ -815,15 +825,32 @@ static void handle_buttons() {
 
 /// Call every 20ms from the main thread.
 void main_idle() {
-	static uint8_t ui8_100ms_timer_counter = 0;
-	
+  static int counter_time_ms = 0;
+  int time_ms = 0;
+
+  // no point to processing less than every 100ms, as the data comming from the motor is only updated every 100ms, not less
+  time_ms = get_time_base_counter_1ms();
+  if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
+  {
+    counter_time_ms = time_ms;
+
+    // asking the TSDZ2 firmware version and this will happen only once (at startup)
+    if (g_tsdz2_firmware_version.major == 0xff) { // if version is invalid, like at startup
+      if (g_communications_state == COMMUNICATIONS_READY)
+        g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION;
+    // after we get firmware version, set the TSDZ2 configurations
+    } else if (g_tsdz2_configurations_set == false) {
+      if (g_communications_state == COMMUNICATIONS_READY) {
+        prepare_torque_sensor_calibration_table(); // we need to first prepare the table
+        g_communications_state = COMMUNICATIONS_SET_CONFIGURATIONS; // set configuration to TSDZ2
+      }
+    }
+
+    automatic_power_off_management();
+  }
+
 	handle_buttons();
 	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
-
-	if (++ui8_100ms_timer_counter >= 5) {
-		ui8_100ms_timer_counter = 0;
-		automatic_power_off_management(); // Note: this was moved from layer_2() because it does eeprom operations which should not be used from ISR
-	}
 }
 
 void batteryTotalWh(void) {
@@ -853,4 +880,36 @@ void onSetConfigurationWheelOdometer(uint32_t v) {
 
   // let's update the main variable used for calculations of odometer
   rt_vars.ui32_odometer_x10 = v;
+}
+
+void batteryPower(void) {
+
+  ui16_m_battery_power_filtered = ui_vars.ui16_battery_power;
+
+  // loose resolution under 200W
+  if (ui16_m_battery_power_filtered < 200) {
+    ui16_m_battery_power_filtered /= 10;
+    ui16_m_battery_power_filtered *= 10;
+  }
+  // loose resolution under 400W
+  else if (ui16_m_battery_power_filtered < 500) {
+    ui16_m_battery_power_filtered /= 20;
+    ui16_m_battery_power_filtered *= 20;
+  }
+}
+
+void pedalPower(void) {
+
+  ui16_m_pedal_power_filtered = ui_vars.ui16_pedal_power;
+
+  if (ui16_m_pedal_power_filtered > 500) {
+    ui16_m_pedal_power_filtered /= 20;
+    ui16_m_pedal_power_filtered *= 20;
+  } else if (ui16_m_pedal_power_filtered > 200) {
+    ui16_m_pedal_power_filtered /= 10;
+    ui16_m_pedal_power_filtered *= 10;
+  } else if (ui16_m_pedal_power_filtered > 10) {
+    ui16_m_pedal_power_filtered /= 5;
+    ui16_m_pedal_power_filtered *= 5;
+  }
 }

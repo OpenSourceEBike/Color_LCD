@@ -18,7 +18,7 @@
 #include "main.h"
 #include "uart.h"
 
-uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
+uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
 volatile uint8_t ui8_received_package_flag = 0;
 
 void usart1_init(void)
@@ -36,7 +36,7 @@ void usart1_init(void)
   DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART1->DR);
   DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) uart_get_tx_buffer();
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-  DMA_InitStructure.DMA_BufferSize = UART_NUMBER_DATA_BYTES_TO_SEND + 3;
+  DMA_InitStructure.DMA_BufferSize = UART_NUMBER_DATA_BYTES_TO_SEND;
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -92,8 +92,8 @@ void USART1_IRQHandler()
 {
   uint8_t ui8_byte_received;
   static uint8_t ui8_state_machine = 0;
-  static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3];
-  static uint8_t ui8_rx_counter = 0;
+  static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
+  static uint8_t ui8_rx_cnt = 0;
   uint8_t ui8_i;
   uint16_t ui16_crc_rx;
 
@@ -113,43 +113,42 @@ void USART1_IRQHandler()
     // receive byte
     ui8_byte_received = (uint8_t) USART1->DR;
 
-    switch(ui8_state_machine)
+    switch (ui8_state_machine)
     {
       case 0:
-      if(ui8_byte_received == 67) // see if we get start package byte
-      {
-        ui8_rx[ui8_rx_counter] = ui8_byte_received;
-        ui8_rx_counter++;
+      if (ui8_byte_received == 0x43) { // see if we get start package byte
+        ui8_rx[0] = ui8_byte_received;
         ui8_state_machine = 1;
       }
       else
-      {
-        ui8_rx_counter = 0;
         ui8_state_machine = 0;
-      }
       break;
 
       case 1:
-      ui8_rx[ui8_rx_counter] = ui8_byte_received;
-      ui8_rx_counter++;
+        ui8_rx[1] = ui8_byte_received;
+        ui8_state_machine = 2;
+      break;
 
-      // see if is the last byte of the package
-      if(ui8_rx_counter >= (UART_NUMBER_DATA_BYTES_TO_RECEIVE + 3))
+      case 2:
+      ui8_rx[ui8_rx_cnt + 2] = ui8_byte_received;
+      ++ui8_rx_cnt;
+
+      // reset if it is the last byte of the package and index is out of bounds
+      if (ui8_rx_cnt >= ui8_rx[1])
       {
-        ui8_rx_counter = 0;
+        ui8_rx_cnt = 0;
         ui8_state_machine = 0;
 
-        // validation of the package data
-        // last byte is the checksum
+        // just to make easy next calculations
         ui16_crc_rx = 0xffff;
-        for(ui8_i = 0; ui8_i <= UART_NUMBER_DATA_BYTES_TO_RECEIVE; ui8_i++)
+        for (ui8_i = 0; ui8_i < ui8_rx[1]; ui8_i++)
         {
           crc16(ui8_rx[ui8_i], &ui16_crc_rx);
         }
 
-        if(((((uint16_t) ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 2]) << 8) +
-            ((uint16_t) ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1])) ==
-                ui16_crc_rx)
+        // if CRC is correct read the package
+        if (((((uint16_t) ui8_rx[ui8_rx[1] + 1]) << 8) +
+              ((uint16_t) ui8_rx[ui8_rx[1]])) == ui16_crc_rx)
         {
           // copy to the other buffer only if we processed already the last package
           if(!ui8_received_package_flag)
@@ -157,14 +156,10 @@ void USART1_IRQHandler()
             ui8_received_package_flag = 1;
 
             // store the received data to rx_buffer
-            memcpy(ui8_rx_buffer, ui8_rx, UART_NUMBER_DATA_BYTES_TO_RECEIVE + 1);
+            memcpy(ui8_rx_buffer, ui8_rx, ui8_rx[1] + 2);
           }
         }
       }
-      break;
-
-      default:
-      break;
     }
   }
 }

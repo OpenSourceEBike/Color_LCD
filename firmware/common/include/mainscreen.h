@@ -34,6 +34,7 @@ extern Field
   motorTempGraph,
   graphs,
 	custom1, custom2, custom3, custom4,
+  bootStatus2,
 #ifdef SW102
   warnField; // just close previous definition
 #endif

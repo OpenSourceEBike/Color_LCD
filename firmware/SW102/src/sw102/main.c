@@ -26,6 +26,7 @@
 #include "rtc.h"
 #include "nrf_drv_wdt.h"
 #include "nrf_power.h"
+#include "timer.h"
 
 /* Variable definition */
 
@@ -301,7 +302,7 @@ static void gui_timer_timeout(void *p_context)
 
 
 /// msecs since boot (note: will roll over every 50 days)
-uint32_t get_msecs() {
+uint32_t get_time_base_counter_1ms() {
   return gui_ticks * MSEC_PER_TICK;
 }
 

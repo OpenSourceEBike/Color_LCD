@@ -23,6 +23,7 @@
 #include "ugui.h"
 #include "configscreen.h"
 #include "state.h"
+#include "timer.h"
 
 uint8_t ui8_m_wheel_speed_decimal;
 

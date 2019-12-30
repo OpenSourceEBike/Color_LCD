@@ -60,27 +60,27 @@ bool wd_failure_detected;
 //
 Field socField = FIELD_DRAWTEXT();
 Field timeField = FIELD_DRAWTEXT();
-Field assistLevelField = FIELD_READONLY_UINT("assist", &ui_vars.ui8_assist_level, "", false, .warn_threshold = -1, .error_threshold = -1);
+Field assistLevelField = FIELD_READONLY_UINT("assist", &ui_vars.ui8_assist_level, "", false);
 #ifdef SW102
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
 #else
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
 #endif
-Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false, .warn_threshold = -1, .error_threshold = -1);
-Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false);
+Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
 Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
-Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1, .warn_threshold = -1, .error_threshold = -1);
-Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field pwmDutyField = FIELD_READONLY_UINT("motor pwm", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
-Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0, .warn_threshold = -1, .error_threshold = -1);
+Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
+Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
+Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
+Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
+Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
+Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
+Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0);
+Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0);
+Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
+Field pwmDutyField = FIELD_READONLY_UINT("motor pwm", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
+Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0);
 Field warnField = FIELD_CUSTOM(renderWarning);
 
 /**
@@ -492,6 +492,21 @@ void screen_clock(void) {
 
 void thresholds(void) {
 #ifndef SW102
+  // @casainho I don't think you need to do this 'replicate' type copypasta code if instead you just reference the source data field via
+  // (for instance) wheelSpeedGraph.source.  That pointer is _super_ useful for the future to provide abstraction of the _rendering_ (a graph)
+  // of the data away from its interpretation (the source)
+  // any time you find yourself tempted to 'replicate' something usually good to consider 'do I already have a pointer to that data, if so - no need to copy'
+
+  // replicate the state to the other field
+  // cadenceGraph.graph.error_threshold = cadenceField.editable.number.error_threshold;
+  // cadenceGraph.graph.warn_threshold = cadenceField.editable.number.warn_threshold;
+
+  // also this was super bad and was corrupting memory:
+  // cadenceFieldGraph.editable.number.auto_thresholds = cadenceField.editable.number.auto_thresholds;
+  // because Fields contain unions.  And in C those members of the union sit at the same address (overlapping with each other)
+  // it is assumed the programmer is only using one interpretation of the union at a time.  cadenceFieldGraph (etc) is a FieldGraph variant not an
+  // a FieldEditable variant.  Therefore you can't use 'editible' versions of those bytes.
+
   if (wheelSpeedField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     wheelSpeedField.editable.number.error_threshold = ui_vars.wheel_max_speed_x10;
     wheelSpeedField.editable.number.warn_threshold = ui_vars.wheel_max_speed_x10 - (ui_vars.wheel_max_speed_x10 / 5); // -20%
@@ -501,8 +516,6 @@ void thresholds(void) {
   }
   // replicate the state to the other field
   wheelSpeedFieldGraph.editable.number.auto_thresholds = wheelSpeedField.editable.number.auto_thresholds;
-  wheelSpeedGraph.graph.error_threshold = wheelSpeedField.editable.number.error_threshold;
-  wheelSpeedGraph.graph.warn_threshold = wheelSpeedField.editable.number.warn_threshold;
 
   if (cadenceField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     cadenceField.editable.number.error_threshold = 92;
@@ -511,19 +524,11 @@ void thresholds(void) {
     cadenceField.editable.number.error_threshold = cadenceField.editable.number.config_error_threshold;
     cadenceField.editable.number.warn_threshold = cadenceField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  cadenceFieldGraph.editable.number.auto_thresholds = cadenceField.editable.number.auto_thresholds;
-  cadenceGraph.graph.error_threshold = cadenceField.editable.number.error_threshold;
-  cadenceGraph.graph.warn_threshold = cadenceField.editable.number.warn_threshold;
 
   if (humanPowerField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     humanPowerField.editable.number.error_threshold = humanPowerField.editable.number.config_error_threshold;
     humanPowerField.editable.number.warn_threshold = humanPowerField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  humanPowerFieldGraph.editable.number.auto_thresholds = humanPowerField.editable.number.auto_thresholds;
-  humanPowerGraph.graph.error_threshold = humanPowerField.editable.number.error_threshold;
-  humanPowerGraph.graph.warn_threshold = humanPowerField.editable.number.warn_threshold;
 
   if (batteryPowerField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) (((int32_t) ui_vars.ui8_battery_max_current * (int32_t) ui_vars.ui8_battery_cells_number) * (float) LI_ION_CELL_VOLTS_90);
@@ -534,11 +539,6 @@ void thresholds(void) {
     batteryPowerField.editable.number.error_threshold = batteryPowerField.editable.number.config_error_threshold;
     batteryPowerField.editable.number.warn_threshold = batteryPowerField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  batteryPowerFieldGraph.editable.number.auto_thresholds = batteryPowerField.editable.number.auto_thresholds;
-  batteryPowerGraph.graph.error_threshold = batteryPowerField.editable.number.error_threshold;
-  batteryPowerGraph.graph.warn_threshold = batteryPowerField.editable.number.warn_threshold;
-
   if (batteryVoltageField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) ui_vars.ui16_battery_low_voltage_cut_off_x10;
     batteryVoltageField.editable.number.error_threshold = temp;
@@ -548,10 +548,6 @@ void thresholds(void) {
     batteryVoltageField.editable.number.error_threshold = batteryVoltageField.editable.number.config_error_threshold;
     batteryVoltageField.editable.number.warn_threshold = batteryVoltageField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  batteryVoltageFieldGraph.editable.number.auto_thresholds = batteryVoltageField.editable.number.auto_thresholds;
-  batteryVoltageGraph.graph.error_threshold = batteryVoltageField.editable.number.error_threshold;
-  batteryVoltageGraph.graph.warn_threshold = batteryVoltageField.editable.number.warn_threshold;
 
   if (batteryCurrentField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) ui_vars.ui8_battery_max_current * 10;
@@ -562,10 +558,6 @@ void thresholds(void) {
     batteryCurrentField.editable.number.error_threshold = batteryCurrentField.editable.number.config_error_threshold;
     batteryCurrentField.editable.number.warn_threshold = batteryCurrentField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  batteryCurrentFieldGraph.editable.number.auto_thresholds = batteryCurrentField.editable.number.auto_thresholds;
-  batteryCurrentGraph.graph.error_threshold = batteryCurrentField.editable.number.error_threshold;
-  batteryCurrentGraph.graph.warn_threshold = batteryCurrentField.editable.number.warn_threshold;
 
   if (batterySOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     batterySOCField.editable.number.error_threshold = 10;
@@ -574,10 +566,6 @@ void thresholds(void) {
     batterySOCField.editable.number.error_threshold = batterySOCField.editable.number.config_error_threshold;
     batterySOCField.editable.number.warn_threshold = batterySOCField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  batterySOCFieldGraph.editable.number.auto_thresholds = batterySOCField.editable.number.auto_thresholds;
-  batterySOCGraph.graph.error_threshold = batterySOCField.editable.number.error_threshold;
-  batterySOCGraph.graph.warn_threshold = batterySOCField.editable.number.warn_threshold;
 
   if (motorTempField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     motorTempField.editable.number.error_threshold = (int32_t) ui_vars.ui8_motor_temperature_max_value_to_limit;
@@ -586,10 +574,6 @@ void thresholds(void) {
     motorTempField.editable.number.error_threshold = motorTempField.editable.number.config_error_threshold;
     motorTempField.editable.number.warn_threshold = motorTempField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  motorTempFieldGraph.editable.number.auto_thresholds = motorTempField.editable.number.auto_thresholds;
-  motorTempGraph.graph.error_threshold = motorTempField.editable.number.error_threshold;
-  motorTempGraph.graph.warn_threshold = motorTempField.editable.number.warn_threshold;
 
   if (motorErpsField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     motorErpsField.editable.number.error_threshold = 525;
@@ -598,10 +582,6 @@ void thresholds(void) {
     motorErpsField.editable.number.error_threshold = motorErpsField.editable.number.config_error_threshold;
     motorErpsField.editable.number.warn_threshold = motorErpsField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  motorErpsFieldGraph.editable.number.auto_thresholds = motorErpsField.editable.number.auto_thresholds;
-  motorErpsGraph.graph.error_threshold = motorErpsField.editable.number.error_threshold;
-  motorErpsGraph.graph.warn_threshold = motorErpsField.editable.number.warn_threshold;
 
   if (pwmDutyField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     pwmDutyField.editable.number.error_threshold = 254;
@@ -610,10 +590,6 @@ void thresholds(void) {
     pwmDutyField.editable.number.error_threshold = pwmDutyField.editable.number.config_error_threshold;
     pwmDutyField.editable.number.warn_threshold = pwmDutyField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  pwmDutyFieldGraph.editable.number.auto_thresholds = pwmDutyField.editable.number.auto_thresholds;
-  pwmDutyGraph.graph.error_threshold = pwmDutyField.editable.number.error_threshold;
-  pwmDutyGraph.graph.warn_threshold = pwmDutyField.editable.number.warn_threshold;
 
   if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     motorFOCField.editable.number.error_threshold = 8;
@@ -622,10 +598,7 @@ void thresholds(void) {
     motorFOCField.editable.number.error_threshold = motorFOCField.editable.number.config_error_threshold;
     motorFOCField.editable.number.warn_threshold = motorFOCField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  motorFOCFieldGraph.editable.number.auto_thresholds = motorFOCField.editable.number.auto_thresholds;
-  motorFOCGraph.graph.error_threshold = motorFOCField.editable.number.error_threshold;
-  motorFOCGraph.graph.warn_threshold = motorFOCField.editable.number.warn_threshold;
+
 #endif
 }
 
@@ -652,9 +625,9 @@ static bool renderWarning(FieldLayout *layout) {
 
 static void setWarning(ColorOp color, const char *str) {
 	warnColor = color;
-	warnField.blink = (color == ColorError);
-	warnField.dirty = (strcmp(str, warningStr) != 0);
-	if(warnField.dirty)
+	warnField.rw->blink = (color == ColorError);
+	warnField.rw->dirty = (strcmp(str, warningStr) != 0);
+	if(warnField.rw->dirty)
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 

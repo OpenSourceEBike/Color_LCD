@@ -161,7 +161,7 @@ void init_softdevice() {
   if(*softdeviceaddr == 0xffffffff) // definitely no soft device
     useSoftDevice = false;
 
-#if 0
+#if 1
   uint32_t *bootloaderaddr = (uint32_t *) 0x10001014;
 
   // If we don't have a bootloader, assume a developer is working and wants to use the debugger

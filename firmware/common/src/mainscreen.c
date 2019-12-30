@@ -55,6 +55,8 @@ void thresholds(void);
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 bool wd_failure_detected;
 
+#define MAX_TIMESTR_LEN 8 // including nul terminator
+
 //
 // Fields - these might be shared my multiple screens
 //
@@ -68,7 +70,10 @@ Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_
 #endif
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false);
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
-Field tripTimeField = FIELD_READONLY_STRING("trip time", "unset");
+
+// Note: this field is special, the string it is pointing to must be in RAM so we can change it later
+Field tripTimeField = FIELD_READONLY_STRING("trip time", (char [MAX_TIMESTR_LEN]){ 0 });
+
 Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
@@ -124,19 +129,19 @@ Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_dut
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
 
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
-Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1),
+ tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1),
+ odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1),
+ cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1),
+ humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1),
+ batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1),
+ batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1),
+ batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1),
+ batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1),
+ motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1),
+ motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1),
+ pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1),
+ motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1);
 
 // Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
@@ -154,26 +159,25 @@ Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   &pwmDutyGraph,
                                   &motorFOCGraph);
 #else
-Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
+const Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   NULL);
 #endif
 
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
-Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables);
-Field custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables);
-Field custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables);
-Field custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
+Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
+ custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
+ custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
+ custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
 
-
-Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike"));
-Field bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com"));
-Field bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", ""));
-Field bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:");
-Field bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING);
-Field bootStatus1 = FIELD_DRAWTEXT(.msg = "Keep pedals free and wait");
-Field bootStatus2 = FIELD_DRAWTEXT(.msg = "Booting...");
+Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike")),
+ bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com")),
+ bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", "")),
+ bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:"),
+ bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING),
+ bootStatus1 = FIELD_DRAWTEXT(.msg = "Keep pedals free and wait"),
+ bootStatus2 = FIELD_DRAWTEXT(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
@@ -605,7 +609,7 @@ void thresholds(void) {
 void trip_time(void) {
 	rtc_time_t *p_time = rtc_get_time_since_startup();
 	static int oldmin = -1; // used to prevent unneeded updates
-	static char timestr[8]; // 12:13
+	char timestr[MAX_TIMESTR_LEN]; // 12:13
 
 	if(p_time->ui8_minutes != oldmin) {
 		oldmin = p_time->ui8_minutes;

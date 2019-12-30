@@ -254,7 +254,7 @@ typedef struct {
 
     struct {
       uint8_t x_axis_scale; // x axis scale
-      graph_x_axis_scale_config_t x_axis_scale_config; // x axis scale configuration
+      graph_x_axis_scale_config_t x_axis_scale_config : 4; // x axis scale configuration
 
       // FIXME the following array should really be a single ptr to a set of cached data. To save ram because we create many of these FieldRW objects
       GraphData *data[3]; // cached data for this graph - FIXME @casainho - it would be good to document this magic 3 constant and why it is there, even better to make into #def for NUM_TIMESCALES
@@ -264,6 +264,8 @@ typedef struct {
 
 /**
  * Ready to render data (normally populated by comms code) which might be used on multiple different screens
+ *
+ * Note: this class is normally used as a CONST, but in rare cases in can be placed in RAM.
  */
 typedef const struct Field {
 	FieldVariant variant :4;
@@ -500,8 +502,8 @@ extern GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
 
 void fieldPrintf(Field *field, const char *fmt, ...);
 
-// Update this readonly editable with a string value, str must point to a static buffer
-void updateReadOnlyStr(Field *field, char *str);
+/// Update this readonly editable with a string value.  Important: the original field target must be pointing to a WRITABLE array, not a const string.
+void updateReadOnlyStr(Field *field, const char *str);
 
 /** These are render callback functions, you should normally never need to call them, but they can be useful if you
  * are using your own custom render callback.

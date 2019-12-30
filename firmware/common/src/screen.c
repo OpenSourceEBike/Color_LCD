@@ -435,7 +435,7 @@ static int maxRowsPerScreen;
 
 static Field heading = FIELD_DRAWTEXT();
 static Field label = FIELD_DRAWTEXT();
-static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary FIELD_FILL
+static Field blankRow = FIELD_FILL; // Used to fill with blank space if necessary FIELD_FILL
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 	const Coord rowHeight = EDITABLE_NUM_ROWS
@@ -456,7 +456,8 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 			bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
 			forceScrollableRelayout = false;
-			for (int i = 0; i < maxRowsPerScreen; i++) {
+			int i = 0;
+			for (; i < maxRowsPerScreen && hasMoreRows; i++) {
 				FieldLayout *r = rows + i;
 
 				r->x = layout->x;
@@ -476,7 +477,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 							+ SCROLLABLE_VPAD;
 				} else {
 					r->y = rows[i - 1].y + rows[i - 1].height;
-					r->height = rowHeight; // all data rows are the same height
 					r->label_align_y = EDITABLE_NUM_ROWS == 1 ? AlignCenter : AlignTop;
 					r->label_align_x = AlignLeft;
 					r->align_x = AlignRight;
@@ -493,6 +493,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 
 					// if the current row is valid, render that, otherwise render blank space
 					if (hasMoreRows) {
+	          r->height = rowHeight; // all data rows are the same height
 						entry->rw->dirty = true; // Force it to be redrawn
 
 						r->field = entry;
@@ -501,14 +502,18 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 						entry->rw->blink = entry->rw->is_selected;
 						r->color = ColorNormal; // force color because r points to a static object that holds previous color
 					} else {
-						r->field = &blankRows[i];
+						r->field = &blankRow;
+
+						// For this blank row at the end resize it to fill the rest of vertical space
+						r->height = rowHeight * (maxRowsPerScreen - i);
+
 						r->color = ColorInvert; // black box for empty slots at end
 					}
 
 					r->field->rw->dirty = true; // Force rerender
 				}
 
-				rows[maxRowsPerScreen].field = NULL; // mark end of array (for rendering)
+				rows[i].field = NULL; // mark end of array (for rendering)
 			}
 		}
 
@@ -909,12 +914,11 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx,
 	}
 }
 
-// Update this readonly editable with a string value, str must point to a static buffer
-void updateReadOnlyStr(Field *field, char *str) {
+/// Update this readonly editable with a string value.  Important: the original field target must be pointing to a WRITABLE array, not a const string.
+void updateReadOnlyStr(Field *field, const char *str) {
 	assert(field->editable.typ == ReadOnlyStr); // Make sure the field is being used as provisioned
 
-	assert(0);
-	// field->editable.target = str; // kevinh FIXME
+	strcpy(field->editable.target, str);
 
 	field->rw->dirty = true;
 }
@@ -2344,8 +2348,5 @@ void graph_init(void) {
 }
 
 void screen_init(void) {
-  assert(0);
-  // FIXME - fill blankRows with FieldFill
-
   graph_init();
 }

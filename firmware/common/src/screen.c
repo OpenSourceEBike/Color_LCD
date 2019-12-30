@@ -485,10 +485,10 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 					// visible menu rows, starting with where the user has scrolled to
 					const int entryNum = field->rw->scrollable.first + i - 1;
 
-					// Make entry NULL if we don't have any more rows
-					Field *entry = hasMoreRows ? &field->scrollable.entries[entryNum] : NULL;
+					// Get the next entry
+					Field *entry = &field->scrollable.entries[entryNum];
 
-					if (entry && entry->variant == FieldEnd)
+					if (entry->variant == FieldEnd)
 						hasMoreRows = false; // This will short circuit all future processing
 
 					// if the current row is valid, render that, otherwise render blank space
@@ -511,11 +511,10 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 					}
 
 					r->field->rw->dirty = true; // Force rerender
-				}
-
-				rows[i].field = NULL; // mark end of array (for rendering)
-			}
-		}
+				} // end data row handling
+			} // end looping over all valid rows
+			rows[i].field = NULL; // mark end of array (for rendering)
+		} // end forceRelayout
 
 		// draw (or redraw if necessary) our current set of visible rows
 		return renderLayouts(rows, false);

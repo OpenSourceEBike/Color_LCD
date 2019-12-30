@@ -166,14 +166,14 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg) {
 	UG_FillFrame(layout->x, layout->y, layout->x + layout->width - 1,
 			layout->y + height - 1, back);
   UG_SetBackcolor(back);
-	if (!layout->field->blink || blinkOn) // if we are supposed to blink do that
+	if (!layout->field->rw->blink || blinkOn) // if we are supposed to blink do that
 		putAligned(layout, layout->align_x, AlignTop, layout->inset_x,
 				layout->inset_y, layout->font, msg);
 	return true;
 }
 
 static bool renderDrawText(FieldLayout *layout) {
-	return renderDrawTextCommon(layout, layout->field->drawText.msg);
+	return renderDrawTextCommon(layout, layout->field->drawTextPtr.msg);
 }
 
 static bool renderDrawTextPtr(FieldLayout *layout) {
@@ -203,11 +203,11 @@ static void drawSelectionMarkerForced(FieldLayout *layout) {
   // we size the cursor to be slightly shorter than the box it is in
 
   //  && !curActiveEditable - old code when editing don't blink the selection cursor
-  if (layout->field && layout->field->is_selected) {
+  if (layout->field && layout->field->rw->is_selected) {
     UG_FontSelect(&FONT_CURSORS);
     UG_PutChar('0', layout->x + layout->width - FONT_CURSORS.char_width, // draw on ride side of line
         layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
-        layout->field->is_selected && blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
+        layout->field->rw->is_selected && blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
             C_TRANSPARENT);
   }
 }
@@ -227,9 +227,9 @@ static void drawSelectionMarker(FieldLayout *layout) {
 
   // also if the field is marked as dirty, we render just in case the reason it is dirty is that is was previously selected
   // FIXME - is_selected was probably a mistake, refactor to remove all these nasty field type checks
-  bool couldHaveCursor = field->dirty && ((field->variant == FieldEditable && !field->editable.read_only) || field->variant == FieldScrollable);
+  bool couldHaveCursor = field->rw->dirty && ((field->variant == FieldEditable && !field->editable.read_only) || field->variant == FieldScrollable);
 
-	if (field->is_selected || couldHaveCursor) {
+	if (field->rw->is_selected || couldHaveCursor) {
 		drawSelectionMarkerForced(layout);
 	}
 }
@@ -291,14 +291,14 @@ static Field* getField(const FieldLayout *layout) {
 
 /// Should we redraw this field this tick? We always render dirty items, or items that might need to show blink animations
 static bool needsRender(Field *field) {
-	if (field->dirty)
+	if (field->rw->dirty)
 		return true;
 
 	if (blinkChanged) {
-		if (field->blink)
+		if (field->rw->blink)
 			return true; // this field is doing a blink animation and it is time for that to update
 
-		if (field && field->is_selected)
+		if (field && field->rw->is_selected)
 			return true; // we also do a blink animation for our selection cursor
 	}
 	if (field->variant == FieldEditable)
@@ -329,7 +329,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 		Field *field = getField(layout); // we might be redirecting
 
 		if (forceRender) // tell the field it must redraw itself
-			field->dirty = true;
+			field->rw->dirty = true;
 
 		if (field->variant == FieldEditable) {
 			// If this field normally doesn't show the label, but M is pressed now, show it
@@ -371,7 +371,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 
 	// We clear the dirty bits in a separate pass because multiple layouts on the screen might share the same field
 	for (const FieldLayout *layout = layouts; layout->field; layout++) {
-		getField(layout)->dirty = false; // we call getField because we might be redirecting
+		getField(layout)->rw->dirty = false; // we call getField because we might be redirecting
 	}
 
 	if (didChangeForceLabels)
@@ -395,11 +395,11 @@ static void enterScrollable(Field *f) {
 	scrollableStack[scrollableStackPtr++] = f;
 
 	// We always set blink for scrollables, because they contain child items that might need to blink
-	f->blink = true;
+	f->rw->blink = true;
 
 	// NOTE: Only the root scrollable is ever checked for 'dirty' by the main screen renderer,
 	// so that's the one we set
-	scrollableStack[0]->dirty = true;
+	scrollableStack[0]->rw->dirty = true;
 
 	forceScrollableRelayout = true;
 }
@@ -417,7 +417,7 @@ static bool exitScrollable() {
 	Field *f = getActiveScrollable();
 	if (f) {
 		// Parent was a scrollable, show it
-		f->dirty = true;
+		f->rw->dirty = true;
 		forceScrollableRelayout = true;
 	} else {
 		// otherwise we just leave the screen
@@ -432,6 +432,10 @@ static bool exitScrollable() {
 #define MAX_SCROLLABLE_ROWS (SCREEN_HEIGHT / SCROLLABLE_ROW_HEIGHT) // Max number of rows we can show on one screen (including header)
 
 static int maxRowsPerScreen;
+
+static Field heading = FIELD_DRAWTEXT();
+static Field label = FIELD_DRAWTEXT();
+static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary FIELD_FILL
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 	const Coord rowHeight = EDITABLE_NUM_ROWS
@@ -449,9 +453,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 		static FieldLayout rows[MAX_SCROLLABLE_ROWS + 1]; // Used to layout each of the currently visible rows + heading + end of rows marker
 
 		if (forceScrollableRelayout) {
-			static Field blankRows[MAX_SCROLLABLE_ROWS]; // Used to fill with blank space if necessary
-			static Field heading = FIELD_DRAWTEXT();
-
 			bool hasMoreRows = true; // Once we reach an invalid row we stop rendering and instead fill with blank space
 
 			forceScrollableRelayout = false;
@@ -463,7 +464,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 				r->border = BorderNone;
 
 				if (i == 0) { // heading
-					heading.dirty = true; // Force the heading to be redrawn even if we aren't chaning the string
+					heading.rw->dirty = true; // Force the heading to be redrawn even if we aren't chaning the string
 					fieldPrintf(&heading, "%s", field->scrollable.label);
 					r->field = &heading;
 					r->color = ColorHeading;
@@ -482,7 +483,7 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 					r->inset_x = FONT_CURSORS.char_width; // move the value all the way to the right (but leave room for the cursor)
 
 					// visible menu rows, starting with where the user has scrolled to
-					const int entryNum = field->scrollable.first + i - 1;
+					const int entryNum = field->rw->scrollable.first + i - 1;
 
 					// Make entry NULL if we don't have any more rows
 					Field *entry = hasMoreRows ? &field->scrollable.entries[entryNum] : NULL;
@@ -492,20 +493,19 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 
 					// if the current row is valid, render that, otherwise render blank space
 					if (hasMoreRows) {
-						entry->dirty = true; // Force it to be redrawn
+						entry->rw->dirty = true; // Force it to be redrawn
 
 						r->field = entry;
-						entry->is_selected = (entryNum
-								== field->scrollable.selected);
-						entry->blink = entry->is_selected;
+						entry->rw->is_selected = (entryNum
+								== field->rw->scrollable.selected);
+						entry->rw->blink = entry->rw->is_selected;
 						r->color = ColorNormal; // force color because r points to a static object that holds previous color
 					} else {
 						r->field = &blankRows[i];
-						r->field->variant = FieldFill;
 						r->color = ColorInvert; // black box for empty slots at end
 					}
 
-					r->field->dirty = true; // Force rerender
+					r->field->rw->dirty = true; // Force rerender
 				}
 
 				rows[maxRowsPerScreen].field = NULL; // mark end of array (for rendering)
@@ -526,7 +526,6 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 		r->height = layout->height;
 		r->border = BorderNone;
 
-		static Field label = FIELD_DRAWTEXT();
 		fieldPrintf(&label, "%s", field->scrollable.label);
 		r->field = &label;
 		r->color = ColorNormal;
@@ -534,11 +533,11 @@ static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
 
 		// If we are inside a scrollable and selected, blink
 		if (scrollable)
-			label.is_selected =
+			label.rw->is_selected =
 					field
-							== &scrollable->scrollable.entries[scrollable->scrollable.selected];
+							== &scrollable->scrollable.entries[scrollable->rw->scrollable.selected];
 		else
-			label.is_selected = false;
+			label.rw->is_selected = false;
 		// label.blink = label.is_selected; // we no longer need to set blink if is_selected is set
 
 		rows[1].field = NULL; // mark end of array (for rendering)
@@ -913,13 +912,16 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx,
 // Update this readonly editable with a string value, str must point to a static buffer
 void updateReadOnlyStr(Field *field, char *str) {
 	assert(field->editable.typ == ReadOnlyStr); // Make sure the field is being used as provisioned
-	field->editable.target = str;
-	field->dirty = true;
+
+	assert(0);
+	// field->editable.target = str; // kevinh FIXME
+
+	field->rw->dirty = true;
 }
 
 UG_COLOR getEditableColor(Field *f, int32_t val) {
-  int32_t warn_threshold = convertToImperialIfNeeded(f, f->editable.number.warn_threshold);
-  int32_t error_threshold = convertToImperialIfNeeded(f, f->editable.number.error_threshold);
+  int32_t warn_threshold = convertToImperialIfNeeded(f, f->rw->editable.number.warn_threshold);
+  int32_t error_threshold = convertToImperialIfNeeded(f, f->rw->editable.number.error_threshold);
   UG_COLOR color = C_WHITE;
 
   // find if thresholds are inverted, like in the case of battery voltage
@@ -934,7 +936,7 @@ UG_COLOR getEditableColor(Field *f, int32_t val) {
   bool threshold_invalid = true;
   if (warn_threshold != -1 ||
       error_threshold != -1 ||
-      f->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
+      f->rw->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
     threshold_invalid = false;
 
   int threshold_delta = (error_threshold - warn_threshold) / 2;
@@ -1035,7 +1037,7 @@ static bool renderEditable(FieldLayout *layout) {
 	bool isActive = curActiveEditable == field; // are we being edited right now?
 	bool isCustomizing = g_curCustomizingField
 			&& g_curCustomizingField == parentCustomizable;
-	bool dirty = field->dirty;
+	bool dirty = field->rw->dirty;
 	bool showLabel = layout->label_align_x != AlignHidden;
 	bool layoutShowUnits = layout->show_units == Show;
 	bool showLabelAtTop = layout->label_align_y == AlignTop;
@@ -1083,7 +1085,7 @@ static bool renderEditable(FieldLayout *layout) {
 
 	// Do we need to handle a blink transition right now?
 	bool needBlink = blinkChanged
-			&& (isActive || field->is_selected || isCustomizing);
+			&& (isActive || field->rw->is_selected || isCustomizing);
 
 	// If the value numerically changed, see if it also changed as a string (much more expensive)
 	bool showValue = !forceLabels && (valueChanged || dirty || needBlink); // default to not drawing the value
@@ -1098,7 +1100,7 @@ static bool renderEditable(FieldLayout *layout) {
 			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 	}
 
-	bool thresholds_color = field->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED;
+	bool thresholds_color = field->rw->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED;
 	// see if color should fade depending on thresholds
 	UG_COLOR color;
 	if (thresholds_color)
@@ -1108,8 +1110,8 @@ static bool renderEditable(FieldLayout *layout) {
 	  color = C_WHITE;
 
   // if color changed, then make dirty
-  if (color != field->editable.number.previous_color) {
-      field->editable.number.previous_color = color;
+  if (color != field->rw->editable.number.previous_color) {
+      field->rw->editable.number.previous_color = color;
     dirty = true;
   }
 
@@ -1241,7 +1243,7 @@ static void graphClear(Field *field) {
 	UG_SetForecolor(GRAPH_COLOR_ACCENT);
 	UG_SetBackcolor(GRAPH_COLOR_BACKGROUND);
 
-	if (field->dirty) {
+	if (field->rw->dirty) {
 		// clear all
 		UG_FillFrame(graphX, graphY, graphX + graphWidth - 1,
 				graphY + graphHeight, GRAPH_COLOR_BACKGROUND);
@@ -1250,7 +1252,7 @@ static void graphClear(Field *field) {
 
 // Draw our axis lines and min/max numbers
 static void graphLabelAxisCustomize(Field *field) {
-  uint8_t x_axis_scale_config = field->graph.x_axis_scale_config;
+  uint8_t x_axis_scale_config = field->rw->graph.x_axis_scale_config;
 
   if (blinkOn == false) {
     putStringRight(SCREEN_WIDTH, graphYmin - 10 - 2, &GRAPH_XAXIS_FONT, "  ");
@@ -1285,16 +1287,16 @@ static void graphLabelAxisCustomize(Field *field) {
       case GRAPH_X_AXIS_SCALE_15M:
       case GRAPH_X_AXIS_SCALE_1H:
       case GRAPH_X_AXIS_SCALE_4H:
-        field->graph.x_axis_scale = x_axis_scale_config;
+        field->rw->graph.x_axis_scale = x_axis_scale_config;
         break;
 
       // use reference scale for the auto mode
       // bits of g_xAxisReferenceScale are set dependind on reference the scale
       case GRAPH_X_AXIS_SCALE_AUTO:
         if (g_xAxisReferenceScale & 2)
-          field->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
+          field->rw->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
         else if (g_xAxisReferenceScale & 1)
-          field->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
+          field->rw->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
         break;
     }
   }
@@ -1306,9 +1308,9 @@ static void graphLabelAxisCustomize(Field *field) {
   bool draw_y_label_max = true;
   bool draw_y_label_min = true;
   uint8_t x_axis_scale;
-  x_axis_scale = field->graph.x_axis_scale;
+  x_axis_scale = field->rw->graph.x_axis_scale;
   Field *source = field->graph.source;
-  GraphData *graph = field->graph.data[x_axis_scale];
+  GraphData *graph = field->rw->graph.data[x_axis_scale];
   if(!graph) // no data yet
     return;
 
@@ -1361,7 +1363,7 @@ static void graphLabelAxis(Field *field) {
 
 	// Only need to draw labels and axis if dirty
 	Field *source = field->graph.source;
-	if (field->dirty ||
+	if (field->rw->dirty ||
 	    g_graphs_ui_update[0] == true ||
       g_graphs_ui_update[1] == true ||
       g_graphs_ui_update[2] == true) {
@@ -1379,7 +1381,7 @@ static void graphLabelAxis(Field *field) {
 
 		// x axis scale
     uint8_t x_axis_scale;
-    x_axis_scale = field->graph.x_axis_scale;
+    x_axis_scale = field->rw->graph.x_axis_scale;
     if (g_CustomizingGraphXAxis == NULL) {
       switch (x_axis_scale) {
         default:
@@ -1398,7 +1400,7 @@ static void graphLabelAxis(Field *field) {
     }
 
     // draw max value
-    GraphData *graph = field->graph.data[x_axis_scale];
+    GraphData *graph = field->rw->graph.data[x_axis_scale];
     if(!graph) // no data yet
       return;
 
@@ -1414,7 +1416,7 @@ static void graphLabelAxis(Field *field) {
 
     // draw if value changed or dirty
     if((graph->max_val != max_val_pre ||
-        field->dirty) &&
+        field->rw->dirty) &&
         draw_y_label_max) {
       max_val_pre = graph->max_val;
 
@@ -1427,7 +1429,7 @@ static void graphLabelAxis(Field *field) {
 
     // draw if value changed or dirty
     if((graph->min_val != min_val_pre ||
-        field->dirty) &&
+        field->rw->dirty) &&
         draw_y_label_min) {
       min_val_pre = graph->min_val;
 
@@ -1460,8 +1462,8 @@ static inline int32_t graphScaleY(GraphData *graph, int32_t x) {
 
 static void graphDrawPoints(Field *field) {
   static bool end_valid_overflow = 0;
-  uint8_t x_axis_scale = field->graph.x_axis_scale;
-	GraphData *graph = field->graph.data[x_axis_scale];
+  uint8_t x_axis_scale = field->rw->graph.x_axis_scale;
+	GraphData *graph = field->rw->graph.data[x_axis_scale];
   Field *source = field->graph.source;
 	if(!graph)
 		return; // no data yet
@@ -1484,8 +1486,8 @@ static void graphDrawPoints(Field *field) {
 	int x = graphXmin; // the vertical axis line
 
 	// user may had used imperial units
-	int warn_threshold = convertToImperialIfNeeded(source, field->graph.warn_threshold);
-	int error_threshold = convertToImperialIfNeeded(source, field->graph.error_threshold);
+	int warn_threshold = convertToImperialIfNeeded(source, field->graph.source->rw->editable.number.warn_threshold);
+	int error_threshold = convertToImperialIfNeeded(source, field->graph.source->rw->editable.number.error_threshold);
 
 	// find if thresholds are inverted, like in the case of battery voltage
 	bool threshold_inverted = false;
@@ -1499,7 +1501,7 @@ static void graphDrawPoints(Field *field) {
 	bool threshold_invalid = true;
 	if (warn_threshold != -1 ||
 	    error_threshold != -1 ||
-	    field->graph.source->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
+	    field->graph.source->rw->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED)
 	  threshold_invalid = false;
 
 	int threshold_delta = (error_threshold - warn_threshold) / 2;
@@ -1668,13 +1670,13 @@ static bool renderGraph(FieldLayout *layout) {
 	bool needBlink = (blinkChanged && isCustomizing) || g_changeXAxisTrigger;
 
 	if (needBlink)
-		field->dirty = true; // Force a complete redraw if blink changed
+		field->rw->dirty = true; // Force a complete redraw if blink changed
 
   // If we are not dirty and we don't need an update, just return
 	if ((!(g_graphs_ui_update[0] == true ||
 	    g_graphs_ui_update[1] == true ||
 	    g_graphs_ui_update[2] == true)) &&
-	        !field->dirty)
+	        !field->rw->dirty)
 		return false;
 
 	Field *source = field->graph.source;
@@ -1735,7 +1737,7 @@ static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr,
 static void forceScrollableRender() {
 	Field *active = getActiveScrollable();
 	if (active) {
-		scrollableStack[0]->dirty = true; // the gui thread only looks in the root scrollable to find dirty
+		scrollableStack[0]->rw->dirty = true; // the gui thread only looks in the root scrollable to find dirty
 		forceScrollableRelayout = true;
 	}
 }
@@ -1743,7 +1745,7 @@ static void forceScrollableRender() {
 // Mark a new editable as active (and that it now wants to be animated)
 static void setActiveEditable(Field *clicked) {
 	if (curActiveEditable) {
-		curActiveEditable->blink = false;
+		curActiveEditable->rw->blink = false;
 
 		// callback onPreSetEditable
 	  void (*onPreSetEditable)(uint32_t) = curActiveEditable->editable.number.onPreSetEditable;
@@ -1757,8 +1759,8 @@ static void setActiveEditable(Field *clicked) {
 	curActiveEditable = clicked;
 
 	if (clicked) {
-		clicked->dirty = true; // force redraw with highlighting
-		clicked->blink = true;
+		clicked->rw->dirty = true; // force redraw with highlighting
+		clicked->rw->blink = true;
 
 		// get initial value for editing
 		curEditableValueConverted = getEditableNumber(clicked, true);
@@ -1791,12 +1793,12 @@ static bool onPressEditable(buttons_events_t events) {
 	}
 
 	if (handled) {
-		s->dirty = true; // redraw our position
+		s->rw->dirty = true; // redraw our position
 
 		// If we are inside a scrollable, tell the GUI that scrollable also needs to be redrawn
 		Field *scrollable = getActiveScrollable();
 		if (scrollable) {
-			scrollableStack[0]->dirty = true; // we just changed something, make sure we get a chance to be redrawn
+			scrollableStack[0]->rw->dirty = true; // we just changed something, make sure we get a chance to be redrawn
 		}
 	}
 
@@ -1824,34 +1826,34 @@ static bool onPressScrollable(buttons_events_t events) {
 	if (!s)
 		return false; // no scrollable is active
 
-	Field *curActive = &s->scrollable.entries[s->scrollable.selected];
+	Field *curActive = &s->scrollable.entries[s->rw->scrollable.selected];
 
   if (events & (UP_CLICK | DOWN_CLICK)) {
     // Before we move away, mark the current item as dirty, so it will be redrawn (prevent leaving blinking arrow turds on the screen)
-    curActive->dirty = true;
+    curActive->rw->dirty = true;
 
     // Go to previous
     if(events & UP_CLICK) {
-      if (s->scrollable.selected >= 1) {
-        s->scrollable.selected--;
+      if (s->rw->scrollable.selected >= 1) {
+        s->rw->scrollable.selected--;
       }
 
-      if (s->scrollable.selected < s->scrollable.first) // we need to scroll the whole list up some
-        s->scrollable.first = s->scrollable.selected;
+      if (s->rw->scrollable.selected < s->rw->scrollable.first) // we need to scroll the whole list up some
+        s->rw->scrollable.first = s->rw->scrollable.selected;
     }
 
     // Go to next
     if (events & DOWN_CLICK) {
       int numEntries = countEntries(s);
 
-      if (s->scrollable.selected < numEntries - 1) {
-        s->scrollable.selected++;
+      if (s->rw->scrollable.selected < numEntries - 1) {
+        s->rw->scrollable.selected++;
       }
 
       int numDataRows = maxRowsPerScreen - 1;
-      int lastVisibleRow = s->scrollable.first + numDataRows - 1;
-      if (s->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
-        s->scrollable.first = s->scrollable.selected - numDataRows + 1;
+      int lastVisibleRow = s->rw->scrollable.first + numDataRows - 1;
+      if (s->rw->scrollable.selected > lastVisibleRow) // we need to scroll the whole list down some
+        s->rw->scrollable.first = s->rw->scrollable.selected - numDataRows + 1;
     }
 
     forceScrollableRender();
@@ -1923,7 +1925,7 @@ static void selectNextCustomizableField(bool increase) {
 	if (increase) {
     // Force the field we are leaving to get redrawn (to not leave turds around)
     if (g_curCustomizingField) {
-      g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector]->dirty = true;
+      g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector]->rw->dirty = true;
     }
 
     g_customizableFieldIndex = (g_customizableFieldIndex + 1) % CUSTOMIZABLE_FIELDS_SIZE;
@@ -1970,13 +1972,13 @@ static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 
 static void changeXAxis(uint8_t ui8_direction) {
   if (ui8_direction) {
-    g_CustomizingGraphXAxis->graph.x_axis_scale_config =
-        (g_CustomizingGraphXAxis->graph.x_axis_scale_config + 1) % 4;
+    g_CustomizingGraphXAxis->rw->graph.x_axis_scale_config =
+        (g_CustomizingGraphXAxis->rw->graph.x_axis_scale_config + 1) % 4;
   } else {
-    if (g_CustomizingGraphXAxis->graph.x_axis_scale_config > 0)
-      g_CustomizingGraphXAxis->graph.x_axis_scale_config--;
+    if (g_CustomizingGraphXAxis->rw->graph.x_axis_scale_config > 0)
+      g_CustomizingGraphXAxis->rw->graph.x_axis_scale_config--;
     else
-      g_CustomizingGraphXAxis->graph.x_axis_scale_config = 3;
+      g_CustomizingGraphXAxis->rw->graph.x_axis_scale_config = 3;
   }
 
   g_changeXAxisTrigger = true;
@@ -2029,11 +2031,11 @@ static bool onPressCustomizing(buttons_events_t events) {
   if (events & UPDOWN_CLICK) {
     if (g_CustomizingGraphXAxis) {
       g_curCustomizingField = g_curCustomizingFieldBackup;
-      g_CustomizingGraphXAxis->dirty = true;
+      g_CustomizingGraphXAxis->rw->dirty = true;
       g_CustomizingGraphXAxis = NULL;
     } else {
       g_CustomizingGraphXAxis = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
-      g_CustomizingGraphXAxis->dirty = true;
+      g_CustomizingGraphXAxis->rw->dirty = true;
       g_curCustomizingFieldBackup = g_curCustomizingField;
       g_curCustomizingField = NULL;
     }
@@ -2044,10 +2046,10 @@ static bool onPressCustomizing(buttons_events_t events) {
 // click power button to exit out of menus
 	if (events & SCREENCLICK_STOP_CUSTOMIZING) {
     Field *oldSelected = g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector];
-    oldSelected->dirty = true; // force a redraw (to remove any turds)
+    oldSelected->rw->dirty = true; // force a redraw (to remove any turds)
 
     g_curCustomizingField = NULL;
-    g_CustomizingGraphXAxis->dirty = true;
+    g_CustomizingGraphXAxis->rw->dirty = true;
     g_CustomizingGraphXAxis = NULL;
 
     if(curScreen->onCustomized)
@@ -2150,13 +2152,13 @@ void screenUpdate() {
 void fieldPrintf(Field *field, const char *fmt, ...) {
 	va_list argp;
 	va_start(argp, fmt);
-	char buf[sizeof(field->drawText.msg)] = "";
+	char buf[MAX_FIELD_LEN];
 
 	assert(field->variant == FieldDrawText);
 	vsnprintf(buf, sizeof(buf), fmt, argp);
-	if (strcmp(buf, field->drawText.msg) != 0) {
-		strcpy(field->drawText.msg, buf);
-		field->dirty = true;
+	if (strncmp(buf, field->drawTextPtr.msg, sizeof(buf)) != 0) {
+		strcpy(field->drawTextPtr.msg, buf); // because our field is DrawText we are guaranteed the dest array is in RAM
+		field->rw->dirty = true;
 	}
 
 	va_end(argp);
@@ -2170,7 +2172,7 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
 
   for (int i = 0; activeGraphs->customizable.choices[i]; i++) {
     Field *f = activeGraphs->customizable.choices[i];
-    GraphData *graphData = f->graph.data[index];
+    GraphData *graphData = f->rw->graph.data[index];
     assert(graphData); // better be !NULL by now or we screwed up
 
     // filter
@@ -2214,18 +2216,18 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
       }
 
       // increase X axis scale when graph is full
-      if (f->graph.x_axis_scale_config == GRAPH_X_AXIS_SCALE_AUTO) {
+      if (f->rw->graph.x_axis_scale_config == GRAPH_X_AXIS_SCALE_AUTO) {
         // use reference scale for the auto mode
         // bits of g_xAxisReferenceScale are set dependind on reference the scale
         if (g_xAxisReferenceScale & 2) {
-          if (f->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_4H) {
-            f->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
+          if (f->rw->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_4H) {
+            f->rw->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_4H;
             g_changeXAxisTrigger = true;
           }
         }
         else if (g_xAxisReferenceScale & 1) {
-          if (f->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_1H) {
-            f->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
+          if (f->rw->graph.x_axis_scale != GRAPH_X_AXIS_SCALE_1H) {
+            f->rw->graph.x_axis_scale = GRAPH_X_AXIS_SCALE_1H;
             g_changeXAxisTrigger = true;
           }
         }
@@ -2279,21 +2281,24 @@ void rt_graph_process(void) {
     	assert(f->variant == FieldGraph);
 
     	// Select a data pool from our cache
-    	if(!f->graph.data[0]) {
+    	if(!f->rw->graph.data[0]) {
         assert(numGraphs < GRAPH_VARIANT_SIZE);
-        f->graph.data[0] = &g_graphData[numGraphs][0];
-        f->graph.data[1] = &g_graphData[numGraphs][1];
-        f->graph.data[2] = &g_graphData[numGraphs][2];
+        f->rw->graph.data[0] = &g_graphData[numGraphs][0];
+        f->rw->graph.data[1] = &g_graphData[numGraphs][1];
+        f->rw->graph.data[2] = &g_graphData[numGraphs][2];
         numGraphs++;
     	}
 
     	Field *fieldGraphEditable = f->graph.source; // get the backing data source for this graph
 
     	int32_t target = getEditableNumber(fieldGraphEditable, true);
-    	f->graph.data[0]->sum += target;
-    	f->graph.data[1]->sum += target;
-    	f->graph.data[2]->sum += target;
+    	f->rw->graph.data[0]->sum += target;
+    	f->rw->graph.data[1]->sum += target;
+    	f->rw->graph.data[2]->sum += target;
     }
+
+    // @casainho if you define something like NUM_TIMESCALES 3 (see my comment in screen.h), you don't need to do this copypasta and can instead just have one bit of code
+    // inside of a loop.  Which also has the nice property of letting you at compile time change the number of possible timescales and everything will just work.
 
     // now calculate the filtered value for each new point and add to graph data array
     uint32_t update_graph_data;
@@ -2339,5 +2344,8 @@ void graph_init(void) {
 }
 
 void screen_init(void) {
+  assert(0);
+  // FIXME - fill blankRows with FieldFill
+
   graph_init();
 }

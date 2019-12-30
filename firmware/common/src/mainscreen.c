@@ -86,6 +86,7 @@ Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temp
 Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
 Field pwmDutyField = FIELD_READONLY_UINT("motor pwm", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
 Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0);
+
 Field warnField = FIELD_CUSTOM(renderWarning);
 
 /**

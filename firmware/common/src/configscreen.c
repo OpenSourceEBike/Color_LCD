@@ -132,6 +132,8 @@ static Field displayMenus[] =
   FIELD_EDITABLE_UINT("Auto power off", &ui_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
   FIELD_EDITABLE_ENUM("Units", &ui_vars.ui8_units_type, "SI", "Imperial"),
 #ifndef SW102
+//  FIELD_READONLY_STRING("Display firmware", ""),
+//  FIELD_READONLY_STRING("TSDZ2 firmware", ""),
   FIELD_READONLY_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
 #endif
   FIELD_EDITABLE_ENUM("Reset to defaults", &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
@@ -340,6 +342,15 @@ static void configExit() {
 
 static void configPreUpdate() {
   set_conversions(); // while in the config menu we might change units at any time - keep the display looking correct
+
+//  updateReadOnlyStr(&displayMenus[7], VERSION_STRING);
+//
+//  static char firmware_version[11]; // 123.123.123
+//  sprintf(firmware_version, "%d.%d.%d",
+//          g_tsdz2_firmware_version.major,
+//          g_tsdz2_firmware_version.minor,
+//          g_tsdz2_firmware_version.patch);
+//  updateReadOnlyStr(&displayMenus[7], firmware_version);
 }
 
 //

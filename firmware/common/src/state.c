@@ -169,6 +169,9 @@ void rt_send_tx_package(uint8_t type) {
         ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_walk_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
       } else if (rt_vars.ui8_assist_level) {
         ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+      } else {
+        // if rt_vars.ui8_assist_level = 0, send 0!! always disable motor when assist level is 0
+        ui8_usart1_tx_buffer[3] = 0;
       }
 
       ui8_usart1_tx_buffer[4] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);

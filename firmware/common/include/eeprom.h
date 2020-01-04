@@ -139,28 +139,28 @@ void eeprom_init_defaults(void);
 
 // *************************************************************************** //
 // EEPROM memory variables default values
-#define DEFAULT_VALUE_ASSIST_LEVEL                                  3
-#define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       5
-#define DEFAULT_VALUE_WHEEL_PERIMETER                               2050 // 26'' wheel: 2050mm perimeter
+#define DEFAULT_VALUE_ASSIST_LEVEL                                  0
+#define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       9
+#define DEFAULT_VALUE_WHEEL_PERIMETER                               2100 // 27.5'' wheel: 2100mm perimeter
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
-#define DEFAULT_VALUE_HW_X10_100_PERCENT                            5000 // default to a battery of 500 Wh
+#define DEFAULT_VALUE_HW_X10_100_PERCENT                            4000 // default to a battery of 400 Wh
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
-#define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
-#define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   50 // 5.0 amps per second ramp up
+#define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           10 // 10 amps
+#define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   60 // 6.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
-#define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          13 // 13 --> 48V
-#define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               390 // 48v battery, LVC = 39.0 (3.0 * 13)
+#define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          14 // 14 --> 52V
+#define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
 #define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         4
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         6
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         9
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         14
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         1 // 0.2
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         2
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         3
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         4
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         6
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         9
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         21
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         32
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         48
@@ -191,15 +191,15 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85 // 85 degrees celsius
 #define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
-#define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            15 // 15 minutes, each unit 1 minute
+#define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            60 // 60 minutes, each unit 1 minute
 #ifdef SW102
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   100 // 8 = 40%
 #define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  20 // 20 = 100%
 #else
-#define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   30 // 100 = 100%
+#define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   15 // 100 = 100%
 #define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  100
 #endif
-#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       130 // 48v battery, 13S5P measured 130 milli ohms
+#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       200 // 48v battery, 14S3P measured 200 milli ohms
 #define DEFAULT_VALUE_OFFROAD_FEATURE_ENABLED                       0
 #define DEFAULT_VALUE_OFFROAD_MODE_ENABLED_ON_STARTUP               0
 #define DEFAULT_VALUE_OFFROAD_SPEED_LIMIT                           25
@@ -207,7 +207,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
-#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        1 // invert state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 #define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one
@@ -215,38 +215,37 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                304
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                292
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_2             5
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                332
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                317
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_3             10
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                356
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                331
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_4             15
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                372
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                338
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_5             19
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                380
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             43
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                396
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             57
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                402
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_8             110
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                416
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                342
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             30
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                350
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             54
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                359
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_8             105
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                369
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_1             0
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                304
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                292
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_2             5
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                336
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                324
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_3             10
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                364
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                340
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_4             15
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                380
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                354
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_5             19
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                388
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             43
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                404
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             57
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                408
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             110
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                422
-
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                360
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             30
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                370
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             52
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                378
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             105
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                386
 
 // *************************************************************************** //
 

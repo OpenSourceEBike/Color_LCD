@@ -164,10 +164,10 @@ void USART1_IRQHandler()
   }
 }
 
-void usart1_start_dma_transfer(void)
+void usart1_start_dma_transfer(uint8_t ui8_len)
 {
   DMA_Cmd(DMA1_Channel4, DISABLE);
-  DMA_SetCurrDataCounter(DMA1_Channel4, UART_NUMBER_DATA_BYTES_TO_SEND + 3);
+  DMA_SetCurrDataCounter(DMA1_Channel4, ui8_len);
   DMA_Cmd(DMA1_Channel4, ENABLE);
 }
 

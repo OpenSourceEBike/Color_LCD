@@ -241,7 +241,10 @@ void rt_send_tx_package(uint8_t type) {
         ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_right[i][1] >> 8);
       }
 
-      crc_len = 82;
+      // battery current min ADC
+      ui8_usart1_tx_buffer[81] = rt_vars.ui8_battery_current_min_adc;
+
+      crc_len = 83;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 	}
@@ -258,7 +261,7 @@ void rt_send_tx_package(uint8_t type) {
 
 	// send the full package to UART
 	if (!g_is_sim_motor) // If we are simulating received packets never send real packets
-		uart_send_tx_buffer(ui8_usart1_tx_buffer);
+		uart_send_tx_buffer(ui8_usart1_tx_buffer, ui8_usart1_tx_buffer[1] + 2);
 }
 
 void rt_low_pass_filter_battery_voltage_current_power(void) {
@@ -533,6 +536,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_walk_assist = ui_vars.ui8_walk_assist;
 	rt_vars.ui8_offroad_mode = ui_vars.ui8_offroad_mode;
 	rt_vars.ui8_battery_max_current = ui_vars.ui8_battery_max_current;
+	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_battery_current_min_adc;
 	rt_vars.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars.ui8_ramp_up_amps_per_second_x10;
 	rt_vars.ui8_target_max_battery_power = ui_vars.ui8_target_max_battery_power;
@@ -657,7 +661,7 @@ void communications(void) {
 //  static uint8_t state = 0;
   static uint32_t num_missed_packets = 0;
   uint8_t ui8_frame_type = 0;
-  uint8_t ui8_cnt = 0;
+  static uint8_t ui8_cnt = 0;
   bool periodic_answer_received = false;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();

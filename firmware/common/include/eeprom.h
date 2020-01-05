@@ -36,6 +36,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_battery_soc_enable;
 	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_battery_max_current;
+  uint8_t ui8_battery_current_min_adc;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint8_t ui8_battery_cells_number;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
@@ -149,6 +150,7 @@ void eeprom_init_defaults(void);
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           10 // 10 amps
+#define DEFAULT_VALUE_BATTERY_CURRENT_MIN_ADC                       1 // 1 unit, 0.156 A
 #define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   60 // 6.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
 #define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          14 // 14 --> 52V

@@ -13,6 +13,7 @@ static Field wheelMenus[] =
 static Field batteryMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max current", &ui_vars.ui8_battery_max_current, "amps", 1, 30),
+						FIELD_EDITABLE_UINT("Min current ADC step", &ui_vars.ui8_battery_current_min_adc, "amps", 0, 13), // 13 ADC steps = 2 amps
 						FIELD_EDITABLE_UINT("Current ramp", &ui_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Low cut-off", &ui_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Num cells", &ui_vars.ui8_battery_cells_number, "", 7, 15),

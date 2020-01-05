@@ -120,7 +120,7 @@ Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_
 Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &rt_vars.ui8_motor_temperature, "C", false);
 Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &rt_vars.ui16_motor_speed_erps, "", false);
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_duty_cycle, "", false);
-Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
+//Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
 
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
@@ -135,7 +135,7 @@ Field batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1, 
 Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
-Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
+//Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .warn_threshold = -1, .error_threshold = -1);
 
 // Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
@@ -150,8 +150,8 @@ Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   &batterySOCGraph,
                                   &motorTempGraph,
                                   &motorErpsGraph,
-                                  &pwmDutyGraph,
-                                  &motorFOCGraph);
+                                  &pwmDutyGraph);
+//                                  &motorFOCGraph);
 #else
 Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   NULL);
@@ -621,10 +621,10 @@ void thresholds(void) {
     motorFOCField.editable.number.error_threshold = motorFOCField.editable.number.config_error_threshold;
     motorFOCField.editable.number.warn_threshold = motorFOCField.editable.number.config_warn_threshold;
   }
-  // replicate the state to the other field
-  motorFOCFieldGraph.editable.number.auto_thresholds = motorFOCField.editable.number.auto_thresholds;
-  motorFOCGraph.graph.error_threshold = motorFOCField.editable.number.error_threshold;
-  motorFOCGraph.graph.warn_threshold = motorFOCField.editable.number.warn_threshold;
+//  // replicate the state to the other field
+//  motorFOCFieldGraph.editable.number.auto_thresholds = motorFOCField.editable.number.auto_thresholds;
+//  motorFOCGraph.graph.error_threshold = motorFOCField.editable.number.error_threshold;
+//  motorFOCGraph.graph.warn_threshold = motorFOCField.editable.number.warn_threshold;
 #endif
 }
 

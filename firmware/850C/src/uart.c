@@ -37,8 +37,8 @@ uint8_t* uart_get_tx_buffer(void)
 /**
  * @brief Send TX buffer over UART.
  */
-void uart_send_tx_buffer(uint8_t *tx_buffer)
+void uart_send_tx_buffer(uint8_t *tx_buffer, uint8_t ui8_len)
 {
   // start DMA UART transfer
-  usart1_start_dma_transfer();
+  usart1_start_dma_transfer(ui8_len);
 }

@@ -69,6 +69,7 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_target_max_battery_power;
 	uint8_t ui8_battery_cells_number;
 	uint8_t ui8_battery_max_current;
+  uint8_t ui8_battery_current_min_adc;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint16_t ui16_battery_voltage_reset_wh_counter_x10;
@@ -158,6 +159,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_target_max_battery_power;
 	uint8_t ui8_battery_cells_number;
 	uint8_t ui8_battery_max_current;
+	uint8_t ui8_battery_current_min_adc;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint16_t ui16_battery_voltage_reset_wh_counter_x10;

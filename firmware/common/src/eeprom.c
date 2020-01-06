@@ -131,7 +131,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .graph_eeprom[9].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[10].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[11].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[12].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+//    .graph_eeprom[12].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
 
     .tripDistanceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .odoField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,

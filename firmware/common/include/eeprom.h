@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x20
-#define EEPROM_VERSION 0x20
+#define EEPROM_MIN_COMPAT_VERSION 0x22
+#define EEPROM_VERSION 0x22
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -36,6 +36,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_battery_soc_enable;
 	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_battery_max_current;
+	uint8_t ui8_motor_max_current;
   uint8_t ui8_battery_current_min_adc;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint8_t ui8_battery_cells_number;
@@ -149,7 +150,8 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            4000 // default to a battery of 400 Wh
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
-#define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           10 // 10 amps
+#define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
+#define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             25 // 25 amps
 #define DEFAULT_VALUE_BATTERY_CURRENT_MIN_ADC                       1 // 1 unit, 0.156 A
 #define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   60 // 6.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
@@ -157,15 +159,15 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
 #define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         1 // 0.2
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         2
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         3
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         4
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         6
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         9
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         21
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         32
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         48
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         6
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         9
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         15
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         25
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         42
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         69
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         115
 #define DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED                   1
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    5
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    6
@@ -192,7 +194,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MIN_VALUE_LIMIT             75 // 75 degrees celsius
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_MAX_VALUE_LIMIT             85 // 85 degrees celsius
-#define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          542 // 48v battery, 54.2 volts fully charged
+#define DEFAULT_VALUE_BATTERY_VOLTAGE_RESET_WH_COUNTER_X10          554 // 52v battery, 55.8 volts at fully charged
 #define DEFAULT_VALUE_LCD_POWER_OFF_TIME                            60 // 60 minutes, each unit 1 minute
 #ifdef SW102
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   100 // 8 = 40%
@@ -201,7 +203,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_LCD_BACKLIGHT_ON_BRIGHTNESS                   15 // 100 = 100%
 #define DEFAULT_VALUE_LCD_BACKLIGHT_OFF_BRIGHTNESS                  100
 #endif
-#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       200 // 48v battery, 14S3P measured 200 milli ohms
+#define DEFAULT_VALUE_BATTERY_PACK_RESISTANCE                       300 // 52v battery, 14S3P measured 300 milli ohms
 #define DEFAULT_VALUE_OFFROAD_FEATURE_ENABLED                       0
 #define DEFAULT_VALUE_OFFROAD_MODE_ENABLED_ON_STARTUP               0
 #define DEFAULT_VALUE_OFFROAD_SPEED_LIMIT                           25
@@ -209,7 +211,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
-#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        1 // invert state
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 #define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one

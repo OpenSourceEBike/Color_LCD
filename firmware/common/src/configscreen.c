@@ -7,7 +7,6 @@ static Field wheelMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max speed", &ui_vars.wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
 						FIELD_EDITABLE_UINT("Circumference", &ui_vars.ui16_wheel_perimeter, "mm", 750, 3000, .inc_step = 10),
-						FIELD_EDITABLE_UINT("Odometer", &ui_vars.ui32_odometer_x10, "km", 0, UINT32_MAX, .div_digits = 1, .inc_step = 100, .onPreSetEditable = onSetConfigurationWheelOdometer),
 				FIELD_END };
 
 static Field batteryMenus[] =
@@ -29,6 +28,11 @@ static Field batterySOCMenus[] =
 						FIELD_EDITABLE_UINT(_S("Battery total Wh", "Battery total"), &ui_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .div_digits = 1, .inc_step = 100),
 						FIELD_EDITABLE_UINT("Used Wh", &ui_vars.ui32_wh_x10_offset, "whr", 0, 99900, .div_digits = 1, .inc_step = 100),
 				FIELD_END };
+
+static Field motorMenus[] = {
+            FIELD_EDITABLE_ENUM("Motor voltage", &ui_vars.ui8_motor_type, "48V", "36V", "exp 48V", "exp 36V"),
+            FIELD_EDITABLE_UINT("Max current", &ui_vars.ui8_motor_max_current, "amps", 1, 30),
+        FIELD_END };
 
 static Field torqueSensorMenus[] =
     {
@@ -152,8 +156,8 @@ static Field offroadMenus[] = {
 #endif
 
 static Field variousMenus[] = {
-  FIELD_EDITABLE_ENUM("Motor voltage", &ui_vars.ui8_motor_type, "48V", "36V", "expert"),
-  FIELD_EDITABLE_ENUM("Motor assist", &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
+    FIELD_EDITABLE_ENUM("Assist w/o pedal rot", &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
+    FIELD_EDITABLE_UINT("Odometer", &ui_vars.ui32_odometer_x10, "km", 0, UINT32_MAX, .div_digits = 1, .inc_step = 100, .onPreSetEditable = onSetConfigurationWheelOdometer),
   FIELD_END };
 
 #ifndef SW102
@@ -303,6 +307,7 @@ static Field topMenus[] = {
   FIELD_SCROLLABLE("Wheel", wheelMenus),
   FIELD_SCROLLABLE("Battery", batteryMenus),
   FIELD_SCROLLABLE(_S("Battery SOC", "Bat SOC"), batterySOCMenus),
+  FIELD_SCROLLABLE(_S("Motor", "Motor"), motorMenus),
   FIELD_SCROLLABLE(_S("Torque sensor", "Torque sen"), torqueSensorMenus),
   FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),
   FIELD_SCROLLABLE(_S("Walk assist", "Walk"), walkAssistMenus),

@@ -30,6 +30,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .ui8_battery_soc_symbol = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL,
 		.ui8_battery_soc_enable = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC,
 		.ui8_battery_max_current = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
+		.ui8_motor_max_current = DEFAULT_VALUE_MOTOR_MAX_CURRENT,
 	  .ui8_battery_current_min_adc = DEFAULT_VALUE_BATTERY_CURRENT_MIN_ADC,
 		.ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
 		.ui8_battery_cells_number = DEFAULT_VALUE_BATTERY_CELLS_NUMBER,
@@ -105,8 +106,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.field_selectors = {
 				3, // GRAPH: wheel speed
 				0, // trip time
+        5, // human power
 				1, // trip distance
-				5, // human power
 				6, // motor power
     },
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
@@ -244,6 +245,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_battery_soc_symbol;
 	ui_vars->ui8_battery_max_current =
 			m_eeprom_data.ui8_battery_max_current;
+  ui_vars->ui8_motor_max_current =
+      m_eeprom_data.ui8_motor_max_current;
   ui_vars->ui8_battery_current_min_adc =
       m_eeprom_data.ui8_battery_current_min_adc;
 	ui_vars->ui8_ramp_up_amps_per_second_x10 =
@@ -442,6 +445,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_battery_soc_symbol;
 	m_eeprom_data.ui8_battery_max_current =
 			ui_vars->ui8_battery_max_current;
+  m_eeprom_data.ui8_motor_max_current =
+      ui_vars->ui8_motor_max_current;
   m_eeprom_data.ui8_battery_current_min_adc =
       ui_vars->ui8_battery_current_min_adc;
 	m_eeprom_data.ui8_ramp_up_amps_per_second_x10 =

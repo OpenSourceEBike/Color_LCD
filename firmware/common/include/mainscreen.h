@@ -26,6 +26,7 @@ extern Field
   batteryPowerField,
   batteryVoltageField,
   batteryCurrentField,
+  motorCurrentField,
   batterySOCField,
   motorTempField,
   motorErpsField,

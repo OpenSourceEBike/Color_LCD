@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x22
-#define EEPROM_VERSION 0x22
+#define EEPROM_MIN_COMPAT_VERSION 0x23
+#define EEPROM_VERSION 0x23
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -37,7 +37,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_motor_max_current;
-  uint8_t ui8_battery_current_min_adc;
+  uint8_t ui8_motor_current_min_adc;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint8_t ui8_battery_cells_number;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
@@ -151,9 +151,9 @@ void eeprom_init_defaults(void);
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
-#define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             25 // 25 amps
-#define DEFAULT_VALUE_BATTERY_CURRENT_MIN_ADC                       1 // 1 unit, 0.156 A
-#define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   60 // 6.0 amps per second ramp up
+#define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             16 // 16 amps
+#define DEFAULT_VALUE_CURRENT_MIN_ADC                                1 // 1 unit, 0.156 A
+#define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   80 // 8.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
 #define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          14 // 14 --> 52V
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
@@ -161,34 +161,34 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         6
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         9
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         15
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         25
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         42
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         69
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         115
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         5
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         8
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         12
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         18
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         27
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         41
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         62
 #define DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED                   1
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    5
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    6
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_3                    8
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_4                    10
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_5                    12
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_6                    14
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7                    16
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    18
-#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    20
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    35
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    40
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_3                    45
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_4                    50
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_5                    55
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_6                    60
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7                    70
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    80
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    90
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED     0
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS              1
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      4
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_2      7
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_3      10
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_4      13
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_5      16
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_6      19
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_7      22
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_8      25
-#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_9      28
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      5
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_2      8
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_3      12
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_4      18
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_5      27
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_6      41
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_7      62
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_8      93
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_9      140
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_TIME                20 // 2.0 seconds
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
@@ -211,7 +211,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
-#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        1 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 #define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one

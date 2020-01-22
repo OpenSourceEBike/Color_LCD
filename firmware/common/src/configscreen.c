@@ -12,8 +12,6 @@ static Field wheelMenus[] =
 static Field batteryMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max current", &ui_vars.ui8_battery_max_current, "amps", 1, 30),
-						FIELD_EDITABLE_UINT("Min current ADC step", &ui_vars.ui8_battery_current_min_adc, "amps", 0, 13), // 13 ADC steps = 2 amps
-						FIELD_EDITABLE_UINT("Current ramp", &ui_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Low cut-off", &ui_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Num cells", &ui_vars.ui8_battery_cells_number, "", 7, 15),
 						FIELD_EDITABLE_UINT("Resistance", &ui_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
@@ -32,6 +30,8 @@ static Field batterySOCMenus[] =
 static Field motorMenus[] = {
             FIELD_EDITABLE_ENUM("Motor voltage", &ui_vars.ui8_motor_type, "48V", "36V", "exp 48V", "exp 36V"),
             FIELD_EDITABLE_UINT("Max current", &ui_vars.ui8_motor_max_current, "amps", 1, 30),
+            FIELD_EDITABLE_UINT("Current ramp", &ui_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 255, .div_digits = 1),
+            FIELD_EDITABLE_UINT("Min current ADC step", &ui_vars.ui8_motor_current_min_adc, "amps", 0, 13), // 13 ADC steps = 2 amps
         FIELD_END };
 
 static Field torqueSensorMenus[] =
@@ -75,15 +75,15 @@ static Field torqueSensorMenus[] =
 static Field assistMenus[] =
 		{
 						FIELD_EDITABLE_UINT(_S("Num assist levels", "Num Levels"), &ui_vars.ui8_number_of_assist_levels, "", 1, 9),
-						FIELD_EDITABLE_UINT("Level 1", &ui_vars.ui8_assist_level_factor[0], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 2", &ui_vars.ui8_assist_level_factor[1], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 3", &ui_vars.ui8_assist_level_factor[2], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 4", &ui_vars.ui8_assist_level_factor[3], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 5", &ui_vars.ui8_assist_level_factor[4], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 6", &ui_vars.ui8_assist_level_factor[5], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui8_assist_level_factor[6], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui8_assist_level_factor[7], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui8_assist_level_factor[8], "", 0, 255, .div_digits = 1),
+						FIELD_EDITABLE_UINT("Level 1", &ui_vars.ui8_assist_level_factor[0], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 2", &ui_vars.ui8_assist_level_factor[1], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 3", &ui_vars.ui8_assist_level_factor[2], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 4", &ui_vars.ui8_assist_level_factor[3], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 5", &ui_vars.ui8_assist_level_factor[4], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 6", &ui_vars.ui8_assist_level_factor[5], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui8_assist_level_factor[6], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui8_assist_level_factor[7], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui8_assist_level_factor[8], "", 1, 255, .div_digits = 2),
 				FIELD_END };
 
 static Field walkAssistMenus[] =
@@ -107,15 +107,15 @@ static Field startupPowerMenus[] =
 						FIELD_EDITABLE_ENUM("Limit to max-power", &ui_vars.ui8_startup_motor_power_boost_limit_power, "no", "yes"),
 						FIELD_EDITABLE_UINT("Duration", &ui_vars.ui8_startup_motor_power_boost_time, "secs", 0, 255, .div_digits = 1),
 						FIELD_EDITABLE_UINT("Fade", &ui_vars.ui8_startup_motor_power_boost_fade_time, "secs", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 1", &ui_vars.ui8_startup_motor_power_boost_factor[0], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 2", &ui_vars.ui8_startup_motor_power_boost_factor[1], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 3", &ui_vars.ui8_startup_motor_power_boost_factor[2], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 4", &ui_vars.ui8_startup_motor_power_boost_factor[3], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 5", &ui_vars.ui8_startup_motor_power_boost_factor[4], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 6", &ui_vars.ui8_startup_motor_power_boost_factor[5], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui8_startup_motor_power_boost_factor[6], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui8_startup_motor_power_boost_factor[7], "", 0, 255, .div_digits = 1),
-						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui8_startup_motor_power_boost_factor[8], "", 0, 255, .div_digits = 1),
+						FIELD_EDITABLE_UINT("Level 1", &ui_vars.ui8_startup_motor_power_boost_factor[0], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 2", &ui_vars.ui8_startup_motor_power_boost_factor[1], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 3", &ui_vars.ui8_startup_motor_power_boost_factor[2], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 4", &ui_vars.ui8_startup_motor_power_boost_factor[3], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 5", &ui_vars.ui8_startup_motor_power_boost_factor[4], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 6", &ui_vars.ui8_startup_motor_power_boost_factor[5], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui8_startup_motor_power_boost_factor[6], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui8_startup_motor_power_boost_factor[7], "", 1, 255, .div_digits = 2),
+						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui8_startup_motor_power_boost_factor[8], "", 1, 255, .div_digits = 2),
 				FIELD_END };
 
 static Field motorTempMenus[] =

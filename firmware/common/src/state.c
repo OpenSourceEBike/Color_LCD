@@ -551,7 +551,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_offroad_mode = ui_vars.ui8_offroad_mode;
 	rt_vars.ui8_battery_max_current = ui_vars.ui8_battery_max_current;
 	rt_vars.ui8_motor_max_current = ui_vars.ui8_motor_max_current;
-	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_battery_current_min_adc;
+	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_motor_current_min_adc;
 	rt_vars.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars.ui8_ramp_up_amps_per_second_x10;
 	rt_vars.ui8_target_max_battery_power = ui_vars.ui8_target_max_battery_power;

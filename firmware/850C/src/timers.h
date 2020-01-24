@@ -10,7 +10,7 @@
 #define TIMERS_H_
 
 void systick_init (void);
-volatile uint32_t get_time_base_counter_1ms (void);
+
 void delay_ms (uint32_t ms);
 void timer3_init(void);
 void timer4_init(void);

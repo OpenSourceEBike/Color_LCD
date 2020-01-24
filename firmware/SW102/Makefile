@@ -224,6 +224,9 @@ CFLAGS += -mfloat-abi=soft
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin --short-enums
 
+# To make low level debugging easier, generate asm listing files for each .o 
+CFLAGS += -Wa,-adhln=$(OUTPUT_DIRECTORY)/$*.lst
+
 # C++ flags common to all targets
 CXXFLAGS += \
 

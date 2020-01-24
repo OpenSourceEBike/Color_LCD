@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 #include "ugui.h"
 #include "buttons.h"
 #include "main.h"
@@ -94,6 +95,7 @@
  *
  */
 
+// The maximum length of a DrawText editable string
 #define MAX_FIELD_LEN 32
 
 typedef enum {
@@ -110,7 +112,9 @@ typedef enum {
  * Note: might change someday to instead just be a pointer to a constant vtable like thing
  */
 typedef enum {
-	FieldDrawText = 0, FieldDrawTextPtr, FieldFill, // Fill with a solid color
+	FieldDrawText = 0, // a string stored in RAM (FIXME rename DrawTextRW)
+	FieldDrawTextPtr, // a string stored in ROM (FIXME rename DrawTextRO)
+	FieldFill, // Fill with a solid color
 	FieldMesh, // Fill with a mesh color
 	FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
 	FieldEditable, // An editable property with a human visible label and metadata for min/max/type of data and ptr to raw variable to render
@@ -175,7 +179,7 @@ typedef enum {
 #define BLINK_INTERVAL_MS  300
 
 typedef enum {
-  GRAPH_AUTO_MAX_MIN_YES = 0,
+  GRAPH_AUTO_MAX_MIN_YES = 0, // @casainho: why not just use a bool instead?  Or do you intend to eventually have different options?
   GRAPH_AUTO_MAX_MIN_NO,
 } graph_auto_max_min_t;
 
@@ -223,37 +227,64 @@ struct FieldLayout;
 // Forward declaration
 
 /**
- * Ready to render data (normally populated by comms code) which might be used on multiple different screens
+ * Most field data (stored in Field) is _CONSTANT_.  This allows it to live in .text and not consume any RAM.  However, we have a few dynamic flags
+ * etc... which live in RAM.  There is one FieldRW instance for each field object.
  */
-typedef struct Field {
+typedef struct {
+  bool dirty :1; // true if this data has changed and needs to be rerendered
+  bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
+  bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
+  // bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
+
+  union {
+    // fieldtype specific data
+
+    struct {
+      uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
+      uint8_t selected; // the currently highlighted entry
+    } scrollable;
+
+    struct {
+      struct {
+        field_threshold_t auto_thresholds : 2; // if warn and error thresholds should have automatic values, manual or be disabled
+        UG_COLOR previous_color;
+        int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+      } number;
+    } editable;
+
+    struct {
+      uint8_t x_axis_scale; // x axis scale
+      graph_x_axis_scale_config_t x_axis_scale_config : 4; // x axis scale configuration
+
+      // FIXME the following array should really be a single ptr to a set of cached data. To save ram because we create many of these FieldRW objects
+      GraphData *data[3]; // cached data for this graph - FIXME @casainho - it would be good to document this magic 3 constant and why it is there, even better to make into #def for NUM_TIMESCALES
+    } graph;
+  };
+} FieldRW;
+
+/**
+ * Ready to render data (normally populated by comms code) which might be used on multiple different screens
+ *
+ * Note: this class is normally used as a CONST, but in rare cases in can be placed in RAM.
+ */
+typedef const struct Field {
 	FieldVariant variant :4;
-	bool dirty :1; // true if this data has changed and needs to be rerendered
-	bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
-	bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
-	// bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
+	FieldRW *rw;
 
 	union {
 		//FIXME: possibly move these fields out into separate structures, because currently the
 		//biggest member causes all members to become larger.
 
 		struct {
-			char msg[MAX_FIELD_LEN];
-		} drawText;
-
-		struct {
-			const char *msg; // A string stored in a ptr
+			char *msg; // A string stored in a ptr (if this is a DrawText the string will be in RAM, we are a DrawTextPtr it will be stored in ROM
 		} drawTextPtr;
 
 		struct {
-			GraphData *data[3]; // cached data for this graph
 			GraphVars *graph_vars;
-			struct Field *source; // the data field we are graphing
+			const struct Field *source; // the data field we are graphing
 			FilterOp filter : 2; // allow 4 options for now
-			int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+      graph_auto_max_min_t auto_max_min : 1;
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
-		  graph_auto_max_min_t auto_max_min;
-		  uint8_t x_axis_scale; // x axis scale
-		  graph_x_axis_scale_config_t x_axis_scale_config; // x axis scale configuration
 		} graph;
 
 		struct {
@@ -261,15 +292,13 @@ typedef struct Field {
 		} custom;
 
 		struct {
-			struct Field *entries; // the menu entries for this submenu.
+			const struct Field *entries; // the menu entries for this submenu.
 			const char *label; // the title shown in the GUI for this menu
-			uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
-			uint8_t selected; // the currently highlighted entry
 		} scrollable;
 
 		struct {
-			struct Field **choices; // An array of ptrs (editable) fields (terminated with NULL) that the user can choose from
-			uint8_t 	*selector; // the index into the array of the users current choice (library clients should store this to eeprom)
+			const struct Field **choices; // An array of ptrs (editable) fields (terminated with NULL) that the user can choose from
+      uint8_t   *selector; // the index into the array of the users current choice (library clients should store this to eeprom)
 		} customizable;
 
 		struct {
@@ -285,11 +314,8 @@ typedef struct Field {
 					const char *units;
 					const uint8_t div_digits :4; // how many auto_thresholdsdigits to divide by for fractions (i.e. 0 for integers, 1 for /10x, 2 for /100x, 3 /1000x
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
-					uint32_t max_value, min_value; // min/max
+ 					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
-					UG_COLOR previous_color;
-					int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
-					field_threshold_t auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
 					int32_t config_warn_threshold, config_error_threshold;
           void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
@@ -307,37 +333,50 @@ typedef struct Field {
 // Helper macros to declare fields more easily
 //
 
-#define FIELD_SCROLLABLE(lbl, arry) { .variant = FieldScrollable, .scrollable = { .label = lbl, .entries = arry } }
+// Init the variant type code and optionally let the user fill in initial values for the rw state
+#define FIELD_COMMON_INIT(t, ...) .variant = t, .rw = (FieldRW [1]){ ##__VA_ARGS__ }
 
-#define FIELD_EDITABLE_UINT(lbl, targ, unt, minv, maxv, ...) { .variant = FieldEditable, \
+// .editable = { .number = { .warn_threshold = -1, .error_threshold = -1 }}
+
+#define FIELD_SCROLLABLE(lbl, arry) { FIELD_COMMON_INIT(FieldScrollable), .scrollable = { .label = lbl, .entries = arry } }
+
+#define FIELD_EDITABLE_UINT(lbl, targ, unt, minv, maxv, ...) { FIELD_COMMON_INIT(FieldEditable), \
   .editable = { .typ = EditUInt, .label = lbl, .target = targ, .size = sizeof(*targ),  \
       .number = { .units = unt, .max_value = maxv, .min_value = minv, ##__VA_ARGS__ } } }
 
-#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, \
+/** Hmm - I can't figure out what is wrong with setting warn/error thresholds via macro, so for now I'm handrolling it
+ *
+#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { FIELD_COMMON_INIT(FieldEditable), \
+  .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
+      .number = { .units = unt, ##__VA_ARGS__ } } }
+*/
+#define FIELD_READONLY_UINT(lbl, targ, unt, ...) { .variant = FieldEditable, .rw = (FieldRW [1]){ { .editable = { .number = { .warn_threshold = -1, .error_threshold = -1 }} }}, \
   .editable = { .read_only = true, .typ = EditUInt, .label = lbl, .target = (void *) targ, .size = sizeof(*targ),  \
       .number = { .units = unt, ##__VA_ARGS__ } } }
 
-#define FIELD_READONLY_STRING(lbl, targ) { .variant = FieldEditable, \
+#define FIELD_READONLY_STRING(lbl, targ) { FIELD_COMMON_INIT(FieldEditable), \
   .editable = { .read_only = true, .typ = ReadOnlyStr, .label = lbl, .target = targ, .size = sizeof(*targ)  } }
 
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
-#define FIELD_EDITABLE_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
+#define FIELD_EDITABLE_ENUM(lbl, targ, ...) { FIELD_COMMON_INIT(FieldEditable), \
   .editable = { .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
 // C99 allows anonymous constant arrays - take advantage of that here to make declaring the various options easy
-#define FIELD_READONLY_ENUM(lbl, targ, ...) { .variant = FieldEditable, \
+#define FIELD_READONLY_ENUM(lbl, targ, ...) { FIELD_COMMON_INIT(FieldEditable), \
   .editable = { .read_only = true, .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
-#define FIELD_DRAWTEXT(...) { .variant = FieldDrawText, .drawText = { __VA_ARGS__  } }
-#define FIELD_DRAWTEXTPTR(str, ...) { .variant = FieldDrawTextPtr, .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
-#define FIELD_CUSTOM(cb) { .variant = FieldCustom, .custom = { .render = &cb  } }
-#define FIELD_GRAPH(s, ...) { .variant = FieldGraph, .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
-#define FIELD_CUSTOMIZABLE_PTR(s, c) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = c  } }
-#define FIELD_CUSTOMIZABLE(s, ...) { .variant = FieldCustomizable, .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
+#define FIELD_DRAWTEXT(...) { FIELD_COMMON_INIT(FieldDrawText), .drawTextPtr = { .msg = (char [MAX_FIELD_LEN]){ 0, }, ##__VA_ARGS__  } }
+#define FIELD_DRAWTEXTPTR(str, ...) { FIELD_COMMON_INIT(FieldDrawTextPtr), .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
+#define FIELD_CUSTOM(cb) { FIELD_COMMON_INIT(FieldCustom), .custom = { .render = &cb  } }
+#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph), .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
+#define FIELD_CUSTOMIZABLE_PTR(s, c) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = c  } }
+#define FIELD_CUSTOMIZABLE(s, ...) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 
-#define FIELD_END { .variant = FieldEnd }
+#define FIELD_FILL { FIELD_COMMON_INIT(FieldFill) }
+#define FIELD_MESH { FIELD_COMMON_INIT(FieldMesh) }
+#define FIELD_END { FIELD_COMMON_INIT(FieldEnd) }
 
 typedef int16_t Coord; // Change to int16_t for screens wider/longer than 128, screens shorter than 128 can use uint8_t
 
@@ -463,8 +502,8 @@ extern GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
 
 void fieldPrintf(Field *field, const char *fmt, ...);
 
-// Update this readonly editable with a string value, str must point to a static buffer
-void updateReadOnlyStr(Field *field, char *str);
+/// Update this readonly editable with a string value.  Important: the original field target must be pointing to a WRITABLE array, not a const string.
+void updateReadOnlyStr(Field *field, const char *str);
 
 /** These are render callback functions, you should normally never need to call them, but they can be useful if you
  * are using your own custom render callback.

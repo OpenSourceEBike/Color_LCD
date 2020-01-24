@@ -26,6 +26,7 @@
 #include "rtc.h"
 #include "nrf_drv_wdt.h"
 #include "nrf_power.h"
+#include "timer.h"
 
 /* Variable definition */
 
@@ -82,7 +83,7 @@ void lcd_power_off(uint8_t updateDistanceOdo)
   // now disable the power to all the system
   system_power(0);
 
-  if(is_sim_motor) {
+  if(g_is_sim_motor) {
     // we are running from a bench supply on a developer's desk, so just reboot because the power supply will never die
     sd_nvic_SystemReset();
   }
@@ -160,7 +161,7 @@ void init_softdevice() {
   if(*softdeviceaddr == 0xffffffff) // definitely no soft device
     useSoftDevice = false;
 
-#if 0
+#if 1
   uint32_t *bootloaderaddr = (uint32_t *) 0x10001014;
 
   // If we don't have a bootloader, assume a developer is working and wants to use the debugger
@@ -301,7 +302,7 @@ static void gui_timer_timeout(void *p_context)
 
 
 /// msecs since boot (note: will roll over every 50 days)
-uint32_t get_msecs() {
+uint32_t get_time_base_counter_1ms() {
   return gui_ticks * MSEC_PER_TICK;
 }
 

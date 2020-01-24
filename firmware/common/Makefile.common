@@ -5,13 +5,13 @@
 
 # The integer build number for this release, MUST BE INCREMENTED FOR EACH RELEASE SO BOOTLOADER WILL INSTALL
 # it is not user visible, but we must ensure it is monotonically increasing
-VERSION_NUM := 20
+VERSION_NUM := 21
 
 # This is the user visible string for the version
-VERSION_STRING := 0.6.0
+VERSION_STRING := 0.6.4
 
 # This is the expected version of the motor firmware. Display will stop to work with correct TSDZ2 firmware version
 TSDZ2_FIRMWARE_MAJOR := 0
-TSDZ2_FIRMWARE_MINOR := 50
+TSDZ2_FIRMWARE_MINOR := 53
 
 CFLAGS += -DVERSION_STRING=\"$(VERSION_STRING)\" -DTSDZ2_FIRMWARE_MAJOR=\"$(TSDZ2_FIRMWARE_MAJOR)\" -DTSDZ2_FIRMWARE_MINOR=\"$(TSDZ2_FIRMWARE_MINOR)\"

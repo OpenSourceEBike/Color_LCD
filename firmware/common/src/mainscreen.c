@@ -30,6 +30,7 @@ uint8_t ui8_m_wheel_speed_decimal;
 static uint8_t ui8_walk_assist_state = 0;
 
 uint16_t ui16_m_battery_current_filtered_x10;
+uint16_t ui16_m_motor_current_filtered_x10;
 uint16_t ui16_m_battery_power_filtered;
 uint16_t ui16_m_pedal_power_filtered;
 
@@ -48,6 +49,7 @@ void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
+void motorCurrent(void);
 void batteryPower(void);
 void pedalPower(void);
 void thresholds(void);
@@ -68,6 +70,7 @@ Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_
 #else
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
 #endif
+
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false);
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
 
@@ -81,6 +84,7 @@ Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_f
 Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
 Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
 Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
+Field motorCurrentField = FIELD_READONLY_UINT("motor current", &ui16_m_motor_current_filtered_x10, "", true, .div_digits = 1);
 Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0);
 Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0);
 Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
@@ -103,11 +107,12 @@ Field *customizables[] = {
 		&batteryPowerField, // 6
     &batteryVoltageField, // 7
     &batteryCurrentField, // 8
-    &batterySOCField, // 9
-		&motorTempField, // 10
-    &motorErpsField, // 11
-		&pwmDutyField, // 12
-		&motorFOCField, // 13
+    &motorCurrentField, // 9
+    &batterySOCField, // 10
+		&motorTempField, // 11
+    &motorErpsField, // 12
+		&pwmDutyField, // 13
+		&motorFOCField, // 14
 		NULL
 };
 
@@ -122,14 +127,16 @@ Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &rt_vars.ui8_pedal_cade
 Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &rt_vars.ui16_pedal_power_filtered, "", false);
 Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &rt_vars.ui16_battery_power_filtered, "", false);
 Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &rt_vars.ui16_battery_voltage_filtered_x10, "", false, .div_digits = 1);
-Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &rt_vars.ui16_battery_current_filtered_x5, "", false, .div_digits = 1); // FIXME, change this to x10 so div_digits will work
+Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", false, .div_digits = 1);
+Field motorCurrentFieldGraph = FIELD_READONLY_UINT("motor current", &ui16_m_motor_current_filtered_x10, "", false, .div_digits = 1);
 Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "", false);
 Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &rt_vars.ui8_motor_temperature, "C", false);
 Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &rt_vars.ui16_motor_speed_erps, "", false);
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_duty_cycle, "", false);
-Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
+//Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
 
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
+
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1),
  tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1),
  odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1),
@@ -138,27 +145,28 @@ Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1),
  batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1),
  batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1),
  batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1),
+Field motorCurrentGraph = FIELD_GRAPH(&motorCurrentFieldGraph, .min_threshold = -1,);
  batterySOCGraph = FIELD_GRAPH(&batterySOCFieldGraph, .min_threshold = -1),
  motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1),
  motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1),
  pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1),
- motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1);
+ //motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1);
 
 // Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
 Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   &wheelSpeedGraph,
                                   &tripDistanceGraph,
-                                  &odoGraph,
                                   &cadenceGraph,
                                   &humanPowerGraph,
                                   &batteryPowerGraph,
                                   &batteryVoltageGraph,
                                   &batteryCurrentGraph,
+                                  &motorCurrentGraph,
                                   &batterySOCGraph,
                                   &motorTempGraph,
                                   &motorErpsGraph,
-                                  &pwmDutyGraph,
-                                  &motorFOCGraph);
+                                  &pwmDutyGraph);
+//                                  &motorFOCGraph);
 #else
 const Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
                                   NULL);
@@ -465,6 +473,7 @@ void screen_clock(void) {
     DisplayResetToDefaults();
     batteryTotalWh();
     batteryCurrent();
+    motorCurrent();
     batteryPower();
     pedalPower();
     thresholds();
@@ -564,6 +573,16 @@ void thresholds(void) {
     batteryCurrentField.editable.number.warn_threshold = batteryCurrentField.editable.number.config_warn_threshold;
   }
 
+  if (motorCurrentField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+    int32_t temp = (int32_t) ui_vars.ui8_motor_max_current * 10;
+    motorCurrentField.editable.number.error_threshold = temp;
+    temp *= 10; // current_x10 * 10
+    motorCurrentField.editable.number.warn_threshold = (temp - (temp / 5)) / 10; // -20%
+  } else if (motorCurrentField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+    motorCurrentField.editable.number.error_threshold = motorCurrentField.editable.number.config_error_threshold;
+    motorCurrentField.editable.number.warn_threshold = motorCurrentField.editable.number.config_warn_threshold;
+  }
+
   if (batterySOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     batterySOCField.editable.number.error_threshold = 10;
     batterySOCField.editable.number.warn_threshold = 25;
@@ -596,13 +615,18 @@ void thresholds(void) {
     pwmDutyField.editable.number.warn_threshold = pwmDutyField.editable.number.config_warn_threshold;
   }
 
-  if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
-    motorFOCField.editable.number.error_threshold = 8;
-    motorFOCField.editable.number.warn_threshold = 6; // -20%
-  } else if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
-    motorFOCField.editable.number.error_threshold = motorFOCField.editable.number.config_error_threshold;
-    motorFOCField.editable.number.warn_threshold = motorFOCField.editable.number.config_warn_threshold;
-  }
+//  if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
+//    motorFOCField.editable.number.error_threshold = 8;
+//    motorFOCField.editable.number.warn_threshold = 6; // -20%
+//  } else if (motorFOCField.editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+//    motorFOCField.editable.number.error_threshold = motorFOCField.editable.number.config_error_threshold;
+//    motorFOCField.editable.number.warn_threshold = motorFOCField.editable.number.config_warn_threshold;
+//  }
+
+//  // replicate the state to the other field
+//  motorFOCFieldGraph.editable.number.auto_thresholds = motorFOCField.editable.number.auto_thresholds;
+//  motorFOCGraph.graph.error_threshold = motorFOCField.editable.number.error_threshold;
+//  motorFOCGraph.graph.warn_threshold = motorFOCField.editable.number.warn_threshold;
 
 #endif
 }
@@ -853,6 +877,11 @@ void DisplayResetToDefaults(void) {
 void batteryCurrent(void) {
 
   ui16_m_battery_current_filtered_x10 = ui_vars.ui16_battery_current_filtered_x5 * 2;
+}
+
+void motorCurrent(void) {
+
+  ui16_m_motor_current_filtered_x10 = ui_vars.ui16_motor_current_filtered_x5 * 2;
 }
 
 void onSetConfigurationWheelOdometer(uint32_t v) {

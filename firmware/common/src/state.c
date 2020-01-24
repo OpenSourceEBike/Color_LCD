@@ -111,6 +111,9 @@ void parse_simmotor() {
 	// battery current drain x5
 	rt_vars.ui8_battery_current_x5 = fakeRandom(&curstore, 0, max_cur10x) / 2;
 
+	// motor current drain x5
+  rt_vars.ui8_motor_current_x5 = fakeRandom(&curstore, 0, max_cur10x) / 2;
+
 	rt_vars.ui16_wheel_speed_x10 = fakeRandom(&speedstore, 80, 300);
     diststore += rt_vars.ui16_wheel_speed_x10 * 2.6; // speed x 10 to millimeters per 100 ms
 //	l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
@@ -139,9 +142,6 @@ void parse_simmotor() {
 
 	// error states
 	rt_vars.ui8_error_states = NO_ERROR; // fake(0, ERROR_MAX);
-
-	// temperature actual limiting value
-	rt_vars.ui8_temperature_current_limiting_value = fake(0, 100);
 
 	// wheel_speed_sensor_tick_counter
 
@@ -241,7 +241,13 @@ void rt_send_tx_package(uint8_t type) {
         ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_right[i][1] >> 8);
       }
 
-      crc_len = 82;
+      // battery current min ADC
+      ui8_usart1_tx_buffer[81] = rt_vars.ui8_battery_current_min_adc;
+
+      // motor max current
+      ui8_usart1_tx_buffer[82] = rt_vars.ui8_motor_max_current;
+
+      crc_len = 84;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 	}
@@ -258,12 +264,13 @@ void rt_send_tx_package(uint8_t type) {
 
 	// send the full package to UART
 	if (!g_is_sim_motor) // If we are simulating received packets never send real packets
-		uart_send_tx_buffer(ui8_usart1_tx_buffer);
+		uart_send_tx_buffer(ui8_usart1_tx_buffer, ui8_usart1_tx_buffer[1] + 2);
 }
 
 void rt_low_pass_filter_battery_voltage_current_power(void) {
 	static uint32_t ui32_battery_voltage_accumulated_x10000 = 0;
 	static uint16_t ui16_battery_current_accumulated_x5 = 0;
+  static uint16_t ui16_motor_current_accumulated_x5 = 0;
 
 	// low pass filter battery voltage
 	ui32_battery_voltage_accumulated_x10000 -=
@@ -276,7 +283,7 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
 			((uint32_t) (ui32_battery_voltage_accumulated_x10000
 					>> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
 
-	// low pass filter batery current
+	// low pass filter battery current
 	ui16_battery_current_accumulated_x5 -= ui16_battery_current_accumulated_x5
 			>> BATTERY_CURRENT_FILTER_COEFFICIENT;
 	ui16_battery_current_accumulated_x5 +=
@@ -284,6 +291,15 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
 	rt_vars.ui16_battery_current_filtered_x5 =
 			ui16_battery_current_accumulated_x5
 					>> BATTERY_CURRENT_FILTER_COEFFICIENT;
+
+  // low pass filter motor current
+  ui16_motor_current_accumulated_x5 -= ui16_motor_current_accumulated_x5
+      >> MOTOR_CURRENT_FILTER_COEFFICIENT;
+  ui16_motor_current_accumulated_x5 +=
+      (uint16_t) rt_vars.ui8_motor_current_x5;
+  rt_vars.ui16_motor_current_filtered_x5 =
+      ui16_motor_current_accumulated_x5
+          >> MOTOR_CURRENT_FILTER_COEFFICIENT;
 
 	// battery power
 	rt_vars.ui16_battery_power_filtered_x50 =
@@ -485,6 +501,7 @@ void rt_processing_start(void) {
 void copy_rt_to_ui_vars(void) {
 	ui_vars.ui16_adc_battery_voltage = rt_vars.ui16_adc_battery_voltage;
 	ui_vars.ui8_battery_current_x5 = rt_vars.ui8_battery_current_x5;
+	ui_vars.ui8_motor_current_x5 = rt_vars.ui8_motor_current_x5;
 	ui_vars.ui8_throttle = rt_vars.ui8_throttle;
 	ui_vars.ui16_adc_pedal_torque_sensor = rt_vars.ui16_adc_pedal_torque_sensor;
 	ui_vars.ui8_pedal_weight_with_offset = rt_vars.ui8_pedal_weight_with_offset;
@@ -497,8 +514,6 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui16_motor_speed_erps = rt_vars.ui16_motor_speed_erps;
 	ui_vars.ui8_motor_hall_sensors = rt_vars.ui8_motor_hall_sensors;
 	ui_vars.ui8_pas_pedal_right = rt_vars.ui8_pas_pedal_right;
-	ui_vars.ui8_temperature_current_limiting_value =
-			rt_vars.ui8_temperature_current_limiting_value;
 	ui_vars.ui8_motor_temperature = rt_vars.ui8_motor_temperature;
 	ui_vars.ui32_wheel_speed_sensor_tick_counter =
 			rt_vars.ui32_wheel_speed_sensor_tick_counter;
@@ -506,6 +521,8 @@ void copy_rt_to_ui_vars(void) {
 			rt_vars.ui16_battery_voltage_filtered_x10;
 	ui_vars.ui16_battery_current_filtered_x5 =
 			rt_vars.ui16_battery_current_filtered_x5;
+  ui_vars.ui16_motor_current_filtered_x5 =
+      rt_vars.ui16_motor_current_filtered_x5;
 	ui_vars.ui16_battery_power_filtered_x50 =
 			rt_vars.ui16_battery_power_filtered_x50;
 	ui_vars.ui16_battery_power = rt_vars.ui16_battery_power_filtered;
@@ -533,6 +550,8 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_walk_assist = ui_vars.ui8_walk_assist;
 	rt_vars.ui8_offroad_mode = ui_vars.ui8_offroad_mode;
 	rt_vars.ui8_battery_max_current = ui_vars.ui8_battery_max_current;
+	rt_vars.ui8_motor_max_current = ui_vars.ui8_motor_max_current;
+	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_motor_current_min_adc;
 	rt_vars.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars.ui8_ramp_up_amps_per_second_x10;
 	rt_vars.ui8_target_max_battery_power = ui_vars.ui8_target_max_battery_power;
@@ -657,7 +676,7 @@ void communications(void) {
 //  static uint8_t state = 0;
   static uint32_t num_missed_packets = 0;
   uint8_t ui8_frame_type = 0;
-  uint8_t ui8_cnt = 0;
+  static uint8_t ui8_cnt = 0;
   bool periodic_answer_received = false;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
@@ -702,7 +721,7 @@ void communications(void) {
           rt_vars.ui16_motor_speed_erps = ((uint16_t) p_rx_buffer[16]) | ((uint16_t) p_rx_buffer[17] << 8);
           rt_vars.ui8_foc_angle = p_rx_buffer[18];
           rt_vars.ui8_error_states = p_rx_buffer[19];
-          rt_vars.ui8_temperature_current_limiting_value = p_rx_buffer[20];
+          rt_vars.ui8_motor_current_x5 = p_rx_buffer[20];
 
           uint32_t ui32_wheel_speed_sensor_tick_temp;
           ui32_wheel_speed_sensor_tick_temp = ((uint32_t) p_rx_buffer[21]) |

@@ -30,6 +30,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .ui8_battery_soc_symbol = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL,
 		.ui8_battery_soc_enable = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC,
 		.ui8_battery_max_current = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
+		.ui8_motor_max_current = DEFAULT_VALUE_MOTOR_MAX_CURRENT,
+	  .ui8_motor_current_min_adc = DEFAULT_VALUE_CURRENT_MIN_ADC,
 		.ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
 		.ui8_battery_cells_number = DEFAULT_VALUE_BATTERY_CELLS_NUMBER,
 		.ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
@@ -104,9 +106,9 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.field_selectors = {
 				3, // GRAPH: wheel speed
 				0, // trip time
+        5, // human power
 				1, // trip distance
-				5, // human power
-				6, // motor power
+				9, // motor current
     },
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
@@ -130,7 +132,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .graph_eeprom[9].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[10].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
     .graph_eeprom[11].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[12].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+//    .graph_eeprom[12].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
 
     .tripDistanceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .odoField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
@@ -243,6 +245,10 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_battery_soc_symbol;
 	ui_vars->ui8_battery_max_current =
 			m_eeprom_data.ui8_battery_max_current;
+  ui_vars->ui8_motor_max_current =
+      m_eeprom_data.ui8_motor_max_current;
+  ui_vars->ui8_motor_current_min_adc =
+      m_eeprom_data.ui8_motor_current_min_adc;
 	ui_vars->ui8_ramp_up_amps_per_second_x10 =
 			m_eeprom_data.ui8_ramp_up_amps_per_second_x10;
 	ui_vars->ui8_battery_cells_number =
@@ -405,12 +411,12 @@ void eeprom_init_variables(void) {
   motorFOCField.editable.number.auto_thresholds = m_eeprom_data.motorFOCField_auto_thresholds;
   motorFOCField.editable.number.config_error_threshold = m_eeprom_data.motorFOCField_config_error_threshold;
   motorFOCField.editable.number.config_warn_threshold = m_eeprom_data.motorFOCField_config_warn_threshold;
-  motorFOCGraph.graph.x_axis_scale_config = m_eeprom_data.motorFOCField_x_axis_scale_config;
-  temp = GRAPH_X_AXIS_SCALE_15M;
-  if (motorFOCGraph.graph.x_axis_scale_config != GRAPH_X_AXIS_SCALE_AUTO) {
-    temp = motorFOCGraph.graph.x_axis_scale_config;
-  }
-  motorFOCGraph.graph.x_axis_scale = temp;
+//  motorFOCGraph.graph.x_axis_scale_config = m_eeprom_data.motorFOCField_x_axis_scale_config;
+//  temp = GRAPH_X_AXIS_SCALE_15M;
+//  if (motorFOCGraph.graph.x_axis_scale_config != GRAPH_X_AXIS_SCALE_AUTO) {
+//    temp = motorFOCGraph.graph.x_axis_scale_config;
+//  }
+//  motorFOCGraph.graph.x_axis_scale = temp;
 #endif
 
   ui_vars->ui8_torque_sensor_calibration_feature_enabled = m_eeprom_data.ui8_torque_sensor_calibration_feature_enabled;
@@ -439,6 +445,10 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_battery_soc_symbol;
 	m_eeprom_data.ui8_battery_max_current =
 			ui_vars->ui8_battery_max_current;
+  m_eeprom_data.ui8_motor_max_current =
+      ui_vars->ui8_motor_max_current;
+  m_eeprom_data.ui8_motor_current_min_adc =
+      ui_vars->ui8_motor_current_min_adc;
 	m_eeprom_data.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars->ui8_ramp_up_amps_per_second_x10;
 	m_eeprom_data.ui8_battery_cells_number =
@@ -553,7 +563,7 @@ void eeprom_write_variables(void) {
   m_eeprom_data.motorFOCField_auto_thresholds = motorFOCField.editable.number.auto_thresholds;
   m_eeprom_data.motorFOCField_config_error_threshold = motorFOCField.editable.number.config_error_threshold;
   m_eeprom_data.motorFOCField_config_warn_threshold = motorFOCField.editable.number.config_warn_threshold;
-  m_eeprom_data.motorFOCField_x_axis_scale_config = motorFOCGraph.graph.x_axis_scale_config;
+//  m_eeprom_data.motorFOCField_x_axis_scale_config = motorFOCGraph.graph.x_axis_scale_config;
 #endif
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));

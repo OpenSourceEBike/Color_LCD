@@ -16,15 +16,16 @@ nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
 typedef struct uart_rx_buff_typedef uart_rx_buff_typedef;
 struct uart_rx_buff_typedef
 {
-  uint8_t uart_rx_data[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_RECEIVE_V20 + UART_NUMBER_CRC_BYTES];
+  uint8_t uart_rx_data[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
   uart_rx_buff_typedef* next_uart_rx_buff;
 };
 uart_rx_buff_typedef* uart_rx_buffer;
 volatile uint8_t* uart_rx_data_rdy;
-uint8_t stream_version;
 uint8_t uart_number_bytes_rx, uart_number_bytes_tx;
 
-uint8_t uart_buffer0_tx[UART_NUMBER_START_BYTES + UART_NUMBER_DATA_BYTES_TO_SEND_V20 + UART_NUMBER_CRC_BYTES];
+uint8_t uart_buffer0_tx[UART_NUMBER_DATA_BYTES_TO_SEND];
+
+uint8_t m_uart_rx_len;
 
 /* Function prototype */
 static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
@@ -34,11 +35,6 @@ static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
  */
 void uart_init(void)
 {
-  /* Init Stream Version */
-  stream_version = 19;
-  uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V19;
-  uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V19;
-
   /* Init RX buffer */
   static uart_rx_buff_typedef rxb1, rxb2;
   rxb1.next_uart_rx_buff = &rxb2;
@@ -54,35 +50,6 @@ void uart_init(void)
   /* Enable & start RX (bytewise scanning for start byte) */
   nrf_drv_uart_rx_enable(&uart0);
   APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
-}
-
-/**
- * @brief Returns current stream version set
- */
-uint8_t uart_get_stream_version(void)
-{
-  return stream_version;
-}
-
-/**
- * @brief Sets stream version for RX
- */
-void uart_set_stream_version(uint8_t version)
-{
-  switch (version)
-  {
-  case 19:
-    uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V19;
-    uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V19;
-    stream_version = version;
-    break;
-
-  case 20:
-    uart_number_bytes_rx = UART_NUMBER_DATA_BYTES_TO_RECEIVE_V20;
-    uart_number_bytes_tx = UART_NUMBER_DATA_BYTES_TO_SEND_V20;
-    stream_version = version;
-    break;
-  }
 }
 
 /**
@@ -104,11 +71,11 @@ const uint8_t* uart_get_rx_buffer_rdy(void)
   if (rx_rdy != NULL)
   {
     uint16_t crc_rx = 0xffff;
-    for (uint8_t ui8_i = 0; ui8_i <= uart_number_bytes_rx; ui8_i++)
+    for (uint8_t ui8_i = 0; ui8_i < m_uart_rx_len; ui8_i++)
       crc16(rx_rdy[ui8_i], &crc_rx);
 
-    if (((((uint16_t) rx_rdy[uart_number_bytes_rx + 2]) << 8)
-        + ((uint16_t) rx_rdy[uart_number_bytes_rx + 1])) != crc_rx)
+    if (((((uint16_t) rx_rdy[m_uart_rx_len + 1]) << 8)
+        + ((uint16_t) rx_rdy[m_uart_rx_len])) != crc_rx)
       rx_rdy = NULL;  // Invalidate buffer if CRC not OK
   }
 
@@ -126,10 +93,9 @@ uint8_t* uart_get_tx_buffer(void)
 /**
  * @brief Send TX buffer over UART. Returns false on error
  */
-void uart_send_tx_buffer(uint8_t *tx_buffer)
+void uart_send_tx_buffer(uint8_t *tx_buffer, uint8_t ui8_len)
 {
-  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer,
-      uart_number_bytes_tx + (UART_NUMBER_START_BYTES + UART_NUMBER_CRC_BYTES));
+  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer, ui8_len);
 
   APP_ERROR_CHECK(err_code);
 }
@@ -138,55 +104,61 @@ void uart_send_tx_buffer(uint8_t *tx_buffer)
 
 static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
 {
-  static uint8_t uart_rx_state_machine;
+  static uint8_t uart_rx_state_machine = 0;
 
   switch (p_event->type)
   {
-  case NRF_DRV_UART_EVT_TX_DONE:
-    break;
-
-  case NRF_DRV_UART_EVT_ERROR:
-    // Just restart our reads and try to keep going
-    // The only error we expect is overrun or framing
-    // assert(p_event->data.error.error_mask & (UART_ERRORSRC_OVERRUN_Msk | UART_ERRORSRC_FRAMING_Msk | UART_ERRORSRC_BREAK_Msk));
-
-    uart_rx_state_machine = 0;
-    APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
-    break;
-
-  case NRF_DRV_UART_EVT_RX_DONE:
-    switch (uart_rx_state_machine)
-    {
-    /* End of bytewise RX */
-    case 0:
-      if (uart_rx_buffer->uart_rx_data[0] == 0x43) // see if we get start package byte
-      {
-        uart_rx_state_machine = 1;
-        APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[1],
-            uart_number_bytes_rx + UART_NUMBER_CRC_BYTES)); // Start RX of the remaining stream at once
-      }
-      else
-        APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1)); // Next bytewise RX to check for start byte
+    case NRF_DRV_UART_EVT_TX_DONE:
       break;
 
-    /* End of stream RX */
-    case 1:
-      /* Signal that we have a full package to be processed */
-      uart_rx_data_rdy = uart_rx_buffer->uart_rx_data;
-      /* Switch buffer */
-      uart_rx_buffer = uart_rx_buffer->next_uart_rx_buff;
-      /* Start bytewise RX again */
+    case NRF_DRV_UART_EVT_ERROR:
+      // Just restart our reads and try to keep going
+      // The only error we expect is overrun or framing
+      // assert(p_event->data.error.error_mask & (UART_ERRORSRC_OVERRUN_Msk | UART_ERRORSRC_FRAMING_Msk | UART_ERRORSRC_BREAK_Msk));
+
       uart_rx_state_machine = 0;
       APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
       break;
 
-    default:
-      assert(0);
-      break;
-    }
-    break;
+    case NRF_DRV_UART_EVT_RX_DONE:
+      switch (uart_rx_state_machine)
+      {
+        /* End of bytewise RX */
+        case 0:
+          if (uart_rx_buffer->uart_rx_data[0] == 0x43) // see if we get start package byte
+          {
+            uart_rx_state_machine = 1;
+            APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[1], 1));
+          }
+          else
+            APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
+          break;
 
-  default:
-    break;
+        // get the lenght of the package and receive such number of bytes
+        case 1:
+          m_uart_rx_len = uart_rx_buffer->uart_rx_data[1];
+          uart_rx_state_machine = 2;
+          APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[2], m_uart_rx_len));
+          break;
+
+        /* End of stream RX */
+        case 2:
+          /* Signal that we have a full package to be processed */
+          uart_rx_data_rdy = uart_rx_buffer->uart_rx_data;
+          /* Switch buffer */
+          uart_rx_buffer = uart_rx_buffer->next_uart_rx_buff;
+          /* Start bytewise RX again */
+          uart_rx_state_machine = 0;
+          APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
+          break;
+
+        default:
+          assert(0);
+          break;
+      }
+      break;
+
+    default:
+      break;
   }
 }

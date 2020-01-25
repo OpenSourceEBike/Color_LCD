@@ -19,6 +19,7 @@
 #include "buttons.h"
 #include "eeprom.h"
 #include "timers.h"
+#include "timer.h"
 #include "usart1.h"
 #include "eeprom.h"
 #include "ugui.h"

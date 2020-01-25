@@ -211,7 +211,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
-#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        1 // regular state
+#define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 #define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one

@@ -228,13 +228,13 @@ void battery_display() {
   if (ui_vars.ui8_battery_soc_symbol) {
     if (ui_vars.volt_based_soc != old_soc) {
       old_soc = ui_vars.volt_based_soc;
-      batteryField.dirty = true;
+      batteryField.rw->dirty = true;
     }
   }
   else {
     if (ui16_g_battery_soc_watts_hour != old_soc) {
       old_soc = ui16_g_battery_soc_watts_hour;
-      batteryField.dirty = true;
+      batteryField.rw->dirty = true;
     }
   }
 }
@@ -249,22 +249,11 @@ void clock_time(void) {
 
   // force to be [0 - 12] depending on SI or Ipmerial units
   if (ui_vars.ui8_units_type) {
-
     if(ui8_g_configuration_clock_hours > 12) {
       ui8_g_configuration_clock_hours -= 12;
     }
-
-    // scrollable.entries[7] --> Display
-      // scrollable.entries[0] --> Clock hours
-    configScreen.fields->field->scrollable.entries[7].scrollable.entries[0].editable.number.max_value = 12;
-  }
-  else {
-    // scrollable.entries[7] --> Display
-      // scrollable.entries[0] --> Clock hours
-    configScreen.fields->field->scrollable.entries[7].scrollable.entries[0].editable.number.max_value = 23;
   }
 }
-
 void onSetConfigurationClockHours(uint32_t v) {
   static rtc_time_t rtc_time;
 

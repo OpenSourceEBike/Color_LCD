@@ -37,8 +37,11 @@
 uint8_t g_customizableFieldIndex;
 volatile bool g_graphs_ui_update[3] = { false, false, false };
 
-GraphVars g_graphVars[GRAPH_VARIANT_SIZE];
-GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
+variables_t g_vars[VARS_SIZE];
+#ifndef SW102
+GraphVars g_graphVars[VARS_SIZE];
+GraphData g_graphData[VARS_SIZE][3];
+#endif
 
 extern UG_GUI gui;
 
@@ -2263,6 +2266,7 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
 }
 
 void rt_graph_process(void) {
+#ifndef SW102
   static int numGraphs = 0;
   static uint32_t counter_1 = 0;
   static uint16_t counter_2[3] = {0, 0 , 0};
@@ -2285,7 +2289,7 @@ void rt_graph_process(void) {
 
     	// Select a data pool from our cache
     	if(!f->rw->graph.data[0]) {
-        assert(numGraphs < GRAPH_VARIANT_SIZE);
+        assert(numGraphs < VARS_SIZE);
         f->rw->graph.data[0] = &g_graphData[numGraphs][0];
         f->rw->graph.data[1] = &g_graphData[numGraphs][1];
         f->rw->graph.data[2] = &g_graphData[numGraphs][2];
@@ -2332,11 +2336,13 @@ void rt_graph_process(void) {
       g_graphs_ui_update[2] = true;
     }
   }
+#endif
 }
 
 void graph_init(void) {
+#ifndef SW102
   // Init graphs to empty
-  for (int i = 0; i < GRAPH_VARIANT_SIZE; i++) {
+  for (int i = 0; i < VARS_SIZE; i++) {
     for (int j = 0; j < 3; j++) {
       g_graphData[i][j].max_val = INT32_MIN;
       g_graphData[i][j].min_val = INT32_MAX;
@@ -2344,8 +2350,66 @@ void graph_init(void) {
       g_graphData[i][j].end_valid = 0;
     }
   }
+#endif
 }
 
 void screen_init(void) {
   graph_init();
+
+  // init the pointers
+  wheelSpeedField.rw->editable.number.auto_thresholds = &g_vars[VarsWheelSpeed].auto_thresholds;
+  wheelSpeedField.rw->editable.number.config_warn_threshold = &g_vars[VarsWheelSpeed].config_warn_threshold;
+  wheelSpeedField.rw->editable.number.config_error_threshold = &g_vars[VarsWheelSpeed].config_error_threshold;
+
+  tripDistanceField.rw->editable.number.auto_thresholds = &g_vars[VarsTripDistance].auto_thresholds;
+  tripDistanceField.rw->editable.number.config_warn_threshold = &g_vars[VarsTripDistance].config_warn_threshold;
+  tripDistanceField.rw->editable.number.config_error_threshold = &g_vars[VarsTripDistance].config_error_threshold;
+
+  odoField.rw->editable.number.auto_thresholds = &g_vars[VarsOdometer].auto_thresholds;
+  odoField.rw->editable.number.config_warn_threshold = &g_vars[VarsOdometer].config_warn_threshold;
+  odoField.rw->editable.number.config_error_threshold = &g_vars[VarsOdometer].config_error_threshold;
+
+  cadenceField.rw->editable.number.auto_thresholds = &g_vars[VarsCadence].auto_thresholds;
+  cadenceField.rw->editable.number.config_warn_threshold = &g_vars[VarsCadence].config_warn_threshold;
+  cadenceField.rw->editable.number.config_error_threshold = &g_vars[VarsCadence].config_error_threshold;
+
+  humanPowerField.rw->editable.number.auto_thresholds = &g_vars[VarsHumanPower].auto_thresholds;
+  humanPowerField.rw->editable.number.config_warn_threshold = &g_vars[VarsHumanPower].config_warn_threshold;
+  humanPowerField.rw->editable.number.config_error_threshold = &g_vars[VarsHumanPower].config_error_threshold;
+
+  batteryPowerField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryPower].auto_thresholds;
+  batteryPowerField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryPower].config_warn_threshold;
+  batteryPowerField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryPower].config_error_threshold;
+
+  batteryVoltageField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryVoltage].auto_thresholds;
+  batteryVoltageField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryVoltage].config_warn_threshold;
+  batteryVoltageField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryVoltage].config_error_threshold;
+
+  batteryCurrentField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryCurrent].auto_thresholds;
+  batteryCurrentField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryCurrent].config_warn_threshold;
+  batteryCurrentField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryCurrent].config_error_threshold;
+
+  motorCurrentField.rw->editable.number.auto_thresholds = &g_vars[VarsMotorCurrent].auto_thresholds;
+  motorCurrentField.rw->editable.number.config_warn_threshold = &g_vars[VarsMotorCurrent].config_warn_threshold;
+  motorCurrentField.rw->editable.number.config_error_threshold = &g_vars[VarsMotorCurrent].config_error_threshold;
+
+  batterySOCField.rw->editable.number.auto_thresholds = &g_vars[VarsBatterySOC].auto_thresholds;
+  batterySOCField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatterySOC].config_warn_threshold;
+  batterySOCField.rw->editable.number.config_error_threshold = &g_vars[VarsBatterySOC].config_error_threshold;
+
+  motorTempField.rw->editable.number.auto_thresholds = &g_vars[VarsMotorTemp].auto_thresholds;
+  motorTempField.rw->editable.number.config_warn_threshold = &g_vars[VarsMotorTemp].config_warn_threshold;
+  motorTempField.rw->editable.number.config_error_threshold = &g_vars[VarsMotorTemp].config_error_threshold;
+
+  motorErpsField.rw->editable.number.auto_thresholds = &g_vars[VarsMotorERPS].auto_thresholds;
+  motorTempField.rw->editable.number.config_warn_threshold = &g_vars[VarsMotorERPS].config_warn_threshold;
+  motorErpsField.rw->editable.number.config_error_threshold = &g_vars[VarsMotorERPS].config_error_threshold;
+
+  pwmDutyField.rw->editable.number.auto_thresholds = &g_vars[VarsMotorPWM].auto_thresholds;
+  pwmDutyField.rw->editable.number.config_warn_threshold = &g_vars[VarsMotorPWM].config_warn_threshold;
+  pwmDutyField.rw->editable.number.config_error_threshold = &g_vars[VarsMotorPWM].config_error_threshold;
+
+  motorFOCField.rw->editable.number.auto_thresholds = &g_vars[VarsMotorFOC].auto_thresholds;
+  motorFOCField.rw->editable.number.config_warn_threshold = &g_vars[VarsMotorFOC].config_warn_threshold;
+  motorFOCField.rw->editable.number.config_error_threshold = &g_vars[VarsMotorFOC].config_error_threshold;
 }

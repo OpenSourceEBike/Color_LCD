@@ -751,8 +751,6 @@ void communications(void) {
               g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
 //            APP_ERROR_HANDLER(FAULT_TSDZ2_WRONG_FIRMWARE);
             fieldPrintf(&bootStatus2, "TSDZ2 firmware error");
-            while (1); // block here
-
             g_tsdz2_firmware_version.major = 0xff; // invalidate the version
           }
 

@@ -197,7 +197,7 @@ void lcd_init(void)
   // Wait 100 ms
   nrf_delay_ms(100);  // Doesn't have to be exact this delay.
 
-  // Setup �GUI library
+  // Setup uGUI library
   UG_Init(&gui, pset, 64, 128); // Pixel set function
 
   UG_DriverRegister(DRIVER_DRAW_LINE, (void *) accel_draw_line);

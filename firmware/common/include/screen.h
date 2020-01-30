@@ -143,12 +143,6 @@ typedef enum {
   ConvertFromImperial_mass,
 } ConvertUnitsType;
 
-#ifdef SW102
-#define GRAPH_VARIANT_SIZE 1 // memory for only 1 graph
-#else
-#define GRAPH_VARIANT_SIZE 12
-#endif
-
 // max points for hold up to 3 differents records of each variables, possible 15 minutes, 1 hour and 4 hours
 #define GRAPH_MAX_POINTS	247 // Note: we waste one record, to make our ring buffer code easier
 #define GRAPH_DATA_0_INTERVAL_MS 	3644 // graph updates are expensive - do rarely (247 * 3.644 seconds = 15 minutes)
@@ -166,11 +160,7 @@ typedef enum {
 #define GRAPH_GRAPH_LABEL_OFFSET 12
 
 // Assumed period of screenUpdate invoke
-#ifdef SW102
-#define UPDATE_INTERVAL_MS 20
-#else
 #define UPDATE_INTERVAL_MS 100
-#endif
 
 // Real time period
 #define REALTIME_INTERVAL_MS 100
@@ -195,6 +185,24 @@ typedef enum {
   FIELD_THRESHOLD_MANUAL = 1,
   FIELD_THRESHOLD_AUTO = 2,
 } field_threshold_t;
+
+typedef enum {
+  VarsWheelSpeed = 0,
+  VarsTripDistance,
+  VarsOdometer,
+  VarsCadence,
+  VarsHumanPower,
+  VarsBatteryPower,
+  VarsBatteryVoltage,
+  VarsBatteryCurrent,
+  VarsMotorCurrent,
+  VarsBatterySOC,
+  VarsMotorTemp,
+  VarsMotorERPS,
+  VarsMotorPWM,
+  VarsMotorFOC,
+  VARS_SIZE,
+} Variables;
 
 /**
  * This is a cache of past read values for a particular data source.  Currently there is a 1:1 relation
@@ -246,9 +254,10 @@ typedef struct {
 
     struct {
       struct {
-        field_threshold_t auto_thresholds : 2; // if warn and error thresholds should have automatic values, manual or be disabled
+        field_threshold_t *auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
         UG_COLOR previous_color;
         int32_t warn_threshold, error_threshold; // if != -1 and a value exceeds this it will be drawn in the warn/error colors
+        int32_t *config_warn_threshold, *config_error_threshold; // this are the values that user configs
       } number;
     } editable;
 
@@ -316,7 +325,6 @@ typedef const struct Field {
 					const bool hide_fraction :1; // if set, don't ever show the fractional part
  					uint32_t max_value, min_value; // min/max
 					const uint32_t inc_step; // if zero, then 1 is assumed
-					int32_t config_warn_threshold, config_error_threshold;
           void (*onPreSetEditable)(uint32_t v); // called before a new edited value is updated
 				} number;
 
@@ -370,7 +378,8 @@ typedef const struct Field {
 #define FIELD_DRAWTEXT(...) { FIELD_COMMON_INIT(FieldDrawText), .drawTextPtr = { .msg = (char [MAX_FIELD_LEN]){ 0, }, ##__VA_ARGS__  } }
 #define FIELD_DRAWTEXTPTR(str, ...) { FIELD_COMMON_INIT(FieldDrawTextPtr), .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { FIELD_COMMON_INIT(FieldCustom), .custom = { .render = &cb  } }
-#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph), .blink = true, .graph = { .source = s, ##__VA_ARGS__  } }
+//#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph, .blink = true), .graph = { .source = s, ##__VA_ARGS__  } }
+#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph), .graph = { .source = s, ##__VA_ARGS__  } }
 #define FIELD_CUSTOMIZABLE_PTR(s, c) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = c  } }
 #define FIELD_CUSTOMIZABLE(s, ...) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 
@@ -479,6 +488,11 @@ typedef struct {
 // Standard vertical spacing for fonts
 // #define FONT12_Y 14 // we want a little bit of extra space
 
+typedef struct {
+  field_threshold_t auto_thresholds; // if warn and error thresholds should have automatic values, manual or be disabled
+  int32_t config_warn_threshold, config_error_threshold; // this are the values that user configs
+} variables_t;
+
 void panicScreenShow(Screen *screen);
 void screenShow(Screen *screen);
 void screenUpdate();
@@ -497,8 +511,11 @@ extern bool screenConvertFarenheit;
 
 extern bool screenConvertPounds;
 
-extern GraphVars g_graphVars[GRAPH_VARIANT_SIZE]; // this is needed to be used on configurations otherwise I could not make code build
-extern GraphData g_graphData[GRAPH_VARIANT_SIZE][3];
+extern variables_t g_vars[VARS_SIZE];  // this is needed to be used on configurations otherwise I could not make code build
+#ifndef SW102
+extern GraphVars g_graphVars[VARS_SIZE]; // this is needed to be used on configurations otherwise I could not make code build
+extern GraphData g_graphData[VARS_SIZE][3];
+#endif
 
 void fieldPrintf(Field *field, const char *fmt, ...);
 

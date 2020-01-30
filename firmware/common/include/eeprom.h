@@ -82,7 +82,7 @@ typedef struct eeprom_data {
 	uint8_t customizableFieldIndex;
 
 #ifndef SW102
-	Graph_eeprom graph_eeprom[GRAPH_VARIANT_SIZE];
+	Graph_eeprom graph_eeprom[VARS_SIZE];
   uint8_t tripDistanceField_x_axis_scale_config;
   uint8_t odoField_x_axis_scale_config;
 	field_threshold_t wheelSpeedField_auto_thresholds;
@@ -109,6 +109,10 @@ typedef struct eeprom_data {
   int32_t batteryCurrentField_config_error_threshold;
   int32_t batteryCurrentField_config_warn_threshold;
   uint8_t batteryCurrentField_x_axis_scale_config;
+  field_threshold_t motorCurrentField_auto_thresholds;
+  int32_t motorCurrentField_config_error_threshold;
+  int32_t motorCurrentField_config_warn_threshold;
+  uint8_t motorCurrentField_x_axis_scale_config;
   field_threshold_t batterySOCField_auto_thresholds;
   int32_t batterySOCField_config_error_threshold;
   int32_t batterySOCField_config_warn_threshold;

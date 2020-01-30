@@ -21,7 +21,6 @@ struct uart_rx_buff_typedef
 };
 uart_rx_buff_typedef* uart_rx_buffer;
 volatile uint8_t* uart_rx_data_rdy;
-uint8_t uart_number_bytes_rx, uart_number_bytes_tx;
 
 uint8_t uart_buffer0_tx[UART_NUMBER_DATA_BYTES_TO_SEND];
 

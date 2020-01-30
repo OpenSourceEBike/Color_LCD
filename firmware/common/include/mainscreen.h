@@ -50,6 +50,7 @@ extern Field
   batteryPowerGraph,
   batteryVoltageGraph,
   batteryCurrentGraph,
+  motorCurrentGraph,
   batterySOCGraph,
   motorTempGraph,
   motorErpsGraph,

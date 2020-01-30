@@ -22,7 +22,7 @@
 #include "ugui.h"
 #include "configscreen.h"
 
-Field batteryField = FIELD_DRAWTEXT();
+Field batteryField = FIELD_DRAWTEXT_RW();
 
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen

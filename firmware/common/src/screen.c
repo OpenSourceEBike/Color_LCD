@@ -405,6 +405,9 @@ static void enterScrollable(Field *f) {
 	scrollableStack[0]->rw->dirty = true;
 
 	forceScrollableRelayout = true;
+
+  // clean the full screen
+  screenDirty = true;
 }
 
 /**
@@ -422,6 +425,9 @@ static bool exitScrollable() {
 		// Parent was a scrollable, show it
 		f->rw->dirty = true;
 		forceScrollableRelayout = true;
+
+	  // clean the full screen
+	  screenDirty = true;
 	} else {
 		// otherwise we just leave the screen
 	  showNextScreen();
@@ -2124,6 +2130,9 @@ void panicScreenShow(Screen *screen) {
 void screenShow(Screen *screen) {
 	if (curScreen && curScreen->onExit)
 		curScreen->onExit();
+
+  // clean the full screen
+  screenDirty = true;
 
 	panicScreenShow(screen);
 }

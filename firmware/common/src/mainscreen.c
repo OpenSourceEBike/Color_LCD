@@ -446,10 +446,6 @@ void power(void) {
 #endif
 }
 
-void mainscreen_show(void) {
-	screenShow(&mainScreen);
-}
-
 void screen_clock(void) {
   static int counter_time_ms = 0;
   int time_ms = 0;

@@ -730,7 +730,7 @@ int32_t curEditableValueConverted;
 /**
  * increment/decrement an editable
  */
-static void changeEditable(bool increment) {
+static void changeEditable(bool increment, bool x10) {
 	Field *f = curActiveEditable;
 	assert(f);
 
@@ -742,6 +742,9 @@ static void changeEditable(bool increment) {
 
 		if (step == 0)
 			step = 1;
+
+		if (x10)
+		  step *= 10;
 
 		v += step * (increment ? 1 : -1);
 		if (v < f->editable.number.min_value) // loop around
@@ -1069,13 +1072,28 @@ static bool renderEditable(FieldLayout *layout) {
 
 	// If we are blinking right now, that's a good place to poll our buttons so that the user can press and hold to change a series of values
 	if (isActive && blinkChanged && !field->editable.read_only) {
+    static uint8_t cnt_up = 0;
+    static uint8_t cnt_down = 0;
+
 		if (buttons_get_up_state()) {
-			changeEditable(true);
+      if (cnt_up < 255)
+        cnt_up++;
+
+			changeEditable(true, (cnt_up > 10) ? true : false);
+		}
+		else {
+      cnt_up = 0;
 		}
 
 		if (buttons_get_down_state()) {
-			changeEditable(false);
+      if (cnt_down < 255)
+        cnt_down++;
+
+			changeEditable(false, (cnt_down > 10) ? true : false);
 		}
+    else {
+      cnt_down = 0;
+    }
 	}
 
 	// Get the value we are trying to show (it might be a num or an enum)

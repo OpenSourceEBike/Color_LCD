@@ -43,12 +43,12 @@ typedef struct eeprom_data {
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint8_t ui8_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[9];
 	uint8_t ui8_number_of_assist_levels;
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
-	uint8_t ui8_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[9];
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
 	uint8_t ui8_temperature_limit_feature_enabled;
@@ -163,15 +163,15 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
 #define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         2 // 0.2
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         3
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         5
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         8
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         12
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         18
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         27
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         41
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         62
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         10 // 0.01
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         15
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         23
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         35
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         53
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         78
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         118
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         177
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         267
 #define DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED                   1
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    35
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    40

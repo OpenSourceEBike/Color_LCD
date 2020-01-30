@@ -78,7 +78,7 @@ typedef struct rt_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint8_t ui8_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[9];
 	uint8_t ui8_walk_assist_feature_enabled;
 	uint8_t ui8_walk_assist_level_factor[9];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
@@ -86,7 +86,7 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint8_t ui8_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[9];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;
@@ -170,7 +170,7 @@ typedef struct ui_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint8_t ui8_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[9];
 	uint8_t ui8_walk_assist_feature_enabled;
 	uint8_t ui8_walk_assist_level_factor[9];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
@@ -178,7 +178,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint8_t ui8_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[9];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;

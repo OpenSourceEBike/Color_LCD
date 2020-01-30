@@ -167,17 +167,22 @@ void rt_send_tx_package(uint8_t type) {
 	  case 0:
       if (rt_vars.ui8_walk_assist) {
         ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_walk_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+        ui8_usart1_tx_buffer[4] = 0;
       } else if (rt_vars.ui8_assist_level) {
-        ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+        uint16_t ui16_temp = (uint8_t) rt_vars.ui16_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
+        ui8_usart1_tx_buffer[3] = (uint8_t) (ui16_temp & 0xff);
+        ui8_usart1_tx_buffer[4] = (uint8_t) (ui16_temp >> 8);
+
       } else {
         // if rt_vars.ui8_assist_level = 0, send 0!! always disable motor when assist level is 0
         ui8_usart1_tx_buffer[3] = 0;
+        ui8_usart1_tx_buffer[4] = 0;
       }
 
-      ui8_usart1_tx_buffer[4] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
-      ui8_usart1_tx_buffer[5] = rt_vars.ui8_target_max_battery_power;
+      ui8_usart1_tx_buffer[5] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
+      ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power;
 
-      crc_len = 6;
+      crc_len = 7;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -206,7 +211,7 @@ void rt_send_tx_package(uint8_t type) {
           (rt_vars.ui8_motor_type ? 64 : 0);
 
       // startup motor power boost
-      ui8_usart1_tx_buffer[10] = rt_vars.ui8_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
+      ui8_usart1_tx_buffer[10] = rt_vars.ui16_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
       // startup motor power boost time
       ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_time;
       // startup motor power boost fade time
@@ -541,7 +546,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui16_battery_pack_resistance_x1000 = ui_vars.ui16_battery_pack_resistance_x1000;
 	rt_vars.ui8_assist_level = ui_vars.ui8_assist_level;
 	for (uint8_t i = 0; i < 9; i++) {
-	  rt_vars.ui8_assist_level_factor[i] = ui_vars.ui8_assist_level_factor[i];
+	  rt_vars.ui16_assist_level_factor[i] = ui_vars.ui16_assist_level_factor[i];
 	}
   for (uint8_t i = 0; i < 9; i++) {
     rt_vars.ui8_walk_assist_level_factor[i] = ui_vars.ui8_walk_assist_level_factor[i];
@@ -571,7 +576,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_startup_motor_power_boost_time =
 			ui_vars.ui8_startup_motor_power_boost_time;
   for (uint8_t i = 0; i < 9; i++) {
-    rt_vars.ui8_startup_motor_power_boost_factor[i] = ui_vars.ui8_startup_motor_power_boost_factor[i];
+    rt_vars.ui16_startup_motor_power_boost_factor[i] = ui_vars.ui16_startup_motor_power_boost_factor[i];
   }
 	rt_vars.ui8_startup_motor_power_boost_fade_time =
 			ui_vars.ui8_startup_motor_power_boost_fade_time;

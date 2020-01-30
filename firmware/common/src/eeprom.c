@@ -37,7 +37,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
 		.ui8_motor_type = DEFAULT_VALUE_MOTOR_TYPE,
 		.ui8_motor_assistance_startup_without_pedal_rotation = DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION,
-		.ui8_assist_level_factor = {
+		.ui16_assist_level_factor = {
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3,
@@ -50,7 +50,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.ui8_number_of_assist_levels = DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS,
 		.ui8_startup_motor_power_boost_feature_enabled = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED,
 		.ui8_startup_motor_power_boost_always = DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS,
-		.ui8_startup_motor_power_boost_factor = {
+		.ui16_startup_motor_power_boost_factor = {
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3,
@@ -267,7 +267,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation;
 	ui_vars->ui8_temperature_limit_feature_enabled =
 			m_eeprom_data.ui8_temperature_limit_feature_enabled;
-	COPY_ARRAY(ui_vars, &m_eeprom_data, ui8_assist_level_factor);
+	COPY_ARRAY(ui_vars, &m_eeprom_data, ui16_assist_level_factor);
 	ui_vars->ui8_number_of_assist_levels =
 			m_eeprom_data.ui8_number_of_assist_levels;
 	ui_vars->ui8_startup_motor_power_boost_feature_enabled =
@@ -277,7 +277,7 @@ void eeprom_init_variables(void) {
 	ui_vars->ui8_startup_motor_power_boost_always =
 			m_eeprom_data.ui8_startup_motor_power_boost_always;
 	COPY_ARRAY(ui_vars, &m_eeprom_data,
-			ui8_startup_motor_power_boost_factor);
+			ui16_startup_motor_power_boost_factor);
 	ui_vars->ui8_startup_motor_power_boost_time =
 			m_eeprom_data.ui8_startup_motor_power_boost_time;
 	ui_vars->ui8_startup_motor_power_boost_fade_time =
@@ -488,7 +488,7 @@ void eeprom_write_variables(void) {
 			ui_vars->ui8_motor_assistance_startup_without_pedal_rotation;
 	m_eeprom_data.ui8_temperature_limit_feature_enabled =
 			ui_vars->ui8_temperature_limit_feature_enabled;
-	COPY_ARRAY(&m_eeprom_data, ui_vars, ui8_assist_level_factor);
+	COPY_ARRAY(&m_eeprom_data, ui_vars, ui16_assist_level_factor);
 	m_eeprom_data.ui8_number_of_assist_levels =
 			ui_vars->ui8_number_of_assist_levels;
 	m_eeprom_data.ui8_startup_motor_power_boost_feature_enabled =
@@ -498,7 +498,7 @@ void eeprom_write_variables(void) {
 	m_eeprom_data.ui8_startup_motor_power_boost_limit_power =
 			ui_vars->ui8_startup_motor_power_boost_limit_power;
 	COPY_ARRAY(&m_eeprom_data, ui_vars,
-			ui8_startup_motor_power_boost_factor);
+			ui16_startup_motor_power_boost_factor);
 	m_eeprom_data.ui8_startup_motor_power_boost_time =
 			ui_vars->ui8_startup_motor_power_boost_time;
 	m_eeprom_data.ui8_startup_motor_power_boost_fade_time =

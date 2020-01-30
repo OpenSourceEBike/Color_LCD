@@ -105,10 +105,10 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
 		.field_selectors = {
 				3, // GRAPH: wheel speed
-				0, // trip time
-        5, // human power
 				1, // trip distance
+				5, // human power
 				9, // motor current
+				6, // motor power
     },
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
@@ -137,8 +137,12 @@ const eeprom_data_t m_eeprom_data_defaults = {
 
     .tripDistanceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .odoField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
-    .wheelSpeedField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+
+    .wheelSpeedField_auto_thresholds = FIELD_THRESHOLD_MANUAL,
+    .wheelSpeedField_config_error_threshold = 350,
+    .wheelSpeedField_config_warn_threshold = 300,
     .wheelSpeedField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
+
     .cadenceField_auto_thresholds = FIELD_THRESHOLD_AUTO,
     .cadenceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .batteryPowerField_auto_thresholds = FIELD_THRESHOLD_AUTO,

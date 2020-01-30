@@ -933,6 +933,10 @@ UG_COLOR getEditableColor(Field *f, int32_t val) {
   int32_t error_threshold = convertToImperialIfNeeded(f, f->rw->editable.number.error_threshold);
   UG_COLOR color = C_WHITE;
 
+  // in the case of invalid thresholds
+  if (warn_threshold == -1 || error_threshold == -1)
+    return C_WHITE;
+
   // find if thresholds are inverted, like in the case of battery voltage
   bool threshold_inverted = false;
   if (error_threshold < warn_threshold) {

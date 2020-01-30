@@ -27,12 +27,12 @@ typedef struct {
  #include <unwind.h>
  */
 
-Field faultHeading = FIELD_DRAWTEXT(.msg = "FAULT");
-Field faultCode = FIELD_DRAWTEXT();
-Field addrHeading = FIELD_DRAWTEXT(.msg = "PC");
-Field addrCode = FIELD_DRAWTEXT();
-Field infoHeading = FIELD_DRAWTEXT(.msg = "Info");
-Field infoCode = FIELD_DRAWTEXT();
+Field faultHeading = FIELD_DRAWTEXT_RW(.msg = "FAULT");
+Field faultCode = FIELD_DRAWTEXT_RW();
+Field addrHeading = FIELD_DRAWTEXT_RW(.msg = "PC");
+Field addrCode = FIELD_DRAWTEXT_RW();
+Field infoHeading = FIELD_DRAWTEXT_RW(.msg = "Info");
+Field infoCode = FIELD_DRAWTEXT_RW();
 
 Screen faultScreen = { .fields = { { .height = -1, .color = ColorInvert,
 		.field = &faultHeading, .font = &TITLE_TEXT_FONT },

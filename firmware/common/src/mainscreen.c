@@ -62,8 +62,8 @@ bool wd_failure_detected;
 //
 // Fields - these might be shared my multiple screens
 //
-Field socField = FIELD_DRAWTEXT();
-Field timeField = FIELD_DRAWTEXT();
+Field socField = FIELD_DRAWTEXT_RW();
+Field timeField = FIELD_DRAWTEXT_RW();
 Field assistLevelField = FIELD_READONLY_UINT("assist", &ui_vars.ui8_assist_level, "", false);
 #ifdef SW102
 Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
@@ -180,13 +180,13 @@ Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizable
  custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
 
-Field bootHeading = FIELD_DRAWTEXTPTR(_S("OpenSource EBike", "OS-EBike")),
- bootURL_1 = FIELD_DRAWTEXTPTR(_S("www.github.com/", "see github.com")),
- bootURL_2 = FIELD_DRAWTEXTPTR(_S("OpenSource-EBike-Firmware", "")),
- bootFirmwareVersion = FIELD_DRAWTEXTPTR("850C firmware version:"),
- bootVersion = FIELD_DRAWTEXTPTR(VERSION_STRING),
- bootStatus1 = FIELD_DRAWTEXT(.msg = "Keep pedals free and wait"),
- bootStatus2 = FIELD_DRAWTEXT(.msg = "Booting...");
+Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
+ bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "see github.com")),
+ bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "")),
+ bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
+ bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
+ bootStatus1 = FIELD_DRAWTEXT_RW(.msg = "Keep pedals free and wait"),
+ bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 

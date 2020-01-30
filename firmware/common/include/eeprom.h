@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x23
-#define EEPROM_VERSION 0x23
+#define EEPROM_MIN_COMPAT_VERSION 0x24
+#define EEPROM_VERSION 0x24
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -156,7 +156,7 @@ void eeprom_init_defaults(void);
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
 #define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             16 // 16 amps
-#define DEFAULT_VALUE_CURRENT_MIN_ADC                                1 // 1 unit, 0.156 A
+#define DEFAULT_VALUE_CURRENT_MIN_ADC                               1 // 1 unit, 0.156 A
 #define DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10                   80 // 8.0 amps per second ramp up
 #define DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER                      0 // e.g. 20 = 20 * 25 = 500, 0 is disabled
 #define DEFAULT_VALUE_BATTERY_CELLS_NUMBER                          14 // 14 --> 52V
@@ -214,7 +214,6 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_ENABLED                   0
 #define DEFAULT_VALUE_OFFROAD_POWER_LIMIT_DIV25                     10 //10 * 25 = 250W
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
-#define DEFAULT_VALUE_BATTERY_SOC_INCREMENT_DECREMENT               1 // decrement
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one

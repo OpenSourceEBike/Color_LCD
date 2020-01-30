@@ -112,8 +112,8 @@ typedef enum {
  * Note: might change someday to instead just be a pointer to a constant vtable like thing
  */
 typedef enum {
-	FieldDrawText = 0, // a string stored in RAM (FIXME rename DrawTextRW)
-	FieldDrawTextPtr, // a string stored in ROM (FIXME rename DrawTextRO)
+	FieldDrawTextRW = 0, // a string stored in RAM (FIXME rename DrawTextRW)
+	FieldDrawTextRO, // a string stored in ROM (FIXME rename DrawTextRO)
 	FieldFill, // Fill with a solid color
 	FieldMesh, // Fill with a mesh color
 	FieldScrollable, // Contains a menu name and points to a submenu to optionally expand its place.  If at the root of a screen, submenu will be automatically expanded to fill remaining screen space
@@ -248,6 +248,10 @@ typedef struct {
     // fieldtype specific data
 
     struct {
+      char *msg; // A string stored in a ptr (if this is a DrawText the string will be in RAM, we are a DrawTextPtr it will be stored in ROM
+    } drawTextPtr;
+
+    struct {
       uint8_t first; // The first entry we are showing on the screen (ie for scrolling through a series of entries)
       uint8_t selected; // the currently highlighted entry
     } scrollable;
@@ -342,7 +346,7 @@ typedef const struct Field {
 //
 
 // Init the variant type code and optionally let the user fill in initial values for the rw state
-#define FIELD_COMMON_INIT(t, ...) .variant = t, .rw = (FieldRW [1]){ ##__VA_ARGS__ }
+#define FIELD_COMMON_INIT(t, ...) .variant = t, .rw = (FieldRW [1]){ __VA_ARGS__ }
 
 // .editable = { .number = { .warn_threshold = -1, .error_threshold = -1 }}
 
@@ -375,11 +379,10 @@ typedef const struct Field {
   .editable = { .read_only = true, .typ = EditEnum, .label = lbl, .target = targ, .size = sizeof(EditableType), \
       .editEnum = { .options = (const char *[]){ __VA_ARGS__, NULL } } } }
 
-#define FIELD_DRAWTEXT(...) { FIELD_COMMON_INIT(FieldDrawText), .drawTextPtr = { .msg = (char [MAX_FIELD_LEN]){ 0, }, ##__VA_ARGS__  } }
-#define FIELD_DRAWTEXTPTR(str, ...) { FIELD_COMMON_INIT(FieldDrawTextPtr), .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
+#define FIELD_DRAWTEXT_RW(...) { FIELD_COMMON_INIT(FieldDrawTextRW, { .drawTextPtr = { .msg = (char [MAX_FIELD_LEN]){ 0, } }}) }
+#define FIELD_DRAWTEXT_RO(str, ...) { FIELD_COMMON_INIT(FieldDrawTextRO), .drawTextPtr = { .msg = str, ##__VA_ARGS__  } }
 #define FIELD_CUSTOM(cb) { FIELD_COMMON_INIT(FieldCustom), .custom = { .render = &cb  } }
-//#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph, .blink = true), .graph = { .source = s, ##__VA_ARGS__  } }
-#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph), .graph = { .source = s, ##__VA_ARGS__  } }
+#define FIELD_GRAPH(s, ...) { FIELD_COMMON_INIT(FieldGraph, { .blink = true}), .graph = { .source = s, ##__VA_ARGS__  } }
 #define FIELD_CUSTOMIZABLE_PTR(s, c) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = c  } }
 #define FIELD_CUSTOMIZABLE(s, ...) { FIELD_COMMON_INIT(FieldCustomizable), .customizable = { .selector = s, .choices = (Field *[]){ __VA_ARGS__, NULL }}}
 

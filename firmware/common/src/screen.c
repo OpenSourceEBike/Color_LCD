@@ -175,11 +175,11 @@ bool renderDrawTextCommon(FieldLayout *layout, const char *msg) {
 	return true;
 }
 
-static bool renderDrawText(FieldLayout *layout) {
-	return renderDrawTextCommon(layout, layout->field->drawTextPtr.msg);
+static bool renderDrawTextRW(FieldLayout *layout) {
+	return renderDrawTextCommon(layout, layout->field->rw->drawTextPtr.msg);
 }
 
-static bool renderDrawTextPtr(FieldLayout *layout) {
+static bool renderDrawTextRO(FieldLayout *layout) {
 	return renderDrawTextCommon(layout, layout->field->drawTextPtr.msg);
 }
 
@@ -436,8 +436,8 @@ static bool exitScrollable() {
 
 static int maxRowsPerScreen;
 
-static Field heading = FIELD_DRAWTEXT();
-static Field label = FIELD_DRAWTEXT();
+static Field heading = FIELD_DRAWTEXT_RW();
+static Field label = FIELD_DRAWTEXT_RW();
 static Field blankRow = FIELD_FILL; // Used to fill with blank space if necessary FIELD_FILL
 
 static bool renderActiveScrollable(FieldLayout *layout, Field *field) {
@@ -1753,7 +1753,7 @@ static bool renderEnd(FieldLayout *layout) {
 	return true;
 }
 
-static const FieldRenderFn renderers[] = { renderDrawText, renderDrawTextPtr,
+static const FieldRenderFn renderers[] = { renderDrawTextRW, renderDrawTextRO,
 		renderFill, renderMesh, renderScrollable, renderEditable, renderCustom,
 		renderGraph, renderCustomizable, renderEnd };
 
@@ -2178,10 +2178,10 @@ void fieldPrintf(Field *field, const char *fmt, ...) {
 	va_start(argp, fmt);
 	char buf[MAX_FIELD_LEN];
 
-	assert(field->variant == FieldDrawText);
+	assert(field->variant == FieldDrawTextRW);
 	vsnprintf(buf, sizeof(buf), fmt, argp);
-	if (strncmp(buf, field->drawTextPtr.msg, sizeof(buf)) != 0) {
-		strcpy(field->drawTextPtr.msg, buf); // because our field is DrawText we are guaranteed the dest array is in RAM
+	if (strncmp(buf, field->rw->drawTextPtr.msg, sizeof(buf)) != 0) {
+		strcpy(field->rw->drawTextPtr.msg, buf); // because our field is DrawText we are guaranteed the dest array is in RAM
 		field->rw->dirty = true;
 	}
 

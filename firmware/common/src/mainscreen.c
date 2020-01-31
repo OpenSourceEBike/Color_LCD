@@ -75,21 +75,21 @@ Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decima
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
 
 // Note: this field is special, the string it is pointing to must be in RAM so we can change it later
-Field tripTimeField = FIELD_READONLY_STRING("trip time", (char [MAX_TIMESTR_LEN]){ 0 });
+Field tripTimeField = FIELD_READONLY_STRING(_S("trip time", "trip time"), (char [MAX_TIMESTR_LEN]){ 0 });
 
-Field tripDistanceField = FIELD_READONLY_UINT("trip distance", &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
+Field tripDistanceField = FIELD_READONLY_UINT(_S("trip distance", "trip dista"), &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
-Field humanPowerField = FIELD_READONLY_UINT("human power", &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
-Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor pwr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
-Field batteryVoltageField = FIELD_READONLY_UINT("batt voltage", &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
-Field batteryCurrentField = FIELD_READONLY_UINT("batt current", &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
-Field motorCurrentField = FIELD_READONLY_UINT("motor current", &ui16_m_motor_current_filtered_x10, "", true, .div_digits = 1);
-Field batterySOCField = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0);
-Field motorTempField = FIELD_READONLY_UINT("motor temp", &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0);
-Field motorErpsField = FIELD_READONLY_UINT("motor speed", &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
-Field pwmDutyField = FIELD_READONLY_UINT("motor pwm", &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
-Field motorFOCField = FIELD_READONLY_UINT("motor foc", &ui_vars.ui8_foc_angle, "", true, .div_digits = 0);
+Field humanPowerField = FIELD_READONLY_UINT(_S("human power", "human powr"), &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
+Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor powr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
+Field batteryVoltageField = FIELD_READONLY_UINT(_S("batt voltage", "bat volts"), &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
+Field batteryCurrentField = FIELD_READONLY_UINT(_S("batt current", "bat curren"), &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
+Field motorCurrentField = FIELD_READONLY_UINT(_S("motor current", "mot curren"), &ui16_m_motor_current_filtered_x10, "", true, .div_digits = 1);
+Field batterySOCField = FIELD_READONLY_UINT(_S("battery SOC", "bat SOC"), &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0);
+Field motorTempField = FIELD_READONLY_UINT(_S("motor temp", "mot temp"), &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0);
+Field motorErpsField = FIELD_READONLY_UINT(_S("motor speed", "mot speed"), &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
+Field pwmDutyField = FIELD_READONLY_UINT(_S("motor pwm", "mot pwm"), &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
+Field motorFOCField = FIELD_READONLY_UINT(_S("motor foc", "mot foc"), &ui_vars.ui8_foc_angle, "", true, .div_digits = 0);
 
 Field warnField = FIELD_CUSTOM(renderWarning);
 
@@ -181,11 +181,11 @@ Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizable
  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
 
 Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
- bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "see github.com")),
- bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "")),
+ bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "Keep pedal")),
+ bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "free")),
  bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
  bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
- bootStatus1 = FIELD_DRAWTEXT_RO("Keep pedals free and wait"),
+ bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
  bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "Booting...");
 
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
@@ -198,12 +198,12 @@ static void bootScreenOnPreUpdate() {
     fieldPrintf(&bootStatus2, _S("SIMULATING TSDZ2!", "SIMULATING"));
 
   if(g_has_seen_motor) {
-    fieldPrintf(&bootStatus2, "TSDZ2 firmware: %u.%u.%u",
+    fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
     g_tsdz2_firmware_version.major,
     g_tsdz2_firmware_version.minor,
     g_tsdz2_firmware_version.patch);
   } else {
-    fieldPrintf(&bootStatus2, _S("Waiting TSDZ2 - (%u.%uV)", "Waiting (%u.%uV)"), bvolt / 10, bvolt % 10);
+    fieldPrintf(&bootStatus2, _S("Waiting TSDZ2 - (%u.%uV)", "Wait %u.%uV"), bvolt / 10, bvolt % 10);
   }
 
   // Stop showing only after we release on/off button and we are commutication with motor
@@ -220,7 +220,6 @@ Screen bootScreen = {
       .field = &bootHeading,
       .font = &REGULAR_TEXT_FONT,
     },
-
     {
       .x = 0, .y = -20, .height = -1,
       .field = &bootURL_1,
@@ -232,12 +231,12 @@ Screen bootScreen = {
       .field = &bootURL_2,
       .font = &SMALL_TEXT_FONT,
     },
+#ifndef SW102
     {
       .x = 0, .y = YbyEighths(4), .height = -1,
       .field = &bootStatus1,
       .font = &SMALL_TEXT_FONT,
     },
-#ifndef SW102
     {
       .x = 0, .y = YbyEighths(6), .height = -1,
       .field = &bootFirmwareVersion,

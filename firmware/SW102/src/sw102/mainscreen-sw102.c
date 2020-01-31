@@ -89,7 +89,7 @@ Screen mainScreen = {
         .field = &assistLevelField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
-        .border = BorderBottom,
+        .border = BorderBottom | BorderLeft | BorderRight,
         .show_units = Hide
     },
     {
@@ -98,7 +98,7 @@ Screen mainScreen = {
         .field = &humanPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
-        .border = BorderBottom,
+        .border = BorderLeft | BorderRight,
         .show_units = Hide
     },
     {
@@ -107,7 +107,7 @@ Screen mainScreen = {
         .field = &batteryPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
-        .border = BorderNone,
+        .border = BorderLeft | BorderRight | BorderBottom,
         .show_units = Hide
     },
 

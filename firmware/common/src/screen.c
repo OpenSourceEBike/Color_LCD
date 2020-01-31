@@ -1927,11 +1927,12 @@ static bool onPressScrollable(buttons_events_t events) {
  * For the current screen.  Select the next customizable field on the screen (or nothing if there are not suitable
  * fields).  If there isn't a current customizable field, select the first candidate.
  */
-#define CUSTOMIZABLE_FIELDS_SIZE 5
+#define CUSTOMIZABLE_FIELDS_SIZE_MAX 5
 
 static void selectNextCustomizableField(bool increase) {
-	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE];
+	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE_MAX];
 	static uint8_t firstTime = 1;
+	static uint8_t customizableFieldsCounter = 0;
 
 	// do one first time only
 	if (firstTime) {
@@ -1940,15 +1941,14 @@ static void selectNextCustomizableField(bool increase) {
     // put all pointers on array at NULL
     memset(&customizableFields, 0, sizeof(customizableFields));
 
-    uint8_t index = 0;
     FieldLayout *layout = curScreen->fields;
     while (layout->field) {
       Field *field = layout->field;
 
       // let´s find customizable fields only
       if (field->variant == FieldCustomizable &&
-          index < CUSTOMIZABLE_FIELDS_SIZE) {
-        customizableFields[index++] = field;
+          customizableFieldsCounter < CUSTOMIZABLE_FIELDS_SIZE_MAX) {
+        customizableFields[customizableFieldsCounter++] = field;
       }
 
       layout++;
@@ -1962,7 +1962,7 @@ static void selectNextCustomizableField(bool increase) {
       g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector]->rw->dirty = true;
     }
 
-    g_customizableFieldIndex = (g_customizableFieldIndex + 1) % CUSTOMIZABLE_FIELDS_SIZE;
+    g_customizableFieldIndex = (g_customizableFieldIndex + 1) % customizableFieldsCounter;
 	}
 
 	g_curCustomizingField = customizableFields[g_customizableFieldIndex];

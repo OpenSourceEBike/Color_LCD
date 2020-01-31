@@ -77,35 +77,40 @@ Screen mainScreen = {
     {
         .x = 0, .y = -2,
         .width = 0, .height = -1,
-        .field = &assistLevelField,
+        .field = &wheelSpeedIntegerField,
         .font = &BIG_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
-        .border = BorderBottom
+        .border = BorderBottom,
+        .show_units = Hide
     },
-    /*
     {
-        .x = 19, .y = 16,
-        .width = -2, .height = -1,
-        // .color = ColorInvert,
-        .field = &speedField,
-        .border = BorderNone
-    }, */
+        .x = 0, .y = -2,
+        .width = 0, .height = 19,
+        .field = &assistLevelField,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .label_align_x = AlignHidden,
+        .border = BorderBottom,
+        .show_units = Hide
+    },
+    {
+        .x = 0, .y = -2,
+        .width = 0, .height = 19,
+        .field = &humanPowerField,
+        .font = &MEDIUM_NUMBERS_TEXT_FONT,
+        .label_align_x = AlignHidden,
+        .border = BorderBottom,
+        .show_units = Hide
+    },
     {
         .x = 0, .y = -2,
         .width = 0, .height = 19,
         .field = &batteryPowerField,
         .font = &MEDIUM_NUMBERS_TEXT_FONT,
         .label_align_x = AlignHidden,
-        .border = BorderBottom
+        .border = BorderNone,
+        .show_units = Hide
     },
-    {
-        .x = 0, .y = -2,
-        .width = 0, .height = -1,
-        .field = &wheelSpeedIntegerField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderNone
-    },
+
     STATUS_BAR,
     {
         .field = NULL

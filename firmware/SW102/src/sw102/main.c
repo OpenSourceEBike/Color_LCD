@@ -171,7 +171,7 @@ void init_softdevice() {
 
   // don't use softdevice while debugging
   // FIXME check if under debugger instead (using openocd callbacks)
-  // useSoftDevice = false;
+   useSoftDevice = false;
 }
 
 
@@ -182,6 +182,7 @@ int main(void)
 {
   init_softdevice();
   gpio_init();
+  system_power(true);
   lcd_init();
   uart_init();
   battery_voltage_init();
@@ -193,7 +194,6 @@ int main(void)
 
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
-  system_power(true);
 
   screenShow(&bootScreen);
 
@@ -202,7 +202,7 @@ int main(void)
   while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
     ;
 
-  watchdog_start();
+//  watchdog_start();
 
   // Enter main loop.
 
@@ -214,8 +214,8 @@ int main(void)
     uint32_t tick = gui_ticks;
     if (tick != lasttick)
     {
-      // if(tick < 50 * 5) // uncomment to force a watchdog failure after 5 seconds
-      watchdog_service(); // we only service the watchdog if we see our ticks are still increasing
+//      if(tick < 50 * 5) // uncomment to force a watchdog failure after 5 seconds
+//        watchdog_service(); // we only service the watchdog if we see our ticks are still increasing
 
       if(tick != lasttick + 1) {
         ticksmissed += (tick - lasttick - 1); // Error!  We fell behind and missed some ticks (probably due to screen draw taking more than 20 msec)

@@ -182,7 +182,12 @@ void rt_send_tx_package(uint8_t type) {
       ui8_usart1_tx_buffer[5] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
       ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power;
 
-      crc_len = 7;
+      // startup motor power boost
+      uint16_t ui16_temp = (uint8_t) rt_vars.ui16_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
+      ui8_usart1_tx_buffer[7] = (uint8_t) (ui16_temp & 0xff);
+      ui8_usart1_tx_buffer[8] = (uint8_t) (ui16_temp >> 8);
+
+      crc_len = 10;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -210,8 +215,8 @@ void rt_send_tx_package(uint8_t type) {
           (rt_vars.ui8_motor_assistance_startup_without_pedal_rotation ? 32 : 0) |
           (rt_vars.ui8_motor_type ? 64 : 0);
 
-      // startup motor power boost
-      ui8_usart1_tx_buffer[10] = rt_vars.ui16_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
+      // motor max current
+      ui8_usart1_tx_buffer[10] = rt_vars.ui8_motor_max_current;
       // startup motor power boost time
       ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_time;
       // startup motor power boost fade time
@@ -249,10 +254,7 @@ void rt_send_tx_package(uint8_t type) {
       // battery current min ADC
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_battery_current_min_adc;
 
-      // motor max current
-      ui8_usart1_tx_buffer[82] = rt_vars.ui8_motor_max_current;
-
-      crc_len = 84;
+      crc_len = 83;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 	}
@@ -788,7 +790,7 @@ void communications(void) {
       rt_send_tx_package(2);
       ++ui8_cnt;
       if (ui8_cnt > 5)
-        APP_ERROR_HANDLER(FAULT_LOSTRX);
+//        APP_ERROR_HANDLER(FAULT_LOSTRX);
       break;
 
     case COMMUNICATIONS_READY:
@@ -805,7 +807,7 @@ void communications(void) {
       rt_send_tx_package(1);
       ++ui8_cnt;
       if (ui8_cnt > 5)
-        APP_ERROR_HANDLER(FAULT_LOSTRX);
+//        APP_ERROR_HANDLER(FAULT_LOSTRX);
       break;
 
     default:

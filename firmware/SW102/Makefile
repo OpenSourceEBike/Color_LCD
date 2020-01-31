@@ -2,6 +2,22 @@ PROJECT_NAME     := nrf51822_sw102
 TARGETS          := nrf51822_sw102
 OUTPUT_DIRECTORY := _build
 
+# uncomment next lines to build for bootloader
+USE_WITH_BOOTLOADER = true
+
+ifdef USE_WITH_BOOTLOADER
+CFLAGS = -DUSE_WITH_BOOTLOADER
+LDFLAGS = -Xlinker --defsym=USE_WITH_BOOTLOADER=1
+endif
+
+ifdef USE_WITH_BOOTLOADER
+# Optimization flags release (note - we use -funwind-tables so our app fault handler can reverse engineer the PC of the caller when unsupplied)
+OPT = -Os -g3
+else
+# Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
+OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
+endif
+
 # Only this directory contains bins that should be uploaded to github for end-user-use
 RELEASE_DIRECTORY := _release
 
@@ -199,11 +215,6 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 include $(COMMON_DIR)/Makefile.common
-
-# Optimization flags release (note - we use -funwind-tables so our app fault handler can reverse engineer the PC of the caller when unsupplied)
-OPT = -Os -g3
-# Optimization flags debug (important to get line numbers for faults - warning this adds about 40KB to flash size!)
-# OPT = -O0 -g3 -DDEBUG_NRF -DDEBUG
 
 # C flags common to all targets
 CFLAGS += $(OPT)

@@ -203,7 +203,7 @@ static void bootScreenOnPreUpdate() {
     g_tsdz2_firmware_version.minor,
     g_tsdz2_firmware_version.patch);
   } else {
-    fieldPrintf(&bootStatus2, _S("Waiting TSDZ2 - (%u.%uV)", "Wait %u.%uV"), bvolt / 10, bvolt % 10);
+    fieldPrintf(&bootStatus2, _S("Wait TSDZ2 communication", "Wait TSDZ2"));
   }
 
   // Stop showing only after we release on/off button and we are commutication with motor
@@ -787,13 +787,14 @@ static bool appwide_onpress(buttons_events_t events)
   }
 
 #ifdef SW102
-  if(events & SCREENCLICK_NEXT_SCREEN) {
+  if ((events & SCREENCLICK_NEXT_SCREEN) &&
+      g_has_seen_motor) {
     showNextScreen();
     return true;
   }
 #endif
 
-  if(events & SCREENCLICK_ENTER_CONFIGURATIONS) {
+  if (events & SCREENCLICK_ENTER_CONFIGURATIONS) {
     screenShow(&configScreen);
     return true;
   }

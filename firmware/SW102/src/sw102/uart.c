@@ -5,50 +5,165 @@
  *
  * Released under the GPL License, Version 3
  */
+
+#include <string.h>
 #include "common.h"
 #include "nrf_drv_uart.h"
 #include "uart.h"
 #include "utils.h"
 #include "assert.h"
 #include "app_util_platform.h"
+#include "app_uart.h"
 
-nrf_drv_uart_t uart0 = NRF_DRV_UART_INSTANCE(UART0);
-typedef struct uart_rx_buff_typedef uart_rx_buff_typedef;
-struct uart_rx_buff_typedef
+extern uint32_t _app_uart_init(const app_uart_comm_params_t * p_comm_params,
+    app_uart_buffers_t *     p_buffers,
+    app_uart_event_handler_t event_handler,
+    app_irq_priority_t       irq_priority);
+extern uint8_t app_uart_get(void);
+
+#define UART_IRQ_PRIORITY                       APP_IRQ_PRIORITY_LOW
+
+/**
+ *@breif UART configuration structure
+ */
+static const app_uart_comm_params_t comm_params =
 {
-  uint8_t uart_rx_data[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
-  uart_rx_buff_typedef* next_uart_rx_buff;
+    .rx_pin_no  = UART_RX__PIN,
+    .tx_pin_no  = UART_TX__PIN,
+    .rts_pin_no = RTS_PIN_NUMBER,
+    .cts_pin_no = CTS_PIN_NUMBER,
+    //Below values are defined in ser_config.h common for application and connectivity
+    .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
+    .use_parity   = false,
+    .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud9600
 };
-uart_rx_buff_typedef* uart_rx_buffer;
-volatile uint8_t* uart_rx_data_rdy;
 
-uint8_t uart_buffer0_tx[UART_NUMBER_DATA_BYTES_TO_SEND];
+uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
+uint8_t ui8_tx_buffer[UART_NUMBER_DATA_BYTES_TO_SEND];
+volatile uint8_t ui8_received_package_flag = 0;
 
-uint8_t m_uart_rx_len;
+uint8_t* uart_get_tx_buffer(void)
+{
+  return ui8_tx_buffer;
+}
 
-/* Function prototype */
-static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context);
+uint8_t* usart1_get_rx_buffer(void)
+{
+  return ui8_rx_buffer;
+}
+
+uint8_t usart1_received_package(void)
+{
+  return ui8_received_package_flag;
+}
+
+void usart1_reset_received_package(void)
+{
+  ui8_received_package_flag = 0;
+}
+
+/**@brief   Function for handling UART interrupts.
+ *
+ * @details This function will receive a single character from the UART and append it to a string.
+ *          The string will be be sent over BLE when the last character received was a 'new line'
+ *          i.e '\n' (hex 0x0D) or if the string has reached a length of @ref NUS_MAX_DATA_LENGTH.
+ */
+void uart_evt_callback(app_uart_evt_t * uart_evt)
+{
+  uint8_t ui8_byte_received;
+  static uint8_t ui8_state_machine = 0;
+  static uint8_t ui8_rx[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
+  static uint8_t ui8_rx_cnt = 0;
+  uint8_t ui8_i;
+  uint16_t ui16_crc_rx;
+
+  switch (uart_evt->evt_type)
+  {
+    case APP_UART_DATA:
+      //Data is ready on the UART
+      ui8_byte_received = app_uart_get();
+      switch (ui8_state_machine)
+      {
+        case 0:
+        if (ui8_byte_received == 0x43) { // see if we get start package byte
+          ui8_rx[0] = ui8_byte_received;
+          ui8_state_machine = 1;
+        }
+        else
+          ui8_state_machine = 0;
+        break;
+
+        case 1:
+          ui8_rx[1] = ui8_byte_received;
+          ui8_state_machine = 2;
+        break;
+
+        case 2:
+        ui8_rx[ui8_rx_cnt + 2] = ui8_byte_received;
+        ++ui8_rx_cnt;
+
+        // reset if it is the last byte of the package and index is out of bounds
+        if (ui8_rx_cnt >= ui8_rx[1])
+        {
+          ui8_rx_cnt = 0;
+          ui8_state_machine = 0;
+
+          // just to make easy next calculations
+          ui16_crc_rx = 0xffff;
+          for (ui8_i = 0; ui8_i < ui8_rx[1]; ui8_i++)
+          {
+            crc16(ui8_rx[ui8_i], &ui16_crc_rx);
+          }
+
+          // if CRC is correct read the package
+          if (((((uint16_t) ui8_rx[ui8_rx[1] + 1]) << 8) +
+                ((uint16_t) ui8_rx[ui8_rx[1]])) == ui16_crc_rx)
+          {
+            // copy to the other buffer only if we processed already the last package
+            if(!ui8_received_package_flag)
+            {
+              ui8_received_package_flag = 1;
+
+              // store the received data to rx_buffer
+              memcpy(ui8_rx_buffer, ui8_rx, ui8_rx[1] + 2);
+            }
+          }
+        }
+        break;
+
+        default:
+          ui8_state_machine = 0;
+          break;
+      }
+    break;
+
+    case APP_UART_TX_EMPTY:
+      //Data has been successfully transmitted on the UART
+      break;
+
+    case APP_UART_COMMUNICATION_ERROR:
+        ui8_state_machine = 0;
+      break;
+
+    default:
+      break;
+  }
+}
 
 /**
  * @brief Init UART peripheral
  */
 void uart_init(void)
 {
-  /* Init RX buffer */
-  static uart_rx_buff_typedef rxb1, rxb2;
-  rxb1.next_uart_rx_buff = &rxb2;
-  rxb2.next_uart_rx_buff = &rxb1;
-  uart_rx_buffer = &rxb1;
+  uint32_t err_code;
+  app_uart_buffers_t buffers;
+  static uint8_t tx_buf[128]; // must be equal or higher than UART_NUMBER_DATA_BYTES_TO_SEND and power of 2
 
-  /* Init driver */
-  nrf_drv_uart_config_t uart_config = NRF_DRV_UART_DEFAULT_CONFIG;
-  uart_config.pselrxd = UART_RX__PIN;
-  uart_config.pseltxd = UART_TX__PIN;
+  buffers.tx_buf = tx_buf;
+  buffers.tx_buf_size = sizeof (tx_buf);
+  err_code = _app_uart_init(&comm_params, &buffers, uart_evt_callback, UART_IRQ_PRIORITY);
 
-  APP_ERROR_CHECK(nrf_drv_uart_init(&uart0, &uart_config, uart_event_handler));
-  /* Enable & start RX (bytewise scanning for start byte) */
-  nrf_drv_uart_rx_enable(&uart0);
-  APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
+  APP_ERROR_CHECK(err_code);
 }
 
 /**
@@ -56,108 +171,26 @@ void uart_init(void)
  */
 const uint8_t* uart_get_rx_buffer_rdy(void)
 {
-  uint8_t* rx_rdy;
-
-  // VERY paranoid but it is possible that uart_rx_data_rdy
-  // is set from IRQ during hand-over and gets NULLed right away.
-  CRITICAL_REGION_ENTER();
-  {
-    rx_rdy = (uint8_t*) uart_rx_data_rdy;
-    uart_rx_data_rdy = NULL;
-  }
-  CRITICAL_REGION_EXIT();
-
-  if (rx_rdy != NULL)
-  {
-    uint16_t crc_rx = 0xffff;
-    for (uint8_t ui8_i = 0; ui8_i < m_uart_rx_len; ui8_i++)
-      crc16(rx_rdy[ui8_i], &crc_rx);
-
-    if (((((uint16_t) rx_rdy[m_uart_rx_len + 1]) << 8)
-        + ((uint16_t) rx_rdy[m_uart_rx_len])) != crc_rx)
-      rx_rdy = NULL;  // Invalidate buffer if CRC not OK
+  if(!usart1_received_package()) {
+    return NULL;
   }
 
-  return rx_rdy;
+  uint8_t *r = usart1_get_rx_buffer();
+  usart1_reset_received_package();
+  return r;
 }
 
 /**
- * @brief Returns pointer to TX buffer
- */
-uint8_t* uart_get_tx_buffer(void)
-{
-  return uart_buffer0_tx;
-}
-
-/**
- * @brief Send TX buffer over UART. Returns false on error
+ * @brief Send TX buffer over UART.
  */
 void uart_send_tx_buffer(uint8_t *tx_buffer, uint8_t ui8_len)
 {
-  ret_code_t err_code = nrf_drv_uart_tx(&uart0, tx_buffer, ui8_len);
+  uint32_t err_code;
 
-  APP_ERROR_CHECK(err_code);
-}
-
-/* Event handler */
-
-static void uart_event_handler(nrf_drv_uart_event_t *p_event, void *p_context)
-{
-  static uint8_t uart_rx_state_machine = 0;
-
-  switch (p_event->type)
+  for (uint8_t i = 0; i < ui8_len; i++)
   {
-    case NRF_DRV_UART_EVT_TX_DONE:
-      break;
-
-    case NRF_DRV_UART_EVT_ERROR:
-      // Just restart our reads and try to keep going
-      // The only error we expect is overrun or framing
-      // assert(p_event->data.error.error_mask & (UART_ERRORSRC_OVERRUN_Msk | UART_ERRORSRC_FRAMING_Msk | UART_ERRORSRC_BREAK_Msk));
-
-      uart_rx_state_machine = 0;
-      APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
-      break;
-
-    case NRF_DRV_UART_EVT_RX_DONE:
-      switch (uart_rx_state_machine)
-      {
-        /* End of bytewise RX */
-        case 0:
-          if (uart_rx_buffer->uart_rx_data[0] == 0x43) // see if we get start package byte
-          {
-            uart_rx_state_machine = 1;
-            APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[1], 1));
-          }
-          else
-            APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
-          break;
-
-        // get the lenght of the package and receive such number of bytes
-        case 1:
-          m_uart_rx_len = uart_rx_buffer->uart_rx_data[1];
-          uart_rx_state_machine = 2;
-          APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[2], m_uart_rx_len));
-          break;
-
-        /* End of stream RX */
-        case 2:
-          /* Signal that we have a full package to be processed */
-          uart_rx_data_rdy = uart_rx_buffer->uart_rx_data;
-          /* Switch buffer */
-          uart_rx_buffer = uart_rx_buffer->next_uart_rx_buff;
-          /* Start bytewise RX again */
-          uart_rx_state_machine = 0;
-          APP_ERROR_CHECK(nrf_drv_uart_rx(&uart0, &uart_rx_buffer->uart_rx_data[0], 1));
-          break;
-
-        default:
-          assert(0);
-          break;
-      }
-      break;
-
-    default:
-      break;
+    err_code = app_uart_put(tx_buffer[i]);
+    if (err_code != 0)
+      APP_ERROR_CHECK(err_code);
   }
 }

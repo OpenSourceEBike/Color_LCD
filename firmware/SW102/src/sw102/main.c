@@ -171,7 +171,7 @@ void init_softdevice() {
 
   // don't use softdevice while debugging
   // FIXME check if under debugger instead (using openocd callbacks)
-   useSoftDevice = false;
+//   useSoftDevice = false;
 }
 
 
@@ -196,11 +196,6 @@ int main(void)
   eeprom_init();
 
   screenShow(&bootScreen);
-
-  // After we show the bootscreen...
-  // If a button is currently pressed (likely unless developing), wait for the release (so future click events are not confused
-  while(buttons_get_onoff_state() || buttons_get_m_state() || buttons_get_up_state() || buttons_get_down_state())
-    ;
 
 //  watchdog_start();
 

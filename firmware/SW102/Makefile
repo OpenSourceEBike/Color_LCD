@@ -61,6 +61,7 @@ SRC_FILES += \
   $(COMMON_DIR)/src/ugui.c \
   $(COMMON_DIR)/src/fault.c \
   $(COMMON_DIR)/src/buttons.c \
+  $(PROJ_DIR)/src/sw102/app_uart_fifo_mod.c \
   $(PROJ_DIR)/src/sw102/uart.c \
   $(COMMON_DIR)/src/utils.c \
   $(COMMON_DIR)/src/state.c \
@@ -73,6 +74,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/timer/app_timer.c \
+  $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_settings.c \

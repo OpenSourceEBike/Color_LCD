@@ -221,7 +221,8 @@ uint32_t app_uart_init(const app_uart_comm_params_t * p_comm_params,
  * @retval NRF_SUCCESS          If a byte has been received and pushed to the pointer provided.
  * @retval NRF_ERROR_NOT_FOUND  If no byte is available in the RX buffer of the app_uart module.
  */
-uint32_t app_uart_get(uint8_t * p_byte);
+//uint32_t app_uart_get(uint8_t * p_byte);
+uint8_t app_uart_get(void);
 
 /**@brief Function for putting a byte on the UART.
  *

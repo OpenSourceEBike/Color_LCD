@@ -174,7 +174,7 @@ void battery_display() {
 
 // Screens in a loop, shown when the user short presses the power button
 Screen *screens[] = { &mainScreen,
-		&infoScreen, &configScreen,
+		&infoScreen,
 		NULL };
 
 

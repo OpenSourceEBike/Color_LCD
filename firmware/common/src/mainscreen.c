@@ -786,10 +786,18 @@ static bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
+#ifdef SW102
   if(events & SCREENCLICK_NEXT_SCREEN) {
     showNextScreen();
     return true;
   }
+#endif
+
+  if(events & SCREENCLICK_ENTER_CONFIGURATIONS) {
+    screenShow(&configScreen);
+    return true;
+  }
+
 	return false;
 }
 

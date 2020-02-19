@@ -218,7 +218,7 @@ Screen mainScreen = {
 
 
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen, &configScreen, NULL };
+Screen *screens[] = { &mainScreen, NULL };
 
 // Show our battery graphic
 void battery_display() {

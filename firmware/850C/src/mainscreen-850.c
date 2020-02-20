@@ -89,7 +89,6 @@ void mainScreenOnPostUpdate(void) {
       .x = 0, .y = 0, \
       .width = -1, .height = -1, \
       .field = &batteryField, \
-      .font = &MY_FONT_BATTERY, \
   }, \
   { \
       .x = 8 + ((7 + 1 + 1) * 10) + (1 * 2) + 10, .y = 2, \
@@ -224,18 +223,9 @@ Screen *screens[] = { &mainScreen, NULL };
 void battery_display() {
 	static uint8_t old_soc = 0xff;
 
-	// Only trigger redraws if something changed
-  if (ui_vars.ui8_battery_soc_symbol) {
-    if (ui_vars.volt_based_soc != old_soc) {
-      old_soc = ui_vars.volt_based_soc;
-      batteryField.rw->dirty = true;
-    }
-  }
-  else {
-    if (ui16_g_battery_soc_watts_hour != old_soc) {
-      old_soc = ui16_g_battery_soc_watts_hour;
-      batteryField.rw->dirty = true;
-    }
+  if (ui8_g_battery_soc != old_soc) {
+    old_soc = ui8_g_battery_soc;
+    batteryField.rw->dirty = true;
   }
 }
 

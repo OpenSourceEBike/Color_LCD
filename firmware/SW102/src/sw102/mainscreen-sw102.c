@@ -21,8 +21,9 @@
 #include "adc.h"
 #include "ugui.h"
 #include "configscreen.h"
+#include "battery_gui.h"
 
-Field batteryField = FIELD_DRAWTEXT_RW();
+Field batteryField = FIELD_CUSTOM(renderBattery);
 
 static void mainScreenOnEnter() {
 	// Set the font preference for this screen
@@ -38,32 +39,24 @@ static void mainScreenOnEnter() {
  */
 #define STATUS_BAR \
 { \
-    .x = 4, .y = 114, \
-    .width = 0, .height = -1, \
-    .field = &warnField, \
-    .font = &REGULAR_TEXT_FONT, \
+  .x = 4, .y = 114, \
+  .width = 0, .height = -1, \
+  .field = &warnField, \
+  .font = &REGULAR_TEXT_FONT, \
 }
 
 #define BATTERY_BAR \
-    { \
-        .x = 0, .y = 0, \
-        .width = -1, .height = -1, \
-        .field = &batteryField, \
-        .font = &MY_FONT_BATTERY, \
-    }, \
-    { \
-        .x = 32, .y = 0, \
-        .width = -5, .height = -1, \
-        .font = &REGULAR_TEXT_FONT, \
-        .field = &socField \
-    }
-/*
-{
-    .x = 32, .y = 0,
-    .width = -5, .height = -1,
-    .field = &tripTimeField
-},
-*/
+{ \
+    .x = 0, .y = 0, \
+    .width = -1, .height = -1, \
+    .field = &batteryField, \
+}, \
+{ \
+  .x = 32, .y = 0, \
+  .width = -5, .height = -1, \
+  .font = &REGULAR_TEXT_FONT, \
+  .field = &socField \
+}
 
 //
 // Screens
@@ -71,6 +64,7 @@ static void mainScreenOnEnter() {
 Screen mainScreen = {
   .onPress = mainscreen_onpress,
 	.onEnter = mainScreenOnEnter,
+	.onDirtyClean = mainScreenonDirtyClean,
 
     .fields = {
     BATTERY_BAR,
@@ -114,7 +108,8 @@ Screen mainScreen = {
     STATUS_BAR,
     {
         .field = NULL
-    } }
+    }
+  }
 };
 
 Screen infoScreen = {
@@ -122,6 +117,7 @@ Screen infoScreen = {
 	.onEnter = mainScreenOnEnter,
   .onCustomized = eeprom_write_variables,
   .onPress = anyscreen_onpress,
+  .onDirtyClean = mainScreenonDirtyClean,
 
     .fields = {
     BATTERY_BAR,
@@ -167,9 +163,16 @@ Screen infoScreen = {
 
 // Show our battery graphic
 void battery_display() {
-  // on this board we use a special battery font
-  uint8_t ui32_battery_bar_number = ui_vars.volt_based_soc / (90 / 5); // scale SOC so anything greater than 90% is 5 bars, and zero is zero.
-  fieldPrintf(&batteryField, "%d", ui32_battery_bar_number);
+  static uint8_t old_soc = 0xff;
+
+  if (ui8_g_battery_soc != old_soc) {
+    old_soc = ui8_g_battery_soc;
+    batteryField.rw->dirty = true;
+  }
+}
+
+void mainScreenonDirtyClean(void) {
+  batteryClearSymbol();
 }
 
 // Screens in a loop, shown when the user short presses the power button

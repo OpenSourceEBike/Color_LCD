@@ -85,7 +85,7 @@ Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor powr"), &
 Field batteryVoltageField = FIELD_READONLY_UINT(_S("batt voltage", "bat volts"), &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
 Field batteryCurrentField = FIELD_READONLY_UINT(_S("batt current", "bat curren"), &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
 Field motorCurrentField = FIELD_READONLY_UINT(_S("motor current", "mot curren"), &ui16_m_motor_current_filtered_x10, "", true, .div_digits = 1);
-Field batterySOCField = FIELD_READONLY_UINT(_S("battery SOC", "bat SOC"), &ui16_g_battery_soc_watts_hour, "%", true, .div_digits = 0);
+Field batterySOCField = FIELD_READONLY_UINT(_S("battery SOC", "bat SOC"), &ui8_g_battery_soc, "%", true, .div_digits = 0);
 Field motorTempField = FIELD_READONLY_UINT(_S("motor temp", "mot temp"), &ui_vars.ui8_motor_temperature, "C", true, .div_digits = 0);
 Field motorErpsField = FIELD_READONLY_UINT(_S("motor speed", "mot speed"), &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
 Field pwmDutyField = FIELD_READONLY_UINT(_S("motor pwm", "mot pwm"), &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
@@ -129,7 +129,7 @@ Field batteryPowerFieldGraph = FIELD_READONLY_UINT("motor power", &rt_vars.ui16_
 Field batteryVoltageFieldGraph = FIELD_READONLY_UINT("battery voltage", &rt_vars.ui16_battery_voltage_filtered_x10, "", false, .div_digits = 1);
 Field batteryCurrentFieldGraph = FIELD_READONLY_UINT("battery current", &ui16_m_battery_current_filtered_x10, "", false, .div_digits = 1);
 Field motorCurrentFieldGraph = FIELD_READONLY_UINT("motor current", &ui16_m_motor_current_filtered_x10, "", false, .div_digits = 1);
-Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui16_g_battery_soc_watts_hour, "", false);
+Field batterySOCFieldGraph = FIELD_READONLY_UINT("battery SOC", &ui8_g_battery_soc, "", false);
 Field motorTempFieldGraph = FIELD_READONLY_UINT("motor temperature", &rt_vars.ui8_motor_temperature, "C", false);
 Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &rt_vars.ui16_motor_speed_erps, "", false);
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_duty_cycle, "", false);
@@ -719,7 +719,7 @@ void battery_soc(void) {
       break;
 
     case 1:
-      fieldPrintf(&socField, "%3d%%", ui16_g_battery_soc_watts_hour);
+      fieldPrintf(&socField, "%3d%%", ui8_g_battery_soc);
       break;
 
     case 2:

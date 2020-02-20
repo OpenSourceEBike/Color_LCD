@@ -20,7 +20,6 @@ static Field batteryMenus[] =
 
 static Field batterySOCMenus[] =
 		{
-            FIELD_EDITABLE_ENUM(_S("Batt symbol", "Bat symbol"), &ui_vars.ui8_battery_soc_symbol, "SOC %", "voltage"),
 						FIELD_EDITABLE_ENUM("Text", &ui_vars.ui8_battery_soc_enable, "disable", "SOC %", "volts"),
 						FIELD_EDITABLE_UINT(_S("Reset at voltage", "Reset at"), &ui_vars.ui16_battery_voltage_reset_wh_counter_x10, "volts", 160, 630, .div_digits = 1),
 						FIELD_EDITABLE_UINT(_S("Battery total Wh", "Batt total"), &ui_vars.ui32_wh_x10_100_percent, "whr", 0, 9990, .div_digits = 1, .inc_step = 100),

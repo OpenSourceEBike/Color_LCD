@@ -128,20 +128,22 @@ bool renderBattery(FieldLayout *layout)
   bool drawContents = true;
   if(drawContents)
   {
-    uint8_t ui32_battery_bar_number;
-    if (ui_vars.ui8_battery_soc_symbol)
-      ui32_battery_bar_number = ui_vars.volt_based_soc / (90 / 10); // scale SOC so anything greater than 90% is 10 bars, and zero is zero.
-    else
-      ui32_battery_bar_number = ui16_g_battery_soc_watts_hour / 10;
+    uint8_t battery_bar_number;
+    if (ui8_g_battery_soc > 0) {
+      battery_bar_number = ui8_g_battery_soc / 10;
+      battery_bar_number++; // always show an higher bar, like 82% will show 9 bars and not 8
+    } else {
+      battery_bar_number = 0;
+    }
 
     // find the color to draw the bars
-    if(ui32_battery_bar_number > 3) { ui16_color = C_GREEN; }
-    else if(ui32_battery_bar_number == 3) { ui16_color = C_YELLOW; }
-    else if(ui32_battery_bar_number == 2) { ui16_color = C_ORANGE; }
-    else if(ui32_battery_bar_number == 1) { ui16_color = C_RED; }
+    if(battery_bar_number > 3) { ui16_color = C_GREEN; }
+    else if(battery_bar_number == 3) { ui16_color = C_YELLOW; }
+    else if(battery_bar_number == 2) { ui16_color = C_ORANGE; }
+    else if(battery_bar_number == 1) { ui16_color = C_RED; }
 
     // Draw our bars
-    for(ui32_i = 1; ui32_i <= ui32_battery_bar_number; ui32_i++)
+    for(ui32_i = 1; ui32_i <= battery_bar_number; ui32_i++)
     {
       battery_soc_bar_set(ui32_i, ui16_color);
     }

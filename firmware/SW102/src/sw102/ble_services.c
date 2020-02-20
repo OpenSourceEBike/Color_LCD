@@ -321,7 +321,7 @@ static ble_bas_t  m_bas;                                                        
 static void battery_level_update(void)
 {
     uint32_t err_code;
-    uint8_t  battery_level = ui_vars.volt_based_soc; // from 0 to 100
+    uint8_t battery_level = ui8_g_battery_soc; // from 0 to 100
 
     err_code = ble_bas_battery_level_update(&m_bas, battery_level);
     if ((err_code != NRF_SUCCESS) &&
@@ -330,7 +330,7 @@ static void battery_level_update(void)
         (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
        )
     {
-        APP_ERROR_HANDLER(err_code);
+      APP_ERROR_HANDLER(err_code);
     }
 }
 

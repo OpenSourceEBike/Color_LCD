@@ -350,7 +350,8 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 
 			// if user specified width in terms of characters, change it to pixels
 			if (layout->width < 0) {
-				assert(layout->font); // you must specify a font to use this feature
+			  if (field->variant != FieldCustom)
+			    assert(layout->font); // you must specify a font to use this feature
 				layout->width = -layout->width
 						* (layout->font->char_width + gui.char_h_space);
 			}
@@ -361,7 +362,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 
 			didDraw |= renderField(layout, field);
 
-			assert(layout->height != -1); // by the time we reach here this must be set
+//			assert(layout->height != -1); // by the time we reach here this must be set
 
 			// After the renderer has run, cache the highest Y we have seen (for entries that have y = -1 for auto assignment)
 			if (layout->y + layout->height > maxy)

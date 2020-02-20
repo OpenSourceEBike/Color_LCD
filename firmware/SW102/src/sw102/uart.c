@@ -190,7 +190,8 @@ void uart_send_tx_buffer(uint8_t *tx_buffer, uint8_t ui8_len)
   for (uint8_t i = 0; i < ui8_len; i++)
   {
     err_code = app_uart_put(tx_buffer[i]);
-    if (err_code != 0)
-      APP_ERROR_CHECK(err_code);
+// assume that buffer will never get full, like for instance when we are debugging
+//    if (err_code != 0)
+//      APP_ERROR_CHECK(err_code);
   }
 }

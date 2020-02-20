@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
-uint16_t ui16_g_battery_soc_watts_hour;
+uint8_t ui8_g_battery_soc;
 volatile uint8_t motorVariablesStabilized = 0;
 
 bool g_has_seen_motor; // true once we've received a packet from a real motor
@@ -468,7 +468,7 @@ uint8_t rt_first_time_management(void) {
 	return ui8_status;
 }
 
-void rt_calc_battery_soc_watts_hour(void) {
+void rt_calc_battery_soc(void) {
 	uint32_t ui32_temp;
 
 	ui32_temp = rt_vars.ui32_wh_x10 * 100;
@@ -482,7 +482,7 @@ void rt_calc_battery_soc_watts_hour(void) {
 	if (ui32_temp > 100)
 		ui32_temp = 100;
 
-  ui16_g_battery_soc_watts_hour = 100 - ui32_temp;
+  ui8_g_battery_soc = (uint8_t) (100 - ui32_temp);
 }
 
 void rt_processing_stop(void) {
@@ -601,56 +601,6 @@ void copy_rt_to_ui_vars(void) {
 
   rt_vars.ui8_torque_sensor_calibration_feature_enabled = ui_vars.ui8_torque_sensor_calibration_feature_enabled;
   rt_vars.ui8_torque_sensor_calibration_pedal_ground = ui_vars.ui8_torque_sensor_calibration_pedal_ground;
-
-  // Some l3 vars are derived only from other l3 vars
-  uint32_t ui32_battery_cells_number_x10 =
-      (uint32_t) (ui_vars.ui8_battery_cells_number * 10);
-
-  uint8_t volt_based_soc;
-  if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_90))) {
-    volt_based_soc = 95;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_80))) {
-    volt_based_soc = 85;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_70))) {
-    volt_based_soc = 75;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_60))) {
-    volt_based_soc = 65;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_50))) {
-    volt_based_soc = 55;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_40))) {
-    volt_based_soc = 45;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_30))) {
-    volt_based_soc = 35;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_20))) {
-    volt_based_soc = 25;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_10))) {
-    volt_based_soc = 15;
-  } else if (ui_vars.ui16_battery_voltage_soc_x10
-      > ((uint16_t) ((float) ui32_battery_cells_number_x10
-          * LI_ION_CELL_VOLTS_0))) {
-    volt_based_soc = 5;
-  } else {
-    volt_based_soc = 0;
-  }
-  ui_vars.volt_based_soc = volt_based_soc;
 }
 
 /// must be called from main() idle loop
@@ -830,7 +780,7 @@ void rt_processing(void)
   rt_graph_process();
   /************************************************************************************************/
   rt_first_time_management();
-  rt_calc_battery_soc_watts_hour();
+  rt_calc_battery_soc();
 }
 
 void prepare_torque_sensor_calibration_table(void) {

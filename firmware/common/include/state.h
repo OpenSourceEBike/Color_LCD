@@ -158,7 +158,6 @@ typedef struct ui_vars_struct {
 	uint32_t ui32_wh_x10_offset;
 	uint32_t ui32_wh_x10_100_percent;
 	uint8_t ui8_battery_soc_enable;
-	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_target_max_battery_power;
 	uint8_t ui8_battery_cells_number;
 	uint8_t ui8_battery_max_current;
@@ -203,8 +202,6 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_torque_sensor_calibration_pedal_ground;
 	uint16_t ui16_torque_sensor_calibration_table_left[8][2];
 	uint16_t ui16_torque_sensor_calibration_table_right[8][2];
-
-	uint8_t volt_based_soc; // a SOC generated only based on pack voltage
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 
@@ -326,7 +323,7 @@ void set_lcd_backlight();
 
 void prepare_torque_sensor_calibration_table(void);
 
-extern uint16_t ui16_g_battery_soc_watts_hour;
+extern uint8_t ui8_g_battery_soc;
 
 extern bool g_has_seen_motor; // true once we've received a packet from a real motor
 extern bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)

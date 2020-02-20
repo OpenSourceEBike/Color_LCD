@@ -68,6 +68,7 @@ void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v);
 void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void onSetConfigurationWheelOdometer(uint32_t v);
+void mainScreenonDirtyClean(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 extern bool wd_failure_detected;

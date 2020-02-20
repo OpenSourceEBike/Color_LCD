@@ -34,7 +34,6 @@ typedef struct eeprom_data {
 	uint32_t ui32_wh_x10_offset;
 	uint32_t ui32_wh_x10_100_percent;
 	uint8_t ui8_battery_soc_enable;
-	uint8_t ui8_battery_soc_symbol;
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_motor_max_current;
   uint8_t ui8_motor_current_min_adc;
@@ -152,7 +151,6 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            4000 // default to a battery of 400 Wh
-#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SYMBOL                   0 // SOC
 #define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
 #define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             16 // 16 amps

@@ -29,6 +29,7 @@ extern bool g_tsdz2_configurations_set;
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
+  uint16_t ui16_battery_power_loss;
 	uint8_t ui8_motor_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
@@ -49,7 +50,7 @@ typedef struct rt_vars_struct {
 	uint16_t ui16_battery_voltage_filtered_x10;
 	uint16_t ui16_battery_current_filtered_x5;
 	uint16_t ui16_motor_current_filtered_x5;
-	uint16_t ui16_battery_power_filtered_x50;
+	uint16_t ui16_full_battery_power_filtered_x50;
 	uint16_t ui16_battery_power_filtered;
 	uint16_t ui16_pedal_power_filtered;
 	uint8_t ui8_pedal_cadence_filtered;
@@ -120,6 +121,7 @@ typedef struct rt_vars_struct {
 typedef struct ui_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
+  uint16_t ui16_battery_power_loss;
 	uint8_t ui8_motor_current_x5;
 	uint8_t ui8_adc_throttle;
 	uint8_t ui8_throttle;
@@ -140,7 +142,7 @@ typedef struct ui_vars_struct {
 	uint16_t ui16_battery_voltage_filtered_x10;
 	uint16_t ui16_battery_current_filtered_x5;
 	uint16_t ui16_motor_current_filtered_x5;
-	uint16_t ui16_battery_power_filtered_x50;
+	uint16_t ui16_full_battery_power_filtered_x50;
 	uint16_t ui16_battery_power;
 	uint16_t ui16_pedal_torque_filtered;
 	uint16_t ui16_pedal_power;

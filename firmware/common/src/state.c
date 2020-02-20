@@ -308,12 +308,21 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
       ui16_motor_current_accumulated_x5
           >> MOTOR_CURRENT_FILTER_COEFFICIENT;
 
-	// battery power
-	rt_vars.ui16_battery_power_filtered_x50 =
-			rt_vars.ui16_battery_current_filtered_x5
-					* rt_vars.ui16_battery_voltage_filtered_x10;
-	rt_vars.ui16_battery_power_filtered =
-			rt_vars.ui16_battery_power_filtered_x50 / 50;
+	// full battery power, considering the power loss also inside the battery and cables, because we are using the battery resistance
+  //
+  uint16_t ui16_battery_power_filtered_x50 = rt_vars.ui16_battery_current_filtered_x5 * rt_vars.ui16_battery_voltage_filtered_x10;
+  rt_vars.ui16_battery_power_filtered = ui16_battery_power_filtered_x50 / 50;
+
+  // P = R * I^2
+  uint32_t ui32_temp = (uint32_t) rt_vars.ui16_battery_current_filtered_x5;
+  ui32_temp = ui32_temp * ui32_temp; // I * I
+  ui32_temp /= 25;
+
+  ui32_temp *= (uint32_t) rt_vars.ui16_battery_pack_resistance_x1000; // R * I * I
+  ui32_temp /= 20; // now is _x50
+  rt_vars.ui16_battery_power_loss = (uint16_t) (ui32_temp / 50);
+
+  rt_vars.ui16_full_battery_power_filtered_x50 = ui16_battery_power_filtered_x50 + (uint16_t) ui32_temp;
 }
 
 void rt_low_pass_filter_pedal_power(void) {
@@ -347,8 +356,8 @@ void rt_calc_wh(void) {
 	static uint8_t ui8_1s_timer_counter = 0;
 	uint32_t ui32_temp = 0;
 
-	if (rt_vars.ui16_battery_power_filtered_x50 > 0) {
-		rt_vars.ui32_wh_sum_x5 += rt_vars.ui16_battery_power_filtered_x50 / 10;
+	if (rt_vars.ui16_full_battery_power_filtered_x50 > 0) {
+		rt_vars.ui32_wh_sum_x5 += rt_vars.ui16_full_battery_power_filtered_x50 / 10;
 		rt_vars.ui32_wh_sum_counter++;
 	}
 
@@ -508,6 +517,7 @@ void rt_processing_start(void) {
 void copy_rt_to_ui_vars(void) {
 	ui_vars.ui16_adc_battery_voltage = rt_vars.ui16_adc_battery_voltage;
 	ui_vars.ui8_battery_current_x5 = rt_vars.ui8_battery_current_x5;
+	ui_vars.ui16_battery_power_loss = rt_vars.ui16_battery_power_loss;
 	ui_vars.ui8_motor_current_x5 = rt_vars.ui8_motor_current_x5;
 	ui_vars.ui8_throttle = rt_vars.ui8_throttle;
 	ui_vars.ui16_adc_pedal_torque_sensor = rt_vars.ui16_adc_pedal_torque_sensor;
@@ -530,8 +540,8 @@ void copy_rt_to_ui_vars(void) {
 			rt_vars.ui16_battery_current_filtered_x5;
   ui_vars.ui16_motor_current_filtered_x5 =
       rt_vars.ui16_motor_current_filtered_x5;
-	ui_vars.ui16_battery_power_filtered_x50 =
-			rt_vars.ui16_battery_power_filtered_x50;
+	ui_vars.ui16_full_battery_power_filtered_x50 =
+			rt_vars.ui16_full_battery_power_filtered_x50;
 	ui_vars.ui16_battery_power = rt_vars.ui16_battery_power_filtered;
 	ui_vars.ui16_pedal_power = rt_vars.ui16_pedal_power_filtered;
 	ui_vars.ui16_battery_voltage_soc_x10 = rt_vars.ui16_battery_voltage_soc_x10;

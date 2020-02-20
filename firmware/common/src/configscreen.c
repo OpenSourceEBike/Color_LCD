@@ -16,6 +16,7 @@ static Field batteryMenus[] =
 						FIELD_EDITABLE_UINT("Num cells", &ui_vars.ui8_battery_cells_number, "", 7, 15),
 						FIELD_EDITABLE_UINT("Resistance", &ui_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
 						FIELD_READONLY_UINT("Voltage", &ui_vars.ui16_battery_voltage_soc_x10, "volts", false, .div_digits = 1),
+						FIELD_READONLY_UINT(_S("Power loss", "Power loss"), &ui_vars.ui16_battery_power_loss, "watts", false, .div_digits = 0),
 				FIELD_END };
 
 static Field batterySOCMenus[] =

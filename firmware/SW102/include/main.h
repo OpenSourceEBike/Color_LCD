@@ -25,6 +25,7 @@ typedef union
 void system_power(bool state);
 
 uint32_t get_seconds(); // how many seconds since boot
+uint32_t get_time_base_counter_1ms();
 
 void SW102_rt_processing_stop(void);
 void SW102_rt_processing_start(void);

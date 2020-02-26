@@ -15,16 +15,19 @@
 #define ERROR_MAX                               ERROR_LOW_CONTROLLER_VOLTAGE
 
 typedef enum {
-  COMMUNICATIONS_READY = 0,
-  COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION,
-  COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION,
-  COMMUNICATIONS_SET_CONFIGURATIONS,
-  COMMUNICATIONS_WAIT_CONFIGURATIONS,
-} communications_state_t;
+  MOTOR_INIT_NOT_READY = 1,
+  MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION = 2,
+  MOTOR_INIT_RECEIVED_MOTOR_FIRMWARE_VERSION = 4,
+  MOTOR_INIT_MOTOR_FIRMWARE_VERSION_INCORRECT = 8,
+  MOTOR_INIT_SET_CONFIGURATIONS = 16,
+  MOTOR_INIT_READY = 32,
+  MOTOR_INIT_SIMULATING = 64,
+  MOTOR_INIT_ERROR = 128,
+  MOTOR_INIT_MOTOR_RX_OK = 256,
+  MOTOR_INIT_MOTOR_TX_OK = 512,
+} motor_init_state_t;
 
-extern volatile communications_state_t g_communications_state;
-
-extern bool g_tsdz2_configurations_set;
+extern volatile motor_init_state_t g_motor_init_state;
 
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
@@ -325,9 +328,10 @@ void set_lcd_backlight();
 
 void prepare_torque_sensor_calibration_table(void);
 
+void motor_init_state(void);
+
 extern uint8_t ui8_g_battery_soc;
 
-extern bool g_has_seen_motor; // true once we've received a packet from a real motor
 extern bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
 

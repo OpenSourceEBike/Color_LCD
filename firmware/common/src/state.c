@@ -19,21 +19,19 @@
 #include "buttons.h"
 #include "fault.h"
 #include "state.h"
+#include "adc.h"
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint8_t ui8_g_battery_soc;
 volatile uint8_t motorVariablesStabilized = 0;
 
-bool g_has_seen_motor; // true once we've received a packet from a real motor
 bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 
 volatile uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
-volatile communications_state_t g_communications_state = COMMUNICATIONS_READY;
+volatile motor_init_state_t g_motor_init_state = MOTOR_INIT_NOT_READY;
 
 tsdz2_firmware_version_t g_tsdz2_firmware_version = { 0xff, 0, 0 };
-
-bool g_tsdz2_configurations_set = false;
 
 // kevinh: I don't think volatile is probably needed here
 rt_vars_t rt_vars;
@@ -643,7 +641,6 @@ void communications(void) {
 //  static uint8_t state = 0;
   static uint32_t num_missed_packets = 0;
   uint8_t ui8_frame_type = 0;
-  static uint8_t ui8_cnt = 0;
   bool periodic_answer_received = false;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
@@ -697,14 +694,14 @@ void communications(void) {
 
           rt_vars.ui16_pedal_power_x10 = ((uint16_t) p_rx_buffer[24]) | ((uint16_t) p_rx_buffer[25] << 8);
 
+          g_motor_init_state |= MOTOR_INIT_MOTOR_TX_OK;
           periodic_answer_received = true;
           break;
 
+        // confirmation that motor firmware received the configurations
         case 1:
-          g_tsdz2_configurations_set = true;
-          g_communications_state = COMMUNICATIONS_READY;
-          ui8_cnt = 0;
-          g_has_seen_motor = true; // after setting the configurations, we can consider the motor is ready
+          g_motor_init_state &= ~MOTOR_INIT_SET_CONFIGURATIONS;
+          g_motor_init_state |= MOTOR_INIT_READY;
           break;
 
         // firmware version
@@ -712,17 +709,8 @@ void communications(void) {
           g_tsdz2_firmware_version.major = p_rx_buffer[3];
           g_tsdz2_firmware_version.minor = p_rx_buffer[4];
           g_tsdz2_firmware_version.patch = p_rx_buffer[5];
-
-          // check to see if the firmware is valid
-          if (g_tsdz2_firmware_version.major != atoi(TSDZ2_FIRMWARE_MAJOR) ||
-              g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
-//            APP_ERROR_HANDLER(FAULT_TSDZ2_WRONG_FIRMWARE);
-            fieldPrintf(&bootStatus2, "TSDZ2 firmware error");
-            g_tsdz2_firmware_version.major = 0xff; // invalidate the version
-          }
-
-          g_communications_state = COMMUNICATIONS_READY;
-          ui8_cnt = 0;
+          g_motor_init_state &= ~MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION;
+          g_motor_init_state |= MOTOR_INIT_RECEIVED_MOTOR_FIRMWARE_VERSION;
           break;
       }
     }
@@ -735,43 +723,22 @@ void communications(void) {
     // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
     // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
     // and wait for 10 seconds of missed packets.
-    if (g_has_seen_motor && num_missed_packets++ == 50)
+    if ((g_motor_init_state & MOTOR_INIT_READY) && num_missed_packets++ == 50)
       APP_ERROR_HANDLER(FAULT_LOSTRX);
   }
 
-  // only if we are receiving communications from TSDZ2
-  switch (g_communications_state) {
-    case COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION:
+  if (g_motor_init_state & MOTOR_INIT_READY) {
+    if (periodic_answer_received)
+      rt_send_tx_package(0);
+  }
+
+  if (g_motor_init_state & MOTOR_INIT_SET_CONFIGURATIONS) {
+    rt_send_tx_package(1);
+  }
+
+  if (g_motor_init_state & MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION) {
+    if (periodic_answer_received)
       rt_send_tx_package(2);
-      g_communications_state = COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION;
-      break;
-
-    case COMMUNICATIONS_WAIT_MOTOR_FIRMWARE_VERSION:
-      rt_send_tx_package(2);
-      ++ui8_cnt;
-      if (ui8_cnt > 5)
-//        APP_ERROR_HANDLER(FAULT_LOSTRX);
-      break;
-
-    case COMMUNICATIONS_READY:
-      if (periodic_answer_received)
-        rt_send_tx_package(0);
-      break;
-
-    case COMMUNICATIONS_SET_CONFIGURATIONS:
-      rt_send_tx_package(1);
-      g_communications_state = COMMUNICATIONS_WAIT_CONFIGURATIONS;
-      break;
-
-    case COMMUNICATIONS_WAIT_CONFIGURATIONS:
-      rt_send_tx_package(1);
-      ++ui8_cnt;
-      if (ui8_cnt > 5)
-//        APP_ERROR_HANDLER(FAULT_LOSTRX);
-      break;
-
-    default:
-      break;
   }
 }
 
@@ -826,4 +793,69 @@ void prepare_torque_sensor_calibration_table(void) {
 
 
   rt_processing_start();
+}
+
+#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
+
+void motor_init_state(void) {
+  static bool timeout = false;
+  static bool timeout_first_time = true;
+
+  if ((g_motor_init_state & MOTOR_INIT_ERROR) == 0) {
+
+    if(timeout == false &&
+        timeout_first_time &&
+        (get_time_base_counter_1ms() >= 10000)) // not least than 10 seconds
+      timeout = true;
+
+    if (timeout_first_time &&
+        timeout) {
+      timeout_first_time = false;
+
+      if ((g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK) &&
+          (g_motor_init_state & MOTOR_INIT_MOTOR_RX_OK) == 0) {
+
+        fieldPrintf(&bootStatus2, _S("Error TSDZ2 RX line", "e: RX"));
+        g_motor_init_state |= MOTOR_INIT_ERROR;
+
+      } else if ((g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK) == 0) {
+
+        fieldPrintf(&bootStatus2, _S("Error TSDZ2 TX line", "e: Brks TX"));
+      }
+    }
+
+    if (g_motor_init_state & MOTOR_INIT_NOT_READY) {
+      // are we simulating?
+      bool sim = (battery_voltage_10x_get() < MIN_VOLTAGE_10X);
+      if (sim) {
+        fieldPrintf(&bootStatus2, _S("SIMULATING TSDZ2!", "SIMULATING"));
+        g_motor_init_state |= MOTOR_INIT_SIMULATING;
+
+      } else {
+
+        fieldPrintf(&bootStatus2, _S("Wait TSDZ2", "Wait TSDZ2"));
+      }
+
+      g_motor_init_state &= ~MOTOR_INIT_NOT_READY;
+    }
+
+    if (g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK)
+      g_motor_init_state |= MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION;
+
+    if (g_motor_init_state & MOTOR_INIT_RECEIVED_MOTOR_FIRMWARE_VERSION) {
+      if (g_tsdz2_firmware_version.major != atoi(TSDZ2_FIRMWARE_MAJOR) ||
+          g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
+
+        fieldPrintf(&bootStatus2, _S("TSDZ2 firmware error", "e: firmwar"));
+        g_motor_init_state |= MOTOR_INIT_MOTOR_FIRMWARE_VERSION_INCORRECT;
+        g_motor_init_state |= MOTOR_INIT_ERROR;
+
+      } else {
+        // now move forward for next step to send the configurations
+        g_motor_init_state |= MOTOR_INIT_SET_CONFIGURATIONS;
+      }
+
+      g_motor_init_state |= MOTOR_INIT_MOTOR_RX_OK;
+    }
+  }
 }

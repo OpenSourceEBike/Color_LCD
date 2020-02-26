@@ -186,35 +186,49 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
  bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
  bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
  bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
- bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "Booting...");
-
-#define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
+ bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
 
 static void bootScreenOnPreUpdate() {
-	uint16_t bvolt = battery_voltage_10x_get();
 
-	g_is_sim_motor = (bvolt < MIN_VOLTAGE_10X);
-  if(g_is_sim_motor)
-    fieldPrintf(&bootStatus2, _S("SIMULATING TSDZ2!", "SIMULATING"));
+  motor_init_state();
 
-  if(g_has_seen_motor) {
-    fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
-    g_tsdz2_firmware_version.major,
-    g_tsdz2_firmware_version.minor,
-    g_tsdz2_firmware_version.patch);
-  } else {
-    fieldPrintf(&bootStatus2, _S("Wait TSDZ2 communication", "Wait TSDZ2"));
+  // Stop showing only after we release on/off button and after motor init
+  if (g_motor_init_state & MOTOR_INIT_READY) {
+    if (buttons_get_onoff_state() == 0)
+      showNextScreen();
+    else {
+      if (g_motor_init_state & MOTOR_INIT_READY) {
+        fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
+        g_tsdz2_firmware_version.major,
+        g_tsdz2_firmware_version.minor,
+        g_tsdz2_firmware_version.patch);
+      }
+    }
   }
-
-  // Stop showing only after we release on/off button and we are commutication with motor
-  if(buttons_get_onoff_state() == 0 && (g_has_seen_motor || g_is_sim_motor))
-    showNextScreen();
 }
 
 Screen bootScreen = {
   .onPreUpdate = bootScreenOnPreUpdate,
 
   .fields = {
+#ifdef SW102
+    {
+      .x = 0, .y = YbyEighths(0) + 2, .height = -1,
+      .field = &bootHeading,
+      .font = &REGULAR_TEXT_FONT,
+    },
+    {
+      .x = 0, .y = -24, .height = -1,
+      .field = &bootURL_1,
+      .font = &SMALL_TEXT_FONT,
+    },
+
+    {
+      .x = 0, .y = -6, .height = -1,
+      .field = &bootURL_2,
+      .font = &SMALL_TEXT_FONT,
+    },
+#else
     {
       .x = 0, .y = YbyEighths(1), .height = -1,
       .field = &bootHeading,
@@ -231,6 +245,7 @@ Screen bootScreen = {
       .field = &bootURL_2,
       .font = &SMALL_TEXT_FONT,
     },
+#endif
 #ifndef SW102
     {
       .x = 0, .y = YbyEighths(4), .height = -1,
@@ -243,11 +258,19 @@ Screen bootScreen = {
       .font = &SMALL_TEXT_FONT,
     },
 #endif
+#ifdef SW102
+    {
+      .x = 0, .y = -24, .height = -1,
+      .field = &bootVersion,
+      .font = &SMALL_TEXT_FONT,
+    },
+#else
     {
       .x = 0, .y = -8, .height = -1,
       .field = &bootVersion,
       .font = &SMALL_TEXT_FONT,
     },
+#endif
     {
       .x = 0, .y = YbyEighths(7), .height = -1,
       .field = &bootStatus2,
@@ -788,7 +811,7 @@ static bool appwide_onpress(buttons_events_t events)
 
 #ifdef SW102
   if ((events & SCREENCLICK_NEXT_SCREEN) &&
-      g_has_seen_motor) {
+      (g_motor_init_state & MOTOR_INIT_READY)) {
     showNextScreen();
     return true;
   }
@@ -843,19 +866,6 @@ void main_idle() {
   if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
   {
     counter_time_ms = time_ms;
-
-    // asking the TSDZ2 firmware version and this will happen only once (at startup)
-    if (g_tsdz2_firmware_version.major == 0xff) { // if version is invalid, like at startup
-      if (g_communications_state == COMMUNICATIONS_READY)
-        g_communications_state = COMMUNICATIONS_GET_MOTOR_FIRMWARE_VERSION;
-    // after we get firmware version, set the TSDZ2 configurations
-    } else if (g_tsdz2_configurations_set == false) {
-      if (g_communications_state == COMMUNICATIONS_READY) {
-        prepare_torque_sensor_calibration_table(); // we need to first prepare the table
-        g_communications_state = COMMUNICATIONS_SET_CONFIGURATIONS; // set configuration to TSDZ2
-      }
-    }
-
     automatic_power_off_management();
   }
 

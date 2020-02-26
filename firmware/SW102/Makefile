@@ -57,6 +57,7 @@ SRC_FILES += \
   $(PROJ_DIR)/src/sw102/adc.c \
   $(PROJ_DIR)/src/sw102/eeprom_hw.c \
   $(PROJ_DIR)/src/sw102/rtc.c \
+  $(PROJ_DIR)/src/sw102/battery_gui.c \
   $(PROJ_DIR)/src/sw102/mainscreen-sw102.c \
   $(COMMON_DIR)/src/ugui.c \
   $(COMMON_DIR)/src/fault.c \
@@ -231,7 +232,8 @@ CFLAGS += -DNRF51822
 CFLAGS += -DNRF_SD_BLE_API_VERSION=2
 CFLAGS += -mcpu=cortex-m0
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS += -Wall -Werror
+#CFLAGS += -Wall -Werror
+CFLAGS += -Werror
 CFLAGS += -mfloat-abi=soft
 # keep every function in separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing

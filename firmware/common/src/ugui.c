@@ -4983,38 +4983,42 @@ void UG_DrawLine( UG_S16 x1, UG_S16 y1, UG_S16 x2, UG_S16 y2, UG_COLOR c )
 
 void UG_PutString_with_length( UG_S16 x, UG_S16 y, char* str, uint32_t ui8_length)
 {
-   UG_S16 xp,yp;
-   UG_U8 cw;
-   char chr;
-   calledByParent = 1;
+  UG_S16 xp,yp;
+  UG_U8 cw;
+  char chr;
+  calledByParent = 1;
 
-   xp=x;
-   yp=y;
+  xp=x;
+  yp=y;
 
-   while ( *str != 0 && ui8_length-- > 0)
-   {
-      chr = *str++;
-    if (chr < gui->font.start_char || chr > gui->font.end_char) continue;
-      if ( chr == '\n' )
-      {
-         xp = x; // wrap to next line
-         yp += gui->font.char_height+gui->char_v_space;
-         continue;
-      }
+  while (*str != 0 && ui8_length-- > 0)
+  {
+    chr = *str++;
+
+    if (chr < gui->font.start_char || chr > gui->font.end_char)
+      continue;
+
+    if (chr == '\n')
+    {
+      xp = x; // wrap to next line
+      yp += gui->font.char_height+gui->char_v_space;
+      continue;
+    }
+
     cw = gui->font.widths ? gui->font.widths[chr - gui->font.start_char] : gui->font.char_width;
 
-      if ( xp + cw > gui->x_dim - 1 )
-      {
-         xp = x;
-         yp += gui->font.char_height+gui->char_v_space;
-      }
+    if (xp + cw > gui->x_dim - 1)
+    {
+      xp = x;
+      yp += gui->font.char_height+gui->char_v_space;
+    }
 
-      UG_PutChar(chr, xp, yp, gui->fore_color, gui->back_color);
+    UG_PutChar(chr, xp, yp, gui->fore_color, gui->back_color);
 
-      xp += cw + gui->char_h_space;
-   }
+    xp += cw + gui->char_h_space;
+  }
 
-   _UG_Refresh();
+ _UG_Refresh();
 }
 
 void UG_PutString( UG_S16 x, UG_S16 y, char* str )

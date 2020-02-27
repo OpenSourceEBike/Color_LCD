@@ -162,6 +162,56 @@ Screen mainScreen2 = {
   }
 };
 
+Screen mainScreen3 = {
+  .onPress = mainScreenOnPress,
+  .onEnter = mainScreenOnEnter,
+  .onDirtyClean = mainScreenOnDirtyClean,
+  .onPostUpdate = mainScreenonPostUpdate,
+
+  .fields = {
+    BATTERY_BAR,
+    {
+      .x = 10, .y = 19,
+      .width = 47, // 2 digits
+      .height = -1,
+      .field = &wheelSpeedIntegerField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
+    },
+    {
+      .x = 0, .y = 57,
+      .width = 0, .height = 34,
+      .field = &custom5,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
+    },
+    {
+      .x = 0, .y = 86,
+      .width = 0, .height = 28,
+      .field = &custom6,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
+    },
+    STATUS_BAR,
+    {
+      .field = NULL
+    }
+  }
+};
+
 // Show our battery graphic
 void battery_display() {
   static uint8_t old_soc = 0xff;
@@ -190,8 +240,7 @@ void mainScreenonPostUpdate(void) {
 }
 
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen1,
-		&mainScreen2,
+Screen *screens[] = { &mainScreen1, &mainScreen2, &mainScreen3,
 		NULL };
 
 

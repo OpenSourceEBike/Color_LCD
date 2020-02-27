@@ -103,12 +103,13 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
 		.field_selectors = {
-				3, // GRAPH: wheel speed
-				1, // trip distance
-				5, // human power
-				9, // motor current
-				6, // motor power
+      3, // GRAPH: wheel speed
+      1, // trip distance
+      5, // human power
+      9, // motor current
+      6, // motor power
     },
+    .showNextScreenIndex = 0,
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
     .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
@@ -452,6 +453,8 @@ void eeprom_init_variables(void) {
     ui_vars->ui16_torque_sensor_calibration_table_right[i][0] = m_eeprom_data.ui16_torque_sensor_calibration_table_right[i][0];
     ui_vars->ui16_torque_sensor_calibration_table_right[i][1] = m_eeprom_data.ui16_torque_sensor_calibration_table_right[i][1];
   }
+
+  g_showNextScreenIndex = m_eeprom_data.showNextScreenIndex;
 }
 
 void eeprom_write_variables(void) {
@@ -600,6 +603,8 @@ void eeprom_write_variables(void) {
   m_eeprom_data.motorFOCField_config_warn_threshold = g_vars[VarsMotorFOC].config_warn_threshold;
   m_eeprom_data.motorFOCField_x_axis_scale_config = motorFOCGraph.rw->graph.x_axis_scale_config;
 #endif
+
+  m_eeprom_data.showNextScreenIndex = g_showNextScreenPreviousIndex;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

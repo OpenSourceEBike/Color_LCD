@@ -34,6 +34,9 @@ uint16_t ui16_m_motor_current_filtered_x10;
 uint16_t ui16_m_battery_power_filtered;
 uint16_t ui16_m_pedal_power_filtered;
 
+uint8_t g_showNextScreenIndex = 0;
+uint8_t g_showNextScreenPreviousIndex = 0;
+
 void lcd_main_screen(void);
 void warnings(void);
 void walk_assist_state(void);
@@ -179,11 +182,11 @@ Field *activeGraphs = NULL; // set only once graph data is safe to read
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
   custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
   custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
-#ifdef SW102
-  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
-#else
   custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables),
   custom5 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[5], customizables),
+#ifdef SW102
+  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables);
+#else
   custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables),
   custom7 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[7], customizables),
   custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables);
@@ -801,13 +804,12 @@ void walk_assist_state(void) {
 extern Screen *screens[];
 
 void showNextScreen() {
-	static int nextScreen;
-
-	Screen *next = screens[nextScreen++];
+  g_showNextScreenPreviousIndex = g_showNextScreenIndex;
+	Screen *next = screens[g_showNextScreenIndex++];
 
 	if (!next) {
-		nextScreen = 0;
-		next = screens[nextScreen++];
+	  g_showNextScreenIndex = 0;
+		next = screens[g_showNextScreenIndex++];
 	}
 
 	screenShow(next);

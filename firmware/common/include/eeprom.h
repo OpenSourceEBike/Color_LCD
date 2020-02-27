@@ -79,6 +79,7 @@ typedef struct eeprom_data {
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t customizable_choices_selector;
 	uint8_t customizableFieldIndex;
+	uint8_t showNextScreenIndex;
 
 #ifndef SW102
 	Graph_eeprom graph_eeprom[VARS_SIZE];

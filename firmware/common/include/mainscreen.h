@@ -27,12 +27,16 @@ extern Field
   motorFOCField,
   motorTempGraph,
   graphs,
-	custom1, custom2, custom3, custom4,
   bootStatus2,
 #ifdef SW102
+  custom1, custom2,
+  custom3, custom4,
+  custom5, custom6,
   warnField; // just close previous definition
 #endif
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
+  custom1, custom2, custom3, custom4,
+  custom5, custom6, custom7, custom8,
   warnField,
 
   wheelSpeedGraph,
@@ -50,6 +54,9 @@ extern Field
   pwmDutyGraph,
   motorFOCGraph;
 #endif
+
+extern uint8_t g_showNextScreenIndex;
+extern uint8_t g_showNextScreenPreviousIndex;
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations

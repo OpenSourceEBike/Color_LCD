@@ -26,8 +26,6 @@ static uint8_t ui8_m_usart1_received_first_package = 0;
 uint8_t ui8_g_battery_soc;
 volatile uint8_t motorVariablesStabilized = 0;
 
-bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
-
 volatile uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
 volatile motor_init_state_t g_motor_init_state = MOTOR_INIT_NOT_READY;
 
@@ -114,7 +112,7 @@ void parse_simmotor() {
 
 	rt_vars.ui16_wheel_speed_x10 = fakeRandom(&speedstore, 80, 300);
     diststore += rt_vars.ui16_wheel_speed_x10 * 2.6; // speed x 10 to millimeters per 100 ms
-//	l2_vars.ui16_wheel_speed_x10 = 200; // for testing, just leave speed fixed
+rt_vars.ui16_wheel_speed_x10 = 840; // for testing, just leave speed fixed
 
 	rt_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -268,7 +266,7 @@ void rt_send_tx_package(uint8_t type) {
 			(uint8_t) (ui16_crc_tx >> 8) & 0xff;
 
 	// send the full package to UART
-	if (!g_is_sim_motor) // If we are simulating received packets never send real packets
+	if (!(g_motor_init_state & MOTOR_INIT_SIMULATING)) // If we are simulating received packets never send real packets
 		uart_send_tx_buffer(ui8_usart1_tx_buffer, ui8_usart1_tx_buffer[1] + 2);
 }
 
@@ -646,8 +644,8 @@ void communications(void) {
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
 
   // process rx package if we are simulating or the UART had a packet
-  if (g_is_sim_motor || p_rx_buffer) {
-    if (g_is_sim_motor)
+  if ((g_motor_init_state & MOTOR_INIT_SIMULATING) || p_rx_buffer) {
+    if (g_motor_init_state & MOTOR_INIT_SIMULATING)
       parse_simmotor();
     else if (p_rx_buffer) {
       // now process rx data
@@ -815,12 +813,12 @@ void motor_init_state(void) {
       if ((g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK) &&
           (g_motor_init_state & MOTOR_INIT_MOTOR_RX_OK) == 0) {
 
-        fieldPrintf(&bootStatus2, _S("Error TSDZ2 RX line", "e: RX"));
+        fieldPrintf(&bootStatus2, _S("Error RX line", "e: RX"));
         g_motor_init_state |= MOTOR_INIT_ERROR;
 
       } else if ((g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK) == 0) {
 
-        fieldPrintf(&bootStatus2, _S("Error TSDZ2 TX line", "e: Brks TX"));
+        fieldPrintf(&bootStatus2, _S("Error brakes or TX line", "e: Brks TX"));
       }
     }
 

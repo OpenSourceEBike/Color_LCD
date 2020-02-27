@@ -175,25 +175,36 @@ const Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
+// custom1 to custom4 used for mainscreen1 and custom5 to custom8 used to mainscreen2, on 850C
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
- custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
- custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
- custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
+  custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
+  custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
+#ifdef SW102
+  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables);
+#else
+  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables),
+  custom5 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[5], customizables),
+  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables),
+  custom7 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[7], customizables),
+  custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables);
+#endif
+
 
 Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
- bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "Keep pedal")),
- bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "free")),
- bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
- bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
- bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
- bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
+   bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "Keep pedal")),
+   bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "free")),
+   bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
+   bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
+   bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
+   bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
 
 static void bootScreenOnPreUpdate() {
 
   motor_init_state();
 
   // Stop showing only after we release on/off button and after motor init
-  if (g_motor_init_state & MOTOR_INIT_READY) {
+  if ((g_motor_init_state & MOTOR_INIT_READY) ||
+      (g_motor_init_state & MOTOR_INIT_SIMULATING)) {
     if (buttons_get_onoff_state() == 0)
       showNextScreen();
     else {
@@ -300,7 +311,7 @@ bool anyscreen_onpress(buttons_events_t events) {
   return false;
 }
 
-bool mainscreen_onpress(buttons_events_t events) {
+bool mainScreenOnPress(buttons_events_t events) {
 	if(anyscreen_onpress(events))
 	  return true;
 
@@ -731,6 +742,8 @@ void warnings(void) {
 	}
 
 	setWarning(ColorNormal, "");
+
+setWarning(ColorNormal, "BRAKE");
 }
 
 void battery_soc(void) {
@@ -811,7 +824,8 @@ static bool appwide_onpress(buttons_events_t events)
 
 #ifdef SW102
   if ((events & SCREENCLICK_NEXT_SCREEN) &&
-      (g_motor_init_state & MOTOR_INIT_READY)) {
+      ((g_motor_init_state & MOTOR_INIT_READY) ||
+      (g_motor_init_state & MOTOR_INIT_SIMULATING))) {
     showNextScreen();
     return true;
   }

@@ -111,7 +111,7 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info) {
 
 	panicScreenShow(&faultScreen);
 
-	if (g_is_sim_motor)
+	if (g_motor_init_state & MOTOR_INIT_SIMULATING)
 		debugger_break(); // if debugging, try to drop into the debugger
 
 	// loop until the user presses the pwr button then reboot

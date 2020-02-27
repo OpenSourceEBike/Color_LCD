@@ -54,7 +54,7 @@
 #define USE_FONT_12X20
 #define USE_FONT_16X26
 #define USE_FONT_24X40
-// #define USE_FONT_32X53
+#define USE_FONT_32X53
 #define USE_FONT_45X72
 #define USE_FONT_61X99
 

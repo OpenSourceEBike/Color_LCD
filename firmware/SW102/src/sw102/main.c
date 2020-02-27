@@ -83,7 +83,7 @@ void lcd_power_off(uint8_t updateDistanceOdo)
   // now disable the power to all the system
   system_power(0);
 
-  if(g_is_sim_motor) {
+  if (g_motor_init_state & MOTOR_INIT_SIMULATING) {
     // we are running from a bench supply on a developer's desk, so just reboot because the power supply will never die
     sd_nvic_SystemReset();
   }

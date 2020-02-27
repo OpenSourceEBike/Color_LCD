@@ -21,7 +21,7 @@ typedef enum {
   MOTOR_INIT_MOTOR_FIRMWARE_VERSION_INCORRECT = 8,
   MOTOR_INIT_SET_CONFIGURATIONS = 16,
   MOTOR_INIT_READY = 32,
-  MOTOR_INIT_SIMULATING = 64,
+  MOTOR_INIT_SIMULATING = 64, // true if we are simulating a motor (and therefore not talking on serial at all)
   MOTOR_INIT_ERROR = 128,
   MOTOR_INIT_MOTOR_RX_OK = 256,
   MOTOR_INIT_MOTOR_TX_OK = 512,
@@ -117,9 +117,14 @@ typedef struct rt_vars_struct {
 
 /* Selector positions for customizable fields
  * 0 is the graph,
- * 1-4 are the boxes above the graph
+ * 1-4 are the boxes above the graph, mainscreen1 on 850C
+ * 5-8 are the boxes above the graph, mainscreen2 on 850C
  */
-#define NUM_CUSTOMIZABLE_FIELDS 5 // We currently only allow customizing the graph field
+#ifdef SW102
+#define NUM_CUSTOMIZABLE_FIELDS 5
+#else
+#define NUM_CUSTOMIZABLE_FIELDS 9
+#endif
 
 typedef struct ui_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
@@ -332,7 +337,6 @@ void motor_init_state(void);
 
 extern uint8_t ui8_g_battery_soc;
 
-extern bool g_is_sim_motor; // true if we are simulating a motor (and therefore not talking on serial at all)
 extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge

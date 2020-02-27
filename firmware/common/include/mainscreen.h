@@ -2,14 +2,8 @@
 
 #include "screen.h"
 
-void main_idle(); // call every 20ms
-bool mainscreen_onpress(buttons_events_t events);
-void showNextScreen();
-
-extern Screen mainScreen, infoScreen, bootScreen;
-
+extern Screen mainScreen1, mainScreen2, bootScreen;
 extern Screen *screens[];
-
 extern Field
   socField,
   timeField,
@@ -68,7 +62,12 @@ void onSetConfigurationDisplayLcdBacklightOnBrightness(uint32_t v);
 void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void onSetConfigurationWheelOdometer(uint32_t v);
-void mainScreenonDirtyClean(void);
+void mainScreenOnDirtyClean(void);
+void secondMainScreenOnDirtyClean(void);
+void mainScreenonPostUpdate(void);
+bool mainScreenOnPress(buttons_events_t events);
+void showNextScreen();
+void main_idle(); // call every 20ms
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 extern bool wd_failure_detected;

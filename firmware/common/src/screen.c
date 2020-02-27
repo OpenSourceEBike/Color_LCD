@@ -1122,8 +1122,11 @@ static bool renderEditable(FieldLayout *layout) {
 	bool needBlink = blinkChanged
 			&& (isActive || field->rw->is_selected || isCustomizing);
 
+  // If not dirty, labels didn't change and we aren't animating then exit
+  bool forceLabelsChanged = forceLabels != oldForceLabels;
+
 	// If the value numerically changed, see if it also changed as a string (much more expensive)
-	bool showValue = !forceLabels && (valueChanged || dirty || needBlink); // default to not drawing the value
+	bool showValue = !forceLabels && (valueChanged || dirty || needBlink || forceLabelsChanged); // default to not drawing the value
 	if (showValue) {
 		char oldvaluestr[MAX_FIELD_LEN];
 		getEditableString(field, layout->old_editable, oldvaluestr);
@@ -1131,7 +1134,8 @@ static bool renderEditable(FieldLayout *layout) {
 		layout->old_editable = num;
 
 		getEditableString(field, num, valuestr);
-		if (strlen(valuestr) != strlen(oldvaluestr))
+		if ((strlen(valuestr) != strlen(oldvaluestr)) ||
+		    forceLabelsChanged)
 			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 	}
 
@@ -1149,9 +1153,6 @@ static bool renderEditable(FieldLayout *layout) {
       field->rw->editable.number.previous_color = color;
     dirty = true;
   }
-
-	// If not dirty, labels didn't change and we aren't animating then exit
-	bool forceLabelsChanged = forceLabels != oldForceLabels;
 
 	if (!dirty && !valueChanged && !forceLabelsChanged && !needBlink)
 		return false; // We didn't actually change so don't try to draw anything

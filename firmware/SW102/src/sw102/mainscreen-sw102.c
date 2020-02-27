@@ -39,9 +39,10 @@ static void mainScreenOnEnter() {
  */
 #define STATUS_BAR \
 { \
-  .x = 4, .y = 114, \
-  .width = 0, .height = -1, \
+  .x = 0, .y = 118, \
+  .width = 64, .height = -1, \
   .field = &warnField, \
+  .border = BorderNone, \
   .font = &REGULAR_TEXT_FONT, \
 }
 
@@ -61,104 +62,104 @@ static void mainScreenOnEnter() {
 //
 // Screens
 //
-Screen mainScreen = {
-  .onPress = mainscreen_onpress,
+Screen mainScreen1 = {
+  .onPress = mainScreenOnPress,
 	.onEnter = mainScreenOnEnter,
-	.onDirtyClean = mainScreenonDirtyClean,
+	.onDirtyClean = mainScreenOnDirtyClean,
+	.onPostUpdate = mainScreenonPostUpdate,
 
-    .fields = {
+  .fields = {
     BATTERY_BAR,
     {
-        .x = 0, .y = -2,
-        .width = 0, .height = -1,
-        .field = &wheelSpeedIntegerField,
-        .font = &BIG_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderBottom,
-        .show_units = Hide
+      .x = 10, .y = 19,
+      .width = 47, // 2 digits
+      .height = -1,
+      .field = &wheelSpeedIntegerField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
     },
     {
-        .x = 0, .y = -2,
-        .width = 0, .height = 19,
-        .field = &assistLevelField,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderBottom | BorderLeft | BorderRight,
-        .show_units = Hide
+      .x = 0, .y = 57,
+      .width = 0, .height = 34,
+      .field = &custom1,
+      .font = &SMALL_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
     },
     {
-        .x = 0, .y = -2,
-        .width = 0, .height = 19,
-        .field = &humanPowerField,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderLeft | BorderRight,
-        .show_units = Hide
+      .x = 0, .y = 86,
+      .width = 0, .height = 28,
+      .field = &custom2,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
     },
-    {
-        .x = 0, .y = -2,
-        .width = 0, .height = 19,
-        .field = &batteryPowerField,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderLeft | BorderRight | BorderBottom,
-        .show_units = Hide
-    },
-
     STATUS_BAR,
     {
-        .field = NULL
+      .field = NULL
     }
   }
 };
 
-Screen infoScreen = {
-    // .onPress = mainscreen_onpress,
-	.onEnter = mainScreenOnEnter,
-  .onCustomized = eeprom_write_variables,
-  .onPress = anyscreen_onpress,
-  .onDirtyClean = mainScreenonDirtyClean,
+Screen mainScreen2 = {
+  .onPress = mainScreenOnPress,
+  .onEnter = mainScreenOnEnter,
+  .onDirtyClean = mainScreenOnDirtyClean,
+  .onPostUpdate = mainScreenonPostUpdate,
 
-    .fields = {
+  .fields = {
     BATTERY_BAR,
     {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &custom1,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_y = AlignTop,
-        .border = BorderBottom | BorderTop
+      .x = 10, .y = 19,
+      .width = 47, // 2 digits
+      .height = -1,
+      .field = &wheelSpeedIntegerField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
     },
     {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &custom2,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_y = AlignTop,
-        .border = BorderBottom
+      .x = 0, .y = 57,
+      .width = 0, .height = 34,
+      .field = &custom3,
+      .font = &SMALL_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
     },
     {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &custom3,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_y = AlignTop,
-        .border = BorderBottom
+      .x = 0, .y = 86,
+      .width = 0, .height = 28,
+      .field = &custom4,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .border = BorderNone,
+      .inset_y = 3,
+      .show_units = Hide
     },
-#if 0
-    {
-        .x = 0, .y = -3,
-        .width = 0, .height = -1,
-        .field = &custom4,
-        .font = &MEDIUM_NUMBERS_TEXT_FONT,
-        .label_align_x = AlignHidden,
-        .border = BorderBottom
-    },
-#endif
     STATUS_BAR,
     {
-        .field = NULL
-    } }
+      .field = NULL
+    }
+  }
 };
 
 // Show our battery graphic
@@ -171,13 +172,26 @@ void battery_display() {
   }
 }
 
-void mainScreenonDirtyClean(void) {
+void mainScreenOnDirtyClean(void) {
   batteryClearSymbol();
 }
 
+void secondMainScreenOnDirtyClean(void) {
+  batteryClearSymbol();
+}
+
+void mainScreenonPostUpdate(void) {
+  UG_DrawLine(0, 62, 63, 62, C_WHITE);
+  UG_DrawLine(0, 89, 63, 89, C_WHITE);
+  UG_DrawLine(0, 115, 63, 115, C_WHITE);
+
+  UG_DrawLine(0, 62, 0, 115, C_WHITE);
+  UG_DrawLine(63, 62, 63, 115, C_WHITE);
+}
+
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen,
-		&infoScreen,
+Screen *screens[] = { &mainScreen1,
+		&mainScreen2,
 		NULL };
 
 

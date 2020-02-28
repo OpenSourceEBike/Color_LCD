@@ -34,7 +34,6 @@
 #include "mainscreen.h"
 #include "utils.h"
 
-uint8_t g_customizableFieldIndex;
 volatile bool g_graphs_ui_update[3] = { false, false, false };
 
 variables_t g_vars[VARS_SIZE];
@@ -1935,6 +1934,7 @@ static void selectNextCustomizableField(bool increase) {
 	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE_MAX];
 	static uint8_t firstTime = 1;
 	static uint8_t customizableFieldsCounter = 0;
+	static uint8_t customizableFieldIndex;
 
 	// do one first time only
 	if (firstTime) {
@@ -1964,10 +1964,10 @@ static void selectNextCustomizableField(bool increase) {
       g_curCustomizingField->customizable.choices[*g_curCustomizingField->customizable.selector]->rw->dirty = true;
     }
 
-    g_customizableFieldIndex = (g_customizableFieldIndex + 1) % customizableFieldsCounter;
+    customizableFieldIndex = (customizableFieldIndex + 1) % customizableFieldsCounter;
 	}
 
-	g_curCustomizingField = customizableFields[g_customizableFieldIndex];
+	g_curCustomizingField = customizableFields[customizableFieldIndex];
 }
 
 /**

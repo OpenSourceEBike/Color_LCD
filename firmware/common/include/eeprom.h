@@ -78,7 +78,6 @@ typedef struct eeprom_data {
 
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t customizable_choices_selector;
-	uint8_t customizableFieldIndex;
 	uint8_t showNextScreenIndex;
 
 #ifndef SW102
@@ -216,7 +215,6 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 #define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
-#define DEFAULT_CUSTOMIZABLE_FIELD_INDEX                            0 // the very first one
 
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal

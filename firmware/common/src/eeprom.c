@@ -113,7 +113,6 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
     .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
-    .customizableFieldIndex = DEFAULT_CUSTOMIZABLE_FIELD_INDEX,
 
 #ifndef SW102
     // enable automatic graph max min for every variable
@@ -312,7 +311,6 @@ void eeprom_init_variables(void) {
   ui_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
   ui_vars->ui8_torque_sensor_calibration_pedal_ground = m_eeprom_data.ui8_torque_sensor_calibration_pedal_ground;
   ui_vars->field_selectors[0] = m_eeprom_data.customizable_choices_selector;
-  g_customizableFieldIndex = m_eeprom_data.customizableFieldIndex;
 
 #ifndef SW102
   for (uint8_t i = 0; i < VARS_SIZE; i++) {
@@ -540,7 +538,6 @@ void eeprom_write_variables(void) {
   }
 
   m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
-  m_eeprom_data.customizableFieldIndex = g_customizableFieldIndex;
 
 #ifndef SW102
   for (uint8_t i = 0; i < VARS_SIZE; i++) {

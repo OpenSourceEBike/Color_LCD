@@ -20,6 +20,7 @@
 #include "fault.h"
 #include "state.h"
 #include "adc.h"
+#include "timer.h"
 #include <stdlib.h>
 
 static uint8_t ui8_m_usart1_received_first_package = 0;

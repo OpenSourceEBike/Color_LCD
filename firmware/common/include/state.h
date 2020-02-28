@@ -123,7 +123,7 @@ typedef struct rt_vars_struct {
 #ifdef SW102
 #define NUM_CUSTOMIZABLE_FIELDS 5
 #else
-#define NUM_CUSTOMIZABLE_FIELDS 9
+#define NUM_CUSTOMIZABLE_FIELDS 13
 #endif
 
 typedef struct ui_vars_struct {

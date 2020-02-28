@@ -188,7 +188,11 @@ Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizable
 #else
   custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables),
   custom7 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[7], customizables),
-  custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables);
+  custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables),
+  custom9 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[9], customizables),
+  custom10 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[10], customizables),
+  custom11 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[11], customizables),
+  custom12 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[12], customizables);
 #endif
 
 

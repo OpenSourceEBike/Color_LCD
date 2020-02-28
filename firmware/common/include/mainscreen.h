@@ -37,6 +37,7 @@ extern Field
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
   custom1, custom2, custom3, custom4,
   custom5, custom6, custom7, custom8,
+  custom9, custom10, custom11, custom12,
   warnField,
 
   wheelSpeedGraph,

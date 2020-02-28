@@ -37,7 +37,7 @@ static void mainScreenOnEnter() {
 	editable_units_font = &SMALL_TEXT_FONT;
 }
 
-static void mainScreenOnDirtyClean() {
+void mainScreenOnDirtyClean() {
   // main screen mask
   // horizontal lines
   UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
@@ -67,7 +67,6 @@ static void mainScreenOnDirtyClean() {
 void mainScreenOnPostUpdate(void) {
   // because printing numbers of wheel speed will make dirty the dot, always print it
   // wheel speed print dot
-//  UG_FillCircle(245, 130, 3, C_WHITE);
   UG_FillFrame(244, 129, 250, 135, C_WHITE);
 }
 
@@ -109,12 +108,11 @@ void mainScreenOnPostUpdate(void) {
 //
 // Screenscommon/src/state.c
 //
-Screen mainScreen = {
+Screen mainScreen1 = {
   .onPress = mainScreenOnPress,
   .onEnter = mainScreenOnEnter,
   .onDirtyClean = mainScreenOnDirtyClean,
   .onPostUpdate = mainScreenOnPostUpdate,
-  .onCustomized = eeprom_write_variables,
 
   .fields = {
     BATTERY_BAR,
@@ -159,7 +157,7 @@ Screen mainScreen = {
       .x = 1, .y = 161,
       .width = XbyEighths(4) - 4,
       .height = 72,
-      .align_x = AlignRight,
+      .align_x = AlignCenter,
       .inset_y = 12,
       .inset_x = 16, // space for 5 digits
       .field = &custom1,
@@ -171,7 +169,7 @@ Screen mainScreen = {
       .x = XbyEighths(4) + 1, .y = 161,
       .width = XbyEighths(4) - 4,
       .height = 72,
-      .align_x = AlignRight,
+      .align_x = AlignCenter,
       .inset_y = 12,
       .inset_x = 28, // space for 4 digits
       .field = &custom2,
@@ -183,7 +181,7 @@ Screen mainScreen = {
       .x = 1, .y = 240,
       .width = XbyEighths(4) - 4,
       .height = 72,
-      .align_x = AlignRight,
+      .align_x = AlignCenter,
       .inset_y = 12,
       .inset_x = 16, // space for 5 digits
       .field = &custom3,
@@ -195,7 +193,7 @@ Screen mainScreen = {
       .x = XbyEighths(4) + 1, .y = 240,
       .width = XbyEighths(4) - 4,
       .height = 72,
-      .align_x = AlignRight,
+      .align_x = AlignCenter,
       .inset_y = 12,
       .inset_x = 28, // space for 4 digits
       .field = &custom4,
@@ -215,9 +213,219 @@ Screen mainScreen = {
   }
 };
 
+Screen mainScreen2 = {
+  .onPress = mainScreenOnPress,
+  .onEnter = mainScreenOnEnter,
+  .onDirtyClean = mainScreenOnDirtyClean,
+  .onPostUpdate = mainScreenOnPostUpdate,
+
+  .fields = {
+    BATTERY_BAR,
+    {
+      .x = 20, .y = 77,
+      .width = 45, .height = -1,
+      .field = &assistLevelField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 117, .y = 56,
+      .width = 123, // 2 digits
+      .height = 99,
+      .field = &wheelSpeedIntegerField,
+      .font = &HUGE_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
+    },
+    {
+      .x = 253, .y = 77,
+      .width = 45, // 1 digit
+      .height = 72,
+      .field = &wheelSpeedDecimalField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .unit_align_x = AlignCenter,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
+    },
+    {
+      .x = 1, .y = 161,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 16, // space for 5 digits
+      .field = &custom5,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = XbyEighths(4) + 1, .y = 161,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 28, // space for 4 digits
+      .field = &custom6,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 1, .y = 240,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 16, // space for 5 digits
+      .field = &custom7,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = XbyEighths(4) + 1, .y = 240,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 28, // space for 4 digits
+      .field = &custom8,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 0, .y = 322,
+      .width = SCREEN_WIDTH, .height = 136,
+      .field = &graphs,
+    },
+    STATUS_BAR,
+    {
+      .field = NULL
+    }
+  }
+};
+
+Screen mainScreen3 = {
+  .onPress = mainScreenOnPress,
+  .onEnter = mainScreenOnEnter,
+  .onDirtyClean = mainScreenOnDirtyClean,
+  .onPostUpdate = mainScreenOnPostUpdate,
+
+  .fields = {
+    BATTERY_BAR,
+    {
+      .x = 20, .y = 77,
+      .width = 45, .height = -1,
+      .field = &assistLevelField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 117, .y = 56,
+      .width = 123, // 2 digits
+      .height = 99,
+      .field = &wheelSpeedIntegerField,
+      .font = &HUGE_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignRight,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
+    },
+    {
+      .x = 253, .y = 77,
+      .width = 45, // 1 digit
+      .height = 72,
+      .field = &wheelSpeedDecimalField,
+      .font = &BIG_NUMBERS_TEXT_FONT,
+      .label_align_x = AlignHidden,
+      .align_x = AlignCenter,
+      .unit_align_x = AlignCenter,
+      .unit_align_y = AlignTop,
+      .show_units = Hide,
+      .border = BorderNone,
+    },
+    {
+      .x = 1, .y = 161,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 16, // space for 5 digits
+      .field = &custom9,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = XbyEighths(4) + 1, .y = 161,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 28, // space for 4 digits
+      .field = &custom10,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 1, .y = 240,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 16, // space for 5 digits
+      .field = &custom11,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = XbyEighths(4) + 1, .y = 240,
+      .width = XbyEighths(4) - 4,
+      .height = 72,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .inset_x = 28, // space for 4 digits
+      .field = &custom12,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
+      .x = 0, .y = 322,
+      .width = SCREEN_WIDTH, .height = 136,
+      .field = &graphs,
+    },
+    STATUS_BAR,
+    {
+      .field = NULL
+    }
+  }
+};
+
 
 // Screens in a loop, shown when the user short presses the power button
-Screen *screens[] = { &mainScreen, &mainScreen, NULL };
+Screen *screens[] = { &mainScreen1, &mainScreen2, &mainScreen3, NULL };
 
 // Show our battery graphic
 void battery_display() {

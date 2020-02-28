@@ -131,7 +131,6 @@ bool renderBattery(FieldLayout *layout)
     uint8_t battery_bar_number;
     if (ui8_g_battery_soc > 0) {
       battery_bar_number = ui8_g_battery_soc / 10;
-      battery_bar_number++; // always show an higher bar, like 82% will show 9 bars and not 8
     } else {
       battery_bar_number = 0;
     }

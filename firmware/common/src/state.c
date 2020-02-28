@@ -113,7 +113,7 @@ void parse_simmotor() {
 
 	rt_vars.ui16_wheel_speed_x10 = fakeRandom(&speedstore, 80, 300);
     diststore += rt_vars.ui16_wheel_speed_x10 * 2.6; // speed x 10 to millimeters per 100 ms
-rt_vars.ui16_wheel_speed_x10 = 840; // for testing, just leave speed fixed
+rt_vars.ui16_wheel_speed_x10 = 842; // for testing, just leave speed fixed
 
 	rt_vars.ui8_braking = 0; // fake(0, 1);
 
@@ -819,7 +819,7 @@ void motor_init_state(void) {
 
       } else if ((g_motor_init_state & MOTOR_INIT_MOTOR_TX_OK) == 0) {
 
-        fieldPrintf(&bootStatus2, _S("Error brakes or TX line", "e: Brks TX"));
+        fieldPrintf(&bootStatus2, _S("Error brakes or TX line", "e: Brakes"));
       }
     }
 

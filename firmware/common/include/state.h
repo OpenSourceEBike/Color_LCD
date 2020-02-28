@@ -6,13 +6,13 @@
 // error codes from common.h in the controller code, used for ui8_error_states
 #define NO_ERROR                                0
 #define ERROR_NO_CONFIGURATIONS                 (1 << 1)
-#define ERROR_MOTOR_BLOCKED                     (1 << 2)
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    (1 << 3)
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     (1 << 4)
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  (1 << 5)
-#define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 6)
-#define ERROR_LOW_CONTROLLER_VOLTAGE            (1 << 7) // controller works with no less than 15 V so give error code if voltage is too low
-#define ERROR_MAX                               ERROR_LOW_CONTROLLER_VOLTAGE
+#define ERROR_WRITING_CONFIGURATIONS            (1 << 2)
+#define ERROR_MOTOR_BLOCKED                     (1 << 3)
+#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    (1 << 4)
+#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     (1 << 5)
+#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  (1 << 6)
+#define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 7)
+#define ERROR_MAX                               ERROR_NO_SPEED_SENSOR_DETECTED
 
 typedef enum {
   MOTOR_INIT_NOT_READY = 1,
@@ -117,11 +117,12 @@ typedef struct rt_vars_struct {
 
 /* Selector positions for customizable fields
  * 0 is the graph,
- * 1-4 are the boxes above the graph, mainscreen1 on 850C
- * 5-8 are the boxes above the graph, mainscreen2 on 850C
+ * 1-4  are the boxes above the graph, mainscreen1 on 850C
+ * 5-8  are the boxes above the graph, mainscreen2 on 850C
+ * 9-12 are the boxes above the graph, mainscreen2 on 850C
  */
 #ifdef SW102
-#define NUM_CUSTOMIZABLE_FIELDS 5
+#define NUM_CUSTOMIZABLE_FIELDS 7
 #else
 #define NUM_CUSTOMIZABLE_FIELDS 13
 #endif

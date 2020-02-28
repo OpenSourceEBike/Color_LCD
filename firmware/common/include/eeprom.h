@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x27
-#define EEPROM_VERSION 0x27
+#define EEPROM_MIN_COMPAT_VERSION 0x2A
+#define EEPROM_VERSION 0x2A
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -77,7 +77,6 @@ typedef struct eeprom_data {
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 
 	uint8_t x_axis_scale; // x axis scale
-	uint8_t customizable_choices_selector;
 	uint8_t showNextScreenIndex;
 
 #ifndef SW102
@@ -151,7 +150,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
 #define DEFAULT_VALUE_WH_X10_OFFSET                                 0
 #define DEFAULT_VALUE_HW_X10_100_PERCENT                            4000 // default to a battery of 400 Wh
-#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      2 // volts
+#define DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC                      1 // SOC
 #define DEFAULT_VALUE_BATTERY_MAX_CURRENT                           16 // 16 amps
 #define DEFAULT_VALUE_MOTOR_MAX_CURRENT                             16 // 16 amps
 #define DEFAULT_VALUE_CURRENT_MIN_ADC                               1 // 1 unit, 0.156 A
@@ -214,7 +213,6 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
-#define DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR                       0 // the very first one
 
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal

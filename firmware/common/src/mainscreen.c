@@ -177,7 +177,6 @@ const Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
-// custom1 to custom4 used for mainscreen1 and custom5 to custom8 used to mainscreen2, on 850C
 Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
   custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
   custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
@@ -376,8 +375,8 @@ void wheel_speed(void)
   if(ui16_wheel_speed > 999)
     ui16_wheel_speed = 999;
 
-  ui8_m_wheel_speed_integer = ui16_wheel_speed / 10;
-  ui8_m_wheel_speed_decimal = (ui16_wheel_speed % 10);
+  ui8_m_wheel_speed_integer = (uint8_t) (ui16_wheel_speed / 10);
+  ui8_m_wheel_speed_decimal = (uint8_t) (ui16_wheel_speed % 10);
 
 #ifdef SW102
   // if we are inside the timeout, override the wheel speed value so assist level is shown there
@@ -713,7 +712,7 @@ static void setWarning(ColorOp color, const char *str) {
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 
-static const char *motorErrors[] = { "None", "No config", "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+static const char *motorErrors[] = { _S("None", "None"), _S("No configurations", "No configu"), _S(" ", " "), "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
@@ -763,8 +762,6 @@ void warnings(void) {
 	}
 
 	setWarning(ColorNormal, "");
-
-setWarning(ColorNormal, "BRAKE");
 }
 
 void battery_soc(void) {

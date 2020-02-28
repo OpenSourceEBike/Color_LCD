@@ -1928,7 +1928,7 @@ static bool onPressScrollable(buttons_events_t events) {
  * For the current screen.  Select the next customizable field on the screen (or nothing if there are not suitable
  * fields).  If there isn't a current customizable field, select the first candidate.
  */
-#define CUSTOMIZABLE_FIELDS_SIZE_MAX 5
+#define CUSTOMIZABLE_FIELDS_SIZE_MAX 12
 
 static void selectNextCustomizableField(bool increase) {
 	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE_MAX];

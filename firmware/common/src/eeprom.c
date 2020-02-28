@@ -102,17 +102,42 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7,
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8,
 		DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9 },
-		.field_selectors = {
-      3, // GRAPH: wheel speed
+#ifdef SW102
+    .field_selectors = {
+      0, // dummy
+      5, // human power
+      6, // motor power
+
+      0, // trip time
       1, // trip distance
+
+      6, // motor power
+      13, // PWM
+    },
+#else
+    .field_selectors = {
+      0, // trip time
+      5, // human power
+      1, // trip distance
+      6, // motor power
+
+      4, // cadence
       5, // human power
       9, // motor current
       6, // motor power
+
+      13, // PWM
+      8, // battery current
+      12, // motor speed
+      6, // motor power
+
     },
+#endif
+
+
     .showNextScreenIndex = 0,
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
     .ui8_buttons_up_down_invert = DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT,
-    .customizable_choices_selector = DEFAULT_CUSTOMIZABLE_CHOICES_SELECTOR,
 
 #ifndef SW102
     // enable automatic graph max min for every variable
@@ -310,7 +335,6 @@ void eeprom_init_variables(void) {
 	COPY_ARRAY(ui_vars, &m_eeprom_data, field_selectors);
   ui_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
   ui_vars->ui8_torque_sensor_calibration_pedal_ground = m_eeprom_data.ui8_torque_sensor_calibration_pedal_ground;
-  ui_vars->field_selectors[0] = m_eeprom_data.customizable_choices_selector;
 
 #ifndef SW102
   for (uint8_t i = 0; i < VARS_SIZE; i++) {
@@ -536,8 +560,6 @@ void eeprom_write_variables(void) {
     m_eeprom_data.ui16_torque_sensor_calibration_table_right[i][0] = ui_vars->ui16_torque_sensor_calibration_table_right[i][0];
     m_eeprom_data.ui16_torque_sensor_calibration_table_right[i][1] = ui_vars->ui16_torque_sensor_calibration_table_right[i][1];
   }
-
-  m_eeprom_data.customizable_choices_selector = *graphs.customizable.selector;
 
 #ifndef SW102
   for (uint8_t i = 0; i < VARS_SIZE; i++) {

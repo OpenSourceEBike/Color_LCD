@@ -2064,7 +2064,7 @@ static bool onPressCustomizing(buttons_events_t events) {
 	}
 
   // Customize the X axis
-  if (events & UPDOWN_CLICK) {
+  if (events & UPDOWN_LONG_CLICK) {
     if (g_CustomizingGraphXAxis) {
       g_curCustomizingField = g_curCustomizingFieldBackup;
       g_CustomizingGraphXAxis->rw->dirty = true;

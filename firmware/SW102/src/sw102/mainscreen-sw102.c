@@ -71,15 +71,13 @@ Screen mainScreen1 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 10, .y = 19,
-      .width = 47, // 2 digits
-      .height = -1,
+      .x = 0, .y = 19,
+      .width = 63, // 2 digits
+      .height = 40,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
-      .align_x = AlignRight,
-      .unit_align_x = AlignRight,
-      .unit_align_y = AlignTop,
+      .align_x = AlignCenter,
       .show_units = Hide,
       .border = BorderNone,
     },
@@ -121,15 +119,13 @@ Screen mainScreen2 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 10, .y = 19,
-      .width = 47, // 2 digits
-      .height = -1,
+      .x = 0, .y = 19,
+      .width = 63, // 2 digits
+      .height = 40,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
-      .align_x = AlignRight,
-      .unit_align_x = AlignRight,
-      .unit_align_y = AlignTop,
+      .align_x = AlignCenter,
       .show_units = Hide,
       .border = BorderNone,
     },
@@ -171,15 +167,13 @@ Screen mainScreen3 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 10, .y = 19,
-      .width = 47, // 2 digits
-      .height = -1,
+      .x = 0, .y = 19,
+      .width = 63, // 2 digits
+      .height = 40,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
-      .align_x = AlignRight,
-      .unit_align_x = AlignRight,
-      .unit_align_y = AlignTop,
+      .align_x = AlignCenter,
       .show_units = Hide,
       .border = BorderNone,
     },

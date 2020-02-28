@@ -25,6 +25,10 @@
 #include "state.h"
 #include "timer.h"
 
+// only used on SW102, to count timeout to override the wheel speed value with assist level value
+static uint16_t m_assist_level_change_timeout = 0;
+
+uint8_t ui8_m_wheel_speed_integer;
 uint8_t ui8_m_wheel_speed_decimal;
 
 static uint8_t ui8_walk_assist_state = 0;
@@ -68,12 +72,7 @@ bool wd_failure_detected;
 Field socField = FIELD_DRAWTEXT_RW();
 Field timeField = FIELD_DRAWTEXT_RW();
 Field assistLevelField = FIELD_READONLY_UINT("assist", &ui_vars.ui8_assist_level, "", false);
-#ifdef SW102
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
-#else
-Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", false, .div_digits = 1, .hide_fraction = true);
-#endif
-
+Field wheelSpeedIntegerField = FIELD_READONLY_UINT("speed", &ui8_m_wheel_speed_integer, "kph", false);
 Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decimal, "kph", false);
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
 
@@ -221,8 +220,14 @@ static void bootScreenOnPreUpdate() {
   }
 }
 
+void bootScreenOnExit(void) {
+  // SW102: now that we are goind to main screen, start by showing the assist level for 5 seconds
+  m_assist_level_change_timeout = 50;
+}
+
 Screen bootScreen = {
   .onPreUpdate = bootScreenOnPreUpdate,
+  .onExit = bootScreenOnExit,
 
   .fields = {
 #ifdef SW102
@@ -315,25 +320,25 @@ bool anyscreen_onpress(buttons_events_t events) {
 }
 
 bool mainScreenOnPress(buttons_events_t events) {
-	if(anyscreen_onpress(events))
+	if (anyscreen_onpress(events))
 	  return true;
 
-	if (events & UP_CLICK /* &&
-	 m_lcd_vars.ui8_lcd_menu_max_power == 0 */) {
+	if (events & UP_CLICK) {
 		ui_vars.ui8_assist_level++;
 
 		if (ui_vars.ui8_assist_level > ui_vars.ui8_number_of_assist_levels) {
 			ui_vars.ui8_assist_level = ui_vars.ui8_number_of_assist_levels;
 		}
 
+		m_assist_level_change_timeout = 20; // 2 seconds
 		return true;
 	}
 
-	if (events & DOWN_CLICK /* &&
-	 m_lcd_vars.ui8_lcd_menu_max_power == 0 */) {
+	if (events & DOWN_CLICK) {
 		if (ui_vars.ui8_assist_level > 0)
 			ui_vars.ui8_assist_level--;
 
+    m_assist_level_change_timeout = 20; // 2 seconds
 		return true;
 	}
 
@@ -361,13 +366,22 @@ void lcd_main_screen(void) {
 
 void wheel_speed(void)
 {
-  // limit otherwise at startup this value goes crazy
-  if(ui_vars.ui16_wheel_speed_x10 > 999) {
-    ui_vars.ui16_wheel_speed_x10 = 999;
-  }
+  uint16_t ui16_wheel_speed = ui_vars.ui16_wheel_speed_x10;
 
-  // Note: no need to check for 'wheel speed previous' because this math is so cheap
-  ui8_m_wheel_speed_decimal = (uint8_t) (ui_vars.ui16_wheel_speed_x10 % 10);
+  // limit otherwise at startup this value goes crazy
+  if(ui16_wheel_speed > 999)
+    ui16_wheel_speed = 999;
+
+  ui8_m_wheel_speed_integer = ui16_wheel_speed / 10;
+  ui8_m_wheel_speed_decimal = (ui16_wheel_speed % 10);
+
+#ifdef SW102
+  // if we are inside the timeout, override the wheel speed value so assist level is shown there
+  if (m_assist_level_change_timeout > 0) {
+    m_assist_level_change_timeout--;
+    ui8_m_wheel_speed_integer = ui_vars.ui8_assist_level;
+  }
+#endif
 }
 
 void power(void) {

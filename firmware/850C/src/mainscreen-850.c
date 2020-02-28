@@ -110,7 +110,7 @@ void mainScreenOnPostUpdate(void) {
 // Screenscommon/src/state.c
 //
 Screen mainScreen = {
-  .onPress = mainscreen_onpress,
+  .onPress = mainScreenOnPress,
   .onEnter = mainScreenOnEnter,
   .onDirtyClean = mainScreenOnDirtyClean,
   .onPostUpdate = mainScreenOnPostUpdate,

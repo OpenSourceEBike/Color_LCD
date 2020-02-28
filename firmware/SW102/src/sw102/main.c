@@ -171,7 +171,7 @@ void init_softdevice() {
 
   // don't use softdevice while debugging
   // FIXME check if under debugger instead (using openocd callbacks)
-//   useSoftDevice = false;
+   useSoftDevice = false;
 }
 
 

@@ -24,9 +24,9 @@
 #include <stdlib.h>
 
 typedef enum {
-  FRAME_TYPE_PERIODIC,
-  FRAME_TYPE_FIRMWARE_VERSION,
-  FRAME_TYPE_CONFIGURATIONS,
+  FRAME_TYPE_PERIODIC = 0,
+  FRAME_TYPE_CONFIGURATIONS = 1,
+  FRAME_TYPE_FIRMWARE_VERSION = 2,
 } frame_type_t;
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
@@ -36,7 +36,6 @@ volatile uint8_t motorVariablesStabilized = 0;
 volatile uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
 volatile motor_init_state_t g_motor_init_state = MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION;
 motor_init_communications_state_t g_motor_init_communications_state = MOTOR_INIT_COMMUNICATIONS_RESET;
-uint8_t m_motor_init_command_timeout_cnt = 0;
 uint8_t m_motor_init_command_error_cnt = 0;
 
 tsdz2_firmware_version_t g_tsdz2_firmware_version = { 0xff, 0, 0 };
@@ -159,7 +158,7 @@ rt_vars.ui16_wheel_speed_x10 = 842; // for testing, just leave speed fixed
     }
 }
 
-void rt_send_tx_package(uint8_t type) {
+void rt_send_tx_package(frame_type_t type) {
   uint8_t crc_len = 3; // minimun is 3
 	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
 
@@ -169,10 +168,10 @@ void rt_send_tx_package(uint8_t type) {
 	ui8_usart1_tx_buffer[0] = 0x59;
   ui8_usart1_tx_buffer[1] = crc_len;
   // type of the frame
-	ui8_usart1_tx_buffer[2] = type;
+	ui8_usart1_tx_buffer[2] = (uint8_t) type;
 
 	switch (type) {
-	  case 0:
+	  case FRAME_TYPE_PERIODIC:
       if (rt_vars.ui8_walk_assist) {
         ui8_usart1_tx_buffer[3] = (uint8_t) rt_vars.ui8_walk_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
         ui8_usart1_tx_buffer[4] = 0;
@@ -200,7 +199,7 @@ void rt_send_tx_package(uint8_t type) {
 	    break;
 
     // set configurations
-	  case 1:
+	  case FRAME_TYPE_CONFIGURATIONS:
       // battery low voltage cut-off
       ui8_usart1_tx_buffer[3] = (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 & 0xff);
       ui8_usart1_tx_buffer[4] = (uint8_t) (rt_vars.ui16_battery_low_voltage_cut_off_x10 >> 8);
@@ -808,11 +807,16 @@ void prepare_torque_sensor_calibration_table(void) {
 #define MIN_VOLTAGE_10X 140 // If our measured bat voltage (using ADC in the display) is lower than this, we assume we are running on a developers desk
 
 static void motor_init(void) {
+  static uint8_t once = 1;
+
   if ((g_motor_init_state != MOTOR_INIT_ERROR) ||
       (g_motor_init_state != MOTOR_INIT_READY) ||
       (g_motor_init_state != MOTOR_INIT_SIMULATING))
   {
-    if (g_motor_init_state == MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION) {
+    if ((g_motor_init_state == MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION) &&
+        once) {
+      once = 0;
+
       // are we simulating?
       bool sim = (battery_voltage_10x_get() < MIN_VOLTAGE_10X);
       if (sim) {
@@ -825,32 +829,20 @@ static void motor_init(void) {
 
     switch (g_motor_init_state) {
       case MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION:
-        m_motor_init_command_error_cnt = 10;
+        m_motor_init_command_error_cnt = 100;
         // not break here to follow for next case
 
-      case MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION_REPEAT:
-        rt_send_tx_package(2);
-        m_motor_init_command_timeout_cnt = 10;
-        g_motor_init_state = MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION;
-        break;
-
       case MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION:
-        // check for command answer timeout
-        m_motor_init_command_timeout_cnt--;
-        if (m_motor_init_command_timeout_cnt == 0) {
-          // check for command answer error counter
-          m_motor_init_command_error_cnt--;
-          if (m_motor_init_command_error_cnt == 0) {
-
-            if (g_motor_init_communications_state != MOTOR_INIT_COMMUNICATIONS_MOTOR_TX_OK) {
-              fieldPrintf(&bootStatus2, _S("Error brakes", "e: brakes"));
-            } else {
-              fieldPrintf(&bootStatus2, _S("Error RX line", "e: RX"));
-            }
-            g_motor_init_state = MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION;
-
+        rt_send_tx_package(FRAME_TYPE_FIRMWARE_VERSION);
+        g_motor_init_state = MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION;
+        m_motor_init_command_error_cnt--;
+        if (m_motor_init_command_error_cnt == 0) {
+          if (g_motor_init_communications_state != MOTOR_INIT_COMMUNICATIONS_MOTOR_TX_OK) {
+            fieldPrintf(&bootStatus2, _S("Error brakes", "e: brakes"));
+            g_motor_init_state = MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION;
           } else {
-            g_motor_init_state = MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION_REPEAT;
+            fieldPrintf(&bootStatus2, _S("Error RX line", "e: RX"));
+            g_motor_init_state = MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION;
           }
         }
         break;
@@ -869,26 +861,14 @@ static void motor_init(void) {
         // not break here to follow for next case
 
       case MOTOR_INIT_SET_CONFIGURATIONS:
-        m_motor_init_command_error_cnt = 10;
+        m_motor_init_command_error_cnt = 100;
         // not break here to follow for next case
 
-      case MOTOR_INIT_SET_CONFIGURATIONS_REPEAT:
-        rt_send_tx_package(1);
-        m_motor_init_command_timeout_cnt = 10;
-        g_motor_init_state = MOTOR_INIT_WAIT_CONFIGURATIONS_OK;
-        break;
-
       case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
-        // check for command answer timeout
-        m_motor_init_command_timeout_cnt--;
-        if (m_motor_init_command_timeout_cnt == 0) {
-          // check for command answer error counter
-          m_motor_init_command_error_cnt--;
-          if (m_motor_init_command_error_cnt == 0) {
-            g_motor_init_state = MOTOR_INIT_ERROR;
-          } else {
-            g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS_REPEAT;
-          }
+        rt_send_tx_package(FRAME_TYPE_CONFIGURATIONS);
+        m_motor_init_command_error_cnt--;
+        if (m_motor_init_command_error_cnt == 0) {
+          g_motor_init_state = MOTOR_INIT_ERROR;
         }
         break;
     }

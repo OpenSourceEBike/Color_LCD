@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x2A
-#define EEPROM_VERSION 0x2A
+#define EEPROM_MIN_COMPAT_VERSION 0x2B
+#define EEPROM_VERSION 0x2B
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;

@@ -204,22 +204,28 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
    bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
 
 static void bootScreenOnPreUpdate() {
+  switch (g_motor_init_state) {
+    case MOTOR_INIT_ERROR:
+    case MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION:
+    case MOTOR_INIT_ERROR_FIRMWARE_VERSION:
+      // this will block here and avoid leave the boot screen
+      break;
 
-  motor_init_state();
-
-  // Stop showing only after we release on/off button and after motor init
-  if ((g_motor_init_state & MOTOR_INIT_READY) ||
-      (g_motor_init_state & MOTOR_INIT_SIMULATING)) {
-    if (buttons_get_onoff_state() == 0)
-      showNextScreen();
-    else {
-      if (g_motor_init_state & MOTOR_INIT_READY) {
-        fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
-        g_tsdz2_firmware_version.major,
-        g_tsdz2_firmware_version.minor,
-        g_tsdz2_firmware_version.patch);
+    case MOTOR_INIT_READY:
+    case MOTOR_INIT_SIMULATING:
+      if (buttons_get_onoff_state() == 0) {
+        showNextScreen();
+      } else {
+        if (g_motor_init_state == MOTOR_INIT_READY) {
+          fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
+          g_tsdz2_firmware_version.major,
+          g_tsdz2_firmware_version.minor,
+          g_tsdz2_firmware_version.patch);
+        }
       }
-    }
+
+    default:
+      break;
   }
 }
 
@@ -712,7 +718,7 @@ static void setWarning(ColorOp color, const char *str) {
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 
-static const char *motorErrors[] = { _S("None", "None"), _S("No configurations", "No configu"), _S(" ", " "), "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+static const char *motorErrors[] = { _S("None", "None"), _S("No configurations", "No configu"), _S("Motor init", "Motor init"), "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
@@ -839,14 +845,12 @@ static bool appwide_onpress(buttons_events_t events)
     return true;
   }
 
-#ifdef SW102
   if ((events & SCREENCLICK_NEXT_SCREEN) &&
-      ((g_motor_init_state & MOTOR_INIT_READY) ||
-      (g_motor_init_state & MOTOR_INIT_SIMULATING))) {
+      ((g_motor_init_state == MOTOR_INIT_READY) ||
+      (g_motor_init_state == MOTOR_INIT_SIMULATING))) {
     showNextScreen();
     return true;
   }
-#endif
 
   if (events & SCREENCLICK_ENTER_CONFIGURATIONS) {
     screenShow(&configScreen);

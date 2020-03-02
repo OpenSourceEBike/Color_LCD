@@ -353,8 +353,8 @@ static void configExit() {
 	set_conversions(); // we just changed units
 
 	// send the configurations to TSDZ2
-  if (g_motor_init_state & MOTOR_INIT_READY)
-    g_motor_init_state |= MOTOR_INIT_SET_CONFIGURATIONS;
+  if (g_motor_init_state == MOTOR_INIT_READY)
+    g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;
 }
 
 static void configPreUpdate() {

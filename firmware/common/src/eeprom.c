@@ -116,6 +116,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
     },
 #else
     .field_selectors = {
+      3, // graph speed
       0, // trip time
       5, // human power
       1, // trip distance

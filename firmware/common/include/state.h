@@ -15,17 +15,25 @@
 #define ERROR_MAX                               ERROR_NO_SPEED_SENSOR_DETECTED
 
 typedef enum {
-  MOTOR_INIT_NOT_READY = 1,
-  MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION = 2,
-  MOTOR_INIT_RECEIVED_MOTOR_FIRMWARE_VERSION = 4,
-  MOTOR_INIT_MOTOR_FIRMWARE_VERSION_INCORRECT = 8,
-  MOTOR_INIT_SET_CONFIGURATIONS = 16,
-  MOTOR_INIT_READY = 32,
-  MOTOR_INIT_SIMULATING = 64, // true if we are simulating a motor (and therefore not talking on serial at all)
-  MOTOR_INIT_ERROR = 128,
-  MOTOR_INIT_MOTOR_RX_OK = 256,
-  MOTOR_INIT_MOTOR_TX_OK = 512,
+  MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION,
+  MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION_REPEAT,
+  MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION,
+  MOTOR_INIT_GOT_MOTOR_FIRMWARE_VERSION,
+  MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION,
+  MOTOR_INIT_RECEIVED_MOTOR_FIRMWARE_VERSION,
+  MOTOR_INIT_ERROR_FIRMWARE_VERSION,
+  MOTOR_INIT_SET_CONFIGURATIONS,
+  MOTOR_INIT_SET_CONFIGURATIONS_REPEAT,
+  MOTOR_INIT_WAIT_CONFIGURATIONS_OK,
+  MOTOR_INIT_ERROR,
+  MOTOR_INIT_READY,
+  MOTOR_INIT_SIMULATING,
 } motor_init_state_t;
+
+typedef enum {
+  MOTOR_INIT_COMMUNICATIONS_RESET = 0,
+  MOTOR_INIT_COMMUNICATIONS_MOTOR_TX_OK = 1,
+} motor_init_communications_state_t;
 
 extern volatile motor_init_state_t g_motor_init_state;
 
@@ -333,8 +341,6 @@ void lcd_power_off(uint8_t updateDistanceOdo); // provided by LCD
 void set_lcd_backlight();
 
 void prepare_torque_sensor_calibration_table(void);
-
-void motor_init_state(void);
 
 extern uint8_t ui8_g_battery_soc;
 

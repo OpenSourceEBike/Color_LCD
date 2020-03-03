@@ -74,7 +74,7 @@ static Field torqueSensorMenus[] =
 
 static Field assistMenus[] =
 		{
-						FIELD_EDITABLE_UINT(_S("Num assist levels", "Num Levels"), &ui_vars.ui8_number_of_assist_levels, "", 1, 9),
+						FIELD_EDITABLE_UINT(_S("Num assist levels", "Num Levels"), &ui_vars.ui8_number_of_assist_levels, "", 1, 20),
 						FIELD_EDITABLE_UINT("Level 1", &ui_vars.ui16_assist_level_factor[0], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 2", &ui_vars.ui16_assist_level_factor[1], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 3", &ui_vars.ui16_assist_level_factor[2], "", 1, 65535, .div_digits = 3),
@@ -84,6 +84,17 @@ static Field assistMenus[] =
 						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui16_assist_level_factor[6], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui16_assist_level_factor[7], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui16_assist_level_factor[8], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 10", &ui_vars.ui16_assist_level_factor[9], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 11", &ui_vars.ui16_assist_level_factor[10], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 12", &ui_vars.ui16_assist_level_factor[11], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 13", &ui_vars.ui16_assist_level_factor[12], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 14", &ui_vars.ui16_assist_level_factor[13], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 15", &ui_vars.ui16_assist_level_factor[14], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 16", &ui_vars.ui16_assist_level_factor[15], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 17", &ui_vars.ui16_assist_level_factor[16], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 18", &ui_vars.ui16_assist_level_factor[17], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 19", &ui_vars.ui16_assist_level_factor[18], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 20", &ui_vars.ui16_assist_level_factor[19], "", 1, 65535, .div_digits = 3),
 				FIELD_END };
 
 static Field walkAssistMenus[] =
@@ -98,6 +109,17 @@ static Field walkAssistMenus[] =
 						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui8_walk_assist_level_factor[6], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui8_walk_assist_level_factor[7], "", 0, 100),
 						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui8_walk_assist_level_factor[8], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 10", &ui_vars.ui8_walk_assist_level_factor[9], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 11", &ui_vars.ui8_walk_assist_level_factor[10], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 12", &ui_vars.ui8_walk_assist_level_factor[11], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 13", &ui_vars.ui8_walk_assist_level_factor[12], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 14", &ui_vars.ui8_walk_assist_level_factor[13], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 15", &ui_vars.ui8_walk_assist_level_factor[14], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 16", &ui_vars.ui8_walk_assist_level_factor[15], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 17", &ui_vars.ui8_walk_assist_level_factor[16], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 18", &ui_vars.ui8_walk_assist_level_factor[17], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 19", &ui_vars.ui8_walk_assist_level_factor[18], "", 0, 100),
+            FIELD_EDITABLE_UINT("Level 20", &ui_vars.ui8_walk_assist_level_factor[19], "", 0, 100),
 				FIELD_END };
 
 static Field startupPowerMenus[] =
@@ -116,6 +138,17 @@ static Field startupPowerMenus[] =
 						FIELD_EDITABLE_UINT("Level 7", &ui_vars.ui16_startup_motor_power_boost_factor[6], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 8", &ui_vars.ui16_startup_motor_power_boost_factor[7], "", 1, 65535, .div_digits = 3),
 						FIELD_EDITABLE_UINT("Level 9", &ui_vars.ui16_startup_motor_power_boost_factor[8], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 10", &ui_vars.ui16_startup_motor_power_boost_factor[9], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 11", &ui_vars.ui16_startup_motor_power_boost_factor[10], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 12", &ui_vars.ui16_startup_motor_power_boost_factor[11], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 13", &ui_vars.ui16_startup_motor_power_boost_factor[12], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 14", &ui_vars.ui16_startup_motor_power_boost_factor[13], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 15", &ui_vars.ui16_startup_motor_power_boost_factor[14], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 16", &ui_vars.ui16_startup_motor_power_boost_factor[15], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 17", &ui_vars.ui16_startup_motor_power_boost_factor[16], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 18", &ui_vars.ui16_startup_motor_power_boost_factor[17], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 19", &ui_vars.ui16_startup_motor_power_boost_factor[18], "", 1, 65535, .div_digits = 3),
+            FIELD_EDITABLE_UINT("Level 20", &ui_vars.ui16_startup_motor_power_boost_factor[19], "", 1, 65535, .div_digits = 3),
 				FIELD_END };
 
 static Field motorTempMenus[] =

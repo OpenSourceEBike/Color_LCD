@@ -42,12 +42,12 @@ typedef struct eeprom_data {
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint16_t ui16_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_number_of_assist_levels;
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
-	uint16_t ui16_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
 	uint8_t ui8_temperature_limit_feature_enabled;
@@ -65,7 +65,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_offroad_power_limit_div25;
 	uint32_t ui32_odometer_x10;
 	uint8_t ui8_walk_assist_feature_enabled;
-	uint8_t ui8_walk_assist_level_factor[9];
+	uint8_t ui8_walk_assist_level_factor[ASSIST_LEVEL_NUMBER];
 
 	uint8_t ui8_battery_soc_increment_decrement;
 	uint8_t ui8_buttons_up_down_invert;
@@ -144,7 +144,7 @@ void eeprom_init_defaults(void);
 // *************************************************************************** //
 // EEPROM memory variables default values
 #define DEFAULT_VALUE_ASSIST_LEVEL                                  0
-#define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       9
+#define DEFAULT_VALUE_NUMBER_OF_ASSIST_LEVELS                       20
 #define DEFAULT_VALUE_WHEEL_PERIMETER                               2100 // 27.5'' wheel: 2100mm perimeter
 #define DEFAULT_VALUE_WHEEL_MAX_SPEED                               50
 #define DEFAULT_VALUE_UNITS_TYPE                                    0 // 0 = km/h
@@ -160,15 +160,27 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
 #define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         15 // 0.015
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         21
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         30
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         42
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         60
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         84
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         117
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         164
-#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         223
+
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         5 // 0.005 and each next increase +33%
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         9
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         12
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_4                         16
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_5                         21
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_6                         28
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7                         37
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8                         49
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9                         65
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_10                        87
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_11                        115
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_12                        153
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_13                        204
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_14                        271
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_15                        360
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_16                        479
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_17                        637
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_18                        848
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_19                        1128
+#define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_20                        1500
 #define DEFAULT_VALUE_WALK_ASSIST_FEATURE_ENABLED                   1
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_1                    35
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_2                    40
@@ -179,6 +191,17 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_7                    70
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_8                    80
 #define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_9                    90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_10                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_11                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_12                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_13                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_14                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_15                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_16                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_17                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_18                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_19                   90
+#define DEFAULT_VALUE_WALK_ASSIST_LEVEL_FACTOR_20                   90
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FEATURE_ENABLED     0
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ALWAYS              1
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_1      5
@@ -190,6 +213,17 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_7      62
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_8      93
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_9      140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_10     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_11     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_12     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_13     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_14     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_15     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_16     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_17     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_18     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_19     140
+#define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_ASSIST_LEVEL_20     140
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_TIME                20 // 2.0 seconds
 #define DEFAULT_VALUE_STARTUP_MOTOR_POWER_BOOST_FADE_TIME           35 // 3.5 seconds
 #define DEFAULT_VALUE_MOTOR_TEMPERATURE_FEATURE_ENABLE              0
@@ -214,6 +248,11 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 
+//#define JORGE
+#define PAT_CIDADE
+
+#ifdef JORGE
+// Jorge
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
@@ -248,6 +287,45 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                249
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             100
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                263
+#endif
+
+#ifdef PAT_CIDADE
+// Pat cidade
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                168
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_2             5
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                198
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_3             10
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                220
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_4             15
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                232
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_5             19
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                237
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             38
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                253
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             52
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                260
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_8             102
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                272
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_1             0
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                173
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_2             5
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                203
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_3             10
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                232
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_4             15
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                252
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_5             19
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                260
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             38
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                278
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             52
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                286
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             102
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                300
+#endif
 
 // *************************************************************************** //
 

@@ -14,6 +14,8 @@
 #define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 7)
 #define ERROR_MAX                               ERROR_NO_SPEED_SENSOR_DETECTED
 
+#define ASSIST_LEVEL_NUMBER 20
+
 typedef enum {
   MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION,
   MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION,
@@ -88,15 +90,15 @@ typedef struct rt_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint16_t ui16_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_walk_assist_feature_enabled;
-	uint8_t ui8_walk_assist_level_factor[9];
+	uint8_t ui8_walk_assist_level_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint16_t ui16_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;
@@ -186,15 +188,15 @@ typedef struct ui_vars_struct {
 	uint16_t ui16_battery_pack_resistance_x1000;
 	uint8_t ui8_motor_type;
 	uint8_t ui8_motor_assistance_startup_without_pedal_rotation;
-	uint16_t ui16_assist_level_factor[9];
+	uint16_t ui16_assist_level_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_walk_assist_feature_enabled;
-	uint8_t ui8_walk_assist_level_factor[9];
+	uint8_t ui8_walk_assist_level_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_startup_motor_power_boost_feature_enabled;
 	uint8_t ui8_startup_motor_power_boost_always;
 	uint8_t ui8_startup_motor_power_boost_limit_power;
 	uint8_t ui8_startup_motor_power_boost_time;
 	uint8_t ui8_startup_motor_power_boost_fade_time;
-	uint16_t ui16_startup_motor_power_boost_factor[9];
+	uint16_t ui16_startup_motor_power_boost_factor[ASSIST_LEVEL_NUMBER];
 	uint8_t ui8_temperature_limit_feature_enabled;
 	uint8_t ui8_motor_temperature_min_value_to_limit;
 	uint8_t ui8_motor_temperature_max_value_to_limit;

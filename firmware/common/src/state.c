@@ -179,7 +179,6 @@ void rt_send_tx_package(frame_type_t type) {
         uint16_t ui16_temp = rt_vars.ui16_assist_level_factor[((rt_vars.ui8_assist_level) - 1)];
         ui8_usart1_tx_buffer[3] = (uint8_t) (ui16_temp & 0xff);
         ui8_usart1_tx_buffer[4] = (uint8_t) (ui16_temp >> 8);
-
       } else {
         // if rt_vars.ui8_assist_level = 0, send 0!! always disable motor when assist level is 0
         ui8_usart1_tx_buffer[3] = 0;
@@ -564,10 +563,10 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;
 	rt_vars.ui16_battery_pack_resistance_x1000 = ui_vars.ui16_battery_pack_resistance_x1000;
 	rt_vars.ui8_assist_level = ui_vars.ui8_assist_level;
-	for (uint8_t i = 0; i < 9; i++) {
+	for (uint8_t i = 0; i < ASSIST_LEVEL_NUMBER; i++) {
 	  rt_vars.ui16_assist_level_factor[i] = ui_vars.ui16_assist_level_factor[i];
 	}
-  for (uint8_t i = 0; i < 9; i++) {
+  for (uint8_t i = 0; i < ASSIST_LEVEL_NUMBER; i++) {
     rt_vars.ui8_walk_assist_level_factor[i] = ui_vars.ui8_walk_assist_level_factor[i];
   }
 	rt_vars.ui8_lights = ui_vars.ui8_lights;

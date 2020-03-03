@@ -256,6 +256,9 @@ void eeprom_init() {
 	eeprom_init_variables();
 
 	set_conversions();
+
+	// prepare torque_sensor_calibration_table as it will be used at begin to init the motor
+	prepare_torque_sensor_calibration_table();
 }
 
 void eeprom_init_variables(void) {
@@ -631,12 +634,18 @@ void eeprom_write_variables(void) {
 
 void eeprom_init_defaults(void)
 {
-  // FIXME: SW102 implementation!
-#ifndef SW102
+
+#ifdef SW102
+  memcpy(&m_eeprom_data,
+      &m_eeprom_data_defaults,
+      sizeof(m_eeprom_data_defaults));
+
+  flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
+#else
   // first force KEY value to 0
   eeprom_write(ADDRESS_KEY, 0);
+#endif
 
   // eeprom_init() will read the default values now
   eeprom_init();
-#endif
 }

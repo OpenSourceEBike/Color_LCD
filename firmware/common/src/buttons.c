@@ -348,6 +348,13 @@ void buttons_clock(void) {
       if (ui32_up_button_state_counter++ > MS_TO_TICKS(TIME_1)) {
         if (buttons_get_onoff_state() &&
             buttons_get_down_state()) {
+          // reset all events and machine state of others
+          buttons_clear_all_events();
+          ui32_down_button_state = 0;
+          ui32_onoff_button_state = 0;
+#ifdef SW012
+          ui32_m_button_state = 0;
+#endif
           buttons_set_events(ONOFFUPDOWN_LONG_CLICK);
         } else if (buttons_get_onoff_state()) {
           buttons_set_events(ONOFFUP_LONG_CLICK);
@@ -398,6 +405,13 @@ void buttons_clock(void) {
       if (ui32_down_button_state_counter++ > MS_TO_TICKS(TIME_1)) {
         if (buttons_get_onoff_state() &&
             buttons_get_up_state()) {
+          // reset all events and machine state of others
+          buttons_clear_all_events();
+          ui32_up_button_state = 0;
+          ui32_onoff_button_state = 0;
+#ifdef SW012
+          ui32_m_button_state = 0;
+#endif
           buttons_set_events(ONOFFUPDOWN_LONG_CLICK);
         } else if (buttons_get_onoff_state()) {
           buttons_set_events(ONOFFDOWN_LONG_CLICK);

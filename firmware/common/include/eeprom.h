@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x2B
-#define EEPROM_VERSION 0x2B
+#define EEPROM_MIN_COMPAT_VERSION 0x2E
+#define EEPROM_VERSION 0x2E
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -160,7 +160,6 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10               420 // 52v battery, LVC = 42.0 (3.0 * 14)
 #define DEFAULT_VALUE_MOTOR_TYPE                                    0 // ui8_motor_type = 0 = 48V
 #define DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION       0 // 0 to keep this feature disable
-
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1                         5 // 0.005 and each next increase +33%
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_2                         9
 #define DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_3                         12

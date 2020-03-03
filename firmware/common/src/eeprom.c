@@ -46,7 +46,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_7,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_8,
 		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_9,
-		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_11,
+		DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_10,
+    DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_11,
     DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_12,
     DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_13,
     DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_14,
@@ -277,16 +278,16 @@ void eeprom_init() {
 		memcpy(&m_eeprom_data, &m_eeprom_data_defaults,
 				sizeof(m_eeprom_data_defaults));
 
-	// Perform whatever migrations we need to update old eeprom formats
-	if (m_eeprom_data.eeprom_version < EEPROM_VERSION) {
-
-		m_eeprom_data.ui8_lcd_backlight_on_brightness =
-				m_eeprom_data_defaults.ui8_lcd_backlight_on_brightness;
-		m_eeprom_data.ui8_lcd_backlight_off_brightness =
-				m_eeprom_data_defaults.ui8_lcd_backlight_off_brightness;
-
-		m_eeprom_data.eeprom_version = EEPROM_VERSION;
-	}
+//	// Perform whatever migrations we need to update old eeprom formats
+//	if (m_eeprom_data.eeprom_version < EEPROM_VERSION) {
+//
+//		m_eeprom_data.ui8_lcd_backlight_on_brightness =
+//				m_eeprom_data_defaults.ui8_lcd_backlight_on_brightness;
+//		m_eeprom_data.ui8_lcd_backlight_off_brightness =
+//				m_eeprom_data_defaults.ui8_lcd_backlight_off_brightness;
+//
+//		m_eeprom_data.eeprom_version = EEPROM_VERSION;
+//	}
 
 	eeprom_init_variables();
 
@@ -669,18 +670,23 @@ void eeprom_write_variables(void) {
 
 void eeprom_init_defaults(void)
 {
-
 #ifdef SW102
+  memset(&m_eeprom_data, 0, sizeof(m_eeprom_data));
   memcpy(&m_eeprom_data,
       &m_eeprom_data_defaults,
       sizeof(m_eeprom_data_defaults));
+
+  eeprom_init_variables();
+  set_conversions();
+  // prepare torque_sensor_calibration_table as it will be used at begin to init the motor
+  prepare_torque_sensor_calibration_table();
 
   flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 #else
   // first force KEY value to 0
   eeprom_write(ADDRESS_KEY, 0);
-#endif
 
   // eeprom_init() will read the default values now
   eeprom_init();
+#endif
 }

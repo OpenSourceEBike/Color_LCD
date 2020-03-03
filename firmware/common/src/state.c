@@ -748,6 +748,11 @@ void communications(void) {
   }
 
   motor_init();
+
+  if ((g_motor_init_state == MOTOR_INIT_READY) &&
+      (ui8_frame == FRAME_TYPE_PERIODIC)) {
+    rt_send_tx_package(FRAME_TYPE_PERIODIC);
+  }
 }
 
 // Note: this called from ISR context every 100ms

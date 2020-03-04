@@ -454,7 +454,7 @@ uint8_t rt_first_time_management(void) {
 #ifndef SW102
       extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
 
-  	  activeGraphs = &graphs; // allow graph plotting to start
+  	  activeGraphs = &(*graphs[g_showNextScreenIndex]); // allow graph plotting to start
 #endif
     }
 
@@ -650,6 +650,7 @@ void communications(void) {
   static uint32_t num_missed_packets = 0;
   frame_type_t ui8_frame;
   uint8_t process_frame = 1;
+  uint16_t ui16_temp;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
 
@@ -706,7 +707,12 @@ void communications(void) {
             rt_vars.ui8_pedal_weight = p_rx_buffer[13];
 
             rt_vars.ui8_pedal_cadence = p_rx_buffer[14];
-            rt_vars.ui8_duty_cycle = p_rx_buffer[15];
+
+            // convert duty-cycle to 0 - 100 %
+            ui16_temp = (uint16_t) p_rx_buffer[15];
+            ui16_temp = (ui16_temp * 100) / 254;
+            rt_vars.ui8_duty_cycle = (uint8_t) ui16_temp;
+
             rt_vars.ui16_motor_speed_erps = ((uint16_t) p_rx_buffer[16]) | ((uint16_t) p_rx_buffer[17] << 8);
             rt_vars.ui8_foc_angle = p_rx_buffer[18];
             rt_vars.ui8_error_states = p_rx_buffer[19];

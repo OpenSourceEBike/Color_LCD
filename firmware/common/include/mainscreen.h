@@ -26,7 +26,6 @@ extern Field
   pwmDutyField,
   motorFOCField,
   motorTempGraph,
-  graphs,
   bootStatus2,
 #ifdef SW102
   custom1, custom2,
@@ -35,6 +34,8 @@ extern Field
   warnField; // just close previous definition
 #endif
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
+  graph1, graph2, graph3,
+  *graphs[3],
   custom1, custom2, custom3, custom4,
   custom5, custom6, custom7, custom8,
   custom9, custom10, custom11, custom12,

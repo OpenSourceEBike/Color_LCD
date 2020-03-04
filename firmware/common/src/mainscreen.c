@@ -138,7 +138,6 @@ Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_dut
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
 
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
-
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsWheelSpeed]);
 Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsTripDistance]);
 Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsOdometer]);
@@ -153,9 +152,11 @@ Field motorTempGraph = FIELD_GRAPH(&motorTempFieldGraph, .min_threshold = -1, .g
 Field motorErpsGraph = FIELD_GRAPH(&motorErpsFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsMotorERPS]);
 Field pwmDutyGraph = FIELD_GRAPH(&pwmDutyFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsMotorPWM]);
 Field motorFOCGraph = FIELD_GRAPH(&motorFOCFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsMotorFOC]);
+#endif
 
 // Note: the number of graphs in this collection must equal GRAPH_VARIANT_SIZE (for now)
-Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
+#ifndef SW102
+Field graph1 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[0],
   &wheelSpeedGraph,
   &tripDistanceGraph,
   &cadenceGraph,
@@ -169,29 +170,58 @@ Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
   &motorErpsGraph,
   &pwmDutyGraph,
   &motorFOCGraph);
-#else
-const Field graphs = FIELD_CUSTOMIZABLE(&ui_vars.field_selectors[0],
-  NULL);
+
+Field graph2 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[1],
+  &wheelSpeedGraph,
+  &tripDistanceGraph,
+  &cadenceGraph,
+  &humanPowerGraph,
+  &batteryPowerGraph,
+  &batteryVoltageGraph,
+  &batteryCurrentGraph,
+  &motorCurrentGraph,
+  &batterySOCGraph,
+  &motorTempGraph,
+  &motorErpsGraph,
+  &pwmDutyGraph,
+  &motorFOCGraph);
+
+Field graph3 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[2],
+  &wheelSpeedGraph,
+  &tripDistanceGraph,
+  &cadenceGraph,
+  &humanPowerGraph,
+  &batteryPowerGraph,
+  &batteryVoltageGraph,
+  &batteryCurrentGraph,
+  &motorCurrentGraph,
+  &batterySOCGraph,
+  &motorTempGraph,
+  &motorErpsGraph,
+  &pwmDutyGraph,
+  &motorFOCGraph);
+
+Field *graphs[3] = { &graph1, &graph2, &graph3 }; // 3 graphs, each one for each main screen
 #endif
 
 Field *activeGraphs = NULL; // set only once graph data is safe to read
 
 // Note: field_selectors[0] is used on the 850C for the graphs selector
-Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
-  custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
-  custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
-  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables),
-  custom5 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[5], customizables),
+Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[0], customizables),
+  custom2 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[1], customizables),
+  custom3 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[2], customizables),
+  custom4 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[3], customizables),
+  custom5 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[4], customizables),
 #ifdef SW102
-  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables);
+  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[5], customizables);
 #else
-  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables),
-  custom7 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[7], customizables),
-  custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables),
-  custom9 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[9], customizables),
-  custom10 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[10], customizables),
-  custom11 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[11], customizables),
-  custom12 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[12], customizables);
+  custom6 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[5], customizables),
+  custom7 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[6], customizables),
+  custom8 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[7], customizables),
+  custom9 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[8], customizables),
+  custom10 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[9], customizables),
+  custom11 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[10], customizables),
+  custom12 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[11], customizables);
 #endif
 
 
@@ -665,9 +695,9 @@ void thresholds(void) {
 
   if (*pwmDutyField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     pwmDutyField.rw->editable.number.error_threshold =
-        pwmDutyFieldGraph.rw->editable.number.error_threshold = 254;
+        pwmDutyFieldGraph.rw->editable.number.error_threshold = 100;
     pwmDutyField.rw->editable.number.warn_threshold =
-        pwmDutyFieldGraph.rw->editable.number.warn_threshold = 228; // -10%
+        pwmDutyFieldGraph.rw->editable.number.warn_threshold = 85;
   } else if (*pwmDutyField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     pwmDutyField.rw->editable.number.error_threshold =
         pwmDutyFieldGraph.rw->editable.number.error_threshold = *pwmDutyField.rw->editable.number.config_error_threshold;

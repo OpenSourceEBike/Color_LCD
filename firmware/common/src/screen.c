@@ -25,7 +25,6 @@
 #include <string.h>
 #include <strings.h>
 #include <stdio.h>
-#include <assert.h>
 #include "screen.h"
 #include "lcd.h"
 #include "ugui.h"
@@ -1928,34 +1927,28 @@ static bool onPressScrollable(buttons_events_t events) {
  * For the current screen.  Select the next customizable field on the screen (or nothing if there are not suitable
  * fields).  If there isn't a current customizable field, select the first candidate.
  */
-#define CUSTOMIZABLE_FIELDS_SIZE_MAX 12
+#define CUSTOMIZABLE_FIELDS_MAX_NUMBER 5
 
 static void selectNextCustomizableField(bool increase) {
-	static Field *customizableFields[CUSTOMIZABLE_FIELDS_SIZE_MAX];
-	static uint8_t firstTime = 1;
-	static uint8_t customizableFieldsCounter = 0;
+	Field *customizableFields[CUSTOMIZABLE_FIELDS_MAX_NUMBER];
+	uint8_t customizableFieldsCounter = 0;
 	static uint8_t customizableFieldIndex;
 
-	// do one first time only
-	if (firstTime) {
-    firstTime = 0;
+  // put all pointers on array at NULL
+  memset(&customizableFields, 0, sizeof(customizableFields));
 
-    // put all pointers on array at NULL
-    memset(&customizableFields, 0, sizeof(customizableFields));
+  FieldLayout *layout = curScreen->fields;
+  while (layout->field) {
+    Field *field = layout->field;
 
-    FieldLayout *layout = curScreen->fields;
-    while (layout->field) {
-      Field *field = layout->field;
-
-      // let´s find customizable fields only
-      if (field->variant == FieldCustomizable &&
-          customizableFieldsCounter < CUSTOMIZABLE_FIELDS_SIZE_MAX) {
-        customizableFields[customizableFieldsCounter++] = field;
-      }
-
-      layout++;
+    // let´s find customizable fields only
+    if (field->variant == FieldCustomizable &&
+        customizableFieldsCounter < CUSTOMIZABLE_FIELDS_MAX_NUMBER) {
+      customizableFields[customizableFieldsCounter++] = field;
     }
-	}
+
+    layout++;
+  }
 
 	// increment with wrap
 	if (increase) {
@@ -1976,29 +1969,19 @@ static void selectNextCustomizableField(bool increase) {
 static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 	Field *s = g_curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
-
 	uint8_t i = *s->customizable.selector;
 	static uint8_t i_max;
 
-	static uint8_t ui8_first_time = 1;
-
 	// find number of customized fields
-	if (ui8_first_time) {
-    ui8_first_time = 0;
-
-    for (i_max = 0; s->customizable.choices[i_max] != 0; i_max++)
-      ;
-
-    if (i_max > 0)
-      i_max--;
-	}
+  for (i_max = 0; s->customizable.choices[i_max] != 0; i_max++)
+    ;
 
 	if (ui8_direction) {
     if (!s->customizable.choices[++i]) // we fell off the end, loop around
       i = 0;
 	} else {
 	  if (i == 0)
-	    i = i_max;
+	    i = (i_max - 1);
 	  else
 	    i--;
 	}
@@ -2024,7 +2007,6 @@ static void changeXAxis(uint8_t ui8_direction) {
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
 static bool onPressCustomizing(buttons_events_t events) {
   static Field *g_curCustomizingFieldBackup = NULL;
-
 
 	// If we aren't already editing anything, start now (note: we will only be called if some active editable
 	// hasn't already handled this button

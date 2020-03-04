@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x2E
-#define EEPROM_VERSION 0x2E
+#define EEPROM_MIN_COMPAT_VERSION 0x2F
+#define EEPROM_VERSION 0x2F
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -75,6 +75,7 @@ typedef struct eeprom_data {
   uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
+  uint8_t graphs_field_selectors[3]; // 3 screen main pages
 
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t showNextScreenIndex;
@@ -247,11 +248,10 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 
-//#define JORGE
-#define PAT_CIDADE
+//#define BICYCLE_1
+#define BICYCLE_2
 
-#ifdef JORGE
-// Jorge
+#ifdef BICYCLE_1
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
@@ -288,8 +288,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                263
 #endif
 
-#ifdef PAT_CIDADE
-// Pat cidade
+#ifdef BICYCLE_2
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0

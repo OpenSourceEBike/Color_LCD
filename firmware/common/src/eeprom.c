@@ -140,7 +140,6 @@ const eeprom_data_t m_eeprom_data_defaults = {
     },
 #ifdef SW102
     .field_selectors = {
-      0, // dummy
       5, // human power
       6, // motor power
 
@@ -152,7 +151,6 @@ const eeprom_data_t m_eeprom_data_defaults = {
     },
 #else
     .field_selectors = {
-      3, // graph speed
       0, // trip time
       5, // human power
       1, // trip distance
@@ -167,10 +165,14 @@ const eeprom_data_t m_eeprom_data_defaults = {
       8, // battery current
       12, // motor speed
       6, // motor power
+    },
 
+    .graphs_field_selectors = {
+      0, // wheel speed
+      3, // human power
+      5, // battery voltage
     },
 #endif
-
 
     .showNextScreenIndex = 0,
     .x_axis_scale = DEFAULT_VALUE_X_AXIS_SCALE,
@@ -373,6 +375,7 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui8_walk_assist_feature_enabled;
 	COPY_ARRAY(ui_vars, &m_eeprom_data, ui8_walk_assist_level_factor);
 	COPY_ARRAY(ui_vars, &m_eeprom_data, field_selectors);
+	COPY_ARRAY(ui_vars, &m_eeprom_data, graphs_field_selectors);
   ui_vars->ui8_buttons_up_down_invert = m_eeprom_data.ui8_buttons_up_down_invert;
   ui_vars->ui8_torque_sensor_calibration_pedal_ground = m_eeprom_data.ui8_torque_sensor_calibration_pedal_ground;
 
@@ -590,6 +593,7 @@ void eeprom_write_variables(void) {
 			ui_vars->ui8_walk_assist_feature_enabled;
 	COPY_ARRAY(&m_eeprom_data, ui_vars, ui8_walk_assist_level_factor);
 	COPY_ARRAY(&m_eeprom_data, ui_vars, field_selectors);
+  COPY_ARRAY(&m_eeprom_data, ui_vars, graphs_field_selectors);
   m_eeprom_data.ui8_buttons_up_down_invert = ui_vars->ui8_buttons_up_down_invert;
 
   m_eeprom_data.ui8_torque_sensor_calibration_feature_enabled = ui_vars->ui8_torque_sensor_calibration_feature_enabled;

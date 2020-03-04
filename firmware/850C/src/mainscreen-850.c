@@ -51,12 +51,12 @@ void mainScreenOnDirtyClean() {
   UG_SetBackcolor(C_BLACK);
   UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
   UG_FontSelect(&FONT_10X16);
-  UG_PutString(12, 46, "ASSIST");
+  UG_PutString(15, 46, "ASSIST");
 
   // wheel speed
   if(ui_vars.ui8_units_type == 0)
   {
-    UG_PutString(260, 46 , "KM/H");
+    UG_PutString(265, 46 , "KM/H");
   }
   else
   {
@@ -67,7 +67,7 @@ void mainScreenOnDirtyClean() {
 void mainScreenOnPostUpdate(void) {
   // because printing numbers of wheel speed will make dirty the dot, always print it
   // wheel speed print dot
-  UG_FillFrame(244, 129, 250, 135, C_WHITE);
+  UG_FillFrame(257, 129, 263, 135, C_WHITE);
 }
 
 /**
@@ -98,7 +98,7 @@ void mainScreenOnPostUpdate(void) {
       .field = &socField \
   }, \
 	{ \
-		.x = 228, .y = 2, \
+		.x = 234, .y = 2, \
 		.width = -5, .height = -1, \
 		.font = &REGULAR_TEXT_FONT, \
 		.unit_align_x = AlignRight, \
@@ -117,8 +117,8 @@ Screen mainScreen1 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 20, .y = 77,
-      .width = 45, .height = -1,
+      .x = 0, .y = 77,
+      .width = 91, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -128,7 +128,7 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = 117, .y = 56,
+      .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
       .field = &wheelSpeedIntegerField,
@@ -141,7 +141,7 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = 253, .y = 77,
+      .x = 266, .y = 77,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -159,7 +159,7 @@ Screen mainScreen1 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom1,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -171,7 +171,7 @@ Screen mainScreen1 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom2,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -183,7 +183,7 @@ Screen mainScreen1 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom3,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -195,7 +195,7 @@ Screen mainScreen1 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom4,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -204,7 +204,7 @@ Screen mainScreen1 = {
     {
       .x = 0, .y = 322,
       .width = SCREEN_WIDTH, .height = 136,
-      .field = &graphs,
+      .field = &graph1,
     },
     STATUS_BAR,
     {
@@ -222,8 +222,8 @@ Screen mainScreen2 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 20, .y = 77,
-      .width = 45, .height = -1,
+      .x = 0, .y = 77,
+      .width = 91, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -233,7 +233,7 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
-      .x = 117, .y = 56,
+      .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
       .field = &wheelSpeedIntegerField,
@@ -246,7 +246,7 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
-      .x = 253, .y = 77,
+      .x = 266, .y = 77,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -264,7 +264,7 @@ Screen mainScreen2 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom5,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -276,7 +276,7 @@ Screen mainScreen2 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom6,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -288,7 +288,7 @@ Screen mainScreen2 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom7,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -300,7 +300,7 @@ Screen mainScreen2 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom8,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -309,7 +309,7 @@ Screen mainScreen2 = {
     {
       .x = 0, .y = 322,
       .width = SCREEN_WIDTH, .height = 136,
-      .field = &graphs,
+      .field = &graph2,
     },
     STATUS_BAR,
     {
@@ -327,8 +327,8 @@ Screen mainScreen3 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 20, .y = 77,
-      .width = 45, .height = -1,
+      .x = 0, .y = 77,
+      .width = 91, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -338,7 +338,7 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
-      .x = 117, .y = 56,
+      .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
       .field = &wheelSpeedIntegerField,
@@ -351,7 +351,7 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
-      .x = 253, .y = 77,
+      .x = 266, .y = 77,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -369,7 +369,7 @@ Screen mainScreen3 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom9,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -381,7 +381,7 @@ Screen mainScreen3 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom10,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -393,7 +393,7 @@ Screen mainScreen3 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 16, // space for 5 digits
+      .inset_x = 0,
       .field = &custom11,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -405,7 +405,7 @@ Screen mainScreen3 = {
       .height = 72,
       .align_x = AlignCenter,
       .inset_y = 12,
-      .inset_x = 28, // space for 4 digits
+      .inset_x = 0,
       .field = &custom12,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -414,7 +414,7 @@ Screen mainScreen3 = {
     {
       .x = 0, .y = 322,
       .width = SCREEN_WIDTH, .height = 136,
-      .field = &graphs,
+      .field = &graph3,
     },
     STATUS_BAR,
     {

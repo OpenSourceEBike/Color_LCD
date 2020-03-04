@@ -130,9 +130,9 @@ typedef struct rt_vars_struct {
  * 9-12 are the boxes above the graph, mainscreen2 on 850C
  */
 #ifdef SW102
-#define NUM_CUSTOMIZABLE_FIELDS 7
+#define NUM_CUSTOMIZABLE_FIELDS 6
 #else
-#define NUM_CUSTOMIZABLE_FIELDS 13
+#define NUM_CUSTOMIZABLE_FIELDS 12
 #endif
 
 typedef struct ui_vars_struct {
@@ -223,6 +223,7 @@ typedef struct ui_vars_struct {
 	uint16_t ui16_torque_sensor_calibration_table_right[8][2];
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
+	uint8_t graphs_field_selectors[3]; // 3 screen main pages
 
   uint16_t var_speed_graph_auto_max_min;
   uint16_t var_speed_graph_max_x10;

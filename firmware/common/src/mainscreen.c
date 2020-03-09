@@ -602,19 +602,13 @@ void thresholds(void) {
         humanPowerFieldGraph.rw->editable.number.warn_threshold = *humanPowerField.rw->editable.number.config_warn_threshold;
   }
 
-  if (*batteryPowerField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
-    int32_t temp = (int32_t) (((int32_t) ui_vars.ui8_battery_max_current * (int32_t) ui_vars.ui8_battery_cells_number) * (float) LI_ION_CELL_VOLTS_90);
-    batteryPowerField.rw->editable.number.error_threshold =
-        batteryPowerFieldGraph.rw->editable.number.error_threshold = temp;
-    temp *= 10; // power * 10
-    batteryPowerField.rw->editable.number.warn_threshold =
-        batteryPowerFieldGraph.rw->editable.number.warn_threshold = (temp - (temp / 10)) / 10; // -10%
-  } else if (*batteryPowerField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
+  if (*batteryPowerField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     batteryPowerField.rw->editable.number.error_threshold =
         batteryPowerFieldGraph.rw->editable.number.error_threshold = *batteryPowerField.rw->editable.number.config_error_threshold;
     batteryPowerField.rw->editable.number.warn_threshold =
         batteryPowerFieldGraph.rw->editable.number.warn_threshold = *batteryPowerField.rw->editable.number.config_warn_threshold;
   }
+
   if (*batteryVoltageField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) ui_vars.ui16_battery_low_voltage_cut_off_x10;
     batteryVoltageField.rw->editable.number.error_threshold =

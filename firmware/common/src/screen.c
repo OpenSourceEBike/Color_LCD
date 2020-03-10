@@ -2217,10 +2217,25 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
     // discard old point if needed and find new max/mins
     bool overfull = graphData->start_valid == graphData->end_valid;
     if (overfull) {
+      // find new max, if the value we will remove is equal to current max
       if (graphData->points[graphData->start_valid] == graphData->max_val_bck) {
-        // TODO: find new max
+        // find the max
+        int32_t max = 0;
+        for (uint16_t i = 0; i < GRAPH_MAX_POINTS; i++) {
+           if (graphData->points[i] > max)
+             max = graphData->points[i];
+        }
+        graphData->max_val_bck = max;
+
+        // find new min, if the value we will remove is equal to current min
       } else if (graphData->points[graphData->start_valid] == graphData->min_val_bck) {
-        // TODO: find new min
+        // find the min
+        int32_t min = graphData->points[0];
+        for (uint16_t i = 0; i < GRAPH_MAX_POINTS; i++) {
+           if (graphData->points[i] < min)
+             min = graphData->points[i];
+        }
+        graphData->min_val_bck = min;
       }
 
       graphData->start_valid = (graphData->start_valid + 1) % GRAPH_MAX_POINTS;
@@ -2259,7 +2274,8 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
     if (filtered > graphData->max_val_bck)
       graphData->max_val_bck = filtered;
 
-    if (filtered < graphData->min_val_bck && filtered >= f->graph.min_threshold)
+//    if (filtered < graphData->min_val_bck && filtered >= f->graph.min_threshold)
+    if (filtered < graphData->min_val_bck)
       graphData->min_val_bck = filtered;
 
     if (f->graph.graph_vars->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
@@ -2399,6 +2415,8 @@ void screen_init(void) {
   batteryVoltageField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryVoltage].auto_thresholds;
   batteryVoltageField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryVoltage].config_warn_threshold;
   batteryVoltageField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryVoltage].config_error_threshold;
+  g_graphVars[VarsBatteryVoltage].max = 60;
+  g_graphVars[VarsBatteryVoltage].min = 38;
 
   batteryCurrentField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryCurrent].auto_thresholds;
   batteryCurrentField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryCurrent].config_warn_threshold;

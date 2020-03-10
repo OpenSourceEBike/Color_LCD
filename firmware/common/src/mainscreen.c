@@ -850,14 +850,13 @@ extern Screen *screens[];
 
 void showNextScreen() {
   g_showNextScreenPreviousIndex = g_showNextScreenIndex;
-	Screen *next = screens[g_showNextScreenIndex++];
 
-	if (!next) {
-	  g_showNextScreenIndex = 0;
-		next = screens[g_showNextScreenIndex++];
-	}
+  // increase to index of next screen
+  if (screens[++g_showNextScreenIndex] == NULL) {
+    g_showNextScreenIndex = 0;
+  }
 
-	screenShow(next);
+	screenShow(screens[g_showNextScreenIndex]);
 }
 
 static bool appwide_onpress(buttons_events_t events)

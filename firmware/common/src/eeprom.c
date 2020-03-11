@@ -179,23 +179,23 @@ const eeprom_data_t m_eeprom_data_defaults = {
 
 #ifndef SW102
     // enable automatic graph max min for every variable
-    .graph_eeprom[VarsWheelSpeed].auto_max_min = GRAPH_AUTO_MAX_MIN_NO,
+    .graph_eeprom[VarsWheelSpeed].auto_max_min = GRAPH_AUTO_MAX_MIN_MANUAL,
     .graph_eeprom[VarsWheelSpeed].max = 350, // 35 km/h
     .graph_eeprom[VarsWheelSpeed].min = 0,
 
-    .graph_eeprom[VarsTripDistance].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsOdometer].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsCadence].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsHumanPower].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsBatteryPower].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsBatteryVoltage].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsBatterySOC].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsMotorTemp].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsMotorERPS].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsMotorPWM].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
-    .graph_eeprom[VarsMotorFOC].auto_max_min = GRAPH_AUTO_MAX_MIN_YES,
+    .graph_eeprom[VarsTripDistance].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsOdometer].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsCadence].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsHumanPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatteryPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatteryVoltage].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
+    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatterySOC].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorTemp].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorERPS].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorPWM].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorFOC].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
 
     .tripDistanceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .odoField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,

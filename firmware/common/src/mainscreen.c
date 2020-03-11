@@ -623,6 +623,12 @@ void thresholds(void) {
         batteryVoltageFieldGraph.rw->editable.number.warn_threshold = *batteryVoltageField.rw->editable.number.config_warn_threshold;
   }
 
+  if (g_graphVars[VarsBatteryVoltage].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsBatteryVoltage].min = ui_vars.ui16_battery_low_voltage_cut_off_x10;
+    // forcing the same value as the min, this way the max will adjust automatically if is higher
+    g_graphVars[VarsBatteryVoltage].max = g_graphVars[VarsBatteryVoltage].min;
+  }
+
   if (*batteryCurrentField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) ui_vars.ui8_battery_max_current * 10;
     batteryCurrentField.rw->editable.number.error_threshold =

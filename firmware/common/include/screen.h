@@ -169,8 +169,9 @@ typedef enum {
 #define BLINK_INTERVAL_MS  300
 
 typedef enum {
-  GRAPH_AUTO_MAX_MIN_YES = 0, // @casainho: why not just use a bool instead?  Or do you intend to eventually have different options?
-  GRAPH_AUTO_MAX_MIN_NO,
+  GRAPH_AUTO_MAX_MIN_AUTO = 0,
+  GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
+  GRAPH_AUTO_MAX_MIN_MANUAL,
 } graph_auto_max_min_t;
 
 typedef enum {
@@ -224,6 +225,7 @@ typedef struct {
   int32_t sum;
   int32_t max;
   int32_t min;
+  bool first_time_set_default_values_maxmin; // used to set default values of max and min
 } GraphData;
 
 typedef enum {
@@ -296,7 +298,7 @@ typedef const struct Field {
 			GraphVars *graph_vars;
 			const struct Field *source; // the data field we are graphing
 			FilterOp filter : 2; // allow 4 options for now
-      graph_auto_max_min_t auto_max_min : 1;
+      graph_auto_max_min_t auto_max_min : 2;
 			int32_t min_threshold; // if value is less than this, it is ignored for purposes of calculating min/average - useful for ignoring speed/cadence when stopped
 		} graph;
 

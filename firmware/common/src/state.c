@@ -448,12 +448,13 @@ uint8_t rt_first_time_management(void) {
 	uint8_t ui8_status = 0;
 
   // wait 5 seconds to help motor variables data stabilize
-  if (motorVariablesStabilized == 0)
+  if (motorVariablesStabilized == 0 &&
+      ((g_motor_init_state == MOTOR_INIT_READY) ||
+      (g_motor_init_state == MOTOR_INIT_SIMULATING)))
     if (++ui32_counter > 50) {
       motorVariablesStabilized = 1;
 #ifndef SW102
       extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
-
   	  activeGraphs = &(*graphs[g_showNextScreenIndex]); // allow graph plotting to start
 #endif
     }

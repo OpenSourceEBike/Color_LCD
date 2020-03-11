@@ -1479,14 +1479,6 @@ static void graphLabelAxis(Field *field) {
 
 // Linear  interpolated between the min/max values to generate a y coordinate for plotting a particular value x
 static inline int32_t graphScaleY(GraphData *graph, int32_t x) {
-//	if (graph->max_val == graph->min_val) // Until there is a span everything is at wmin
-//		return graphYmin;
-//
-//	// We go one row up from graphymin so we don't cover over the axis
-//	return ((graphYmin - 1) * (graph->max_val - x)
-//			+ graphYmax * (x - graph->min_val))
-//			/ (graph->max_val - graph->min_val);
-
 	return map(x,
 	    graph->min_val,
 	    graph->max_val,
@@ -2270,28 +2262,34 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
       }
     }
 
+    // set one max and min values at very first time
+    if (graphData->first_time_set_default_values_maxmin == 0) {
+      graphData->first_time_set_default_values_maxmin = true;
+      graphData->max_val_bck = filtered;
+      graphData->min_val_bck = filtered;
+    }
+
     // update invariants
     if (filtered > graphData->max_val_bck)
       graphData->max_val_bck = filtered;
 
-//    if (filtered < graphData->min_val_bck && filtered >= f->graph.min_threshold)
     if (filtered < graphData->min_val_bck)
       graphData->min_val_bck = filtered;
 
-    if (f->graph.graph_vars->auto_max_min == GRAPH_AUTO_MAX_MIN_YES) {
+    if (f->graph.graph_vars->auto_max_min == GRAPH_AUTO_MAX_MIN_AUTO) {
       graphData->max_val = graphData->max_val_bck;
       graphData->min_val = graphData->min_val_bck;
     } else {
       // see if real max and mins are over predefined values and if so, override
-      if (graphData->max_val_bck > graphData->max)
+      if (graphData->max_val_bck > f->graph.graph_vars->max)
         graphData->max_val = graphData->max_val_bck;
       else
-        graphData->max_val = graphData->max;
+        graphData->max_val = f->graph.graph_vars->max;
 
-      if (graphData->min_val_bck < graphData->min)
+      if (graphData->min_val_bck < f->graph.graph_vars->min)
         graphData->min_val = graphData->min_val_bck;
       else
-        graphData->min_val = graphData->min;
+        graphData->min_val = f->graph.graph_vars->min;
     }
   }
 }
@@ -2415,8 +2413,6 @@ void screen_init(void) {
   batteryVoltageField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryVoltage].auto_thresholds;
   batteryVoltageField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryVoltage].config_warn_threshold;
   batteryVoltageField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryVoltage].config_error_threshold;
-  g_graphVars[VarsBatteryVoltage].max = 60;
-  g_graphVars[VarsBatteryVoltage].min = 38;
 
   batteryCurrentField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryCurrent].auto_thresholds;
   batteryCurrentField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryCurrent].config_warn_threshold;

@@ -143,279 +143,376 @@ lcd_IC_t bafang_500C_lcd_init(void) {
     
     // Configure ILI9481 display
     // borrowed from https://github.com/Bodmer/TFT_HX8357_Due/blob/master/TFT_HX8357_Due.cpp as a starting point
-    lcd_IC_t type = detect_lcd_type();
-    switch (type) {
-      case LCD_ILI9481:
-        write_pulse_duration = 3; // no need for slow writes
+//    lcd_IC_t type = detect_lcd_type();
+//    switch (type) {
+//      case LCD_ILI9481:
+//        write_pulse_duration = 3; // no need for slow writes
+//
+//        // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
+//        // a valuable reference.
+//        lcd_write_command(0xD0); // dynamic backlight config
+//        lcd_write_data_8bits(0x07);
+//        lcd_write_data_8bits(0x41);
+//        lcd_write_data_8bits(0x1D);
+//
+//        lcd_write_command(0xD2); // Power_Setting for Normal Mode
+//        lcd_write_data_8bits(0x01);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x3B);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x02);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC5); // Frame rate and Inversion Control
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
+//        lcd_write_data_8bits(0xA0);
+//
+//        lcd_write_command(0xF0); // set pixel data inteface
+//        lcd_write_data_8bits(0x01);
+//
+//        lcd_write_command(0xF3); // FIXME undocumented in datasheet
+//        lcd_write_data_8bits(0x40);
+//        lcd_write_data_8bits(0x1A);
+//
+//        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x14);
+//        lcd_write_data_8bits(0x33);
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x16);
+//        lcd_write_data_8bits(0x44);
+//        lcd_write_data_8bits(0x36);
+//        lcd_write_data_8bits(0x77);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x0F);
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
+//        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+//
+//        lcd_write_command(0x11); // exit_sleep_mode
+//
+//        delay_ms(120); // 120ms delay after leaving sleep
+//
+//        lcd_write_command(0x29); // set_display_on
+//
+//        lcd_write_command(0x36); // set_address_mode
+//        // Vertical Flip: Normal display
+//        // Horizontal Flip: Flipped displ     // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
+//        // a valuable reference.
+//        lcd_write_command(0xD0); // dynamic backlight config
+//        lcd_write_data_8bits(0x07);
+//        lcd_write_data_8bits(0x41);
+//        lcd_write_data_8bits(0x1D);
+//
+//        lcd_write_command(0xD2); // Power_Setting for Normal Mode
+//        lcd_write_data_8bits(0x01);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x3B);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x02);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC5); // Frame rate and Inversion Control
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
+//        lcd_write_data_8bits(0xA0);
+//
+//        lcd_write_command(0xF0); // set pixel data inteface
+//        lcd_write_data_8bits(0x01);
+//
+//        lcd_write_command(0xF3); // FIXME undocumented in datasheet
+//        lcd_write_data_8bits(0x40);
+//        lcd_write_data_8bits(0x1A);
+//
+//        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x14);
+//        lcd_write_data_8bits(0x33);
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x16);
+//        lcd_write_data_8bits(0x44);
+//        lcd_write_data_8bits(0x36);
+//        lcd_write_data_8bits(0x77);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x0F);
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
+//        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+//        // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
+//        // a valuable reference.
+//        lcd_write_command(0xD0); // dynamic backlight config
+//        lcd_write_data_8bits(0x07);
+//        lcd_write_data_8bits(0x41);
+//        lcd_write_data_8bits(0x1D);
+//
+//        lcd_write_command(0xD2); // Power_Setting for Normal Mode
+//        lcd_write_data_8bits(0x01);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x3B);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x02);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC5); // Frame rate and Inversion Control
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
+//        lcd_write_data_8bits(0xA0);
+//
+//        lcd_write_command(0xF0); // set pixel data inteface
+//        lcd_write_data_8bits(0x01);
+//
+//        lcd_write_command(0xF3); // FIXME undocumented in datasheet
+//        lcd_write_data_8bits(0x40);
+//        lcd_write_data_8bits(0x1A);
+//
+//        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x14);
+//        lcd_write_data_8bits(0x33);
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x16);
+//        lcd_write_data_8bits(0x44);
+//        lcd_write_data_8bits(0x36);
+//        lcd_write_data_8bits(0x77);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x0F);
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
+//        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+//
+//        lcd_write_command(0x11); // exitwrite_pulse_duration = 3; // no need for slow writes_sleep_mode
+//
+//        delay_ms(120); // 120ms delay after leaving sleep
+//
+//        lcd_write_command(0x29); // set_display_on
+//
+//        lcd_write_command(0x36); // set_address_mode
+//        // Vertical Flip: Normal display
+//        // Horizontal Flip: Flipped display
+//        // RGB/BGR Order: Pixels sent in BGR order
+//        // Column Address Order: Right to Left
+//        // Page Address Order: Top to Bottom
+//        lcd_write_data_8bits(0x0A);
+//
+//        lcd_write_command(0x11); // exit_sleep_mode
+//
+//        delay_ms(120); // 120ms delay after leaving sleep
+//
+//        lcd_write_command(0x29); // set_display_on
+//
+//        lcd_write_command(0x36); // set_address_mode
+//        // Vertical Flip: Normal display
+//        // Horizontal Flip: Flipped display
+//        // RGB/BGR Order: Pixels sent in BGR order
+//        // Column Address Order: Right to Left
+//        // Page Address Order: Top to Bottom
+//        lcd_write_data_8bits(0x0A);
+//
+//        // RGB/BGR Order: Pixels sent in BGR order
+//        // Column Address Order: Right to Left
+//        // Page Address Order: Top to Bottom
+//        lcd_write_data_8bits(0x0A);
+//        break;
+//
+//      case LCD_ST7796:
+//        lcd_write_command(0x11); // exit sleep mode
+//        lcd_write_command(0x11); // exit sleep mode
+//        delay_ms(20); // datasheet only requires 5ms
+//        lcd_write_command(0xD0); // power setting
+//        lcd_write_data_8bits(0x07); // ref voltage, matches power on default
+//        lcd_write_data_8bits(0x42); // was 41, this adafruit value results in a slightly lower VGL voltage
+//        lcd_write_data_8bits(0x18); // was 1d (vreg1out 4.625V), this adafruit value is lower 4.0V
+//
+//        lcd_write_command(0xD1); // vcom control - was missing, possibly quite bad to not set this
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x07); // vcm, default was 0 so VCOMH voltage was probably quite a bit low
+//        lcd_write_data_8bits(0x10); // vdv, default was 0 so the AC voltage was probably also low
+//
+//        lcd_write_command(0xD2); // power setting for normal mode
+//        lcd_write_data_8bits(0x01); // max drive current
+//        lcd_write_data_8bits(0x02); // was 0x11 - charge pump frequency, now quite different - not sure which is better
+//
+//        lcd_write_command(0xC0); // panel driving setting
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x3B);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x02);
+//        lcd_write_data_8bits(0x11);
+//
+//        lcd_write_command(0xC5); // Frame rate and Inversion Control
+//        lcd_write_data_8bits(0x05);
+//
+//        // undocumented mystery for ST7796 initialization
+//        lcd_write_command(0xE4); // ??
+//        lcd_write_data_8bits(0xA0);
+//
+//        lcd_write_command(0xF0); // ??
+//        lcd_write_data_8bits(0x01);
+//
+//        lcd_write_command(0xF3); // ??
+//        lcd_write_data_8bits(0x40);
+//        lcd_write_data_8bits(0x1A);
+//
+//        lcd_write_command(0xC8); // Gamma Setting
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x14);
+//        lcd_write_data_8bits(0x33);
+//        lcd_write_data_8bits(0x10);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x16);
+//        lcd_write_data_8bits(0x44);
+//        lcd_write_data_8bits(0x36);
+//        lcd_write_data_8bits(0x77);
+//        lcd_write_data_8bits(0x00);
+//        lcd_write_data_8bits(0x0F);
+//        lcd_write_data_8bits(0x00);
+//
+//        lcd_write_command(0x3A); // set_pixel_format
+//        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+//
+//        lcd_write_command(0x11); // exit_sleep_mode
+//
+//        delay_ms(120); // 120ms delay after leaving sleep
+//
+//        lcd_write_command(0x29); // set_display_on
+//
+//        lcd_write_command(0x36); // set_address_mode
+//        // Vertical Flip: Normal display
+//        // Horizontal Flip: Flipped display
+//        // RGB/BGR Order: Pixels sent in BGR order
+//        // Column Address Order: Right to Left
+//        // Page Address Order: Top to Bottom
+//        lcd_write_data_8bits(0x4A); // X-axis flip for ST7796
+//
+//        lcd_write_command(0x3A); // set pixel format
+//        lcd_write_data_8bits(0x55); // 16bpp
+//
+//        delay_ms(120);
+//        lcd_write_command(0x29); // set display on
+//        break;
+//
+//      case LCD_Unknown:
+//      default:
+//        // TODO: panic here
+//        while (1);
+//        break;
+//    }
 
-        // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
-        // a valuable reference.
-        lcd_write_command(0xD0); // dynamic backlight config
-        lcd_write_data_8bits(0x07);
-        lcd_write_data_8bits(0x41);
-        lcd_write_data_8bits(0x1D);
+    // 860C
+    delay_ms(120);
+    lcd_write_command(0x11);
+    delay_ms(120);
 
-        lcd_write_command(0xD2); // Power_Setting for Normal Mode
-        lcd_write_data_8bits(0x01);
-        lcd_write_data_8bits(0x11);
+    lcd_write_command(0x36);
+    lcd_write_data_8bits(0x48);
 
-        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x3B);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x02);
-        lcd_write_data_8bits(0x11);
+    lcd_write_command(0x3A);
+    lcd_write_data_8bits(0x55);
 
-        lcd_write_command(0xC5); // Frame rate and Inversion Control
-        lcd_write_data_8bits(0x00);
+    lcd_write_command(0xF0);
+    lcd_write_data_8bits(0xC3);
 
-        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
-        lcd_write_data_8bits(0xA0);
+    lcd_write_command(0xF0);
+    lcd_write_data_8bits(0x96);
 
-        lcd_write_command(0xF0); // set pixel data inteface
-        lcd_write_data_8bits(0x01);
+    lcd_write_command(0xB4);
+    lcd_write_data_8bits(0x01);
 
-        lcd_write_command(0xF3); // FIXME undocumented in datasheet
-        lcd_write_data_8bits(0x40);
-        lcd_write_data_8bits(0x1A);
+    lcd_write_command(0xB7);
+    lcd_write_data_8bits(0xC6);
 
-        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x14);
-        lcd_write_data_8bits(0x33);
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x16);
-        lcd_write_data_8bits(0x44);
-        lcd_write_data_8bits(0x36);
-        lcd_write_data_8bits(0x77);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x0F);
-        lcd_write_data_8bits(0x00);
+    lcd_write_command(0xC0);
+    lcd_write_data_8bits(0xF0);
+    lcd_write_data_8bits(0x35);
 
-        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
-        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
+    lcd_write_command(0xC1);
+    lcd_write_data_8bits(0x15);
 
-        lcd_write_command(0x11); // exit_sleep_mode
+    lcd_write_command(0xC2);
+    lcd_write_data_8bits(0xAF);
 
-        delay_ms(120); // 120ms delay after leaving sleep
+    lcd_write_command(0xC3);
+    lcd_write_data_8bits(0x09);
 
-        lcd_write_command(0x29); // set_display_on
+    lcd_write_command(0xC5);     //VCOM
+    lcd_write_data_8bits(0x06);
 
-        lcd_write_command(0x36); // set_address_mode
-        // Vertical Flip: Normal display
-        // Horizontal Flip: Flipped displ     // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
-        // a valuable reference.
-        lcd_write_command(0xD0); // dynamic backlight config
-        lcd_write_data_8bits(0x07);
-        lcd_write_data_8bits(0x41);
-        lcd_write_data_8bits(0x1D);
+    lcd_write_command(0xC6);
+    lcd_write_data_8bits(0x00);
 
-        lcd_write_command(0xD2); // Power_Setting for Normal Mode
-        lcd_write_data_8bits(0x01);
-        lcd_write_data_8bits(0x11);
+    lcd_write_command(0xE8);
+    lcd_write_data_8bits(0x40);
+    lcd_write_data_8bits(0x8A);
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x29);
+    lcd_write_data_8bits(0x19);
+    lcd_write_data_8bits(0xA5);
+    lcd_write_data_8bits(0x33);
 
-        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x3B);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x02);
-        lcd_write_data_8bits(0x11);
+    lcd_write_command(0xE0);
+    lcd_write_data_8bits(0x70);
+    lcd_write_data_8bits(0x00);
+    lcd_write_data_8bits(0x05);
+    lcd_write_data_8bits(0x03);
+    lcd_write_data_8bits(0x02);
+    lcd_write_data_8bits(0x20);
+    lcd_write_data_8bits(0x29);
+    lcd_write_data_8bits(0x01);
+    lcd_write_data_8bits(0x45);
+    lcd_write_data_8bits(0x30);
+    lcd_write_data_8bits(0x09);
+    lcd_write_data_8bits(0x07);
+    lcd_write_data_8bits(0x22);
+    lcd_write_data_8bits(0x29);
 
-        lcd_write_command(0xC5); // Frame rate and Inversion Control
-        lcd_write_data_8bits(0x00);
+    lcd_write_command(0xE1);
+    lcd_write_data_8bits(0x70);
+    lcd_write_data_8bits(0x0C);
+    lcd_write_data_8bits(0x10);
+    lcd_write_data_8bits(0x0F);
+    lcd_write_data_8bits(0x0E);
+    lcd_write_data_8bits(0x09);
+    lcd_write_data_8bits(0x35);
+    lcd_write_data_8bits(0x64);
+    lcd_write_data_8bits(0x48);
+    lcd_write_data_8bits(0x3A);
+    lcd_write_data_8bits(0x14);
+    lcd_write_data_8bits(0x13);
+    lcd_write_data_8bits(0x2E);
+    lcd_write_data_8bits(0x30);
 
-        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
-        lcd_write_data_8bits(0xA0);
+    lcd_write_command(0x21);
 
-        lcd_write_command(0xF0); // set pixel data inteface
-        lcd_write_data_8bits(0x01);
+    lcd_write_command(0xF0);
+    lcd_write_data_8bits(0xC3);
 
-        lcd_write_command(0xF3); // FIXME undocumented in datasheet
-        lcd_write_data_8bits(0x40);
-        lcd_write_data_8bits(0x1A);
+    lcd_write_command(0xF0);
+    lcd_write_data_8bits(0x96);
 
-        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x14);
-        lcd_write_data_8bits(0x33);
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x16);
-        lcd_write_data_8bits(0x44);
-        lcd_write_data_8bits(0x36);
-        lcd_write_data_8bits(0x77);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x0F);
-        lcd_write_data_8bits(0x00);
+    delay_ms(120);
 
-        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
-        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
-        // casainho captured these values using a logic analyzer and the factory firmware.  Including here because it is a
-        // a valuable reference.
-        lcd_write_command(0xD0); // dynamic backlight config
-        lcd_write_data_8bits(0x07);
-        lcd_write_data_8bits(0x41);
-        lcd_write_data_8bits(0x1D);
+    lcd_write_command(0x29);
 
-        lcd_write_command(0xD2); // Power_Setting for Normal Mode
-        lcd_write_data_8bits(0x01);
-        lcd_write_data_8bits(0x11);
-
-        lcd_write_command(0xC0); // Panel Driving Setting (set_lcd_gen0)
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x3B);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x02);
-        lcd_write_data_8bits(0x11);
-
-        lcd_write_command(0xC5); // Frame rate and Inversion Control
-        lcd_write_data_8bits(0x00);
-
-        lcd_write_command(0xE4); // get pll status according to datasheet FIXME
-        lcd_write_data_8bits(0xA0);
-
-        lcd_write_command(0xF0); // set pixel data inteface
-        lcd_write_data_8bits(0x01);
-
-        lcd_write_command(0xF3); // FIXME undocumented in datasheet
-        lcd_write_data_8bits(0x40);
-        lcd_write_data_8bits(0x1A);
-
-        lcd_write_command(0xC8); // Gamma Setting - set gpio0_rop
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x14);
-        lcd_write_data_8bits(0x33);
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x16);
-        lcd_write_data_8bits(0x44);
-        lcd_write_data_8bits(0x36);
-        lcd_write_data_8bits(0x77);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x0F);
-        lcd_write_data_8bits(0x00);
-
-        lcd_write_command(0x3A); // set_pixel_format - FIXME, reserved in datasheet
-        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
-
-        lcd_write_command(0x11); // exitwrite_pulse_duration = 3; // no need for slow writes_sleep_mode
-
-        delay_ms(120); // 120ms delay after leaving sleep
-
-        lcd_write_command(0x29); // set_display_on
-
-        lcd_write_command(0x36); // set_address_mode
-        // Vertical Flip: Normal display
-        // Horizontal Flip: Flipped display
-        // RGB/BGR Order: Pixels sent in BGR order
-        // Column Address Order: Right to Left
-        // Page Address Order: Top to Bottom
-        lcd_write_data_8bits(0x0A);
-
-        lcd_write_command(0x11); // exit_sleep_mode
-
-        delay_ms(120); // 120ms delay after leaving sleep
-
-        lcd_write_command(0x29); // set_display_on
-
-        lcd_write_command(0x36); // set_address_mode
-        // Vertical Flip: Normal display
-        // Horizontal Flip: Flipped display
-        // RGB/BGR Order: Pixels sent in BGR order
-        // Column Address Order: Right to Left
-        // Page Address Order: Top to Bottom
-        lcd_write_data_8bits(0x0A);
-
-        // RGB/BGR Order: Pixels sent in BGR order
-        // Column Address Order: Right to Left
-        // Page Address Order: Top to Bottom
-        lcd_write_data_8bits(0x0A);
-        break;
-
-      case LCD_ST7796:
-        lcd_write_command(0x11); // exit sleep mode
-        lcd_write_command(0x11); // exit sleep mode
-        delay_ms(20); // datasheet only requires 5ms
-        lcd_write_command(0xD0); // power setting
-        lcd_write_data_8bits(0x07); // ref voltage, matches power on default
-        lcd_write_data_8bits(0x42); // was 41, this adafruit value results in a slightly lower VGL voltage
-        lcd_write_data_8bits(0x18); // was 1d (vreg1out 4.625V), this adafruit value is lower 4.0V
-
-        lcd_write_command(0xD1); // vcom control - was missing, possibly quite bad to not set this
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x07); // vcm, default was 0 so VCOMH voltage was probably quite a bit low
-        lcd_write_data_8bits(0x10); // vdv, default was 0 so the AC voltage was probably also low
-
-        lcd_write_command(0xD2); // power setting for normal mode
-        lcd_write_data_8bits(0x01); // max drive current
-        lcd_write_data_8bits(0x02); // was 0x11 - charge pump frequency, now quite different - not sure which is better
-
-        lcd_write_command(0xC0); // panel driving setting
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x3B);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x02);
-        lcd_write_data_8bits(0x11);
-
-        lcd_write_command(0xC5); // Frame rate and Inversion Control
-        lcd_write_data_8bits(0x05);
-
-        // undocumented mystery for ST7796 initialization
-        lcd_write_command(0xE4); // ??
-        lcd_write_data_8bits(0xA0);
-
-        lcd_write_command(0xF0); // ??
-        lcd_write_data_8bits(0x01);
-
-        lcd_write_command(0xF3); // ??
-        lcd_write_data_8bits(0x40);
-        lcd_write_data_8bits(0x1A);
-
-        lcd_write_command(0xC8); // Gamma Setting
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x14);
-        lcd_write_data_8bits(0x33);
-        lcd_write_data_8bits(0x10);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x16);
-        lcd_write_data_8bits(0x44);
-        lcd_write_data_8bits(0x36);
-        lcd_write_data_8bits(0x77);
-        lcd_write_data_8bits(0x00);
-        lcd_write_data_8bits(0x0F);
-        lcd_write_data_8bits(0x00);
-
-        lcd_write_command(0x3A); // set_pixel_format
-        lcd_write_data_8bits(0x55); // 16bit/pixel (65,536 colors)
-
-        lcd_write_command(0x11); // exit_sleep_mode
-
-        delay_ms(120); // 120ms delay after leaving sleep
-
-        lcd_write_command(0x29); // set_display_on
-
-        lcd_write_command(0x36); // set_address_mode
-        // Vertical Flip: Normal display
-        // Horizontal Flip: Flipped display
-        // RGB/BGR Order: Pixels sent in BGR order
-        // Column Address Order: Right to Left
-        // Page Address Order: Top to Bottom
-        lcd_write_data_8bits(0x4A); // X-axis flip for ST7796
-
-        lcd_write_command(0x3A); // set pixel format
-        lcd_write_data_8bits(0x55); // 16bpp
-
-        delay_ms(120);
-        lcd_write_command(0x29); // set display on
-        break;
-
-      case LCD_Unknown:
-      default:
-        // TODO: panic here
-        while (1); 
-        break;
-    }
 
     delay_ms(25);
     // End of display configuration
@@ -437,7 +534,9 @@ lcd_IC_t bafang_500C_lcd_init(void) {
     UG_DriverRegister(DRIVER_DRAW_LINE, (void*) HW_DrawLine);
     UG_DriverRegister(DRIVER_FILL_AREA, (void*) HW_FillArea);
 
-    return type;
+//    return type;
+    return 2;
+
 }
 
 void lcd_window_set(unsigned int s_x, unsigned int e_x, unsigned int s_y,

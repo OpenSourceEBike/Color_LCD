@@ -15,7 +15,7 @@
 
 
 # uncomment next lines to build for bootloader
-#USE_WITH_BOOTLOADER = true
+USE_WITH_BOOTLOADER = true
 ifdef USE_WITH_BOOTLOADER
 CFLAGS = -DUSE_WITH_BOOTLOADER
 LFLAGS = -Xlinker --defsym=USE_WITH_BOOTLOADER=1

@@ -82,7 +82,6 @@ typedef struct eeprom_data {
 #ifndef SW102
 	Graph_eeprom graph_eeprom[VARS_SIZE];
   uint8_t tripDistanceField_x_axis_scale_config;
-  uint8_t odoField_x_axis_scale_config;
 	field_threshold_t wheelSpeedField_auto_thresholds;
 	int32_t wheelSpeedField_config_error_threshold;
 	int32_t wheelSpeedField_config_warn_threshold;
@@ -246,8 +245,8 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
 
-//#define BICYCLE_1
-#define BICYCLE_2
+#define BICYCLE_1
+//#define BICYCLE_2
 
 #ifdef BICYCLE_1
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled

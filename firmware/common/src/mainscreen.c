@@ -140,7 +140,6 @@ Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_ang
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsWheelSpeed]);
 Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsTripDistance]);
-Field odoGraph = FIELD_GRAPH(&odoFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsOdometer]);
 Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsCadence]);
 Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsHumanPower]);
 Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsBatteryPower]);
@@ -583,6 +582,12 @@ void thresholds(void) {
         wheelSpeedFieldGraph.rw->editable.number.warn_threshold = *wheelSpeedField.rw->editable.number.config_warn_threshold;
   }
 
+  if (g_graphVars[VarsWheelSpeed].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsWheelSpeed].max = ui_vars.wheel_max_speed_x10;
+    // forcing 0 to min, this way the max will adjust automatically if is higher
+    g_graphVars[VarsWheelSpeed].min = 0;
+  }
+
   if (*cadenceField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     cadenceField.rw->editable.number.error_threshold =
         cadenceFieldGraph.rw->editable.number.error_threshold = 92;
@@ -643,6 +648,11 @@ void thresholds(void) {
         batteryCurrentFieldGraph.rw->editable.number.warn_threshold = *batteryCurrentField.rw->editable.number.config_warn_threshold;
   }
 
+  if (g_graphVars[VarsBatteryCurrent].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsBatteryCurrent].max = ((uint32_t) ui_vars.ui8_battery_max_current) * 10;
+    g_graphVars[VarsBatteryCurrent].min = 0;
+  }
+
   if (*motorCurrentField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     int32_t temp = (int32_t) ui_vars.ui8_motor_max_current * 10;
     motorCurrentField.rw->editable.number.error_threshold =
@@ -655,6 +665,11 @@ void thresholds(void) {
         motorCurrentFieldGraph.rw->editable.number.error_threshold = *motorCurrentField.rw->editable.number.config_error_threshold;
     motorCurrentField.rw->editable.number.warn_threshold =
         motorCurrentFieldGraph.rw->editable.number.warn_threshold = *motorCurrentField.rw->editable.number.config_warn_threshold;
+  }
+
+  if (g_graphVars[VarsMotorCurrent].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsMotorCurrent].max = ((uint32_t) ui_vars.ui8_motor_max_current) * 10;
+    g_graphVars[VarsMotorCurrent].min = 0;
   }
 
   if (*batterySOCField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
@@ -681,6 +696,11 @@ void thresholds(void) {
         motorTempFieldGraph.rw->editable.number.error_threshold = *motorTempField.rw->editable.number.config_warn_threshold;
   }
 
+  if (g_graphVars[VarsMotorTemp].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsMotorTemp].max = ui_vars.ui8_motor_temperature_max_value_to_limit;
+    g_graphVars[VarsMotorTemp].min = 0;
+  }
+
   if (*motorErpsField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     motorErpsField.rw->editable.number.error_threshold =
         motorErpsFieldGraph.rw->editable.number.error_threshold = 525;
@@ -703,6 +723,11 @@ void thresholds(void) {
         pwmDutyFieldGraph.rw->editable.number.error_threshold = *pwmDutyField.rw->editable.number.config_error_threshold;
     pwmDutyField.rw->editable.number.warn_threshold =
         pwmDutyFieldGraph.rw->editable.number.warn_threshold = *pwmDutyField.rw->editable.number.config_warn_threshold;
+  }
+
+  if (g_graphVars[VarsMotorPWM].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
+    g_graphVars[VarsMotorPWM].max = 100;
+    g_graphVars[VarsMotorPWM].min = 0;
   }
 
   if (*motorFOCField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {

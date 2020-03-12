@@ -184,21 +184,19 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .graph_eeprom[VarsWheelSpeed].min = 0,
 
     .graph_eeprom[VarsTripDistance].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
-    .graph_eeprom[VarsOdometer].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsCadence].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsHumanPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsBatteryPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsBatteryVoltage].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
-    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
-    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
+    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
     .graph_eeprom[VarsBatterySOC].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
-    .graph_eeprom[VarsMotorTemp].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorTemp].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
     .graph_eeprom[VarsMotorERPS].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
-    .graph_eeprom[VarsMotorPWM].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorPWM].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
     .graph_eeprom[VarsMotorFOC].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
 
     .tripDistanceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
-    .odoField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
 
     .wheelSpeedField_auto_thresholds = FIELD_THRESHOLD_MANUAL,
     .wheelSpeedField_config_error_threshold = 350,
@@ -388,13 +386,6 @@ void eeprom_init_variables(void) {
     temp = tripDistanceGraph.rw->graph.x_axis_scale_config;
   }
   tripDistanceGraph.rw->graph.x_axis_scale = temp;
-
-  odoGraph.rw->graph.x_axis_scale_config = m_eeprom_data.odoField_x_axis_scale_config;
-  temp = GRAPH_X_AXIS_SCALE_15M;
-  if (odoGraph.rw->graph.x_axis_scale_config != GRAPH_X_AXIS_SCALE_AUTO) {
-    temp = odoGraph.rw->graph.x_axis_scale_config;
-  }
-  odoGraph.rw->graph.x_axis_scale = temp;
 
   g_vars[VarsWheelSpeed].auto_thresholds = m_eeprom_data.wheelSpeedField_auto_thresholds;
   g_vars[VarsWheelSpeed].config_error_threshold = m_eeprom_data.wheelSpeedField_config_error_threshold;

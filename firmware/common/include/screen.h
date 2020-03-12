@@ -170,8 +170,8 @@ typedef enum {
 
 typedef enum {
   GRAPH_AUTO_MAX_MIN_AUTO = 0,
-  GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
   GRAPH_AUTO_MAX_MIN_MANUAL,
+  GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
 } graph_auto_max_min_t;
 
 typedef enum {

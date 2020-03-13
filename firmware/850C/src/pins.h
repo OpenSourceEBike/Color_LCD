@@ -11,8 +11,8 @@
 
 #include "stm32f10x_gpio.h"
 
-#define SYSTEM_POWER_ON_OFF__PORT                   GPIOC
-#define SYSTEM_POWER_ON_OFF__PIN                    GPIO_Pin_1
+#define SYSTEM_POWER_ON_OFF__PORT                   GPIOA
+#define SYSTEM_POWER_ON_OFF__PIN                    GPIO_Pin_11
 
 #define LCD_BACKLIGHT__PORT                         GPIOA
 #define LCD_BACKLIGHT__PIN                          GPIO_Pin_7
@@ -36,10 +36,9 @@
 
 #define BUTTON_UP__PORT                             GPIOC
 #define BUTTON_UP__PIN                              GPIO_Pin_11
-//#define BUTTON_ONOFF__PORT                          GPIOC
-//#define BUTTON_ONOFF__PIN                           GPIO_Pin_12
-#define BUTTON_ONOFF__PORT                          GPIOA
-#define BUTTON_ONOFF__PIN                           GPIO_Pin_11
+
+#define BUTTON_ONOFF__PORT                          GPIOC
+#define BUTTON_ONOFF__PIN                           GPIO_Pin_12
 
 #define BUTTON_DOWN__PORT                           GPIOA
 #define BUTTON_DOWN__PIN                            GPIO_Pin_15

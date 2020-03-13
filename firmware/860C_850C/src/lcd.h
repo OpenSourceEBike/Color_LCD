@@ -1,7 +1,7 @@
 /*
- * Bafang LCD 850C firmware
+ * Bafang LCD 860C/850C firmware
  *
- * Copyright (C) Casainho, 2018.
+ * Copyright (C) Casainho, 2018, 2019, 2020
  *
  * Released under the GPL License, Version 3
  */
@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include "main.h"
 #include "ugui.h"
-#include "ugui_driver/ugui_bafang_850c.h"
+#include "ugui_driver/ugui_display_8x0c.h"
 
 #define MAX_NUMBER_DIGITS 5 // max of 5 digits: 1234.5 or 12345
 

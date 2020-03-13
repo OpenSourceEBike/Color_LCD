@@ -1,7 +1,7 @@
 /*
- * Bafang LCD 850C firmware
+ * Bafang LCD 860C/850C firmware
  *
- * Copyright (C) Casainho, 2018.
+ * Copyright (C) Casainho, 2018, 2019, 2020
  *
  * Released under the GPL License, Version 3
  */
@@ -23,12 +23,12 @@
 #include "usart1.h"
 #include "eeprom.h"
 #include "ugui.h"
-#include "ugui_driver/ugui_bafang_850c.h"
 #include "utils.h"
 #include "rtc.h"
 #include "stm32f10x_usart.h"
 #include "mainscreen.h"
 #include "configscreen.h"
+#include "ugui_driver/ugui_display_8x0c.h"
 
 void SetSysClockTo128Mhz(void);
 void adc_init();

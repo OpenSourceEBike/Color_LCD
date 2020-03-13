@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>Bafang_LCD_850C_firmware</name>
+	<name>860C_850C</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -27,12 +27,12 @@
 		<link>
 			<name>common</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/common</locationURI>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/common</locationURI>
 		</link>
 	</linkedResources>
 	<filteredResources>
 		<filter>
-			<id>1575454775276</id>
+			<id>0</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -41,4 +41,18 @@
 			</matcher>
 		</filter>
 	</filteredResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-2-PROJECT_LOC%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
+		</variable>
+		<variable>
+			<name>copy_PARENT1</name>
+			<value>$%7BPARENT-1-copy_PARENT%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
+		</variable>
+		<variable>
+			<name>copy_PARENT11</name>
+			<value>$%7BPARENT-1-copy_PARENT1%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
+		</variable>
+	</variableList>
 </projectDescription>

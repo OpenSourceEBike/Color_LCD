@@ -1,7 +1,7 @@
 /*
- * Bafang LCD 850C firmware
+ * Bafang LCD 860C/850C firmware
  *
- * Copyright (C) Casainho, 2018.
+ * Copyright (C) Casainho, 2018, 2019, 2020
  *
  * Released under the GPL License, Version 3
  */

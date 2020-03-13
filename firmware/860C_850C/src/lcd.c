@@ -1,7 +1,7 @@
 /*
- * Bafang LCD 850C firmware
+ * Bafang LCD 860C/850C firmware
  *
- * Copyright (C) Casainho, 2018.
+ * Copyright (C) Casainho, 2018, 2019, 2020
  *
  * Released under the GPL License, Version 3
  */
@@ -17,11 +17,11 @@
 #include "buttons.h"
 #include "eeprom.h"
 #include "usart1.h"
-#include "ugui_driver/ugui_bafang_850c.h"
 #include "ugui.h"
 #include "rtc.h"
 #include "fonts.h"
 #include "state.h"
+#include "ugui_driver/ugui_display_8x0c.h"
 
 // Battery SOC symbol:
 // 10 bars, each bar: with = 7, height = 24
@@ -49,7 +49,7 @@ void power_off_management(void);
 /* Place your initialization/startup code here (e.g. MyInst_Start()) */
 void lcd_init(void)
 {
-  g_lcd_ic_type = bafang_500C_lcd_init();
+  g_lcd_ic_type = display_8x0C_lcd_init();
   UG_FillScreen(C_BLACK);
 
   set_lcd_backlight(); // default to at least some backlight

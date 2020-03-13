@@ -1,7 +1,7 @@
 /*
- * Bafang LCD 850C firmware
+ * Bafang LCD 860C/850C firmware
  *
- * Copyright (C) Casainho, 2018.
+ * Copyright (C) Casainho, 2018, 2019, 2020
  *
  * Released under the GPL License, Version 3
  */
@@ -11,8 +11,15 @@
 
 #include "stm32f10x_gpio.h"
 
+#ifdef DISPLAY_860C
 #define SYSTEM_POWER_ON_OFF__PORT                   GPIOA
 #define SYSTEM_POWER_ON_OFF__PIN                    GPIO_Pin_11
+#endif
+
+#ifdef DISPLAY_850C
+#define SYSTEM_POWER_ON_OFF__PORT                   GPIOC
+#define SYSTEM_POWER_ON_OFF__PIN                    GPIO_Pin_1
+#endif
 
 #define LCD_BACKLIGHT__PORT                         GPIOA
 #define LCD_BACKLIGHT__PIN                          GPIO_Pin_7
@@ -36,12 +43,14 @@
 
 #define BUTTON_UP__PORT                             GPIOC
 #define BUTTON_UP__PIN                              GPIO_Pin_11
-
 #define BUTTON_ONOFF__PORT                          GPIOC
 #define BUTTON_ONOFF__PIN                           GPIO_Pin_12
-
 #define BUTTON_DOWN__PORT                           GPIOA
 #define BUTTON_DOWN__PIN                            GPIO_Pin_15
+#ifdef DISPLAY_860C
+#define BUTTON_M__PORT                              GPIOC
+#define BUTTON_M__PIN                               GPIO_Pin_2
+#endif
 
 #define USART1__PORT                                GPIOA
 #define USART1_TX__PIN                              GPIO_Pin_9

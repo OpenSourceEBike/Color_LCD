@@ -233,33 +233,29 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
    bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
 
 static void bootScreenOnPreUpdate() {
+  switch (g_motor_init_state) {
+    case MOTOR_INIT_ERROR:
+    case MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION:
+    case MOTOR_INIT_ERROR_FIRMWARE_VERSION:
+      // this will block here and avoid leave the boot screen
+      break;
 
-  showNextScreen();
-  g_motor_init_state = MOTOR_INIT_SIMULATING;
+    case MOTOR_INIT_READY:
+    case MOTOR_INIT_SIMULATING:
+      if (buttons_get_onoff_state() == 0) {
+        showNextScreen();
+      } else {
+        if (g_motor_init_state == MOTOR_INIT_READY) {
+          fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
+          g_tsdz2_firmware_version.major,
+          g_tsdz2_firmware_version.minor,
+          g_tsdz2_firmware_version.patch);
+        }
+      }
 
-//  switch (g_motor_init_state) {
-//    case MOTOR_INIT_ERROR:
-//    case MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION:
-//    case MOTOR_INIT_ERROR_FIRMWARE_VERSION:
-//      // this will block here and avoid leave the boot screen
-//      break;
-//
-//    case MOTOR_INIT_READY:
-//    case MOTOR_INIT_SIMULATING:
-//      if (buttons_get_onoff_state() == 0) {
-//        showNextScreen();
-//      } else {
-//        if (g_motor_init_state == MOTOR_INIT_READY) {
-//          fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
-//          g_tsdz2_firmware_version.major,
-//          g_tsdz2_firmware_version.minor,
-//          g_tsdz2_firmware_version.patch);
-//        }
-//      }
-//
-//    default:
-//      break;
-//  }
+    default:
+      break;
+  }
 }
 
 void bootScreenOnExit(void) {

@@ -13,11 +13,32 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# we expect DISPLAY_VERSION to be passed as argument to Make, like: make DISPLAY_VERSION="860C_BOOTLOADER"
+# check to see if version is defined, if not, assume default
+ifndef DISPLAY_VERSION
+  CFLAGS += -DDISPLAY_850C
+  DISPLAY_VERSION_DEFINED = yes
+  $(info WARNING | using default display version: DISPLAY_850C, no bootloader)
+endif
 
-# uncomment next lines to build for bootloader
-USE_WITH_BOOTLOADER = true
-ifdef USE_WITH_BOOTLOADER
-CFLAGS = -DUSE_WITH_BOOTLOADER
+ifeq ($(DISPLAY_VERSION), 850C_BOOTLOADER)
+  CFLAGS += -DDISPLAY_850C
+  BOOTLOADER = yes
+  DISPLAY_VERSION_DEFINED = yes
+endif
+
+ifeq ($(DISPLAY_VERSION), 860C_BOOTLOADER)
+  CFLAGS += -DDISPLAY_860C
+  BOOTLOADER = yes
+  DISPLAY_VERSION_DEFINED = yes
+endif
+
+ifneq ($(DISPLAY_VERSION_DEFINED), yes)
+$(error wrong DISPLAY_VERSION or not set)
+endif
+
+ifdef BOOTLOADER
+CFLAGS += -DUSE_WITH_BOOTLOADER
 LFLAGS = -Xlinker --defsym=USE_WITH_BOOTLOADER=1
 endif
 

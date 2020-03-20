@@ -655,7 +655,7 @@ void automatic_power_off_management(void) {
 void communications(void) {
   static uint32_t num_missed_packets = 0;
   frame_type_t ui8_frame;
-  uint8_t process_frame = 1;
+  uint8_t process_frame = 0;
   uint16_t ui16_temp;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
@@ -672,20 +672,23 @@ void communications(void) {
 
       switch (g_motor_init_state) {
         case MOTOR_INIT_WAIT_MOTOR_TX:
-          if (ui8_frame == FRAME_TYPE_PERIODIC) {
+          if (ui8_frame == FRAME_TYPE_PERIODIC)
             g_motor_init_state = MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION;
-            process_frame = 0;
-          }
           break;
 
         case MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION:
-          if (ui8_frame != FRAME_TYPE_FIRMWARE_VERSION)
-            process_frame = 0;
+          if (ui8_frame == FRAME_TYPE_FIRMWARE_VERSION)
+            process_frame = 1;
           break;
 
         case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
-          if (ui8_frame != FRAME_TYPE_CONFIGURATIONS)
-            process_frame = 0;
+          if (ui8_frame == FRAME_TYPE_CONFIGURATIONS)
+            process_frame = 1;
+          break;
+
+        case MOTOR_INIT_WAIT_MOTOR_CONFIG_OK:
+        case MOTOR_INIT_READY:
+            process_frame = 1;
           break;
       }
 
@@ -741,7 +744,7 @@ void communications(void) {
 
           case FRAME_TYPE_CONFIGURATIONS:
             rt_vars.ui8_error_states = p_rx_buffer[3];
-            g_motor_init_state = MOTOR_INIT_READY;
+            g_motor_init_state = MOTOR_INIT_GOT_CONFIGURATIONS_OK;
             break;
 
           case FRAME_TYPE_FIRMWARE_VERSION:
@@ -835,7 +838,7 @@ static void motor_init(void) {
 
   if ((g_motor_init_state != MOTOR_INIT_ERROR) &&
       (g_motor_init_state != MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION) &&
-      (g_motor_init_state != MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION) &&
+      (g_motor_init_state != MOTOR_INIT_ERROR_FIRMWARE_VERSION) &&
       (g_motor_init_state != MOTOR_INIT_READY) &&
       (g_motor_init_state != MOTOR_INIT_SIMULATING))
   {
@@ -881,17 +884,16 @@ static void motor_init(void) {
         break;
 
       case MOTOR_INIT_GOT_MOTOR_FIRMWARE_VERSION:
-        if (g_tsdz2_firmware_version.major != atoi(TSDZ2_FIRMWARE_MAJOR) ||
-            g_tsdz2_firmware_version.minor != atoi(TSDZ2_FIRMWARE_MINOR)) {
+        if (g_tsdz2_firmware_version.major == atoi(TSDZ2_FIRMWARE_MAJOR) ||
+            g_tsdz2_firmware_version.minor == atoi(TSDZ2_FIRMWARE_MINOR)) {
 
+            g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;
+            // not break here to follow for next case
+        } else {
           fieldPrintf(&bootStatus2, _S("TSDZ2 firmware error", "e: firmwa"));
           g_motor_init_state = MOTOR_INIT_ERROR_FIRMWARE_VERSION;
-
           break;
-        } else {
-          g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;
         }
-        // not break here to follow for next case
 
       case MOTOR_INIT_SET_CONFIGURATIONS:
         motor_init_command_error_cnt = 100;
@@ -906,6 +908,25 @@ static void motor_init(void) {
           fieldPrintf(&bootStatus2, _S("TSDZ2 init error", "e: init"));
         }
         break;
+
+      case MOTOR_INIT_GOT_CONFIGURATIONS_OK:
+//        motor_init_command_error_cnt = 100;
+        g_motor_init_state = MOTOR_INIT_WAIT_MOTOR_CONFIG_OK;
+        // not break here to follow for next case
+
+      case MOTOR_INIT_WAIT_MOTOR_CONFIG_OK:
+        if ((rt_vars.ui8_error_states & ERROR_NO_CONFIGURATIONS) == 0) {
+          g_motor_init_state = MOTOR_INIT_READY;
+          break;
+        }
+
+//        motor_init_command_error_cnt--;
+//        if (motor_init_command_error_cnt == 0) {
+//          g_motor_init_state = MOTOR_INIT_ERROR;
+//          fieldPrintf(&bootStatus2, _S("TSDZ2 init error", "e: init"));
+//        }
+        break;
+
     }
   }
 }

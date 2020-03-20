@@ -234,6 +234,8 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
 
 static void bootScreenOnPreUpdate() {
   switch (g_motor_init_state) {
+    case MOTOR_INIT_GOT_CONFIGURATIONS_OK:
+    case MOTOR_INIT_WAIT_MOTOR_CONFIG_OK:
     case MOTOR_INIT_READY:
     case MOTOR_INIT_SIMULATING:
       if (buttons_get_onoff_state() == 0) {
@@ -793,7 +795,9 @@ void warnings(void) {
     else if (ui_vars.ui8_error_states & 128)
       ui8_motorErrorsIndex = 8;
 
-		const char *str = (ui_vars.ui8_error_states > ERROR_MAX) ? "Unknown Motor" : motorErrors[ui8_motorErrorsIndex];
+    char str[24];
+    char str_error[3];
+    snprintf(str, sizeof(str), "%s%s%s%s", "e: ", str_error, " ", motorErrors[ui8_motorErrorsIndex]);
 		setWarning(ColorError, str);
 		return;
 	}

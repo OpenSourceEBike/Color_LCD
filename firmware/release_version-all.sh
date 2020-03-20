@@ -25,19 +25,19 @@ if [ ! -d "$RELEASE_FOLDER" ]; then
         make -f Makefile clean
 	rm -R common/src
         make -f Makefile VERSION=$VERSION
-	cp main.bin $RELEASE_FOLDER/sw102-otaupdate-$VERSION.zip
+	cp main.bin $RELEASE_FOLDER/850C_v$VERSION.bin
 
 	# version 850C bootloader
         make -f Makefile clean
 	rm -R common/src
         make -f Makefile VERSION=$VERSION DISPLAY_VERSION="850C_BOOTLOADER"
-	cp main.bin $RELEASE_FOLDER/850C_v$VERSION.bin
+	cp main.bin $RELEASE_FOLDER/850C_v$VERSION-bootloader.bin
 
 	# version 860C bootloader
         make -f Makefile clean
 	rm -R common/src
         make -f Makefile VERSION=$VERSION DISPLAY_VERSION="860C_BOOTLOADER"
-	cp main.bin $RELEASE_FOLDER/860C_v$VERSION.bin
+	cp main.bin $RELEASE_FOLDER/860C_v$VERSION-bootloader.bin
 	cd ../..
 
 	echo 

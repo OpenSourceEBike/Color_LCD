@@ -17,6 +17,8 @@
 #define ASSIST_LEVEL_NUMBER 20
 
 typedef enum {
+  MOTOR_INIT_GET_MOTOR_TX,
+  MOTOR_INIT_WAIT_MOTOR_TX,
   MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION,
   MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION,
   MOTOR_INIT_GOT_MOTOR_FIRMWARE_VERSION,
@@ -29,11 +31,6 @@ typedef enum {
   MOTOR_INIT_READY,
   MOTOR_INIT_SIMULATING,
 } motor_init_state_t;
-
-typedef enum {
-  MOTOR_INIT_COMMUNICATIONS_RESET = 0,
-  MOTOR_INIT_COMMUNICATIONS_MOTOR_TX_OK = 1,
-} motor_init_communications_state_t;
 
 extern volatile motor_init_state_t g_motor_init_state;
 

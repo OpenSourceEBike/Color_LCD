@@ -32,7 +32,7 @@
 	</linkedResources>
 	<filteredResources>
 		<filter>
-			<id>0</id>
+			<id>1584476172819</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -41,18 +41,4 @@
 			</matcher>
 		</filter>
 	</filteredResources>
-	<variableList>
-		<variable>
-			<name>copy_PARENT</name>
-			<value>$%7BPARENT-2-PROJECT_LOC%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
-		</variable>
-		<variable>
-			<name>copy_PARENT1</name>
-			<value>$%7BPARENT-1-copy_PARENT%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
-		</variable>
-		<variable>
-			<name>copy_PARENT11</name>
-			<value>$%7BPARENT-1-copy_PARENT1%7D/OpenSource-EBike-firmware/Color_LCD/firmware</value>
-		</variable>
-	</variableList>
 </projectDescription>

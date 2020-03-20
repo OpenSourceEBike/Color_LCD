@@ -151,7 +151,7 @@ void USART1_IRQHandler()
               ((uint16_t) ui8_rx[ui8_rx[1]])) == ui16_crc_rx)
         {
           // copy to the other buffer only if we processed already the last package
-          if(!ui8_received_package_flag)
+          if(ui8_received_package_flag == 0)
           {
             ui8_received_package_flag = 1;
 

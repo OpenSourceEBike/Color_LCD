@@ -37,7 +37,7 @@
                             							
                             <targetPlatform id="org.eclipse.cdt.build.core.prefbase.toolchain.572785834.1582208164" name=""/>
                             							
-                            <builder buildPath="${workspace_loc:/Bafang_LCD_850C_firmware/src}" id="org.eclipse.cdt.build.core.settings.default.builder.570485441" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+                            <builder buildPath="${workspace_loc:/860C_850C/src}" id="org.eclipse.cdt.build.core.settings.default.builder.570485441" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
                             							
                             <tool id="org.eclipse.cdt.build.core.settings.holder.libs.579784049" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
                             							
@@ -87,7 +87,7 @@
     	
     <storageModule moduleId="cdtBuildSystem" version="4.0.0">
         		
-        <project id="Bafang_850C_firmware.null.955683131" name="Bafang_850C_firmware"/>
+        <project id="860C_850C.null.955683131" name="860C_850C"/>
         	
     </storageModule>
     	
@@ -109,7 +109,7 @@
         		
         <configuration configurationName="Default">
             			
-            <resource resourceType="PROJECT" workspacePath="/Bafang_LCD_850C_firmware"/>
+            <resource resourceType="PROJECT" workspacePath="/860C_850C"/>
             		
         </configuration>
         	

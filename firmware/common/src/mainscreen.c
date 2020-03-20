@@ -234,12 +234,6 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
 
 static void bootScreenOnPreUpdate() {
   switch (g_motor_init_state) {
-    case MOTOR_INIT_ERROR:
-    case MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION:
-    case MOTOR_INIT_ERROR_FIRMWARE_VERSION:
-      // this will block here and avoid leave the boot screen
-      break;
-
     case MOTOR_INIT_READY:
     case MOTOR_INIT_SIMULATING:
       if (buttons_get_onoff_state() == 0) {
@@ -253,6 +247,7 @@ static void bootScreenOnPreUpdate() {
         }
       }
 
+    // any error state will block here and avoid leave the boot screen
     default:
       break;
   }
@@ -773,15 +768,32 @@ static void setWarning(ColorOp color, const char *str) {
 		strncpy(warningStr, str, sizeof(warningStr));
 }
 
-static const char *motorErrors[] = { _S("None", "None"), _S("No configurations", "No configu"), _S("Motor init", "Motor init"), "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
+static const char *motorErrors[] = { _S("None", "None"), _S("Motor init", "Motor init"), "Motor Blocked", "Torque Fault", "Brake Fault", "Throttle Fault", "Speed Fault", "Low Volt" };
 
 void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
+  uint8_t ui8_motorErrorsIndex;
 
 	// High priorty faults in red
+  if(ui_vars.ui8_error_states) {
+    if (ui_vars.ui8_error_states & 1)
+      ui8_motorErrorsIndex = 1;
+    else if (ui_vars.ui8_error_states & 2)
+      ui8_motorErrorsIndex = 2;
+    else if (ui_vars.ui8_error_states & 4)
+      ui8_motorErrorsIndex = 3;
+    else if (ui_vars.ui8_error_states & 8)
+      ui8_motorErrorsIndex = 4;
+    else if (ui_vars.ui8_error_states & 16)
+      ui8_motorErrorsIndex = 5;
+    else if (ui_vars.ui8_error_states & 32)
+      ui8_motorErrorsIndex = 6;
+    else if (ui_vars.ui8_error_states & 64)
+      ui8_motorErrorsIndex = 7;
+    else if (ui_vars.ui8_error_states & 128)
+      ui8_motorErrorsIndex = 8;
 
-	if(ui_vars.ui8_error_states) {
-		const char *str = (ui_vars.ui8_error_states > ERROR_MAX) ? "Unknown Motor" : motorErrors[ui_vars.ui8_error_states];
+		const char *str = (ui_vars.ui8_error_states > ERROR_MAX) ? "Unknown Motor" : motorErrors[ui8_motorErrorsIndex];
 		setWarning(ColorError, str);
 		return;
 	}

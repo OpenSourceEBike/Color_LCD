@@ -19,7 +19,7 @@ if [ ! -d "$RELEASE_FOLDER" ]; then
         make -f Makefile clean
 	rm -R common/src
         make -f Makefile VERSION=$VERSION DISPLAY_VERSION="850C_BOOTLOADER"
-	cp main.bin $RELEASE_FOLDER/850C_v$VERSION.bin
+	cp main.bin $RELEASE_FOLDER/850C_v$VERSION-bootloader.bin
 	cd ../..
 
 	echo 

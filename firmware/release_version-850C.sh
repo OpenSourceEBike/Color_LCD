@@ -19,7 +19,7 @@ if [ ! -d "$RELEASE_FOLDER" ]; then
         make -f Makefile clean
 	rm -R common/src
         make -f Makefile VERSION=$VERSION
-	cp main.bin $RELEASE_FOLDER/sw102-otaupdate-$VERSION.zip
+	cp main.bin $RELEASE_FOLDER/850C_v$VERSION.bin
 	cd ../..
 
 	echo 

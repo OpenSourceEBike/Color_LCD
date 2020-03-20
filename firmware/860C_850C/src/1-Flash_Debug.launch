@@ -20,10 +20,10 @@
     <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;globalVariableList&gt;&#10;    &lt;globalVariable name=&quot;m_eeprom_data_defaults&quot; path=&quot;&quot;/&gt;&#10;&lt;/globalVariableList&gt;&#10;"/>
     <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;memoryBlockExpressionList&gt;&#10;    &lt;memoryBlockExpressionItem&gt;&#10;        &lt;expression text=&quot;0x40000000&quot;/&gt;&#10;    &lt;/memoryBlockExpressionItem&gt;&#10;    &lt;memoryBlockExpressionItem&gt;&#10;        &lt;expression text=&quot;0x40000424&quot;/&gt;&#10;    &lt;/memoryBlockExpressionItem&gt;&#10;    &lt;memoryBlockExpressionItem&gt;&#10;        &lt;expression text=&quot;0x807f7fc&quot;/&gt;&#10;    &lt;/memoryBlockExpressionItem&gt;&#10;&lt;/memoryBlockExpressionList&gt;&#10;"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="src/main.elf"/>
-    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="Bafang_LCD_850C_firmware"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="860C_850C"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="0.1655922381"/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/Bafang_LCD_850C_firmware"/>
+        <listEntry value="/860C_850C"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="4"/>

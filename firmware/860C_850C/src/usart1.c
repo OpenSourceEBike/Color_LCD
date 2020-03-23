@@ -98,17 +98,17 @@ void USART1_IRQHandler()
   uint16_t ui16_crc_rx;
 
   // The interrupt may be from Tx, Rx, or both.
-  if(USART_GetITStatus(USART1, USART_IT_ORE) == SET)
+  if (USART_GetITStatus(USART1, USART_IT_ORE) == SET)
   {
     USART_ReceiveData(USART1); // get ride of this interrupt flag
     return;
   }
-  else if(USART_GetITStatus(USART1, USART_IT_TXE) == SET)
+  else if (USART_GetITStatus(USART1, USART_IT_TXE) == SET)
   {
     USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
     return;
   }
-  else if(USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+  else if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
   {
     // receive byte
     ui8_byte_received = (uint8_t) USART1->DR;
@@ -151,7 +151,7 @@ void USART1_IRQHandler()
               ((uint16_t) ui8_rx[ui8_rx[1]])) == ui16_crc_rx)
         {
           // copy to the other buffer only if we processed already the last package
-          if(ui8_received_package_flag == 0)
+          if (ui8_received_package_flag == 0)
           {
             ui8_received_package_flag = 1;
 

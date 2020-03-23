@@ -234,8 +234,6 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
 
 static void bootScreenOnPreUpdate() {
   switch (g_motor_init_state) {
-    case MOTOR_INIT_GOT_CONFIGURATIONS_OK:
-    case MOTOR_INIT_WAIT_MOTOR_CONFIG_OK:
     case MOTOR_INIT_READY:
     case MOTOR_INIT_SIMULATING:
       if (buttons_get_onoff_state() == 0) {
@@ -762,7 +760,7 @@ static bool renderWarning(FieldLayout *layout) {
 	return renderDrawTextCommon(layout, warningStr);
 }
 
-static void setWarning(ColorOp color, const char *str) {
+void setWarning(ColorOp color, const char *str) {
 	warnColor = color;
 	warnField.rw->blink = (color == ColorError);
 	warnField.rw->dirty = (strcmp(str, warningStr) != 0);

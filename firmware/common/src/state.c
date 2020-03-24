@@ -23,6 +23,8 @@
 #include "timer.h"
 #include <stdlib.h>
 
+//#define DEBUG_TSDZ2_FIRMWARE
+
 typedef enum {
   FRAME_TYPE_ALIVE = 0,
   FRAME_TYPE_STATUS = 1,
@@ -657,7 +659,6 @@ void automatic_power_off_management(void) {
 }
 
 void communications(void) {
-  static uint32_t num_missed_packets = 0;
   frame_type_t ui8_frame;
   uint8_t process_frame = 0;
   uint16_t ui16_temp;
@@ -670,8 +671,6 @@ void communications(void) {
       parse_simmotor();
     else if (p_rx_buffer) {
       // now process rx data
-      num_missed_packets = 0; // reset missed packet count
-
       ui8_frame = (frame_type_t) p_rx_buffer[2];
 
       switch (g_motor_init_state) {
@@ -762,13 +761,6 @@ void communications(void) {
     ui8_m_usart1_received_first_package++;
     if (ui8_m_usart1_received_first_package > 10)
       ui8_m_usart1_received_first_package = 10;
-
-  } else {
-    // We expected a packet during this 100ms window but one did not arrive.  This might happen if the motor is still booting and we don't want to declare failure
-    // unless something is seriously busted (because we will be raising the fault screen and eventually forcing the bike to shutdown) so be very conservative
-    // and wait for 10 seconds of missed packets.
-//    if ((g_motor_init_state == MOTOR_INIT_READY) && num_missed_packets++ == 50)
-//      APP_ERROR_HANDLER(FAULT_LOSTRX);
   }
 
   if (g_motor_init_state == MOTOR_INIT_READY)
@@ -845,7 +837,12 @@ static void motor_init(void) {
       (g_motor_init_state != MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION) &&
       (g_motor_init_state != MOTOR_INIT_ERROR_FIRMWARE_VERSION) &&
       (g_motor_init_state != MOTOR_INIT_READY) &&
-      (g_motor_init_state != MOTOR_INIT_SIMULATING))
+      (g_motor_init_state != MOTOR_INIT_SIMULATING)
+#ifdef DEBUG_TSDZ2_FIRMWARE
+      && (buttons_get_onoff_state() == 0))
+#else
+      )
+#endif
   {
     if (ui8_once) {
       ui8_once = 0;

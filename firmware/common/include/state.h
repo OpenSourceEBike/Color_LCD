@@ -27,6 +27,7 @@ typedef enum {
   MOTOR_INIT_ERROR_FIRMWARE_VERSION,
   MOTOR_INIT_SET_CONFIGURATIONS,
   MOTOR_INIT_WAIT_CONFIGURATIONS_OK,
+  MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK,
   MOTOR_INIT_ERROR_SET_CONFIGURATIONS,
   MOTOR_INIT_ERROR,
   MOTOR_INIT_READY,
@@ -354,6 +355,8 @@ void prepare_torque_sensor_calibration_table(void);
 extern uint8_t ui8_g_battery_soc;
 
 extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
+
+extern volatile motor_init_status_t ui8_g_motor_init_status;
 
 // This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
 // This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7

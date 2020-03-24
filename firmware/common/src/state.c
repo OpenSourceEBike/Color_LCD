@@ -686,6 +686,7 @@ void communications(void) {
           break;
 
         case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
+        case MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK:
           if (ui8_frame == FRAME_TYPE_STATUS)
             process_frame = 1;
           break;
@@ -844,8 +845,7 @@ static void motor_init(void) {
       (g_motor_init_state != MOTOR_INIT_ERROR_GET_FIRMWARE_VERSION) &&
       (g_motor_init_state != MOTOR_INIT_ERROR_FIRMWARE_VERSION) &&
       (g_motor_init_state != MOTOR_INIT_READY) &&
-      (g_motor_init_state != MOTOR_INIT_SIMULATING) &&
-      buttons_get_onoff_state() == 0)
+      (g_motor_init_state != MOTOR_INIT_SIMULATING))
   {
     if (ui8_once) {
       ui8_once = 0;
@@ -909,11 +909,11 @@ static void motor_init(void) {
         // not break here to follow for next case
 
       case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
+      case MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK:
         // check timeout
         ui16_motor_init_command_error_cnt--;
         if (ui16_motor_init_command_error_cnt == 0) {
           fieldPrintf(&bootStatus2, _S("Error set config", "e: config")); // in the case we are on the boot screen
-          setWarning(ColorError, _S("Error set config", "e: config")); // in the case we are on the main screen
           g_motor_init_state = MOTOR_INIT_ERROR_SET_CONFIGURATIONS;
           break;
         }
@@ -945,6 +945,7 @@ static void motor_init(void) {
 
             } else if (ui8_g_motor_init_status == MOTOR_INIT_STATUS_GOT_CONFIG) {
 
+              g_motor_init_state = MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK;
               g_motor_init_state_conf = MOTOR_INIT_CONFIG_GET_STATUS;
 
             } else if (ui8_g_motor_init_status == MOTOR_INIT_STATUS_INIT_OK) {

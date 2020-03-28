@@ -35,7 +35,7 @@ typedef enum {
 
 static uint8_t ui8_m_usart1_received_first_package = 0;
 uint8_t ui8_g_battery_soc;
-volatile uint8_t motorVariablesStabilized = 0;
+volatile uint8_t ui8_g_motorVariablesStabilized = 0;
 
 volatile uint8_t m_get_tsdz2_firmware_version; // true if we are simulating a motor (and therefore not talking on serial at all)
 volatile motor_init_state_t g_motor_init_state = MOTOR_INIT_GET_MOTOR_ALIVE;
@@ -460,11 +460,11 @@ uint8_t rt_first_time_management(void) {
 	uint8_t ui8_status = 0;
 
   // wait 5 seconds to help motor variables data stabilize
-  if (motorVariablesStabilized == 0 &&
+  if (ui8_g_motorVariablesStabilized == 0 &&
       ((g_motor_init_state == MOTOR_INIT_READY) ||
       (g_motor_init_state == MOTOR_INIT_SIMULATING)))
     if (++ui32_counter > 50) {
-      motorVariablesStabilized = 1;
+      ui8_g_motorVariablesStabilized = 1;
 #ifndef SW102
       extern Field *activeGraphs; // FIXME, move this extern someplace better, placing here for review purposes
   	  activeGraphs = &(*graphs[g_showNextScreenIndex]); // allow graph plotting to start
@@ -478,7 +478,7 @@ uint8_t rt_first_time_management(void) {
 	}
 	// this will be executed only 1 time at startup
   else if(ui8_motor_controller_init &&
-      motorVariablesStabilized) {
+      ui8_g_motorVariablesStabilized) {
     // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
     if (((uint32_t) ui_vars.ui16_adc_battery_voltage *
     ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000)

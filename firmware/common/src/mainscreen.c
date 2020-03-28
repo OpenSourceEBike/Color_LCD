@@ -405,9 +405,9 @@ void wheel_speed(void)
 {
   uint16_t ui16_wheel_speed = ui_vars.ui16_wheel_speed_x10;
 
-  // limit otherwise at startup this value goes crazy
-  if(ui16_wheel_speed > 999)
-    ui16_wheel_speed = 999;
+  // reset otherwise at startup this value goes crazy
+  if (ui8_g_motorVariablesStabilized == 0)
+    ui16_wheel_speed = 0;
 
   ui8_m_wheel_speed_integer = (uint8_t) (ui16_wheel_speed / 10);
   ui8_m_wheel_speed_decimal = (uint8_t) (ui16_wheel_speed % 10);

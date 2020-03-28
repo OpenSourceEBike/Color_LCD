@@ -234,14 +234,15 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
 
 static void bootScreenOnPreUpdate() {
   switch (g_motor_init_state) {
-    case MOTOR_INIT_GOT_CONFIGURATIONS_OK:
-    case MOTOR_INIT_WAIT_MOTOR_CONFIG_OK:
+    case MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK:
     case MOTOR_INIT_READY:
     case MOTOR_INIT_SIMULATING:
       if (buttons_get_onoff_state() == 0) {
+        buttons_clear_all_events();
         showNextScreen();
       } else {
-        if (g_motor_init_state == MOTOR_INIT_READY) {
+        if ((g_motor_init_state == MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK) ||
+            (g_motor_init_state == MOTOR_INIT_READY)) {
           fieldPrintf(&bootStatus2, _S("TSDZ2 firmware: %u.%u.%u", "%u.%u.%u"),
           g_tsdz2_firmware_version.major,
           g_tsdz2_firmware_version.minor,
@@ -762,7 +763,7 @@ static bool renderWarning(FieldLayout *layout) {
 	return renderDrawTextCommon(layout, warningStr);
 }
 
-static void setWarning(ColorOp color, const char *str) {
+void setWarning(ColorOp color, const char *str) {
 	warnColor = color;
 	warnField.rw->blink = (color == ColorError);
 	warnField.rw->dirty = (strcmp(str, warningStr) != 0);
@@ -776,12 +777,24 @@ void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
   uint8_t ui8_motorErrorsIndex;
 
+  switch (g_motor_init_state) {
+    case MOTOR_INIT_ERROR_SET_CONFIGURATIONS:
+      setWarning(ColorError, _S("Error set config", "e: config"));
+      return;
+
+    case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
+    case MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK:
+      setWarning(ColorWarning, _S("Motor init", "Motor init"));
+      return;
+  }
+
 	// High priorty faults in red
   if(ui_vars.ui8_error_states) {
     if (ui_vars.ui8_error_states & 1)
       ui8_motorErrorsIndex = 1;
     else if (ui_vars.ui8_error_states & 2)
-      ui8_motorErrorsIndex = 2;
+//      ui8_motorErrorsIndex = 2; // ignore this error for now
+      return;
     else if (ui_vars.ui8_error_states & 4)
       ui8_motorErrorsIndex = 3;
     else if (ui_vars.ui8_error_states & 8)
@@ -796,8 +809,7 @@ void warnings(void) {
       ui8_motorErrorsIndex = 8;
 
     char str[24];
-    char str_error[3];
-    snprintf(str, sizeof(str), "%s%s%s%s", "e: ", str_error, " ", motorErrors[ui8_motorErrorsIndex]);
+    snprintf(str, sizeof(str), "%s%d%s%s", "e: ", ui8_motorErrorsIndex, " ", motorErrors[ui8_motorErrorsIndex]);
 		setWarning(ColorError, str);
 		return;
 	}

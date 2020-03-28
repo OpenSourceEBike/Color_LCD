@@ -3,22 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// error codes from common.h in the controller code, used for ui8_error_states
-#define NO_ERROR                                0
-#define ERROR_NO_CONFIGURATIONS                 (1 << 1)
-#define ERROR_WRITING_CONFIGURATIONS            (1 << 2)
-#define ERROR_MOTOR_BLOCKED                     (1 << 3)
-#define ERROR_TORQUE_APPLIED_DURING_POWER_ON    (1 << 4)
-#define ERROR_BRAKE_APPLIED_DURING_POWER_ON     (1 << 5)
-#define ERROR_THROTTLE_APPLIED_DURING_POWER_ON  (1 << 6)
-#define ERROR_NO_SPEED_SENSOR_DETECTED          (1 << 7)
-#define ERROR_MAX                               ERROR_NO_SPEED_SENSOR_DETECTED
-
 #define ASSIST_LEVEL_NUMBER 20
 
 typedef enum {
-  MOTOR_INIT_GET_MOTOR_TX,
-  MOTOR_INIT_WAIT_MOTOR_TX,
+  MOTOR_INIT_GET_MOTOR_ALIVE,
+  MOTOR_INIT_WAIT_MOTOR_ALIVE,
   MOTOR_INIT_GET_MOTOR_FIRMWARE_VERSION,
   MOTOR_INIT_WAIT_MOTOR_FIRMWARE_VERSION,
   MOTOR_INIT_GOT_MOTOR_FIRMWARE_VERSION,
@@ -27,12 +16,24 @@ typedef enum {
   MOTOR_INIT_ERROR_FIRMWARE_VERSION,
   MOTOR_INIT_SET_CONFIGURATIONS,
   MOTOR_INIT_WAIT_CONFIGURATIONS_OK,
-  MOTOR_INIT_GOT_CONFIGURATIONS_OK,
-  MOTOR_INIT_WAIT_MOTOR_CONFIG_OK,
+  MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK,
+  MOTOR_INIT_ERROR_SET_CONFIGURATIONS,
   MOTOR_INIT_ERROR,
   MOTOR_INIT_READY,
   MOTOR_INIT_SIMULATING,
 } motor_init_state_t;
+
+typedef enum {
+  MOTOR_INIT_CONFIG_SEND_CONFIG,
+  MOTOR_INIT_CONFIG_GET_STATUS,
+  MOTOR_INIT_CONFIG_CHECK_STATUS,
+} motor_init_state_config_t;
+
+typedef enum {
+  MOTOR_INIT_STATUS_RESET = 0,
+  MOTOR_INIT_STATUS_GOT_CONFIG = 1,
+  MOTOR_INIT_STATUS_INIT_OK = 2,
+} motor_init_status_t;
 
 extern volatile motor_init_state_t g_motor_init_state;
 
@@ -344,20 +345,7 @@ extern uint8_t ui8_g_battery_soc;
 
 extern tsdz2_firmware_version_t g_tsdz2_firmware_version;
 
-// This values were taken from a discharge graph of Samsung INR18650-25R cells, at almost no current discharge
-// This graph: https://endless-sphere.com/forums/download/file.php?id=183920&sid=b7fd7180ef87351cabe74a22f1d162d7
-// 0.08V for each 10%
-
-#define LI_ION_CELL_VOLTS_90    4.015
-#define LI_ION_CELL_VOLTS_80    3.936
-#define LI_ION_CELL_VOLTS_70    3.857
-#define LI_ION_CELL_VOLTS_60    3.778
-#define LI_ION_CELL_VOLTS_50    3.699
-#define LI_ION_CELL_VOLTS_40    3.621
-#define LI_ION_CELL_VOLTS_30    3.542
-#define LI_ION_CELL_VOLTS_20    3.463
-#define LI_ION_CELL_VOLTS_10    3.384
-#define LI_ION_CELL_VOLTS_0     3.305
+extern volatile motor_init_status_t ui8_g_motor_init_status;
 
 // Battery voltage (readed on motor controller):
 #define ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000 866

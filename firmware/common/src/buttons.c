@@ -30,7 +30,7 @@ static uint32_t ui32_m_button_state_counter = 0;
 static uint32_t ui32_m_clear_event = 0;
 buttons_events_t buttons_events = 0;
 
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
 #include "stm32f10x.h"
 #include "stm32f10x_gpio.h"
 #include "pins.h"
@@ -61,7 +61,12 @@ uint32_t buttons_get_onoff_state(void) {
 }
 
 uint32_t buttons_get_m_state(void) {
-	return 0; // merge FIXME
+#if defined(DISPLAY_850C)
+	return 0; // no M button on 850C
+#elif defined(DISPLAY_860C)
+  return GPIO_ReadInputDataBit(BUTTON_M__PORT, BUTTON_M__PIN) != 0 ?
+      0 : 1;
+#endif
 }
 #else
 #include "main.h"
@@ -352,9 +357,7 @@ void buttons_clock(void) {
           buttons_clear_all_events();
           ui32_down_button_state = 0;
           ui32_onoff_button_state = 0;
-#ifdef SW012
           ui32_m_button_state = 0;
-#endif
           buttons_set_events(ONOFFUPDOWN_LONG_CLICK);
         } else if (buttons_get_onoff_state()) {
           buttons_set_events(ONOFFUP_LONG_CLICK);
@@ -409,9 +412,7 @@ void buttons_clock(void) {
           buttons_clear_all_events();
           ui32_up_button_state = 0;
           ui32_onoff_button_state = 0;
-#ifdef SW012
           ui32_m_button_state = 0;
-#endif
           buttons_set_events(ONOFFUPDOWN_LONG_CLICK);
         } else if (buttons_get_onoff_state()) {
           buttons_set_events(ONOFFDOWN_LONG_CLICK);

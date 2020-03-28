@@ -56,6 +56,7 @@ void DisplayResetToDefaults(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
+void batteryResistance(void);
 void motorCurrent(void);
 void batteryPower(void);
 void pedalPower(void);
@@ -556,6 +557,7 @@ void screen_clock(void) {
     DisplayResetToDefaults();
     batteryTotalWh();
     batteryCurrent();
+    batteryResistance();
     motorCurrent();
     batteryPower();
     pedalPower();
@@ -1011,6 +1013,76 @@ void DisplayResetToDefaults(void) {
 void batteryCurrent(void) {
 
   ui16_m_battery_current_filtered_x10 = ui_vars.ui16_battery_current_filtered_x5 * 2;
+}
+
+void batteryResistance(void) {
+
+  typedef enum {
+    WAIT_MOTOR_STOP = 0,
+    STARTUP = 1,
+    DELAY = 2,
+    CALC_RESISTANCE = 3,
+  } state_t;
+
+  static state_t state = WAIT_MOTOR_STOP;
+  static uint8_t ui8_counter;
+  static uint16_t ui16_batt_voltage_init_x10;
+  uint16_t ui16_batt_voltage_final_x10;
+  uint16_t ui16_batt_voltage_delta_x10;
+  uint16_t ui16_batt_current_final_x5;
+
+  switch (state) {
+    case WAIT_MOTOR_STOP:
+      // wait for motor stop to measure battery initial voltage
+      if (ui_vars.ui16_motor_current_filtered_x5 == 0) {
+        ui16_batt_voltage_init_x10 = ui_vars.ui16_battery_voltage_filtered_x10;
+        ui8_counter = 0;
+        state = STARTUP;
+      }
+      break;
+
+    case STARTUP:
+      // wait for motor running and at high battery current
+      if ((ui_vars.ui16_motor_speed_erps > 10) &&
+          (ui_vars.ui16_battery_current_filtered_x5 > (2 * 5))) {
+        ui8_counter = 0;
+        state = DELAY;
+      } else {
+
+        if (++ui8_counter > 50) // wait 5 seconds on this state
+          state = WAIT_MOTOR_STOP;
+      }
+      break;
+
+    case DELAY:
+      if (ui_vars.ui16_battery_current_filtered_x5 > (2 * 5)) {
+
+        if (++ui8_counter > 40) // sample battery final voltage after 4 seconds
+          state = CALC_RESISTANCE;
+
+      } else {
+        state = WAIT_MOTOR_STOP;
+      }
+      break;
+
+    case CALC_RESISTANCE:
+      ui16_batt_voltage_final_x10 = ui_vars.ui16_battery_voltage_filtered_x10;
+      ui16_batt_current_final_x5 = ui_vars.ui16_battery_current_filtered_x5;
+
+      if (ui16_batt_voltage_init_x10 > ui16_batt_voltage_final_x10) {
+        ui16_batt_voltage_delta_x10 = ui16_batt_voltage_init_x10 - ui16_batt_voltage_final_x10;
+      } else {
+        ui16_batt_voltage_delta_x10 = 0;
+      }
+
+      // R = U / I
+      ui_vars.ui16_battery_pack_resistance_estimated_x1000 =
+          (ui16_batt_voltage_delta_x10 * 500) / ui16_batt_current_final_x5 ;
+
+      state = WAIT_MOTOR_STOP;
+      break;
+  }
+
 }
 
 void motorCurrent(void) {

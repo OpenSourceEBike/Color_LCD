@@ -777,18 +777,15 @@ void warnings(void) {
   uint32_t motor_temp_limit = ui_vars.ui8_temperature_limit_feature_enabled & 1;
   uint8_t ui8_motorErrorsIndex;
 
-  // force the error ERROR_SET_CONFIGURATIONS over all the others
-  if (g_motor_init_state == MOTOR_INIT_ERROR_SET_CONFIGURATIONS) {
-    setWarning(ColorError, _S("Error set config", "e: config")); // in the case we are on the main screen
-    return;
-  }
+  switch (g_motor_init_state) {
+    case MOTOR_INIT_ERROR_SET_CONFIGURATIONS:
+      setWarning(ColorError, _S("Error set config", "e: config"));
+      return;
 
-  if (ui8_g_motor_init_status) {
-    char str[24];
-    ui8_motorErrorsIndex = 1;// motor init
-    snprintf(str, sizeof(str), "%s", motorErrors[ui8_motorErrorsIndex]);
-    setWarning(ColorWarning, str);
-    return;
+    case MOTOR_INIT_WAIT_CONFIGURATIONS_OK:
+    case MOTOR_INIT_WAIT_GOT_CONFIGURATIONS_OK:
+      setWarning(ColorWarning, _S("Motor init", "Motor init"));
+      return;
   }
 
 	// High priorty faults in red

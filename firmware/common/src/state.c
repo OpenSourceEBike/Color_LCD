@@ -152,7 +152,7 @@ rt_vars.ui16_wheel_speed_x10 = 842; // for testing, just leave speed fixed
 	rt_vars.ui8_foc_angle = fake(0, 100);
 
 	// error states
-	rt_vars.ui8_error_states = NO_ERROR; // fake(0, ERROR_MAX);
+	rt_vars.ui8_error_states = 0; // fake(0, ERROR_MAX);
 
 	// wheel_speed_sensor_tick_counter
 
@@ -919,7 +919,6 @@ static void motor_init(void) {
           case MOTOR_INIT_CONFIG_SEND_CONFIG:
             rt_send_tx_package(FRAME_TYPE_CONFIGURATIONS);
             ui8_motor_init_status_cnt = 5;
-            ui8_g_motor_init_status = MOTOR_INIT_STATUS_RESET; // should be at reset status
             g_motor_init_state_conf = MOTOR_INIT_CONFIG_GET_STATUS;
             break;
 

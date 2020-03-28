@@ -34,7 +34,14 @@ ifeq ($(DISPLAY_VERSION), 860C_BOOTLOADER)
 endif
 
 ifneq ($(DISPLAY_VERSION_DEFINED), yes)
-$(error wrong DISPLAY_VERSION or not set)
+  $(error wrong DISPLAY_VERSION or not set)
+else
+  ifeq ($(DISPLAY_VERSION), 850C_BOOTLOADER)
+  $(info WARNING | using display version: 850C_BOOTLOADER)
+  endif
+  ifeq ($(DISPLAY_VERSION), 860C_BOOTLOADER)
+  $(info WARNING | using display version: 860C_BOOTLOADER)
+  endif
 endif
 
 ifdef BOOTLOADER

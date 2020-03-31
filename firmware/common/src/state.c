@@ -51,6 +51,8 @@ rt_vars_t rt_vars;
 
 ui_vars_t ui_vars;
 
+volatile bool m_reset_wh_flag = false;
+
 ui_vars_t* get_ui_vars(void) {
 	return &ui_vars;
 }
@@ -374,25 +376,34 @@ void rt_calc_wh(void) {
 	static uint8_t ui8_1s_timer_counter = 0;
 	uint32_t ui32_temp = 0;
 
-	if (rt_vars.ui16_full_battery_power_filtered_x50 > 0) {
-		rt_vars.ui32_wh_sum_x5 += rt_vars.ui16_full_battery_power_filtered_x50 / 10;
-		rt_vars.ui32_wh_sum_counter++;
+	if (m_reset_wh_flag == false) {
+    if (rt_vars.ui16_full_battery_power_filtered_x50 > 0) {
+      rt_vars.ui32_wh_sum_x5 += rt_vars.ui16_full_battery_power_filtered_x50 / 10;
+      rt_vars.ui32_wh_sum_counter++;
+    }
+
+    // calc at 1s rate
+    if (++ui8_1s_timer_counter >= 10) {
+      ui8_1s_timer_counter = 0;
+
+      // avoid zero divisison
+      if (rt_vars.ui32_wh_sum_counter != 0) {
+        ui32_temp = rt_vars.ui32_wh_sum_counter / 36;
+        ui32_temp = (ui32_temp
+            * (rt_vars.ui32_wh_sum_x5 / rt_vars.ui32_wh_sum_counter))
+            / 500;
+      }
+
+      rt_vars.ui32_wh_x10 = rt_vars.ui32_wh_x10_offset + ui32_temp;
+    }
 	}
+}
 
-	// calc at 1s rate
-	if (++ui8_1s_timer_counter >= 10) {
-		ui8_1s_timer_counter = 0;
-
-		// avoid zero divisison
-		if (rt_vars.ui32_wh_sum_counter != 0) {
-			ui32_temp = rt_vars.ui32_wh_sum_counter / 36;
-			ui32_temp = (ui32_temp
-					* (rt_vars.ui32_wh_sum_x5 / rt_vars.ui32_wh_sum_counter))
-					/ 500;
-		}
-
-		rt_vars.ui32_wh_x10 = rt_vars.ui32_wh_x10_offset + ui32_temp;
-	}
+void reset_wh(void) {
+  m_reset_wh_flag = true;
+  rt_vars.ui32_wh_sum_x5 = 0;
+  rt_vars.ui32_wh_sum_counter = 0;
+  m_reset_wh_flag = false;
 }
 
 static void rt_calc_odometer(void) {
@@ -477,8 +488,11 @@ uint8_t rt_first_time_management(void) {
 		ui8_status = 1;
 	}
 	// this will be executed only 1 time at startup
-  else if(ui8_motor_controller_init &&
+  else if (ui8_motor_controller_init &&
       ui8_g_motorVariablesStabilized) {
+
+    ui8_motor_controller_init = 0;
+
     // reset Wh value if battery voltage is over ui16_battery_voltage_reset_wh_counter_x10 (value configured by user)
     if (((uint32_t) ui_vars.ui16_adc_battery_voltage *
     ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000)

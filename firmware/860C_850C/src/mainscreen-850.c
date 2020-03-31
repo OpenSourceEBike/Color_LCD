@@ -481,3 +481,8 @@ void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
   ui_vars.ui8_lcd_backlight_off_brightness = v;
   set_lcd_backlight();
 }
+
+void onSetConfigurationBatterySOCUsedWh(uint32_t v) {
+  reset_wh();
+  ui_vars.ui32_wh_x10_offset = v;
+}

@@ -344,6 +344,8 @@ void set_lcd_backlight();
 
 void prepare_torque_sensor_calibration_table(void);
 
+void reset_wh(void);
+
 extern uint8_t ui8_g_battery_soc;
 
 extern tsdz2_firmware_version_t g_tsdz2_firmware_version;

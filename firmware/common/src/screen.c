@@ -1773,10 +1773,10 @@ static void setActiveEditable(Field *clicked) {
 	if (curActiveEditable) {
 		curActiveEditable->rw->blink = false;
 
-		// callback onPreSetEditable
-	  void (*onPreSetEditable)(uint32_t) = curActiveEditable->editable.number.onPreSetEditable;
-		if (onPreSetEditable)
-		  onPreSetEditable(curEditableValueConverted);
+		// callback onSetEditable
+	  void (*onSetEditable)(uint32_t) = curActiveEditable->editable.number.onSetEditable;
+		if (onSetEditable)
+		  onSetEditable(curEditableValueConverted);
 
 		// Save any changed value
 		setEditableNumber(curActiveEditable, curEditableValueConverted, true);

@@ -29,6 +29,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.ui32_wh_x10_100_percent = DEFAULT_VALUE_HW_X10_100_PERCENT,
 		.ui8_battery_soc_enable = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC,
 		.ui8_battery_max_current = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
+		.ui8_target_max_battery_power_div25 = DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER,
 		.ui8_motor_max_current = DEFAULT_VALUE_MOTOR_MAX_CURRENT,
 	  .ui8_motor_current_min_adc = DEFAULT_VALUE_CURRENT_MIN_ADC,
 		.ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
@@ -311,6 +312,8 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui32_wh_x10_100_percent;
 	ui_vars->ui8_battery_soc_enable =
 			m_eeprom_data.ui8_battery_soc_enable;
+  ui_vars->ui8_target_max_battery_power_div25 =
+      m_eeprom_data.ui8_target_max_battery_power_div25;
 	ui_vars->ui8_battery_max_current =
 			m_eeprom_data.ui8_battery_max_current;
   ui_vars->ui8_motor_max_current =
@@ -522,6 +525,8 @@ void eeprom_write_variables(void) {
 			ui_vars->ui32_wh_x10_100_percent;
 	m_eeprom_data.ui8_battery_soc_enable =
 			ui_vars->ui8_battery_soc_enable;
+  m_eeprom_data.ui8_target_max_battery_power_div25 =
+      ui_vars->ui8_target_max_battery_power_div25;
   m_eeprom_data.ui8_motor_max_current =
       ui_vars->ui8_motor_max_current;
   m_eeprom_data.ui8_motor_current_min_adc =

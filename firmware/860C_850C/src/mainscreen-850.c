@@ -38,6 +38,10 @@ static void mainScreenOnEnter() {
 }
 
 void mainScreenOnDirtyClean() {
+  UG_FontSelect(&FONT_10X16);
+  UG_SetBackcolor(C_BLACK);
+  UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
+
   // main screen mask
   // horizontal lines
   UG_DrawLine(0, 33, 319, 33, MAIN_SCREEN_FIELD_LABELS_COLOR);
@@ -48,10 +52,9 @@ void mainScreenOnDirtyClean() {
   // vertical line
   UG_DrawLine(159, 156, 159, 314, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
-  UG_SetBackcolor(C_BLACK);
-  UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
-  UG_FontSelect(&FONT_10X16);
-  UG_PutString(15, 46, "ASSIST");
+  if (assistLevelField.rw->visibility == FieldVisible) {
+    UG_PutString(15, 46, "ASSIST");
+  }
 
   // wheel speed
   if(ui_vars.ui8_units_type == 0)
@@ -128,6 +131,18 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
+      .x = 2, .y = 76,
+      .width = 100, .height = 70  ,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
       .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
@@ -141,7 +156,7 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = 266, .y = 77,
+      .x = 266, .y = 78,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -233,6 +248,18 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
+      .x = 2, .y = 76,
+      .width = 100, .height = 70  ,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
       .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
@@ -246,7 +273,7 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
-      .x = 266, .y = 77,
+      .x = 266, .y = 78,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -338,6 +365,18 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
+      .x = 2, .y = 76,
+      .width = 100, .height = 70  ,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 12,
+      .unit_align_x = AlignRight,
+      .unit_align_y = AlignTop,
+      .border = BorderNone,
+    },
+    {
       .x = 132, .y = 56,
       .width = 123, // 2 digits
       .height = 99,
@@ -351,7 +390,7 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
-      .x = 266, .y = 77,
+      .x = 266, .y = 78,
       .width = 45, // 1 digit
       .height = 72,
       .field = &wheelSpeedDecimalField,
@@ -480,9 +519,4 @@ void onSetConfigurationDisplayLcdBacklightOffBrightness(uint32_t v) {
 
   ui_vars.ui8_lcd_backlight_off_brightness = v;
   set_lcd_backlight();
-}
-
-void onSetConfigurationBatterySOCUsedWh(uint32_t v) {
-  reset_wh();
-  ui_vars.ui32_wh_x10_offset = v;
 }

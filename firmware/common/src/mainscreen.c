@@ -40,6 +40,8 @@ uint16_t ui16_m_pedal_power_filtered;
 
 uint8_t g_showNextScreenIndex = 0;
 uint8_t g_showNextScreenPreviousIndex = 0;
+uint16_t ui16_g_target_max_motor_power;
+uint8_t ui8_g_motor_max_power_state = 0;
 
 void lcd_main_screen(void);
 void warnings(void);
@@ -85,6 +87,7 @@ Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
 Field humanPowerField = FIELD_READONLY_UINT(_S("human power", "human powr"), &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
 Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor powr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
+Field motorMaxPowerField = FIELD_READONLY_UINT(_S("max power", "max power"), &ui16_g_target_max_motor_power, "W", 0, 2500, .div_digits = 0,);
 Field batteryVoltageField = FIELD_READONLY_UINT(_S("batt voltage", "bat volts"), &ui_vars.ui16_battery_voltage_filtered_x10, "", true, .div_digits = 1);
 Field batteryCurrentField = FIELD_READONLY_UINT(_S("batt current", "bat curren"), &ui16_m_battery_current_filtered_x10, "", true, .div_digits = 1);
 Field motorCurrentField = FIELD_READONLY_UINT(_S("motor current", "mot curren"), &ui16_m_motor_current_filtered_x10, "", true, .div_digits = 1);
@@ -393,7 +396,6 @@ void lcd_main_screen(void) {
 	time();
 	walk_assist_state();
 //  offroad_mode();
-	power();
 	battery_soc();
 	battery_display();
 	warnings();
@@ -421,116 +423,43 @@ void wheel_speed(void)
 #endif
 }
 
-void power(void) {
-#if 0
-
-  if(!m_lcd_vars.ui8_lcd_menu_max_power)
-  {
-    _ui16_battery_power_filtered = ui_vars.ui16_battery_power;
-
-    if((_ui16_battery_power_filtered != ui16_battery_power_filtered_previous) ||
-        m_lcd_vars.ui32_main_screen_draw_static_info ||
-        ui8_target_max_battery_power_state == 0)
-    {
-      ui16_battery_power_filtered_previous = _ui16_battery_power_filtered;
-      ui8_target_max_battery_power_state = 1;
-
-      if (_ui16_battery_power_filtered > 9999) { _ui16_battery_power_filtered = 9999; }
-
-      power_number.ui32_number = _ui16_battery_power_filtered;
-      power_number.ui8_refresh_all_digits = m_lcd_vars.ui32_main_screen_draw_static_info;
-      lcd_print_number(&power_number);
-      power_number.ui8_refresh_all_digits = 0;
-    }
-    else
-    {
-
-    }
-  }
-  else
-  {
-    // because this click envent can happens and will block the detection of button_onoff_long_click_event
-    buttons_clear_onoff_click_event();
-
-    // leave this menu with a button_onoff_long_click
-    if(buttons_get_onoff_long_click_event())
-    {
-      buttons_clear_all_events();
-      m_lcd_vars.ui8_lcd_menu_max_power = 0;
-      ui8_target_max_battery_power_state = 0;
-      power_number.ui8_refresh_all_digits = 1;
-
-      // save the updated variables on EEPROM
-      eeprom_write_variables();
-
-      buttons_clear_all_events();
-      return;
-    }
-
-    if(buttons_get_up_click_event())
-    {
-      buttons_clear_all_events();
-
-      if(ui_vars.ui8_target_max_battery_power < 10)
-      {
-        ui_vars.ui8_target_max_battery_power++;
-      }
-      else
-      {
-        ui_vars.ui8_target_max_battery_power += 2;
-      }
-
-      // limit to 100 * 25 = 2500 Watts
-      if(ui_vars.ui8_target_max_battery_power > 100) { ui_vars.ui8_target_max_battery_power = 100; }
-    }
-
-    if(buttons_get_down_click_event ())
-    {
-      buttons_clear_all_events();
-
-      if(ui_vars.ui8_target_max_battery_power == 0)
-      {
-
-      }
-      else if(ui_vars.ui8_target_max_battery_power <= 10)
-      {
-        ui_vars.ui8_target_max_battery_power--;
-      }
-      else
-      {
-        ui_vars.ui8_target_max_battery_power -= 2;
-      }
-    }
-
-    if(ui8_lcd_menu_flash_state)
-    {
-      if(ui8_target_max_battery_power_state == 1)
-      {
-        ui8_target_max_battery_power_state = 0;
-
-        // clear area
-        power_number.ui8_clean_area_all_digits = 1;
-        lcd_print_number(&power_number);
-        power_number.ui8_clean_area_all_digits = 0;
-      }
-    }
-    else
-    {
-      if(ui8_target_max_battery_power_state == 0)
-      {
-        ui8_target_max_battery_power_state = 1;
-
-        ui16_target_max_power = ui_vars.ui8_target_max_battery_power * 25;
-
-        power_number.ui8_refresh_all_digits = 1;
-        power_number.ui32_number = ui16_target_max_power;
-        lcd_print_number(&power_number);
-
-        ui_vars.ui8_target_max_battery_power = ui16_target_max_power / 25;
-      }
-    }
-  }
+void motorMaxPower(void) {
+  switch (ui8_g_motor_max_power_state) {
+    case 1:
+#ifndef SW102
+      assistLevelField.rw->visibility = FieldTransitionNotVisible;
+#else
+      wheelSpeedIntegerField.rw->visibility = FieldTransitionNotVisible;
 #endif
+      ui8_g_motor_max_power_state = 2;
+
+#ifndef SW102
+      UG_SetBackcolor(C_BLACK);
+      UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
+      UG_FontSelect(&FONT_10X16);
+      UG_PutString(15, 46, "      ");
+      break;
+#endif
+
+    case 2:
+      motorMaxPowerField.rw->visibility = FieldTransitionVisible;
+      ui8_g_motor_max_power_state = 3;
+      break;
+
+    case 4:
+      motorMaxPowerField.rw->visibility = FieldTransitionNotVisible;
+      ui8_g_motor_max_power_state = 5;
+      break;
+
+    case 5:
+#ifndef SW102
+      assistLevelField.rw->visibility = FieldTransitionVisible;
+#else
+      wheelSpeedIntegerField.rw->visibility = FieldTransitionVisible;
+#endif
+      ui8_g_motor_max_power_state = 0;
+      break;
+  }
 }
 
 void screen_clock(void) {
@@ -561,6 +490,7 @@ void screen_clock(void) {
     motorCurrent();
     batteryPower();
     pedalPower();
+    motorMaxPower();
 #ifndef SW102
     thresholds();
 #endif
@@ -1126,4 +1056,9 @@ void pedalPower(void) {
     ui16_m_pedal_power_filtered /= 5;
     ui16_m_pedal_power_filtered *= 5;
   }
+}
+
+void onSetConfigurationBatterySOCUsedWh(uint32_t v) {
+  reset_wh();
+  ui_vars.ui32_wh_x10_offset = v;
 }

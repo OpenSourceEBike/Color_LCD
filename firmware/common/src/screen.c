@@ -292,7 +292,14 @@ static Field* getField(const FieldLayout *layout) {
 
 /// Should we redraw this field this tick? We always render dirty items, or items that might need to show blink animations
 static bool needsRender(Field *field) {
-	if (field->rw->dirty)
+  if (field->rw->visibility == FieldNotVisible)
+    return false;
+
+	if (field->rw->visibility == FieldTransitionNotVisible ||
+	    field->rw->visibility == FieldTransitionVisible)
+	  return true;
+
+  if (field->rw->dirty)
 		return true;
 
 	if (blinkChanged) {
@@ -302,6 +309,7 @@ static bool needsRender(Field *field) {
 		if (field && field->rw->is_selected)
 			return true; // we also do a blink animation for our selection cursor
 	}
+
 	if (field->variant == FieldEditable)
 		return true; // Editables are smart enough to do their own rendering shortcuts based on cached values
 
@@ -332,9 +340,10 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 		if (forceRender) // tell the field it must redraw itself
 			field->rw->dirty = true;
 
-		if (field->variant == FieldEditable) {
+		if (field->variant == FieldEditable &&
+		    field->rw->visibility == FieldVisible) {
 			// If this field normally doesn't show the label, but M is pressed now, show it
-			forceLabels = mpressed && layout->label_align_x == AlignHidden;
+			forceLabels = mpressed && layout->label_align_x == AlignHidden && field->rw->visibility == FieldVisible;
 			didChangeForceLabels = true;
 		}
 
@@ -1060,6 +1069,15 @@ static bool renderEditable(FieldLayout *layout) {
 	bool layoutShowUnits = layout->show_units == Show;
 	bool showLabelAtTop = layout->label_align_y == AlignTop;
 
+	// see if we should fill our entire box with blankspace
+	if (field->rw->visibility == FieldTransitionNotVisible) {
+    UG_FillFrame(layout->x, layout->y, layout->x + width - 1,
+        layout->y + layout->height - 1, getBackColor(layout));
+
+    field->rw->visibility = FieldNotVisible;
+    return true;
+	}
+
 	const UG_FONT *font = layout->font ? layout->font : editable_value_font;
 
 	bool isTwoRows = showLabel && (EDITABLE_NUM_ROWS == 2);
@@ -1113,7 +1131,13 @@ static bool renderEditable(FieldLayout *layout) {
 
 	// If we are customizing this value, we don't check for changes of the value because that causes glitches in the display with extra
 	// redraws
-	bool valueChanged = num != layout->old_editable && !isCustomizing;
+	bool valueChanged = (num != layout->old_editable && !isCustomizing) ||
+	    field->rw->visibility == FieldTransitionVisible;
+
+	// update right now this state as it is not used later then here
+	if (field->rw->visibility == FieldTransitionVisible)
+	  field->rw->visibility = FieldVisible;
+
 	char valuestr[MAX_FIELD_LEN];
 
 	// Do we need to handle a blink transition right now?
@@ -1843,6 +1867,67 @@ int countEntries(Field *s) {
 	return n;
 }
 
+static bool onPressMotorMaxPower(buttons_events_t events) {
+  bool handled = false;
+
+  switch (ui8_g_motor_max_power_state) {
+    case 0:
+      if (events & SCREENCLICK_MOTOR_MAX_POWER_START) {
+        ui8_g_motor_max_power_state = 1;
+        handled = true;
+      }
+      break;
+
+    case 3:
+      if (events & SCREENCLICK_MOTOR_MAX_POWER_STOP) {
+        ui8_g_motor_max_power_state = 4;
+        events = 0;
+        handled = true;
+
+#ifndef SW102
+        UG_SetBackcolor(C_BLACK);
+        UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
+        UG_FontSelect(&FONT_10X16);
+        UG_PutString(15, 46, "ASSIST");
+#endif
+      }
+
+      if (events & UP_CLICK) {
+        events = 0;
+        handled = true;
+
+        if(ui_vars.ui8_target_max_battery_power_div25 < 10) {
+          ui_vars.ui8_target_max_battery_power_div25++;
+        } else {
+          ui_vars.ui8_target_max_battery_power_div25 += 2;
+        }
+
+          // limit to 100 * 25 = 2500 Watts
+          if(ui_vars.ui8_target_max_battery_power_div25 > 100) {
+            ui_vars.ui8_target_max_battery_power_div25 = 100;
+          }
+      }
+
+      if (events & DOWN_CLICK) {
+        events = 0;
+        handled = true;
+
+        if (ui_vars.ui8_target_max_battery_power_div25 <= 10 &&
+            ui_vars.ui8_target_max_battery_power_div25 > 1) {
+          ui_vars.ui8_target_max_battery_power_div25--;
+        } else if (ui_vars.ui8_target_max_battery_power_div25 > 10) {
+          ui_vars.ui8_target_max_battery_power_div25 -= 2;
+        }
+      }
+    break;
+  }
+
+  // keep updating the variable to show on display
+  ui16_g_target_max_motor_power = ((uint16_t) ui_vars.ui8_target_max_battery_power_div25) * 25;
+
+  return handled;
+}
+
 // Returns true if we've handled the event (and therefore it should be cleared)
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
 static bool onPressScrollable(buttons_events_t events) {
@@ -1962,7 +2047,7 @@ static void changeCurrentCustomizableField(uint8_t ui8_direction) {
 	Field *s = g_curCustomizingField;
 	assert(s && s->variant == FieldCustomizable);
 	uint8_t i = *s->customizable.selector;
-	static uint8_t i_max;
+	uint8_t i_max;
 
 	// find number of customized fields
   for (i_max = 0; s->customizable.choices[i_max] != 0; i_max++)
@@ -2076,6 +2161,9 @@ bool screenOnPress(buttons_events_t events) {
 
 	if (curActiveEditable)
 		handled |= onPressEditable(events);
+
+  if (!handled)
+    handled |= onPressMotorMaxPower(events);
 
 	if (!handled)
 		handled |= onPressScrollable(events);
@@ -2293,7 +2381,6 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
     }
   }
 }
-
 void rt_graph_process(void) {
 #ifndef SW102
   static int numGraphs = 0;
@@ -2384,6 +2471,13 @@ void graph_init(void) {
 
 void screen_init(void) {
   graph_init();
+
+#ifndef SW102
+  assistLevelField.rw->visibility = FieldVisible;
+#else
+  wheelSpeedIntegerField.rw->visibility = FieldVisible;
+#endif
+  motorMaxPowerField.rw->visibility = FieldNotVisible;
 
   // init the pointers
   wheelSpeedField.rw->editable.number.auto_thresholds = &g_vars[VarsWheelSpeed].auto_thresholds;

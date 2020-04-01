@@ -17,6 +17,7 @@ extern Field
   cadenceField,
   humanPowerField,
   batteryPowerField,
+  motorMaxPowerField,
   batteryVoltageField,
   batteryCurrentField,
   motorCurrentField,
@@ -59,6 +60,7 @@ extern Field
 
 extern uint8_t g_showNextScreenIndex;
 extern uint8_t g_showNextScreenPreviousIndex;
+extern uint16_t ui16_g_target_max_motor_power;
 
 extern Field batteryField; // These fields are custom for board type
 void battery_display(); // 850C and sw102 provide alternative versions due to different implementations
@@ -85,3 +87,5 @@ extern bool wd_failure_detected;
 
 extern uint8_t ui8_g_configuration_clock_hours;
 extern uint8_t ui8_g_configuration_clock_minutes;
+
+extern uint8_t ui8_g_motor_max_power_state;

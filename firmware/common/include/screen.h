@@ -233,6 +233,13 @@ typedef enum {
 	FilterSquare
 } FilterOp;
 
+typedef enum {
+  FieldVisible = 0,
+  FieldTransitionNotVisible,
+  FieldNotVisible,
+  FieldTransitionVisible,
+} FielVisibility;
+
 struct FieldLayout;
 // Forward declaration
 
@@ -244,6 +251,7 @@ typedef struct {
   bool dirty :1; // true if this data has changed and needs to be rerendered
   bool blink :1; // if true, we should invoke the render function for this field every 500ms (or whatever the blink interval is) to possibly toggle animations on/off
   bool is_selected :1; // if true this field is currently selected by the user (either in a scrollable or actively editing it)
+  FielVisibility visibility :2; // if the field is visible or not
   // bool is_rendered : 1; // true if we're showing this field on the current screen (if false, some fieldPrintf work can be avoided
 
   union {
@@ -577,6 +585,8 @@ extern volatile bool g_graphs_ui_update[3];
   #define SCREENCLICK_ENTER_CONFIGURATIONS ONOFFUPDOWN_LONG_CLICK
   #define SCREENCLICK_START_CUSTOMIZING M_LONG_CLICK
   #define SCREENCLICK_STOP_CUSTOMIZING M_LONG_CLICK
+  #define SCREENCLICK_MOTOR_MAX_POWER_START ONOFFUP_LONG_CLICK
+  #define SCREENCLICK_MOTOR_MAX_POWER_STOP ONOFF_LONG_CLICK
 #elif defined(DISPLAY_850C)
   #define SCREENFN_FORCE_LABELS false
   #define SCREENCLICK_START_EDIT ONOFF_CLICK
@@ -586,4 +596,6 @@ extern volatile bool g_graphs_ui_update[3];
   #define SCREENCLICK_ENTER_CONFIGURATIONS ONOFFUPDOWN_LONG_CLICK
   #define SCREENCLICK_START_CUSTOMIZING UPDOWN_LONG_CLICK
   #define SCREENCLICK_STOP_CUSTOMIZING ONOFF_LONG_CLICK
+  #define SCREENCLICK_MOTOR_MAX_POWER_START ONOFFUP_LONG_CLICK
+  #define SCREENCLICK_MOTOR_MAX_POWER_STOP ONOFF_LONG_CLICK
 #endif

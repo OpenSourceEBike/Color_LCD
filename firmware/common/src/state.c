@@ -192,7 +192,7 @@ void rt_send_tx_package(frame_type_t type) {
       }
 
       ui8_usart1_tx_buffer[5] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
-      ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power;
+      ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power_div25;
 
       // startup motor power boost
       uint16_t ui16_temp = (uint8_t) rt_vars.ui16_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
@@ -604,7 +604,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_motor_current_min_adc;
 	rt_vars.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars.ui8_ramp_up_amps_per_second_x10;
-	rt_vars.ui8_target_max_battery_power = ui_vars.ui8_target_max_battery_power;
+	rt_vars.ui8_target_max_battery_power_div25 = ui_vars.ui8_target_max_battery_power_div25;
 	rt_vars.ui16_battery_low_voltage_cut_off_x10 =
 			ui_vars.ui16_battery_low_voltage_cut_off_x10;
 	rt_vars.ui16_wheel_perimeter = ui_vars.ui16_wheel_perimeter;

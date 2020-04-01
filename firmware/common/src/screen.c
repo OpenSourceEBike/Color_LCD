@@ -343,7 +343,7 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 		if (field->variant == FieldEditable &&
 		    field->rw->visibility == FieldVisible) {
 			// If this field normally doesn't show the label, but M is pressed now, show it
-			forceLabels = mpressed && layout->label_align_x == AlignHidden;
+			forceLabels = mpressed && layout->label_align_x == AlignHidden && field->rw->visibility == FieldVisible;
 			didChangeForceLabels = true;
 		}
 
@@ -1884,44 +1884,42 @@ static bool onPressMotorMaxPower(buttons_events_t events) {
         events = 0;
         handled = true;
 
+#ifndef SW102
         UG_SetBackcolor(C_BLACK);
         UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
         UG_FontSelect(&FONT_10X16);
         UG_PutString(15, 46, "ASSIST");
+#endif
       }
 
       if (events & UP_CLICK) {
         events = 0;
         handled = true;
 
-        if(ui_vars.ui8_target_max_battery_power_div25 < 10)
-        {
+        if(ui_vars.ui8_target_max_battery_power_div25 < 10) {
           ui_vars.ui8_target_max_battery_power_div25++;
-        }
-        else
-        {
+        } else {
           ui_vars.ui8_target_max_battery_power_div25 += 2;
         }
 
           // limit to 100 * 25 = 2500 Watts
-          if(ui_vars.ui8_target_max_battery_power_div25 > 100) { ui_vars.ui8_target_max_battery_power_div25 = 100; }
-        }
+          if(ui_vars.ui8_target_max_battery_power_div25 > 100) {
+            ui_vars.ui8_target_max_battery_power_div25 = 100;
+          }
+      }
 
       if (events & DOWN_CLICK) {
         events = 0;
         handled = true;
 
         if (ui_vars.ui8_target_max_battery_power_div25 <= 10 &&
-            ui_vars.ui8_target_max_battery_power_div25 > 1)
-        {
+            ui_vars.ui8_target_max_battery_power_div25 > 1) {
           ui_vars.ui8_target_max_battery_power_div25--;
-        }
-        else if (ui_vars.ui8_target_max_battery_power_div25 > 10)
-        {
+        } else if (ui_vars.ui8_target_max_battery_power_div25 > 10) {
           ui_vars.ui8_target_max_battery_power_div25 -= 2;
         }
       }
-      break;
+    break;
   }
 
   // keep updating the variable to show on display
@@ -2383,7 +2381,6 @@ void updateGraphData(uint8_t index, uint16_t sumDivisor) {
     }
   }
 }
-
 void rt_graph_process(void) {
 #ifndef SW102
   static int numGraphs = 0;
@@ -2475,7 +2472,11 @@ void graph_init(void) {
 void screen_init(void) {
   graph_init();
 
+#ifndef SW102
   assistLevelField.rw->visibility = FieldVisible;
+#else
+  wheelSpeedIntegerField.rw->visibility = FieldVisible;
+#endif
   motorMaxPowerField.rw->visibility = FieldNotVisible;
 
   // init the pointers

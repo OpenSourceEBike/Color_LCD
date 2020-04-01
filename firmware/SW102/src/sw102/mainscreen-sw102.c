@@ -82,6 +82,17 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
+      .x = 0, .y = 21,
+      .width = 0, .height = 34,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 6,
+      .border = BorderNone,
+      .show_units = Hide
+    },
+    {
       .x = 0, .y = 57,
       .width = 0, .height = 34,
       .field = &custom1,
@@ -130,6 +141,17 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
+      .x = 0, .y = 21,
+      .width = 0, .height = 34,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 6,
+      .border = BorderNone,
+      .show_units = Hide
+    },
+    {
       .x = 0, .y = 57,
       .width = 0, .height = 34,
       .field = &custom3,
@@ -176,6 +198,17 @@ Screen mainScreen3 = {
       .align_x = AlignCenter,
       .show_units = Hide,
       .border = BorderNone,
+    },
+    {
+      .x = 0, .y = 21,
+      .width = 0, .height = 34,
+      .field = &motorMaxPowerField,
+      .font = &MEDIUM_NUMBERS_TEXT_FONT,
+      .label_align_y = AlignTop,
+      .align_x = AlignCenter,
+      .inset_y = 6,
+      .border = BorderNone,
+      .show_units = Hide
     },
     {
       .x = 0, .y = 57,

@@ -426,14 +426,20 @@ void wheel_speed(void)
 void motorMaxPower(void) {
   switch (ui8_g_motor_max_power_state) {
     case 1:
+#ifndef SW102
       assistLevelField.rw->visibility = FieldTransitionNotVisible;
+#else
+      wheelSpeedIntegerField.rw->visibility = FieldTransitionNotVisible;
+#endif
       ui8_g_motor_max_power_state = 2;
 
+#ifndef SW102
       UG_SetBackcolor(C_BLACK);
       UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
       UG_FontSelect(&FONT_10X16);
       UG_PutString(15, 46, "      ");
       break;
+#endif
 
     case 2:
       motorMaxPowerField.rw->visibility = FieldTransitionVisible;
@@ -446,7 +452,11 @@ void motorMaxPower(void) {
       break;
 
     case 5:
+#ifndef SW102
       assistLevelField.rw->visibility = FieldTransitionVisible;
+#else
+      wheelSpeedIntegerField.rw->visibility = FieldTransitionVisible;
+#endif
       ui8_g_motor_max_power_state = 0;
       break;
   }
@@ -1046,4 +1056,9 @@ void pedalPower(void) {
     ui16_m_pedal_power_filtered /= 5;
     ui16_m_pedal_power_filtered *= 5;
   }
+}
+
+void onSetConfigurationBatterySOCUsedWh(uint32_t v) {
+  reset_wh();
+  ui_vars.ui32_wh_x10_offset = v;
 }

@@ -192,14 +192,44 @@ void rt_send_tx_package(frame_type_t type) {
       }
 
       ui8_usart1_tx_buffer[5] = (rt_vars.ui8_lights & 1) | ((rt_vars.ui8_walk_assist & 1) << 1);
-      ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power_div25;
+
+      // battery power limit
+      if (rt_vars.ui8_street_mode_enabled)
+      {
+        ui8_usart1_tx_buffer[6] = rt_vars.ui8_street_mode_power_limit_div25;
+      }
+      else
+      {
+        ui8_usart1_tx_buffer[6] = rt_vars.ui8_target_max_battery_power_div25;
+      }
 
       // startup motor power boost
       uint16_t ui16_temp = (uint8_t) rt_vars.ui16_startup_motor_power_boost_factor[((rt_vars.ui8_assist_level) - 1)];
       ui8_usart1_tx_buffer[7] = (uint8_t) (ui16_temp & 0xff);
       ui8_usart1_tx_buffer[8] = (uint8_t) (ui16_temp >> 8);
 
-      crc_len = 10;
+      // wheel max speed
+      if (rt_vars.ui8_street_mode_enabled)
+      {
+        ui8_usart1_tx_buffer[6] = rt_vars.ui8_street_mode_speed_limit;
+      }
+      else
+      {
+        ui8_usart1_tx_buffer[9] = rt_vars.ui8_wheel_max_speed;
+      }
+
+      // motor temperature limit function or throttle
+      if (rt_vars.ui8_street_mode_enabled &&
+          rt_vars.ui8_street_mode_throttle_enabled)
+      {
+        ui8_usart1_tx_buffer[6] = rt_vars.ui8_temperature_limit_feature_enabled & 1;
+      }
+      else
+      {
+        ui8_usart1_tx_buffer[10] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
+      }
+
+      crc_len = 12;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -213,13 +243,10 @@ void rt_send_tx_package(frame_type_t type) {
       ui8_usart1_tx_buffer[5] = (uint8_t) (rt_vars.ui16_wheel_perimeter & 0xff);
       ui8_usart1_tx_buffer[6] = (uint8_t) (rt_vars.ui16_wheel_perimeter >> 8);
 
-      // wheel max speed
-      ui8_usart1_tx_buffer[7] = rt_vars.ui8_wheel_max_speed;
-
       // battery max current
-      ui8_usart1_tx_buffer[8] = rt_vars.ui8_battery_max_current;
+      ui8_usart1_tx_buffer[7] = rt_vars.ui8_battery_max_current;
 
-      ui8_usart1_tx_buffer[9] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled ? 1 : 0) |
+      ui8_usart1_tx_buffer[8] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled ? 1 : 0) |
           (rt_vars.ui8_startup_motor_power_boost_always ? 2 : 0) |
           (rt_vars.ui8_startup_motor_power_boost_limit_power ? 4 : 0) |
           (rt_vars.ui8_torque_sensor_calibration_feature_enabled ? 8 : 0) |
@@ -228,27 +255,24 @@ void rt_send_tx_package(frame_type_t type) {
           (rt_vars.ui8_motor_type ? 64 : 0);
 
       // motor max current
-      ui8_usart1_tx_buffer[10] = rt_vars.ui8_motor_max_current;
+      ui8_usart1_tx_buffer[9] = rt_vars.ui8_motor_max_current;
       // startup motor power boost time
-      ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_time;
+      ui8_usart1_tx_buffer[10] = rt_vars.ui8_startup_motor_power_boost_time;
       // startup motor power boost fade time
-      ui8_usart1_tx_buffer[12] = rt_vars.ui8_startup_motor_power_boost_fade_time;
+      ui8_usart1_tx_buffer[11] = rt_vars.ui8_startup_motor_power_boost_fade_time;
 
       // motor over temperature min and max values to limit
-      ui8_usart1_tx_buffer[13] = rt_vars.ui8_motor_temperature_min_value_to_limit;
-      ui8_usart1_tx_buffer[14] = rt_vars.ui8_motor_temperature_max_value_to_limit;
+      ui8_usart1_tx_buffer[12] = rt_vars.ui8_motor_temperature_min_value_to_limit;
+      ui8_usart1_tx_buffer[13] = rt_vars.ui8_motor_temperature_max_value_to_limit;
 
-      ui8_usart1_tx_buffer[15] = rt_vars.ui8_ramp_up_amps_per_second_x10;
+      ui8_usart1_tx_buffer[14] = rt_vars.ui8_ramp_up_amps_per_second_x10;
 
       // TODO
       // target speed for cruise
-      ui8_usart1_tx_buffer[16] = 0;
-
-      // motor temperature limit function or throttle
-      ui8_usart1_tx_buffer[17] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
+      ui8_usart1_tx_buffer[15] = 0;
 
       // torque sensor calibration tables
-      uint8_t j = 18;
+      uint8_t j = 16;
       for (uint8_t i = 0; i < 8; i++) {
         ui8_usart1_tx_buffer[j++] = (uint8_t) rt_vars.ui16_torque_sensor_calibration_table_left[i][0];
         ui8_usart1_tx_buffer[j++] = (uint8_t) (rt_vars.ui16_torque_sensor_calibration_table_left[i][0] >> 8);
@@ -264,9 +288,9 @@ void rt_send_tx_package(frame_type_t type) {
       }
 
       // battery current min ADC
-      ui8_usart1_tx_buffer[81] = rt_vars.ui8_battery_current_min_adc;
+      ui8_usart1_tx_buffer[79] = rt_vars.ui8_battery_current_min_adc;
 
-      crc_len = 83;
+      crc_len = 81;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -644,6 +668,11 @@ void copy_rt_to_ui_vars(void) {
 
   rt_vars.ui8_torque_sensor_calibration_feature_enabled = ui_vars.ui8_torque_sensor_calibration_feature_enabled;
   rt_vars.ui8_torque_sensor_calibration_pedal_ground = ui_vars.ui8_torque_sensor_calibration_pedal_ground;
+
+  rt_vars.ui8_street_mode_enabled = ui_vars.ui8_street_mode_enabled;
+  rt_vars.ui8_street_mode_speed_limit = ui_vars.ui8_street_mode_speed_limit;
+  rt_vars.ui8_street_mode_power_limit_div25 = ui_vars.ui8_street_mode_power_limit_div25;
+  rt_vars.ui8_street_mode_throttle_enabled = ui_vars.ui8_street_mode_throttle_enabled;
 }
 
 /// must be called from main() idle loop

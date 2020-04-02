@@ -120,6 +120,11 @@ typedef struct rt_vars_struct {
   uint8_t ui8_torque_sensor_calibration_pedal_ground;
   uint16_t ui16_torque_sensor_calibration_table_left[8][2];
   uint16_t ui16_torque_sensor_calibration_table_right[8][2];
+
+  uint8_t ui8_street_mode_enabled;
+  uint8_t ui8_street_mode_speed_limit;
+  uint8_t ui8_street_mode_power_limit_div25;
+  uint8_t ui8_street_mode_throttle_enabled;
 } rt_vars_t;
 
 /* Selector positions for customizable fields
@@ -223,6 +228,14 @@ typedef struct ui_vars_struct {
 
 	uint8_t field_selectors[NUM_CUSTOMIZABLE_FIELDS]; // this array is opaque to the app, but the screen layer uses it to store which field is being displayed (it is stored to EEPROM)
 	uint8_t graphs_field_selectors[3]; // 3 screen main pages
+
+	uint8_t ui8_street_mode_function_enabled;
+	uint8_t ui8_street_mode_enabled;
+	uint8_t ui8_street_mode_enabled_on_startup;
+	uint8_t ui8_street_mode_speed_limit;
+	uint8_t ui8_street_mode_power_limit_div25;
+	uint8_t ui8_street_mode_power_limit;
+	uint8_t ui8_street_mode_throttle_enabled;
 
   uint16_t var_speed_graph_auto_max_min;
   uint16_t var_speed_graph_max_x10;

@@ -80,6 +80,13 @@ typedef struct eeprom_data {
 	uint8_t x_axis_scale; // x axis scale
 	uint8_t showNextScreenIndex;
 
+  uint8_t ui8_street_mode_function_enabled;
+  uint8_t ui8_street_mode_enabled;
+  uint8_t ui8_street_mode_enabled_on_startup;
+  uint8_t ui8_street_mode_speed_limit;
+  uint8_t ui8_street_mode_power_limit_div25;
+  uint8_t ui8_street_mode_throttle_enabled;
+
 #ifndef SW102
 	Graph_eeprom graph_eeprom[VARS_SIZE];
   uint8_t tripDistanceField_x_axis_scale_config;
@@ -245,6 +252,12 @@ void eeprom_init_defaults(void);
 #define DEFAULT_VALUE_ODOMETER_X10                                  0
 #define DEFAULT_VALUE_BUTTONS_UP_DOWN_INVERT                        0 // regular state
 #define DEFAULT_VALUE_X_AXIS_SCALE                                  0 // 15m
+#define DEFAULT_STREET_MODE_FUNCTION_ENABLE                         0 // disabled
+#define DEFAULT_STREET_MODE_ENABLE_AT_STARTUP                       0 // disabled
+#define DEFAULT_STREET_MODE_ENABLE                                  0 // disabled
+#define DEFAULT_STREET_MODE_SPEED_LIMIT                             25 // 25 km/h
+#define DEFAULT_STREET_MODE_POWER_LIMIT                             10 // 250W --> 250 / 25 = 10
+#define DEFAULT_STREET_MODE_THROTTLE_ENABLE                         0 // disabled
 
 #define BICYCLE_1
 //#define BICYCLE_2

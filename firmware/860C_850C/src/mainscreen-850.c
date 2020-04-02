@@ -52,8 +52,13 @@ void mainScreenOnDirtyClean() {
   // vertical line
   UG_DrawLine(159, 156, 159, 314, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
-  if (assistLevelField.rw->visibility == FieldVisible) {
-    UG_PutString(15, 46, "ASSIST");
+  if (ui_vars.ui8_street_mode_function_enabled &&
+      ui_vars.ui8_street_mode_enabled) {
+    if (assistLevelField.rw->visibility == FieldVisible)
+      UG_PutString(15, 46, "ASSIST *");
+  } else {
+    if (assistLevelField.rw->visibility == FieldVisible)
+      UG_PutString(15, 46, "ASSIST");
   }
 
   // wheel speed

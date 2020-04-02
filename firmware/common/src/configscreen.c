@@ -153,10 +153,19 @@ static Field startupPowerMenus[] =
 
 static Field motorTempMenus[] =
 		{
-						FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_temperature_limit_feature_enabled, "disable", "temperature", "throttle"), // FIXME, share one array of disable/enable strings
+						FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_temperature_limit_feature_enabled, "disable", "temperature", "throttle"),
 						FIELD_EDITABLE_UINT("Min limit", &ui_vars.ui8_motor_temperature_min_value_to_limit, "C", 0, 255),
 						FIELD_EDITABLE_UINT("Max limit", &ui_vars.ui8_motor_temperature_max_value_to_limit, "C", 0, 255),
 				FIELD_END };
+
+static Field streetModeMenus[] =
+    {
+      FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_street_mode_function_enabled, "disable", "enable"),
+      FIELD_EDITABLE_ENUM(_S("Enable at startup", "Enabl stup"), &ui_vars.ui8_street_mode_enabled_on_startup, "no", "yes"),
+      FIELD_EDITABLE_UINT(_S("Speed limit", "Speed limt"), &ui_vars.ui8_street_mode_speed_limit, "kph", 1, 99, .div_digits = 0, .inc_step = 1, .hide_fraction = true),
+      FIELD_EDITABLE_UINT(_S("Motor power limit", "Power limt"), &ui_vars.ui8_street_mode_power_limit, "watts", 1, 2500, .div_digits = 0, .inc_step = 25, .hide_fraction = true),
+      FIELD_EDITABLE_ENUM(_S("Throttle enable", "Throt enab"), &ui_vars.ui8_street_mode_throttle_enabled, "no", "yes"),
+    FIELD_END };
 
 static Field displayMenus[] =
 		{
@@ -176,17 +185,6 @@ static Field displayMenus[] =
 #endif
   FIELD_EDITABLE_ENUM(_S("Reset to defaults", "Reset def"), &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
   FIELD_END };
-
-#if 0
-static Field offroadMenus[] = {
-    FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_offroad_feature_enabled, "disable", "enable"), // FIXME, share one array of disable/enable strings
-    FIELD_EDITABLE_ENUM("Active on start", &ui_vars.ui8_offroad_enabled_on_startup, "no", "yes"), // FIXME, share one array of disable/enable strings
-    FIELD_EDITABLE_UINT("Speed limit", &ui_vars.ui8_offroad_speed_limit_x10, "kph", 1, 990, .div_digits = 10, .inc_step = 10, .hide_fraction = true),
-    FIELD_EDITABLE_ENUM("Limit power", &ui_vars.ui8_offroad_power_limit_enabled, "no", "yes"), // FIXME, share one array of disable/enable strings
-    FIELD_EDITABLE_UINT("Power limit", &ui_vars.ui8_offroad_power_limit_div25, "watt", 0, 2000), // huge FIXME - div25 can't work with this system, change it
-    FIELD_END
-};
-#endif
 
 static Field variousMenus[] = {
     FIELD_EDITABLE_ENUM(_S("Assist w/o pedal rot", "A w/o ped"), &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
@@ -353,6 +351,7 @@ static Field topMenus[] = {
   FIELD_SCROLLABLE(_S("Walk assist", "Walk"), walkAssistMenus),
   FIELD_SCROLLABLE(_S("Startup BOOST", "Star BOOST"), startupPowerMenus),
   FIELD_SCROLLABLE(_S("Motor temperature", "Motor temp"), motorTempMenus),
+  FIELD_SCROLLABLE(_S("Street mode", "Street mod"), streetModeMenus),
 #ifndef SW102
   FIELD_SCROLLABLE("Variables", variablesMenus),
 #endif

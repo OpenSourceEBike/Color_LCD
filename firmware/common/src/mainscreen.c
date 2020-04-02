@@ -359,30 +359,118 @@ bool anyscreen_onpress(buttons_events_t events) {
   return false;
 }
 
+static bool onPressMotorMaxPower(buttons_events_t events) {
+  bool handled = false;
+
+  switch (ui8_g_motor_max_power_state) {
+    case 0:
+      if (events & SCREENCLICK_MOTOR_MAX_POWER_START) {
+        ui8_g_motor_max_power_state = 1;
+        handled = true;
+      }
+      break;
+
+    case 3:
+      if (events & SCREENCLICK_MOTOR_MAX_POWER_STOP) {
+        ui8_g_motor_max_power_state = 4;
+        events = 0;
+        handled = true;
+
+        mainScreenOnDirtyClean();
+      }
+
+      if (events & UP_CLICK) {
+        events = 0;
+        handled = true;
+
+        if(ui_vars.ui8_target_max_battery_power_div25 < 10) {
+          ui_vars.ui8_target_max_battery_power_div25++;
+        } else {
+          ui_vars.ui8_target_max_battery_power_div25 += 2;
+        }
+
+          // limit to 100 * 25 = 2500 Watts
+          if(ui_vars.ui8_target_max_battery_power_div25 > 100) {
+            ui_vars.ui8_target_max_battery_power_div25 = 100;
+          }
+      }
+
+      if (events & DOWN_CLICK) {
+        events = 0;
+        handled = true;
+
+        if (ui_vars.ui8_target_max_battery_power_div25 <= 10 &&
+            ui_vars.ui8_target_max_battery_power_div25 > 1) {
+          ui_vars.ui8_target_max_battery_power_div25--;
+        } else if (ui_vars.ui8_target_max_battery_power_div25 > 10) {
+          ui_vars.ui8_target_max_battery_power_div25 -= 2;
+        }
+      }
+    break;
+  }
+
+  // keep updating the variable to show on display
+  ui16_g_target_max_motor_power = ((uint16_t) ui_vars.ui8_target_max_battery_power_div25) * 25;
+
+  return handled;
+}
+
+static bool onPressStreetMode(buttons_events_t events) {
+  bool handled = false;
+  static bool executed_on_startup;
+
+  if (ui_vars.ui8_street_mode_function_enabled)
+  {
+    if (events & SCREENCLICK_STREET_MODE)
+    {
+      if (ui_vars.ui8_street_mode_enabled)
+        ui_vars.ui8_street_mode_enabled = 0;
+      else
+        ui_vars.ui8_street_mode_enabled = 1;
+
+      mainScreenOnDirtyClean();
+      handled = true;
+    }
+  } else {
+    ui_vars.ui8_street_mode_enabled = 0;
+  }
+
+  return handled;
+}
+
 bool mainScreenOnPress(buttons_events_t events) {
-	if (anyscreen_onpress(events))
-	  return true;
+  bool handled = false;
 
-	if (events & UP_CLICK) {
-		ui_vars.ui8_assist_level++;
+  handled = anyscreen_onpress(events);
 
-		if (ui_vars.ui8_assist_level > ui_vars.ui8_number_of_assist_levels) {
-			ui_vars.ui8_assist_level = ui_vars.ui8_number_of_assist_levels;
-		}
+  if (handled == false)
+    handled = onPressMotorMaxPower(events);
 
-		m_assist_level_change_timeout = 20; // 2 seconds
-		return true;
-	}
+  if (handled == false)
+    handled = onPressStreetMode(events);
 
-	if (events & DOWN_CLICK) {
-		if (ui_vars.ui8_assist_level > 0)
-			ui_vars.ui8_assist_level--;
+  if (handled == false) {
+    if (events & UP_CLICK) {
+      ui_vars.ui8_assist_level++;
 
-    m_assist_level_change_timeout = 20; // 2 seconds
-		return true;
-	}
+      if (ui_vars.ui8_assist_level > ui_vars.ui8_number_of_assist_levels) {
+        ui_vars.ui8_assist_level = ui_vars.ui8_number_of_assist_levels;
+      }
 
-	return false;
+      m_assist_level_change_timeout = 20; // 2 seconds
+      handled = true;
+    }
+
+    if (events & DOWN_CLICK) {
+      if (ui_vars.ui8_assist_level > 0)
+        ui_vars.ui8_assist_level--;
+
+      m_assist_level_change_timeout = 20; // 2 seconds
+      handled = true;
+    }
+  }
+
+	return handled;
 }
 
 
@@ -462,6 +550,17 @@ void motorMaxPower(void) {
   }
 }
 
+void streetMode(void) {
+  if (ui_vars.ui8_street_mode_function_enabled)
+  {
+    // check to see if should be enable at startup
+    if (ui_vars.ui8_street_mode_enabled_on_startup)
+      ui_vars.ui8_street_mode_enabled = 1;
+
+    ui_vars.ui8_street_mode_power_limit_div25 = ui_vars.ui8_street_mode_power_limit / 25;
+  }
+}
+
 void screen_clock(void) {
   static int counter_time_ms = 0;
   int time_ms = 0;
@@ -491,6 +590,7 @@ void screen_clock(void) {
     batteryPower();
     pedalPower();
     motorMaxPower();
+    streetMode();
 #ifndef SW102
     thresholds();
 #endif

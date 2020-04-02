@@ -257,6 +257,13 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .ui16_torque_sensor_calibration_table_right[6][1] = DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7,
     .ui16_torque_sensor_calibration_table_right[7][0] = DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8,
     .ui16_torque_sensor_calibration_table_right[7][1] = DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8,
+
+    .ui8_street_mode_function_enabled = DEFAULT_STREET_MODE_FUNCTION_ENABLE,
+    .ui8_street_mode_enabled_on_startup = DEFAULT_STREET_MODE_ENABLE_AT_STARTUP,
+    .ui8_street_mode_enabled = DEFAULT_STREET_MODE_ENABLE,
+    .ui8_street_mode_speed_limit = DEFAULT_STREET_MODE_SPEED_LIMIT,
+    .ui8_street_mode_power_limit_div25 = DEFAULT_STREET_MODE_POWER_LIMIT,
+    .ui8_street_mode_throttle_enabled = DEFAULT_STREET_MODE_THROTTLE_ENABLE,
 };
 
 void eeprom_init() {
@@ -511,6 +518,19 @@ void eeprom_init_variables(void) {
   }
 
   g_showNextScreenIndex = m_eeprom_data.showNextScreenIndex;
+
+  ui_vars->ui8_street_mode_function_enabled =
+      m_eeprom_data.ui8_street_mode_function_enabled;
+  ui_vars->ui8_street_mode_enabled =
+      m_eeprom_data.ui8_street_mode_enabled;
+  ui_vars->ui8_street_mode_enabled_on_startup =
+      m_eeprom_data.ui8_street_mode_enabled_on_startup;
+  ui_vars->ui8_street_mode_speed_limit =
+      m_eeprom_data.ui8_street_mode_speed_limit;
+  ui_vars->ui8_street_mode_power_limit_div25 =
+      m_eeprom_data.ui8_street_mode_power_limit_div25;
+  ui_vars->ui8_street_mode_throttle_enabled =
+      m_eeprom_data.ui8_street_mode_throttle_enabled;
 }
 
 void eeprom_write_variables(void) {
@@ -659,6 +679,19 @@ void eeprom_write_variables(void) {
 #endif
 
   m_eeprom_data.showNextScreenIndex = g_showNextScreenPreviousIndex;
+
+  m_eeprom_data.ui8_street_mode_function_enabled =
+      ui_vars->ui8_street_mode_function_enabled;
+  m_eeprom_data.ui8_street_mode_enabled =
+      ui_vars->ui8_street_mode_enabled;
+  m_eeprom_data.ui8_street_mode_enabled_on_startup =
+      ui_vars->ui8_street_mode_enabled_on_startup;
+  m_eeprom_data.ui8_street_mode_speed_limit =
+      ui_vars->ui8_street_mode_speed_limit;
+  m_eeprom_data.ui8_street_mode_power_limit_div25 =
+      ui_vars->ui8_street_mode_power_limit_div25;
+  m_eeprom_data.ui8_street_mode_throttle_enabled =
+      ui_vars->ui8_street_mode_throttle_enabled;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

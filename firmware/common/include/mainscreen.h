@@ -56,6 +56,7 @@ extern Field
   motorErpsGraph,
   pwmDutyGraph,
   motorFOCGraph;
+  void mainScreenOnDirtyClean();
 #endif
 
 extern uint8_t g_showNextScreenIndex;

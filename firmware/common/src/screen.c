@@ -1867,67 +1867,6 @@ int countEntries(Field *s) {
 	return n;
 }
 
-static bool onPressMotorMaxPower(buttons_events_t events) {
-  bool handled = false;
-
-  switch (ui8_g_motor_max_power_state) {
-    case 0:
-      if (events & SCREENCLICK_MOTOR_MAX_POWER_START) {
-        ui8_g_motor_max_power_state = 1;
-        handled = true;
-      }
-      break;
-
-    case 3:
-      if (events & SCREENCLICK_MOTOR_MAX_POWER_STOP) {
-        ui8_g_motor_max_power_state = 4;
-        events = 0;
-        handled = true;
-
-#ifndef SW102
-        UG_SetBackcolor(C_BLACK);
-        UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
-        UG_FontSelect(&FONT_10X16);
-        UG_PutString(15, 46, "ASSIST");
-#endif
-      }
-
-      if (events & UP_CLICK) {
-        events = 0;
-        handled = true;
-
-        if(ui_vars.ui8_target_max_battery_power_div25 < 10) {
-          ui_vars.ui8_target_max_battery_power_div25++;
-        } else {
-          ui_vars.ui8_target_max_battery_power_div25 += 2;
-        }
-
-          // limit to 100 * 25 = 2500 Watts
-          if(ui_vars.ui8_target_max_battery_power_div25 > 100) {
-            ui_vars.ui8_target_max_battery_power_div25 = 100;
-          }
-      }
-
-      if (events & DOWN_CLICK) {
-        events = 0;
-        handled = true;
-
-        if (ui_vars.ui8_target_max_battery_power_div25 <= 10 &&
-            ui_vars.ui8_target_max_battery_power_div25 > 1) {
-          ui_vars.ui8_target_max_battery_power_div25--;
-        } else if (ui_vars.ui8_target_max_battery_power_div25 > 10) {
-          ui_vars.ui8_target_max_battery_power_div25 -= 2;
-        }
-      }
-    break;
-  }
-
-  // keep updating the variable to show on display
-  ui16_g_target_max_motor_power = ((uint16_t) ui_vars.ui8_target_max_battery_power_div25) * 25;
-
-  return handled;
-}
-
 // Returns true if we've handled the event (and therefore it should be cleared)
 // if first or selected changed, mark our scrollable as dirty (so child editables can be drawn)
 static bool onPressScrollable(buttons_events_t events) {
@@ -2161,9 +2100,6 @@ bool screenOnPress(buttons_events_t events) {
 
 	if (curActiveEditable)
 		handled |= onPressEditable(events);
-
-  if (!handled)
-    handled |= onPressMotorMaxPower(events);
 
 	if (!handled)
 		handled |= onPressScrollable(events);

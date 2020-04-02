@@ -250,6 +250,22 @@ void battery_display() {
 }
 
 void mainScreenOnDirtyClean(void) {
+  UG_DrawLine(0, 62, 63, 62, C_WHITE);
+  UG_DrawLine(0, 89, 63, 89, C_WHITE);
+  UG_DrawLine(0, 115, 63, 115, C_WHITE);
+
+  UG_DrawLine(0, 62, 0, 115, C_WHITE);
+  UG_DrawLine(63, 62, 63, 115, C_WHITE);
+
+  if (ui_vars.ui8_street_mode_function_enabled &&
+      ui_vars.ui8_street_mode_enabled) {
+
+    UG_DrawLine(0, 14, 63, 14, C_WHITE);
+
+    UG_DrawLine(0, 14, 0, 61, C_WHITE);
+    UG_DrawLine(63, 14, 63, 61, C_WHITE);
+  }
+
   batteryClearSymbol();
 }
 
@@ -258,12 +274,6 @@ void secondMainScreenOnDirtyClean(void) {
 }
 
 void mainScreenonPostUpdate(void) {
-  UG_DrawLine(0, 62, 63, 62, C_WHITE);
-  UG_DrawLine(0, 89, 63, 89, C_WHITE);
-  UG_DrawLine(0, 115, 63, 115, C_WHITE);
-
-  UG_DrawLine(0, 62, 0, 115, C_WHITE);
-  UG_DrawLine(63, 62, 63, 115, C_WHITE);
 }
 
 // Screens in a loop, shown when the user short presses the power button

@@ -252,7 +252,7 @@ void rt_send_tx_package(frame_type_t type) {
           (rt_vars.ui8_torque_sensor_calibration_feature_enabled ? 8 : 0) |
           (rt_vars.ui8_torque_sensor_calibration_pedal_ground ? 16 : 0) |
           (rt_vars.ui8_motor_assistance_startup_without_pedal_rotation ? 32 : 0) |
-          (rt_vars.ui8_motor_type ? 64 : 0);
+          ((rt_vars.ui8_motor_type & 0x3) << 6);
 
       // motor max current
       ui8_usart1_tx_buffer[9] = rt_vars.ui8_motor_max_current;

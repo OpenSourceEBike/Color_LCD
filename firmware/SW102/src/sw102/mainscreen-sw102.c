@@ -71,8 +71,8 @@ Screen mainScreen1 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 0, .y = 19,
-      .width = 63, // 2 digits
+      .x = 1, .y = 19,
+      .width = 62, // 2 digits
       .height = 40,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
@@ -82,8 +82,9 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = 0, .y = 21,
-      .width = 0, .height = 34,
+      .x = 1, .y = 21,
+      .width = 62,
+      .height = 34,
       .field = &motorMaxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -257,6 +258,8 @@ void mainScreenOnDirtyClean(void) {
   UG_DrawLine(0, 62, 0, 115, C_WHITE);
   UG_DrawLine(63, 62, 63, 115, C_WHITE);
 
+  batteryClearSymbol();
+
   if (ui_vars.ui8_street_mode_function_enabled &&
       ui_vars.ui8_street_mode_enabled) {
 
@@ -265,8 +268,6 @@ void mainScreenOnDirtyClean(void) {
     UG_DrawLine(0, 14, 0, 61, C_WHITE);
     UG_DrawLine(63, 14, 63, 61, C_WHITE);
   }
-
-  batteryClearSymbol();
 }
 
 void secondMainScreenOnDirtyClean(void) {

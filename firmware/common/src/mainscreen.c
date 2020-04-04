@@ -231,7 +231,12 @@ Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[0], customizable
 Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
    bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "Keep pedal")),
    bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "free")),
+#if defined(DISPLAY_850C)
    bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
+#elif defined(DISPLAY_860C)
+   bootFirmwareVersion = FIELD_DRAWTEXT_RO("860C firmware version:"),
+#endif
+
    bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
    bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
    bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
@@ -375,8 +380,6 @@ static bool onPressMotorMaxPower(buttons_events_t events) {
         ui8_g_motor_max_power_state = 4;
         events = 0;
         handled = true;
-
-        mainScreenOnDirtyClean();
       }
 
       if (events & UP_CLICK) {
@@ -417,11 +420,10 @@ static bool onPressMotorMaxPower(buttons_events_t events) {
 
 static bool onPressStreetMode(buttons_events_t events) {
   bool handled = false;
-  static bool executed_on_startup;
 
-  if (ui_vars.ui8_street_mode_function_enabled)
+  if (events & SCREENCLICK_STREET_MODE)
   {
-    if (events & SCREENCLICK_STREET_MODE)
+    if (ui_vars.ui8_street_mode_function_enabled)
     {
       if (ui_vars.ui8_street_mode_enabled)
         ui_vars.ui8_street_mode_enabled = 0;
@@ -429,10 +431,11 @@ static bool onPressStreetMode(buttons_events_t events) {
         ui_vars.ui8_street_mode_enabled = 1;
 
       mainScreenOnDirtyClean();
-      handled = true;
+    } else {
+      ui_vars.ui8_street_mode_enabled = 0;
     }
-  } else {
-    ui_vars.ui8_street_mode_enabled = 0;
+
+    handled = true;
   }
 
   return handled;
@@ -531,6 +534,7 @@ void motorMaxPower(void) {
 
     case 2:
       motorMaxPowerField.rw->visibility = FieldTransitionVisible;
+      mainScreenOnDirtyClean();
       ui8_g_motor_max_power_state = 3;
       break;
 
@@ -545,6 +549,7 @@ void motorMaxPower(void) {
 #else
       wheelSpeedIntegerField.rw->visibility = FieldTransitionVisible;
 #endif
+      mainScreenOnDirtyClean();
       ui8_g_motor_max_power_state = 0;
       break;
   }
@@ -553,11 +558,7 @@ void motorMaxPower(void) {
 void streetMode(void) {
   if (ui_vars.ui8_street_mode_function_enabled)
   {
-    // check to see if should be enable at startup
-    if (ui_vars.ui8_street_mode_enabled_on_startup)
-      ui_vars.ui8_street_mode_enabled = 1;
-
-    ui_vars.ui8_street_mode_power_limit_div25 = ui_vars.ui8_street_mode_power_limit / 25;
+    ui_vars.ui8_street_mode_power_limit_div25 = (ui_vars.ui16_street_mode_power_limit / 25);
   }
 }
 

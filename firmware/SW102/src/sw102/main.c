@@ -197,6 +197,8 @@ int main(void)
   /* eeprom_init AFTER ble_init! */
   eeprom_init();
 
+  screen_init();
+
   screenShow(&bootScreen);
 
 //  watchdog_start();

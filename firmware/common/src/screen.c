@@ -2415,6 +2415,17 @@ void screen_init(void) {
 #endif
   motorMaxPowerField.rw->visibility = FieldNotVisible;
 
+  ui_vars.ui16_street_mode_power_limit = ui_vars.ui8_street_mode_power_limit_div25 * 25;
+
+  if (ui_vars.ui8_street_mode_function_enabled)
+  {
+    // check to see if should be enable at startup
+    if (ui_vars.ui8_street_mode_enabled_on_startup)
+      ui_vars.ui8_street_mode_enabled = 1;
+
+    ui_vars.ui8_street_mode_power_limit_div25 = (ui_vars.ui16_street_mode_power_limit / 25);
+  }
+
   // init the pointers
   wheelSpeedField.rw->editable.number.auto_thresholds = &g_vars[VarsWheelSpeed].auto_thresholds;
   wheelSpeedField.rw->editable.number.config_warn_threshold = &g_vars[VarsWheelSpeed].config_warn_threshold;

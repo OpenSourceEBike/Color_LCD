@@ -52,15 +52,6 @@ void mainScreenOnDirtyClean() {
   // vertical line
   UG_DrawLine(159, 156, 159, 314, MAIN_SCREEN_FIELD_LABELS_COLOR);
 
-  if (ui_vars.ui8_street_mode_function_enabled &&
-      ui_vars.ui8_street_mode_enabled) {
-    if (assistLevelField.rw->visibility == FieldVisible)
-      UG_PutString(15, 46, "ASSIST *");
-  } else {
-    if (assistLevelField.rw->visibility == FieldVisible)
-      UG_PutString(15, 46, "ASSIST");
-  }
-
   // wheel speed
   if(ui_vars.ui8_units_type == 0)
   {
@@ -69,6 +60,29 @@ void mainScreenOnDirtyClean() {
   else
   {
     UG_PutString(265, 46 , "MPH");
+  }
+
+  // if street mode is enable, show ASSIST with regular color otherwise use orange color
+  UG_COLOR assist_color;
+  if ((assistLevelField.rw->visibility == FieldTransitionVisible) ||
+      (assistLevelField.rw->visibility == FieldVisible)) {
+    if (ui_vars.ui8_street_mode_enabled) {
+      assist_color = MAIN_SCREEN_FIELD_LABELS_COLOR;
+    } else {
+      assist_color = C_ORANGE_RED;
+    }
+  }
+
+  // if street mode feature is disabled, show with regular color
+  if (ui_vars.ui8_street_mode_function_enabled == 0)
+    assist_color = MAIN_SCREEN_FIELD_LABELS_COLOR;
+
+  // if motorMaxPowerField is enable, do not show ASSIST
+  if (motorMaxPowerField.rw->visibility == FieldTransitionVisible) {
+    UG_PutString(14, 46, "      ");
+  } else {
+    UG_SetForecolor(assist_color);
+    UG_PutString(14, 46, "ASSIST");
   }
 }
 

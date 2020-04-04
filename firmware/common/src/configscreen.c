@@ -163,7 +163,7 @@ static Field streetModeMenus[] =
       FIELD_EDITABLE_ENUM("Feature", &ui_vars.ui8_street_mode_function_enabled, "disable", "enable"),
       FIELD_EDITABLE_ENUM(_S("Enable at startup", "Enabl stup"), &ui_vars.ui8_street_mode_enabled_on_startup, "no", "yes"),
       FIELD_EDITABLE_UINT(_S("Speed limit", "Speed limt"), &ui_vars.ui8_street_mode_speed_limit, "kph", 1, 99, .div_digits = 0, .inc_step = 1, .hide_fraction = true),
-      FIELD_EDITABLE_UINT(_S("Motor power limit", "Power limt"), &ui_vars.ui8_street_mode_power_limit, "watts", 1, 2500, .div_digits = 0, .inc_step = 25, .hide_fraction = true),
+      FIELD_EDITABLE_UINT(_S("Motor power limit", "Power limt"), &ui_vars.ui16_street_mode_power_limit, "watts", 25, 2500, .div_digits = 0, .inc_step = 25, .hide_fraction = true),
       FIELD_EDITABLE_ENUM(_S("Throttle enable", "Throt enab"), &ui_vars.ui8_street_mode_throttle_enabled, "no", "yes"),
     FIELD_END };
 

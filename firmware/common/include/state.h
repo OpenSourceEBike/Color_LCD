@@ -234,7 +234,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_street_mode_enabled_on_startup;
 	uint8_t ui8_street_mode_speed_limit;
 	uint8_t ui8_street_mode_power_limit_div25;
-	uint8_t ui8_street_mode_power_limit;
+	uint16_t ui16_street_mode_power_limit;
 	uint8_t ui8_street_mode_throttle_enabled;
 
   uint16_t var_speed_graph_auto_max_min;

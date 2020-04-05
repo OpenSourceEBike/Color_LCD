@@ -48,13 +48,14 @@ static void mainScreenOnEnter() {
 
 #define BATTERY_BAR \
 { \
-    .x = 0, .y = 0, \
+    .x = 3, .y = 2, \
     .width = -1, .height = -1, \
     .field = &batteryField, \
 }, \
 { \
-  .x = 32, .y = 0, \
-  .width = -5, .height = -1, \
+  .x = 38, .y = 2, \
+  .width = 24, .height = -1, \
+  .align_x = AlignRight, \
   .font = &REGULAR_TEXT_FONT, \
   .field = &socField \
 }
@@ -62,6 +63,27 @@ static void mainScreenOnEnter() {
 //
 // Screens
 //
+
+#define MAIN_SCREEN_WHEELSPEED_X                  1
+#define MAIN_SCREEN_WHEELSPEED_Y                  19
+#define MAIN_SCREEN_WHEELSPEED_WIDTH              62
+#define MAIN_SCREEN_WHEELSPEED_HEIGHT             40
+
+#define MAIN_SCREEN_MAXPOWER_X                    1
+#define MAIN_SCREEN_MAXPOWER_Y                    21
+#define MAIN_SCREEN_MAXPOWER_WIDTH                62
+#define MAIN_SCREEN_MAXPOWER_HEIGHT               34
+
+#define MAIN_SCREEN_CUSTOM_1_X                    1
+#define MAIN_SCREEN_CUSTOM_1_Y                    63
+#define MAIN_SCREEN_CUSTOM_1_WIDTH                62
+#define MAIN_SCREEN_CUSTOM_1_HEIGHT               25
+
+#define MAIN_SCREEN_CUSTOM_2_X                    1
+#define MAIN_SCREEN_CUSTOM_2_Y                    90
+#define MAIN_SCREEN_CUSTOM_2_WIDTH                62
+#define MAIN_SCREEN_CUSTOM_2_HEIGHT               25
+
 Screen mainScreen1 = {
   .onPress = mainScreenOnPress,
 	.onEnter = mainScreenOnEnter,
@@ -71,9 +93,10 @@ Screen mainScreen1 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 1, .y = 19,
-      .width = 62, // 2 digits
-      .height = 40,
+      .x = MAIN_SCREEN_WHEELSPEED_X,
+      .y = MAIN_SCREEN_WHEELSPEED_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_HEIGHT,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -82,9 +105,10 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = 1, .y = 21,
-      .width = 62,
-      .height = 34,
+      .x = MAIN_SCREEN_MAXPOWER_X,
+      .y = MAIN_SCREEN_MAXPOWER_Y,
+      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
+      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
       .field = &motorMaxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -94,8 +118,10 @@ Screen mainScreen1 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 57,
-      .width = 0, .height = 34,
+      .x = MAIN_SCREEN_CUSTOM_1_X,
+      .y = MAIN_SCREEN_CUSTOM_1_Y,
+      .width = MAIN_SCREEN_CUSTOM_1_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_1_HEIGHT,
       .field = &custom1,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -105,8 +131,10 @@ Screen mainScreen1 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 86,
-      .width = 0, .height = 28,
+      .x = MAIN_SCREEN_CUSTOM_2_X,
+      .y = MAIN_SCREEN_CUSTOM_2_Y,
+      .width = MAIN_SCREEN_CUSTOM_2_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_2_HEIGHT,
       .field = &custom2,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -131,9 +159,10 @@ Screen mainScreen2 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 0, .y = 19,
-      .width = 63, // 2 digits
-      .height = 40,
+      .x = MAIN_SCREEN_WHEELSPEED_X,
+      .y = MAIN_SCREEN_WHEELSPEED_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_HEIGHT,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -142,8 +171,10 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
-      .x = 0, .y = 21,
-      .width = 0, .height = 34,
+      .x = MAIN_SCREEN_MAXPOWER_X,
+      .y = MAIN_SCREEN_MAXPOWER_Y,
+      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
+      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
       .field = &motorMaxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -153,8 +184,10 @@ Screen mainScreen2 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 57,
-      .width = 0, .height = 34,
+      .x = MAIN_SCREEN_CUSTOM_1_X,
+      .y = MAIN_SCREEN_CUSTOM_1_Y,
+      .width = MAIN_SCREEN_CUSTOM_1_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_1_HEIGHT,
       .field = &custom3,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -164,8 +197,10 @@ Screen mainScreen2 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 86,
-      .width = 0, .height = 28,
+      .x = MAIN_SCREEN_CUSTOM_2_X,
+      .y = MAIN_SCREEN_CUSTOM_2_Y,
+      .width = MAIN_SCREEN_CUSTOM_2_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_2_HEIGHT,
       .field = &custom4,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -190,9 +225,10 @@ Screen mainScreen3 = {
   .fields = {
     BATTERY_BAR,
     {
-      .x = 0, .y = 19,
-      .width = 63, // 2 digits
-      .height = 40,
+      .x = MAIN_SCREEN_WHEELSPEED_X,
+      .y = MAIN_SCREEN_WHEELSPEED_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_HEIGHT,
       .field = &wheelSpeedIntegerField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -201,8 +237,10 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
-      .x = 0, .y = 21,
-      .width = 0, .height = 34,
+      .x = MAIN_SCREEN_MAXPOWER_X,
+      .y = MAIN_SCREEN_MAXPOWER_Y,
+      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
+      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
       .field = &motorMaxPowerField,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
@@ -212,8 +250,10 @@ Screen mainScreen3 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 57,
-      .width = 0, .height = 34,
+      .x = MAIN_SCREEN_CUSTOM_1_X,
+      .y = MAIN_SCREEN_CUSTOM_1_Y,
+      .width = MAIN_SCREEN_CUSTOM_1_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_1_HEIGHT,
       .field = &custom5,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -223,8 +263,10 @@ Screen mainScreen3 = {
       .show_units = Hide
     },
     {
-      .x = 0, .y = 86,
-      .width = 0, .height = 28,
+      .x = MAIN_SCREEN_CUSTOM_2_X,
+      .y = MAIN_SCREEN_CUSTOM_2_Y,
+      .width = MAIN_SCREEN_CUSTOM_2_WIDTH,
+      .height = MAIN_SCREEN_CUSTOM_2_HEIGHT,
       .field = &custom6,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -251,23 +293,26 @@ void battery_display() {
 }
 
 void mainScreenOnDirtyClean(void) {
+  batteryClearSymbol();
+  batteryField.rw->dirty = true;
+
   UG_DrawLine(0, 62, 63, 62, C_WHITE);
   UG_DrawLine(0, 89, 63, 89, C_WHITE);
   UG_DrawLine(0, 115, 63, 115, C_WHITE);
 
-  UG_DrawLine(0, 62, 0, 115, C_WHITE);
-  UG_DrawLine(63, 62, 63, 115, C_WHITE);
+  UG_DrawLine(0, 63, 0, 114, C_WHITE);
+  UG_DrawLine(63, 63, 63, 114, C_WHITE);
 
-  batteryClearSymbol();
-
+  // find if the next lines should be draw or not (white color to draw them)
+  UG_COLOR street_mode_color = C_BLACK;
   if (ui_vars.ui8_street_mode_function_enabled &&
       ui_vars.ui8_street_mode_enabled) {
-
-    UG_DrawLine(0, 14, 63, 14, C_WHITE);
-
-    UG_DrawLine(0, 14, 0, 61, C_WHITE);
-    UG_DrawLine(63, 14, 63, 61, C_WHITE);
+    street_mode_color = C_WHITE;
   }
+
+  UG_DrawLine(0, 0, 63, 0, street_mode_color);
+  UG_DrawLine(0, 0, 0, 61, street_mode_color);
+  UG_DrawLine(63, 0, 63, 61, street_mode_color);
 }
 
 void secondMainScreenOnDirtyClean(void) {

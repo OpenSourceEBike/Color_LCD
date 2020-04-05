@@ -2,8 +2,8 @@
 #include "screen.h"
 #include "lcd.h"
 
-#define BATTERY_SOC_START_X 1
-#define BATTERY_SOC_START_Y 0
+#define BATTERY_SOC_START_X 3
+#define BATTERY_SOC_START_Y 3
 #define BATTERY_SOC_WITH    25
 #define BATTERY_SOC_HEIGHT  11
 

@@ -573,9 +573,9 @@ extern volatile bool g_graphs_ui_update[3];
 #endif
 
 #if defined(SW102) || defined(DISPLAY_860C)
-  #if defined(SW102)
+  #ifdef SW102
     #define SCREENFN_FORCE_LABELS buttons_get_m_state()
-  #elif defined(DISPLAY_860C)
+  #elif DISPLAY_860C
     #define SCREENFN_FORCE_LABELS false
   #endif
   #define SCREENCLICK_START_EDIT M_CLICK
@@ -588,7 +588,7 @@ extern volatile bool g_graphs_ui_update[3];
   #define SCREENCLICK_MOTOR_MAX_POWER_START ONOFFUP_LONG_CLICK
   #define SCREENCLICK_MOTOR_MAX_POWER_STOP ONOFF_LONG_CLICK
   #define SCREENCLICK_STREET_MODE ONOFFDOWN_LONG_CLICK
-#elif defined(DISPLAY_850C)
+#elif DISPLAY_850C
   #define SCREENFN_FORCE_LABELS false
   #define SCREENCLICK_START_EDIT ONOFF_CLICK
   #define SCREENCLICK_STOP_EDIT ONOFF_CLICK

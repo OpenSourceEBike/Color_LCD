@@ -231,9 +231,10 @@ Field custom1 = FIELD_CUSTOMIZABLE_PTR(&ui_vars.field_selectors[0], customizable
 Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
    bootURL_1 = FIELD_DRAWTEXT_RO(_S("www.github.com/", "Keep pedal")),
    bootURL_2 = FIELD_DRAWTEXT_RO(_S("OpenSource-EBike-Firmware", "free")),
-#if defined(DISPLAY_850C)
+
+#ifdef DISPLAY_850C
    bootFirmwareVersion = FIELD_DRAWTEXT_RO("850C firmware version:"),
-#elif defined(DISPLAY_860C)
+#elif DISPLAY_860C
    bootFirmwareVersion = FIELD_DRAWTEXT_RO("860C firmware version:"),
 #endif
 

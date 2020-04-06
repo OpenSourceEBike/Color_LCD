@@ -61,9 +61,9 @@ uint32_t buttons_get_onoff_state(void) {
 }
 
 uint32_t buttons_get_m_state(void) {
-#if defined(DISPLAY_850C)
+#ifdef DISPLAY_850C
 	return 0; // no M button on 850C
-#elif defined(DISPLAY_860C)
+#elif DISPLAY_860C
   return GPIO_ReadInputDataBit(BUTTON_M__PORT, BUTTON_M__PIN) != 0 ?
       0 : 1;
 #endif

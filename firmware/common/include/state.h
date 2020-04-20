@@ -125,6 +125,9 @@ typedef struct rt_vars_struct {
   uint8_t ui8_street_mode_speed_limit;
   uint8_t ui8_street_mode_power_limit_div25;
   uint8_t ui8_street_mode_throttle_enabled;
+
+  uint8_t ui8_pedal_cadence_fast_stop;
+  uint8_t ui8_coast_brake_adc;
 } rt_vars_t;
 
 /* Selector positions for customizable fields
@@ -321,6 +324,9 @@ typedef struct ui_vars_struct {
   uint8_t var_motor_foc_auto_thresholds;
   uint8_t var_motor_foc_threshold_max;
   uint8_t var_motor_foc_threshold_min;
+
+  uint8_t ui8_pedal_cadence_fast_stop;
+  uint8_t ui8_coast_brake_adc;
 } ui_vars_t;
 
 ui_vars_t* get_ui_vars(void);

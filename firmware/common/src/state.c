@@ -290,7 +290,10 @@ void rt_send_tx_package(frame_type_t type) {
       // battery current min ADC
       ui8_usart1_tx_buffer[79] = rt_vars.ui8_battery_current_min_adc;
 
-      crc_len = 81;
+      ui8_usart1_tx_buffer[80] = rt_vars.ui8_pedal_cadence_fast_stop;
+      ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
+
+      crc_len = 83;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -673,6 +676,9 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_street_mode_speed_limit = ui_vars.ui8_street_mode_speed_limit;
   rt_vars.ui8_street_mode_power_limit_div25 = ui_vars.ui8_street_mode_power_limit_div25;
   rt_vars.ui8_street_mode_throttle_enabled = ui_vars.ui8_street_mode_throttle_enabled;
+
+  rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_pedal_cadence_fast_stop;
+  rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_coast_brake_adc;
 }
 
 /// must be called from main() idle loop

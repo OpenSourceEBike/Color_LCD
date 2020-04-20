@@ -140,6 +140,9 @@ typedef struct eeprom_data {
   uint8_t motorFOCField_x_axis_scale_config;
 #endif
 
+  uint8_t ui8_pedal_cadence_fast_stop;
+  uint8_t ui8_coast_brake_adc;
+
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
 
@@ -258,6 +261,8 @@ void eeprom_init_defaults(void);
 #define DEFAULT_STREET_MODE_SPEED_LIMIT                             25 // 25 km/h
 #define DEFAULT_STREET_MODE_POWER_LIMIT                             10 // 250W --> 250 / 25 = 10
 #define DEFAULT_STREET_MODE_THROTTLE_ENABLE                         0 // disabled
+#define DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE                      1 // enabled
+#define DEFAULT_COAST_BRAKE_ADC                                     15 // 15: tested by plpetrov user on 28.04.2020:
 
 #define BICYCLE_1
 //#define BICYCLE_2

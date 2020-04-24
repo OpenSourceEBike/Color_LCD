@@ -68,6 +68,7 @@ void thresholds(void);
 bool wd_failure_detected;
 
 #define MAX_TIMESTR_LEN 8 // including nul terminator
+#define MAX_BATTERY_POWER_USAGE_STR_LEN 6 // Wh/km or Wh/mi , including nul terminator
 
 //
 // Fields - these might be shared my multiple screens
@@ -83,10 +84,7 @@ Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x
 Field tripTimeField = FIELD_READONLY_STRING(_S("trip time", "trip time"), (char [MAX_TIMESTR_LEN]){ 0 });
 
 Field tripDistanceField = FIELD_READONLY_UINT(_S("trip distance", "trip dista"), &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
-//Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
-
-Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui16_adc_pedal_torque_sensor, "km", false, .div_digits = 1);
-
+Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
 Field humanPowerField = FIELD_READONLY_UINT(_S("human power", "human powr"), &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
 Field batteryPowerField = FIELD_READONLY_UINT(_S("motor power", "motor powr"), &ui16_m_battery_power_filtered, "W", true, .div_digits = 0);
@@ -99,6 +97,10 @@ Field motorTempField = FIELD_READONLY_UINT(_S("motor temp", "mot temp"), &ui_var
 Field motorErpsField = FIELD_READONLY_UINT(_S("motor speed", "mot speed"), &ui_vars.ui16_motor_speed_erps, "", true, .div_digits = 0);
 Field pwmDutyField = FIELD_READONLY_UINT(_S("motor pwm", "mot pwm"), &ui_vars.ui8_duty_cycle, "", true, .div_digits = 0);
 Field motorFOCField = FIELD_READONLY_UINT(_S("motor foc", "mot foc"), &ui_vars.ui8_foc_angle, "", true, .div_digits = 0);
+
+// Note: this field label is special, the string it is pointing to must be in RAM so we can change it later
+Field batteryPowerUsageField = FIELD_READONLY_UINT((char [MAX_BATTERY_POWER_USAGE_STR_LEN]){ 0 }, &ui_vars.battery_energy_km_value_x100, "kph", true, .div_digits = 2);
+
 
 Field warnField = FIELD_CUSTOM(renderWarning);
 
@@ -122,6 +124,7 @@ Field *customizables[] = {
     &motorErpsField, // 12
 		&pwmDutyField, // 13
 		&motorFOCField, // 14
+		&batteryPowerUsageField, // 15
 		NULL
 };
 
@@ -144,12 +147,16 @@ Field motorErpsFieldGraph = FIELD_READONLY_UINT("motor speed", &rt_vars.ui16_mot
 Field pwmDutyFieldGraph = FIELD_READONLY_UINT("pwm duty-cycle", &rt_vars.ui8_duty_cycle, "", false);
 Field motorFOCFieldGraph = FIELD_READONLY_UINT("motor foc", &rt_vars.ui8_foc_angle, "", false);
 
+// Note: this field label is special, the string it is pointing to must be in RAM so we can change it later
+Field batteryPowerUsageFieldGraph = FIELD_READONLY_UINT((char [MAX_BATTERY_POWER_USAGE_STR_LEN]){ 0 }, &rt_vars.battery_energy_h_km.ui32_value_x100, "kph", false, .div_digits = 2);
+
 #ifndef SW102 // we don't have any graphs yet on SW102, possibly move this into mainscreen_850.c
 Field wheelSpeedGraph = FIELD_GRAPH(&wheelSpeedFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsWheelSpeed]);
 Field tripDistanceGraph = FIELD_GRAPH(&tripDistanceFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsTripDistance]);
 Field cadenceGraph = FIELD_GRAPH(&cadenceFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsCadence]);
 Field humanPowerGraph = FIELD_GRAPH(&humanPowerFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsHumanPower]);
 Field batteryPowerGraph = FIELD_GRAPH(&batteryPowerFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsBatteryPower]);
+Field batteryPowerUsageGraph = FIELD_GRAPH(&batteryPowerUsageFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsBatteryPowerUsage]);
 Field batteryVoltageGraph = FIELD_GRAPH(&batteryVoltageFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsBatteryVoltage]);
 Field batteryCurrentGraph = FIELD_GRAPH(&batteryCurrentFieldGraph, .filter = FilterSquare, .min_threshold = -1, .graph_vars = &g_graphVars[VarsBatteryCurrent]);
 Field motorCurrentGraph = FIELD_GRAPH(&motorCurrentFieldGraph, .min_threshold = -1, .graph_vars = &g_graphVars[VarsMotorCurrent]);
@@ -168,6 +175,7 @@ Field graph1 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[0],
   &cadenceGraph,
   &humanPowerGraph,
   &batteryPowerGraph,
+  &batteryPowerUsageGraph,
   &batteryVoltageGraph,
   &batteryCurrentGraph,
   &motorCurrentGraph,
@@ -183,6 +191,7 @@ Field graph2 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[1],
   &cadenceGraph,
   &humanPowerGraph,
   &batteryPowerGraph,
+  &batteryPowerUsageGraph,
   &batteryVoltageGraph,
   &batteryCurrentGraph,
   &motorCurrentGraph,
@@ -198,6 +207,7 @@ Field graph3 = FIELD_CUSTOMIZABLE(&ui_vars.graphs_field_selectors[2],
   &cadenceGraph,
   &humanPowerGraph,
   &batteryPowerGraph,
+  &batteryPowerUsageGraph,
   &batteryVoltageGraph,
   &batteryCurrentGraph,
   &motorCurrentGraph,
@@ -605,6 +615,16 @@ void screen_clock(void) {
 
 void thresholds(void) {
 #ifndef SW102
+
+  odoField.rw->editable.number.error_threshold = -1;
+  odoField.rw->editable.number.warn_threshold = -1;
+  odoFieldGraph.rw->editable.number.error_threshold = -1;
+  odoFieldGraph.rw->editable.number.warn_threshold = -1;
+  tripDistanceField.rw->editable.number.error_threshold = -1;
+  tripDistanceField.rw->editable.number.warn_threshold = -1;
+  tripDistanceFieldGraph.rw->editable.number.error_threshold = -1;
+  tripDistanceFieldGraph.rw->editable.number.warn_threshold = -1;
+
   if (*wheelSpeedField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     wheelSpeedField.rw->editable.number.error_threshold =
         wheelSpeedFieldGraph.rw->editable.number.error_threshold = ui_vars.wheel_max_speed_x10;
@@ -624,10 +644,17 @@ void thresholds(void) {
   }
 
   if (*cadenceField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
-    cadenceField.rw->editable.number.error_threshold =
+    if (ui_vars.ui8_torque_sensor_calibration_feature_enabled) {
+      cadenceField.rw->editable.number.error_threshold =
+        cadenceFieldGraph.rw->editable.number.error_threshold = 120; // max value for motor assistance
+      cadenceField.rw->editable.number.warn_threshold =
+        cadenceFieldGraph.rw->editable.number.warn_threshold = 100;
+    } else {
+      cadenceField.rw->editable.number.error_threshold =
         cadenceFieldGraph.rw->editable.number.error_threshold = 92;
-    cadenceField.rw->editable.number.warn_threshold =
+      cadenceField.rw->editable.number.warn_threshold =
         cadenceFieldGraph.rw->editable.number.warn_threshold = 83; // -10%
+    }
   } else if (*cadenceField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     cadenceField.rw->editable.number.error_threshold =
         cadenceFieldGraph.rw->editable.number.error_threshold = *cadenceField.rw->editable.number.config_error_threshold;
@@ -749,10 +776,17 @@ void thresholds(void) {
   }
 
   if (*pwmDutyField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
-    pwmDutyField.rw->editable.number.error_threshold =
-        pwmDutyFieldGraph.rw->editable.number.error_threshold = 100;
-    pwmDutyField.rw->editable.number.warn_threshold =
-        pwmDutyFieldGraph.rw->editable.number.warn_threshold = 85;
+    if (ui_vars.ui8_torque_sensor_calibration_feature_enabled) {
+      pwmDutyField.rw->editable.number.error_threshold =
+          pwmDutyFieldGraph.rw->editable.number.error_threshold = 111;
+      pwmDutyField.rw->editable.number.warn_threshold =
+          pwmDutyFieldGraph.rw->editable.number.warn_threshold = 99;
+    } else {
+      pwmDutyField.rw->editable.number.error_threshold =
+          pwmDutyFieldGraph.rw->editable.number.error_threshold = 100;
+      pwmDutyField.rw->editable.number.warn_threshold =
+          pwmDutyFieldGraph.rw->editable.number.warn_threshold = 90;
+    }
   } else if (*pwmDutyField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_MANUAL) {
     pwmDutyField.rw->editable.number.error_threshold =
         pwmDutyFieldGraph.rw->editable.number.error_threshold = *pwmDutyField.rw->editable.number.config_error_threshold;
@@ -761,8 +795,13 @@ void thresholds(void) {
   }
 
   if (g_graphVars[VarsMotorPWM].auto_max_min == GRAPH_AUTO_MAX_MIN_SEMI_AUTO) {
-    g_graphVars[VarsMotorPWM].max = 100;
-    g_graphVars[VarsMotorPWM].min = 0;
+    if (ui_vars.ui8_torque_sensor_calibration_feature_enabled) {
+      g_graphVars[VarsMotorPWM].max = 111;
+      g_graphVars[VarsMotorPWM].min = 0;
+    } else {
+      g_graphVars[VarsMotorPWM].max = 100;
+      g_graphVars[VarsMotorPWM].min = 0;
+    }
   }
 
   if (*motorFOCField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {

@@ -37,6 +37,12 @@ typedef enum {
 
 extern volatile motor_init_state_t g_motor_init_state;
 
+typedef struct battery_energy_h_km_struct {
+  uint32_t ui32_sum_x50;
+  uint32_t ui32_value_x100;
+  uint32_t ui32_value_x10;
+} battery_energy_h_km_t;
+
 typedef struct rt_vars_struct {
 	uint16_t ui16_adc_battery_voltage;
 	uint8_t ui8_battery_current_x5;
@@ -82,7 +88,8 @@ typedef struct rt_vars_struct {
 	uint8_t ui8_target_max_battery_power_div25;
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_motor_max_current;
-  uint8_t ui8_battery_current_min_adc;
+  uint8_t ui8_motor_current_min_adc;
+  uint8_t ui8_field_weakening;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint16_t ui16_battery_voltage_reset_wh_counter_x10;
@@ -128,6 +135,8 @@ typedef struct rt_vars_struct {
 
   uint8_t ui8_pedal_cadence_fast_stop;
   uint8_t ui8_coast_brake_adc;
+
+  battery_energy_h_km_t battery_energy_h_km;
 } rt_vars_t;
 
 /* Selector positions for customizable fields
@@ -188,6 +197,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_motor_max_current;
 	uint8_t ui8_motor_current_min_adc;
+	uint8_t ui8_field_weakening;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint16_t ui16_battery_voltage_reset_wh_counter_x10;
@@ -217,6 +227,7 @@ typedef struct ui_vars_struct {
 	uint8_t ui8_offroad_power_limit_div25;
 	uint32_t ui32_odometer_x10;
 	uint32_t ui32_trip_x10;
+	uint32_t battery_energy_km_value_x100;
 
 	uint8_t ui8_lights;
 	uint8_t ui8_braking;

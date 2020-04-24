@@ -32,6 +32,7 @@ static Field motorMenus[] = {
             FIELD_EDITABLE_UINT(_S("Max current", "Max curren"), &ui_vars.ui8_motor_max_current, "amps", 1, 30),
             FIELD_EDITABLE_UINT(_S("Current ramp", "Curre ramp"), &ui_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 100, .div_digits = 1),
             FIELD_EDITABLE_UINT(_S("Min current ADC step", "Min ADC st"), &ui_vars.ui8_motor_current_min_adc, "amps", 0, 13), // 13 ADC steps = 2 amps
+            FIELD_EDITABLE_ENUM(_S("Field weakening", "Field weak"), &ui_vars.ui8_torque_sensor_calibration_feature_enabled, "disable", "enable"),
         FIELD_END };
 
 static Field torqueSensorMenus[] =
@@ -240,6 +241,15 @@ static Field varBatteryPowerMenus[] = {
     FIELD_EDITABLE_UINT(_S("Min threshold", "Min thresh"), &g_vars[VarsBatteryPower].config_warn_threshold, "", 0, 2000, .div_digits = 0, .inc_step = 10),
   FIELD_END };
 
+static Field varBatteryPowerUsageMenus[] = {
+    FIELD_EDITABLE_ENUM(_S("Graph auto max min", "G auto m n"), &g_graphVars[VarsBatteryPowerUsage].auto_max_min, "auto", "man"),
+    FIELD_EDITABLE_UINT("Graph max", &g_graphVars[VarsBatteryPowerUsage].max, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_UINT("Graph min", &g_graphVars[VarsBatteryPowerUsage].min, "", 0, 5000, .inc_step = 10),
+    FIELD_EDITABLE_ENUM("Thresholds", &g_vars[VarsBatteryPowerUsage].auto_thresholds, "disabled", "manual"),
+    FIELD_EDITABLE_UINT(_S("Max threshold", "Max thresh"), &g_vars[VarsBatteryPowerUsage].config_error_threshold, "", 0, 2000, .div_digits = 0, .inc_step = 10),
+    FIELD_EDITABLE_UINT(_S("Min threshold", "Min thresh"), &g_vars[VarsBatteryPowerUsage].config_warn_threshold, "", 0, 2000, .div_digits = 0, .inc_step = 10),
+  FIELD_END };
+
 static Field varBatteryVoltageMenus[] = {
     FIELD_EDITABLE_ENUM(_S("Graph auto max min", "G auto m n"), &g_graphVars[VarsBatteryVoltage].auto_max_min, "auto", "man", "semi"),
     FIELD_EDITABLE_UINT("Graph max", &g_graphVars[VarsBatteryVoltage].max, "", 0, 1000, .div_digits = 1, .inc_step = 1),
@@ -318,6 +328,7 @@ static Field variablesMenus[] = {
   FIELD_SCROLLABLE("Cadence", varCadenceMenus),
   FIELD_SCROLLABLE(_S("human power", "human powr"), varHumanPowerMenus),
   FIELD_SCROLLABLE(_S("motor power", "motor powr"), varBatteryPowerMenus),
+  FIELD_SCROLLABLE(_S("Watts/km", "Watts/km"), varBatteryPowerUsageMenus),
   FIELD_SCROLLABLE(_S("batt voltage", "bat volts"), varBatteryVoltageMenus),
   FIELD_SCROLLABLE(_S("batt current", "bat curren"), varBatteryCurrentMenus),
   FIELD_SCROLLABLE(_S("battery SOC", "bat SOC"), varBatterySOCMenus),
@@ -385,6 +396,8 @@ static void configExit() {
 	// send the configurations to TSDZ2
   if (g_motor_init_state == MOTOR_INIT_READY)
     g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;
+
+  update_battery_power_usage_label();
 }
 
 static void configPreUpdate() {

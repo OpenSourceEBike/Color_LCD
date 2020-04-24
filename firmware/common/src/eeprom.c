@@ -32,6 +32,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
 		.ui8_target_max_battery_power_div25 = DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER,
 		.ui8_motor_max_current = DEFAULT_VALUE_MOTOR_MAX_CURRENT,
 	  .ui8_motor_current_min_adc = DEFAULT_VALUE_CURRENT_MIN_ADC,
+	  .ui8_field_weakening = DEFAULT_FIELD_WEAKENING,
 		.ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
 		.ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
 		.ui8_motor_type = DEFAULT_VALUE_MOTOR_TYPE,
@@ -188,9 +189,10 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .graph_eeprom[VarsCadence].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsHumanPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsBatteryPower].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
-    .graph_eeprom[VarsBatteryVoltage].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
-    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
-    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
+    .graph_eeprom[VarsBatteryPowerUsage].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatteryVoltage].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsBatteryCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
+    .graph_eeprom[VarsMotorCurrent].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsBatterySOC].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
     .graph_eeprom[VarsMotorTemp].auto_max_min = GRAPH_AUTO_MAX_MIN_SEMI_AUTO,
     .graph_eeprom[VarsMotorERPS].auto_max_min = GRAPH_AUTO_MAX_MIN_AUTO,
@@ -208,6 +210,8 @@ const eeprom_data_t m_eeprom_data_defaults = {
     .cadenceField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .batteryPowerField_auto_thresholds = FIELD_THRESHOLD_AUTO,
     .batteryPowerField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
+    .batteryPowerUsageField_auto_thresholds = FIELD_THRESHOLD_AUTO,
+    .batteryPowerUsageField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_15M,
     .batteryVoltageField_auto_thresholds = FIELD_THRESHOLD_AUTO,
     .batteryVoltageField_x_axis_scale_config = GRAPH_X_AXIS_SCALE_AUTO,
     .batteryCurrentField_auto_thresholds = FIELD_THRESHOLD_AUTO,
@@ -329,6 +333,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_motor_max_current;
   ui_vars->ui8_motor_current_min_adc =
       m_eeprom_data.ui8_motor_current_min_adc;
+  ui_vars->ui8_field_weakening =
+      m_eeprom_data.ui8_field_weakening;
 	ui_vars->ui8_ramp_up_amps_per_second_x10 =
 			m_eeprom_data.ui8_ramp_up_amps_per_second_x10;
 	ui_vars->ui16_battery_low_voltage_cut_off_x10 =
@@ -438,6 +444,16 @@ void eeprom_init_variables(void) {
     temp = batteryPowerGraph.rw->graph.x_axis_scale_config;
   }
   batteryPowerGraph.rw->graph.x_axis_scale = temp;
+
+  g_vars[VarsBatteryPowerUsage].auto_thresholds = m_eeprom_data.batteryPowerUsageField_auto_thresholds;
+  g_vars[VarsBatteryPowerUsage].config_error_threshold = m_eeprom_data.batteryPowerUsageField_config_error_threshold;
+  g_vars[VarsBatteryPowerUsage].config_warn_threshold = m_eeprom_data.batteryPowerUsageField_config_warn_threshold;
+  batteryPowerGraph.rw->graph.x_axis_scale_config = m_eeprom_data.batteryPowerUsageField_x_axis_scale_config;
+  temp = GRAPH_X_AXIS_SCALE_15M;
+  if (batteryPowerUsageGraph.rw->graph.x_axis_scale_config != GRAPH_X_AXIS_SCALE_AUTO) {
+    temp = batteryPowerUsageGraph.rw->graph.x_axis_scale_config;
+  }
+  batteryPowerUsageGraph.rw->graph.x_axis_scale = temp;
 
   g_vars[VarsBatteryVoltage].auto_thresholds = m_eeprom_data.batteryVoltageField_auto_thresholds;
   g_vars[VarsBatteryVoltage].config_error_threshold = m_eeprom_data.batteryVoltageField_config_error_threshold;
@@ -558,6 +574,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_motor_max_current;
   m_eeprom_data.ui8_motor_current_min_adc =
       ui_vars->ui8_motor_current_min_adc;
+  m_eeprom_data.ui8_field_weakening =
+      ui_vars->ui8_field_weakening;
 	m_eeprom_data.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars->ui8_ramp_up_amps_per_second_x10;
 	m_eeprom_data.ui16_battery_low_voltage_cut_off_x10 =
@@ -648,6 +666,11 @@ void eeprom_write_variables(void) {
   m_eeprom_data.batteryPowerField_config_error_threshold = g_vars[VarsBatteryPower].config_error_threshold;
   m_eeprom_data.batteryPowerField_config_warn_threshold = g_vars[VarsBatteryPower].config_warn_threshold;
   m_eeprom_data.batteryPowerField_x_axis_scale_config = batteryPowerGraph.rw->graph.x_axis_scale_config;
+
+  m_eeprom_data.batteryPowerUsageField_auto_thresholds = g_vars[VarsBatteryPowerUsage].auto_thresholds;
+  m_eeprom_data.batteryPowerUsageField_config_error_threshold = g_vars[VarsBatteryPowerUsage].config_error_threshold;
+  m_eeprom_data.batteryPowerUsageField_config_warn_threshold = g_vars[VarsBatteryPowerUsage].config_warn_threshold;
+  m_eeprom_data.batteryPowerUsageField_x_axis_scale_config = batteryPowerUsageGraph.rw->graph.x_axis_scale_config;
 
   m_eeprom_data.batteryVoltageField_auto_thresholds = g_vars[VarsBatteryVoltage].auto_thresholds;
   m_eeprom_data.batteryVoltageField_config_error_threshold = g_vars[VarsBatteryVoltage].config_error_threshold;

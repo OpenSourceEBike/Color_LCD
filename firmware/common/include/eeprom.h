@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x31
-#define EEPROM_VERSION 0x31
+#define EEPROM_MIN_COMPAT_VERSION 0x35
+#define EEPROM_VERSION 0x35
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -38,6 +38,7 @@ typedef struct eeprom_data {
 	uint8_t ui8_battery_max_current;
 	uint8_t ui8_motor_max_current;
   uint8_t ui8_motor_current_min_adc;
+  uint8_t ui8_field_weakening;
 	uint8_t ui8_ramp_up_amps_per_second_x10;
 	uint16_t ui16_battery_low_voltage_cut_off_x10;
 	uint8_t ui8_motor_type;
@@ -106,6 +107,10 @@ typedef struct eeprom_data {
   int32_t batteryPowerField_config_error_threshold;
   int32_t batteryPowerField_config_warn_threshold;
   uint8_t batteryPowerField_x_axis_scale_config;
+  field_threshold_t batteryPowerUsageField_auto_thresholds;
+  int32_t batteryPowerUsageField_config_error_threshold;
+  int32_t batteryPowerUsageField_config_warn_threshold;
+  uint8_t batteryPowerUsageField_x_axis_scale_config;
   field_threshold_t batteryVoltageField_auto_thresholds;
   int32_t batteryVoltageField_config_error_threshold;
   int32_t batteryVoltageField_config_warn_threshold;
@@ -139,6 +144,9 @@ typedef struct eeprom_data {
   int32_t motorFOCField_config_warn_threshold;
   uint8_t motorFOCField_x_axis_scale_config;
 #endif
+
+  uint8_t ui8_pedal_cadence_fast_stop;
+  uint8_t ui8_coast_brake_adc;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -258,6 +266,9 @@ void eeprom_init_defaults(void);
 #define DEFAULT_STREET_MODE_SPEED_LIMIT                             25 // 25 km/h
 #define DEFAULT_STREET_MODE_POWER_LIMIT                             10 // 250W --> 250 / 25 = 10
 #define DEFAULT_STREET_MODE_THROTTLE_ENABLE                         0 // disabled
+#define DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE                      1 // enabled
+#define DEFAULT_COAST_BRAKE_ADC                                     15 // 15: tested by plpetrov user on 28.04.2020:
+#define DEFAULT_FIELD_WEAKENING                                     1 // 1 enabled
 
 #define BICYCLE_1
 //#define BICYCLE_2
@@ -266,37 +277,37 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_FEATURE_ENABLE            0 // disabled
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_PEDAL_GROUND              0 // left pedal
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_1             0
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                196
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_1                203
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_2             5
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                222
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_2                225
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_3             10
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                245
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_3                235
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_4             15
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                258
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_4                240
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_5             19
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                262
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             30
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                269
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             40
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                273
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_5                243
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_6             40
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_6                254
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_7             54
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_7                259
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_WEIGHT_8             100
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                291
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_LEFT_ADC_8                273
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_1             0
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                190
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_1                209
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_2             5
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                217
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_2                236
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_3             10
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                232
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_3                247
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_4             15
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                238
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_4                254
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_5             19
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                241
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             30
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                246
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             40
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                249
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_5                258
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_6             40
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_6                272
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_7             54
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_7                278
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             100
-#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                263
+#define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                288
 #endif
 
 #ifdef BICYCLE_2

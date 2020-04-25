@@ -70,6 +70,8 @@ static bool blinkOn;
 
 static uint32_t screenUpdateCounter;
 
+void update_battery_power_usage_label(void);
+
 /**
  * Used to map from FieldVariant enums to rendering functions
  */
@@ -936,20 +938,27 @@ static void putAligned(FieldLayout *layout, AlignmentX alignx,
 /// Update this readonly editable with a string value.  Important: the original field target must be pointing to a WRITABLE array, not a const string.
 void updateReadOnlyStr(Field *field, const char *str) {
 	assert(field->editable.typ == ReadOnlyStr); // Make sure the field is being used as provisioned
-
 	strcpy(field->editable.target, str);
-
 	field->rw->dirty = true;
 }
 
+void updateReadOnlyLabelStr(Field *field, const char *str) {
+  strcpy(field->editable.label, str);
+  field->rw->dirty = true;
+}
+
 UG_COLOR getEditableColor(Field *f, int32_t val) {
-  int32_t warn_threshold = convertToImperialIfNeeded(f, f->rw->editable.number.warn_threshold);
-  int32_t error_threshold = convertToImperialIfNeeded(f, f->rw->editable.number.error_threshold);
+  int32_t warn_threshold = f->rw->editable.number.warn_threshold;
+  int32_t error_threshold = f->rw->editable.number.error_threshold;
   UG_COLOR color = C_WHITE;
 
   // in the case of invalid thresholds
-  if (warn_threshold == -1 || error_threshold == -1)
+  if (warn_threshold == -1 || error_threshold == -1) {
     return C_WHITE;
+  } else {
+    warn_threshold = convertToImperialIfNeeded(f, warn_threshold);
+    error_threshold = convertToImperialIfNeeded(f, error_threshold);
+  }
 
   // find if thresholds are inverted, like in the case of battery voltage
   bool threshold_inverted = false;
@@ -1479,7 +1488,8 @@ static void graphLabelAxis(Field *field) {
       max_val_pre = graph->max_val;
 
       if (graph->max_val != INT32_MIN) {
-        getEditableString(source, graph->max_val, valstr);
+        int32_t i32_value = convertToImperialIfNeeded(source, graph->max_val);
+        getEditableString(source, i32_value, valstr);
         putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
                        graphYmax, &GRAPH_MAXVAL_FONT, valstr);
       }
@@ -1492,7 +1502,8 @@ static void graphLabelAxis(Field *field) {
       min_val_pre = graph->min_val;
 
       if (graph->min_val != INT32_MAX) {
-        getEditableString(source, graph->min_val, valstr);
+        int32_t i32_value = convertToImperialIfNeeded(source, graph->min_val);
+        getEditableString(source, i32_value, valstr);
         putStringRight((GRAPH_MAXVAL_FONT.char_width * 4) + 4,
                        graphYmin - GRAPH_MAXVAL_FONT.char_height,
             &GRAPH_MAXVAL_FONT, valstr);
@@ -2405,8 +2416,28 @@ void graph_init(void) {
 #endif
 }
 
+void update_battery_power_usage_label(void) {
+  static char str_km[] = "Wh/km";
+  static char str_mi[] = "Wh/mi";
+
+  if(ui_vars.ui8_units_type == 0) {
+    updateReadOnlyLabelStr(&batteryPowerUsageField, str_km);
+#ifndef SW102
+    updateReadOnlyLabelStr(&batteryPowerUsageFieldGraph, str_km);
+#endif
+  }
+  else {
+    updateReadOnlyLabelStr(&batteryPowerUsageField, str_mi);
+#ifndef SW102
+    updateReadOnlyLabelStr(&batteryPowerUsageFieldGraph, str_mi);
+#endif
+  }
+}
+
 void screen_init(void) {
   graph_init();
+
+  update_battery_power_usage_label();
 
 #ifndef SW102
   assistLevelField.rw->visibility = FieldVisible;
@@ -2450,6 +2481,10 @@ void screen_init(void) {
   batteryPowerField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryPower].auto_thresholds;
   batteryPowerField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryPower].config_warn_threshold;
   batteryPowerField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryPower].config_error_threshold;
+
+  batteryPowerField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryPowerUsage].auto_thresholds;
+  batteryPowerField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryPowerUsage].config_warn_threshold;
+  batteryPowerField.rw->editable.number.config_error_threshold = &g_vars[VarsBatteryPowerUsage].config_error_threshold;
 
   batteryVoltageField.rw->editable.number.auto_thresholds = &g_vars[VarsBatteryVoltage].auto_thresholds;
   batteryVoltageField.rw->editable.number.config_warn_threshold = &g_vars[VarsBatteryVoltage].config_warn_threshold;

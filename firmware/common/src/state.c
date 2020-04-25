@@ -46,9 +46,7 @@ tsdz2_firmware_version_t g_tsdz2_firmware_version = { 0xff, 0, 0 };
 
 static void motor_init(void);
 
-// kevinh: I don't think volatile is probably needed here
 rt_vars_t rt_vars;
-
 ui_vars_t ui_vars;
 
 volatile bool m_reset_wh_flag = false;
@@ -246,12 +244,12 @@ void rt_send_tx_package(frame_type_t type) {
       // battery max current
       ui8_usart1_tx_buffer[7] = rt_vars.ui8_battery_max_current;
 
-      ui8_usart1_tx_buffer[8] = (rt_vars.ui8_startup_motor_power_boost_feature_enabled ? 1 : 0) |
-          (rt_vars.ui8_startup_motor_power_boost_always ? 2 : 0) |
-          (rt_vars.ui8_startup_motor_power_boost_limit_power ? 4 : 0) |
-          (rt_vars.ui8_torque_sensor_calibration_feature_enabled ? 8 : 0) |
-          (rt_vars.ui8_torque_sensor_calibration_pedal_ground ? 16 : 0) |
-          (rt_vars.ui8_motor_assistance_startup_without_pedal_rotation ? 32 : 0) |
+      ui8_usart1_tx_buffer[8] = rt_vars.ui8_startup_motor_power_boost_feature_enabled |
+          (rt_vars.ui8_startup_motor_power_boost_always << 1) |
+          (rt_vars.ui8_startup_motor_power_boost_limit_power << 2) |
+          (rt_vars.ui8_torque_sensor_calibration_feature_enabled << 3) |
+          (rt_vars.ui8_torque_sensor_calibration_pedal_ground << 4) |
+          (rt_vars.ui8_motor_assistance_startup_without_pedal_rotation << 5) |
           ((rt_vars.ui8_motor_type & 0x3) << 6);
 
       // motor max current
@@ -288,9 +286,13 @@ void rt_send_tx_package(frame_type_t type) {
       }
 
       // battery current min ADC
-      ui8_usart1_tx_buffer[79] = rt_vars.ui8_battery_current_min_adc;
+      ui8_usart1_tx_buffer[79] = rt_vars.ui8_motor_current_min_adc;
 
-      crc_len = 81;
+      ui8_usart1_tx_buffer[80] = rt_vars.ui8_pedal_cadence_fast_stop | (rt_vars.ui8_field_weakening << 1);
+
+      ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
+
+      crc_len = 83;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -433,6 +435,7 @@ void reset_wh(void) {
 static void rt_calc_odometer(void) {
   static uint8_t ui8_1s_timer_counter;
 	uint32_t uint32_temp;
+	uint8_t ui8_01km_flag = 0;
 
 	// calc at 1s rate
 	if (++ui8_1s_timer_counter >= 10) {
@@ -463,12 +466,36 @@ static void rt_calc_odometer(void) {
 			// ui_vars.ui16_distance_since_power_on_x10 += 1;
 			rt_vars.ui32_odometer_x10 += 1;
 			rt_vars.ui32_trip_x10 += 1;
+			ui8_01km_flag = 1;
 
 			// reset the always incrementing value (up to motor controller power reset) by setting the offset to current value
 			rt_vars.ui32_wheel_speed_sensor_tick_counter_offset =
 					rt_vars.ui32_wheel_speed_sensor_tick_counter;
 		}
 	}
+
+  // calc battery energy per km
+#define BATTERY_ENERGY_H_KM_FACTOR_X2 1800 // (60 * 60) / 2, each step at fixed interval of 100ms and apply 1 / 2 for have value from _x50 to _x100
+
+	// keep accumulating the energy
+  rt_vars.battery_energy_h_km.ui32_sum_x50 += rt_vars.ui16_full_battery_power_filtered_x50;
+
+  static uint16_t ui16_one_km_timeout_counter = 0;
+
+  // reset value if riding at very low speed or being stopped for 2 minutes
+  if (++ui16_one_km_timeout_counter >= 600) { // 600 equals min of average 2km/h for 2 minutes, at least
+    ui16_one_km_timeout_counter = 600; // keep on this state...
+    rt_vars.battery_energy_h_km.ui32_value_x100 = 0;
+    rt_vars.battery_energy_h_km.ui32_value_x10 = 0;
+    rt_vars.battery_energy_h_km.ui32_sum_x50 = 0;
+  }
+
+	if (ui8_01km_flag) {
+    ui16_one_km_timeout_counter = 0;
+    rt_vars.battery_energy_h_km.ui32_value_x100 = rt_vars.battery_energy_h_km.ui32_sum_x50 / BATTERY_ENERGY_H_KM_FACTOR_X2;
+    rt_vars.battery_energy_h_km.ui32_value_x10 = rt_vars.battery_energy_h_km.ui32_value_x100 / 10;
+    rt_vars.battery_energy_h_km.ui32_sum_x50 = 0;
+  }
 }
 
 static void rt_low_pass_filter_pedal_cadence(void) {
@@ -609,6 +636,7 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui8_foc_angle = (((uint16_t) rt_vars.ui8_foc_angle) * 14) / 10; // each units is equal to 1.4 degrees ((360 degrees / 256) = 1.4)
 	ui_vars.ui32_trip_x10 = rt_vars.ui32_trip_x10;
 	ui_vars.ui32_odometer_x10 = rt_vars.ui32_odometer_x10;
+	ui_vars.battery_energy_km_value_x100 = rt_vars.battery_energy_h_km.ui32_value_x100;
 
   rt_vars.ui32_wh_x10_100_percent = ui_vars.ui32_wh_x10_100_percent;
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;
@@ -625,7 +653,8 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui8_offroad_mode = ui_vars.ui8_offroad_mode;
 	rt_vars.ui8_battery_max_current = ui_vars.ui8_battery_max_current;
 	rt_vars.ui8_motor_max_current = ui_vars.ui8_motor_max_current;
-	rt_vars.ui8_battery_current_min_adc = ui_vars.ui8_motor_current_min_adc;
+	rt_vars.ui8_motor_current_min_adc = ui_vars.ui8_motor_current_min_adc;
+	rt_vars.ui8_field_weakening = ui_vars.ui8_field_weakening;
 	rt_vars.ui8_ramp_up_amps_per_second_x10 =
 			ui_vars.ui8_ramp_up_amps_per_second_x10;
 	rt_vars.ui8_target_max_battery_power_div25 = ui_vars.ui8_target_max_battery_power_div25;
@@ -673,6 +702,9 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_street_mode_speed_limit = ui_vars.ui8_street_mode_speed_limit;
   rt_vars.ui8_street_mode_power_limit_div25 = ui_vars.ui8_street_mode_power_limit_div25;
   rt_vars.ui8_street_mode_throttle_enabled = ui_vars.ui8_street_mode_throttle_enabled;
+
+  rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_pedal_cadence_fast_stop;
+  rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_coast_brake_adc;
 }
 
 /// must be called from main() idle loop
@@ -704,7 +736,6 @@ void automatic_power_off_management(void) {
 void communications(void) {
   frame_type_t ui8_frame;
   uint8_t process_frame = 0;
-  uint16_t ui16_temp;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
 
@@ -771,10 +802,7 @@ void communications(void) {
 
             rt_vars.ui8_pedal_cadence = p_rx_buffer[14];
 
-            // convert duty-cycle to 0 - 100 %
-            ui16_temp = (uint16_t) p_rx_buffer[15];
-            ui16_temp = (ui16_temp * 100) / 254;
-            rt_vars.ui8_duty_cycle = (uint8_t) ui16_temp;
+            rt_vars.ui8_duty_cycle = p_rx_buffer[15];
 
             rt_vars.ui16_motor_speed_erps = ((uint16_t) p_rx_buffer[16]) | ((uint16_t) p_rx_buffer[17] << 8);
             rt_vars.ui8_foc_angle = p_rx_buffer[18];

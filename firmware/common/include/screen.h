@@ -194,6 +194,7 @@ typedef enum {
   VarsCadence,
   VarsHumanPower,
   VarsBatteryPower,
+  VarsBatteryPowerUsage,
   VarsBatteryVoltage,
   VarsBatteryCurrent,
   VarsMotorCurrent,
@@ -325,7 +326,7 @@ typedef const struct Field {
 		} customizable;
 
 		struct {
-			const char *label; // the label shown in theauto_thresholds GUI for this item
+			char *label; // the label shown in theauto_thresholds GUI for this item
 			void *target; // the data we are showing/manipulating
 			const EditableType typ : 2;
 			const uint8_t size :3; // sizeof for the specified target - we support 1 or 2 or 4
@@ -544,6 +545,8 @@ void screen_init(void);
 void rt_graph_process(void);
 
 int32_t convertUnits(int32_t val, ConvertUnitsType type);
+
+void update_battery_power_usage_label(void);
 
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;

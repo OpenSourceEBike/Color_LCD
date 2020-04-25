@@ -2422,11 +2422,15 @@ void update_battery_power_usage_label(void) {
 
   if(ui_vars.ui8_units_type == 0) {
     updateReadOnlyLabelStr(&batteryPowerUsageField, str_km);
+#ifndef SW102
     updateReadOnlyLabelStr(&batteryPowerUsageFieldGraph, str_km);
+#endif
   }
   else {
     updateReadOnlyLabelStr(&batteryPowerUsageField, str_mi);
+#ifndef SW102
     updateReadOnlyLabelStr(&batteryPowerUsageFieldGraph, str_mi);
+#endif
   }
 }
 

@@ -546,6 +546,8 @@ void rt_graph_process(void);
 
 int32_t convertUnits(int32_t val, ConvertUnitsType type);
 
+void update_battery_power_usage_label(void);
+
 extern const UG_FONT *editable_label_font;
 extern const UG_FONT *editable_value_font;
 extern const UG_FONT *editable_units_font;

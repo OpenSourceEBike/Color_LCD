@@ -736,7 +736,6 @@ void automatic_power_off_management(void) {
 void communications(void) {
   frame_type_t ui8_frame;
   uint8_t process_frame = 0;
-  uint16_t ui16_temp;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
 

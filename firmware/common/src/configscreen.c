@@ -393,11 +393,11 @@ static void configExit() {
 	eeprom_write_variables();
 	set_conversions(); // we just changed units
 
+  update_battery_power_usage_label();
+
 	// send the configurations to TSDZ2
   if (g_motor_init_state == MOTOR_INIT_READY)
     g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;
-
-  update_battery_power_usage_label();
 }
 
 static void configPreUpdate() {

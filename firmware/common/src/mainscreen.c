@@ -616,14 +616,12 @@ void screen_clock(void) {
 void thresholds(void) {
 #ifndef SW102
 
-  odoField.rw->editable.number.error_threshold = -1;
-  odoField.rw->editable.number.warn_threshold = -1;
-  odoFieldGraph.rw->editable.number.error_threshold = -1;
-  odoFieldGraph.rw->editable.number.warn_threshold = -1;
-  tripDistanceField.rw->editable.number.error_threshold = -1;
-  tripDistanceField.rw->editable.number.warn_threshold = -1;
-  tripDistanceFieldGraph.rw->editable.number.error_threshold = -1;
-  tripDistanceFieldGraph.rw->editable.number.warn_threshold = -1;
+  odoField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  odoFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  tripDistanceField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  tripDistanceFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  batteryPowerUsageField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  batteryPowerUsageFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
 
   if (*wheelSpeedField.rw->editable.number.auto_thresholds == FIELD_THRESHOLD_AUTO) {
     wheelSpeedField.rw->editable.number.error_threshold =

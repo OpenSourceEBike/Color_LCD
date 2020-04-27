@@ -35,7 +35,7 @@ static const app_uart_comm_params_t comm_params =
     //Below values are defined in ser_config.h common for application and connectivity
     .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
     .use_parity   = false,
-    .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud9600
+    .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud19200
 };
 
 uint8_t ui8_rx_buffer[UART_NUMBER_DATA_BYTES_TO_RECEIVE];
@@ -62,12 +62,6 @@ void usart1_reset_received_package(void)
   ui8_received_package_flag = 0;
 }
 
-/**@brief   Function for handling UART interrupts.
- *
- * @details This function will receive a single character from the UART and append it to a string.
- *          The string will be be sent over BLE when the last character received was a 'new line'
- *          i.e '\n' (hex 0x0D) or if the string has reached a length of @ref NUS_MAX_DATA_LENGTH.
- */
 void uart_evt_callback(app_uart_evt_t * uart_evt)
 {
   uint8_t ui8_byte_received;
@@ -89,8 +83,11 @@ void uart_evt_callback(app_uart_evt_t * uart_evt)
           ui8_rx[0] = ui8_byte_received;
           ui8_state_machine = 1;
         }
-        else
+        else {
           ui8_state_machine = 0;
+        }
+
+        ui8_rx_cnt = 0;
         break;
 
         case 1:
@@ -105,7 +102,6 @@ void uart_evt_callback(app_uart_evt_t * uart_evt)
         // reset if it is the last byte of the package and index is out of bounds
         if (ui8_rx_cnt >= ui8_rx[1])
         {
-          ui8_rx_cnt = 0;
           ui8_state_machine = 0;
 
           // just to make easy next calculations

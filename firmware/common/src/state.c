@@ -287,12 +287,11 @@ void rt_send_tx_package(frame_type_t type) {
 
       // battery current min ADC
       ui8_usart1_tx_buffer[79] = rt_vars.ui8_motor_current_min_adc;
-
       ui8_usart1_tx_buffer[80] = rt_vars.ui8_pedal_cadence_fast_stop | (rt_vars.ui8_field_weakening << 1);
-
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
+      ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
 
-      crc_len = 83;
+      crc_len = 84;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -637,6 +636,7 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui32_trip_x10 = rt_vars.ui32_trip_x10;
 	ui_vars.ui32_odometer_x10 = rt_vars.ui32_odometer_x10;
 	ui_vars.battery_energy_km_value_x100 = rt_vars.battery_energy_h_km.ui32_value_x100;
+  ui_vars.ui16_adc_battery_current = rt_vars.ui16_adc_battery_current;
 
   rt_vars.ui32_wh_x10_100_percent = ui_vars.ui32_wh_x10_100_percent;
 	rt_vars.ui32_wh_x10_offset = ui_vars.ui32_wh_x10_offset;
@@ -704,7 +704,8 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_street_mode_throttle_enabled = ui_vars.ui8_street_mode_throttle_enabled;
 
   rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_pedal_cadence_fast_stop;
-  rt_vars.ui8_pedal_cadence_fast_stop = ui_vars.ui8_coast_brake_adc;
+  rt_vars.ui8_coast_brake_adc = ui_vars.ui8_coast_brake_adc;
+  rt_vars.ui8_adc_lights_current_offset = ui_vars.ui8_adc_lights_current_offset;
 }
 
 /// must be called from main() idle loop
@@ -736,6 +737,7 @@ void automatic_power_off_management(void) {
 void communications(void) {
   frame_type_t ui8_frame;
   uint8_t process_frame = 0;
+  uint16_t ui16_temp;
 
   const uint8_t *p_rx_buffer = uart_get_rx_buffer_rdy();
 
@@ -778,11 +780,8 @@ void communications(void) {
           case FRAME_TYPE_PERIODIC:
             rt_vars.ui16_adc_battery_voltage = p_rx_buffer[3] | (((uint16_t) (p_rx_buffer[4] & 0x30)) << 4);
             rt_vars.ui8_battery_current_x5 = p_rx_buffer[5];
-            rt_vars.ui16_wheel_speed_x10 = ((uint16_t) p_rx_buffer[6]) | (((uint16_t) p_rx_buffer[7] << 8));
-
-            // for some reason, the previous value of rt_vars.ui16_wheel_speed_x10 is 16384, because p_rx_buffer[7] is 64,
-            // this even when rx_buffer[6] and rx_buffer[7] are both 0 on the motor controller
-            rt_vars.ui16_wheel_speed_x10 = rt_vars.ui16_wheel_speed_x10 & 0x7ff; // 0x7ff = 204.7km/h
+            ui16_temp = ((uint16_t) p_rx_buffer[6]) | (((uint16_t) p_rx_buffer[7] << 8));
+            rt_vars.ui16_wheel_speed_x10 = ui16_temp & 0x7ff; // 0x7ff = 204.7km/h as the other bits are used for other things
 
             uint8_t ui8_temp = p_rx_buffer[8];
             rt_vars.ui8_braking = ui8_temp & 1;
@@ -815,6 +814,9 @@ void communications(void) {
             rt_vars.ui32_wheel_speed_sensor_tick_counter = ui32_wheel_speed_sensor_tick_temp;
 
             rt_vars.ui16_pedal_power_x10 = ((uint16_t) p_rx_buffer[24]) | ((uint16_t) p_rx_buffer[25] << 8);
+
+            ui16_temp = (uint16_t) p_rx_buffer[26];
+            rt_vars.ui16_adc_battery_current = ui16_temp | ((uint16_t) ((p_rx_buffer[7] & 0x18) << 5));
             break;
 
           case FRAME_TYPE_FIRMWARE_VERSION:
@@ -959,7 +961,7 @@ static void motor_init(void) {
         break;
 
       case MOTOR_INIT_GOT_MOTOR_FIRMWARE_VERSION:
-        if (g_tsdz2_firmware_version.major == atoi(TSDZ2_FIRMWARE_MAJOR) ||
+        if (g_tsdz2_firmware_version.major == atoi(TSDZ2_FIRMWARE_MAJOR) &&
             g_tsdz2_firmware_version.minor == atoi(TSDZ2_FIRMWARE_MINOR)) {
 
             g_motor_init_state = MOTOR_INIT_SET_CONFIGURATIONS;

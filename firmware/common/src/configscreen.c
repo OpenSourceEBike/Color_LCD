@@ -180,8 +180,6 @@ static Field displayMenus[] =
   FIELD_EDITABLE_UINT(_S("Auto power off", "Auto p off"), &ui_vars.ui8_lcd_power_off_time_minutes, "mins", 0, 255),
   FIELD_EDITABLE_ENUM("Units", &ui_vars.ui8_units_type, "SI", "Imperial"),
 #ifndef SW102
-//  FIELD_READONLY_STRING("Display firmware", ""),
-//  FIELD_READONLY_STRING("TSDZ2 firmware", ""),
   FIELD_READONLY_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
 #endif
   FIELD_EDITABLE_ENUM(_S("Reset to defaults", "Reset def"), &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
@@ -190,6 +188,7 @@ static Field displayMenus[] =
 static Field variousMenus[] = {
     FIELD_EDITABLE_ENUM(_S("Cadence fast stop", "Cadenc stp"), &ui_vars.ui8_pedal_cadence_fast_stop, "no", "yes"),
     FIELD_EDITABLE_UINT(_S("Coast brake ADC", "Coa bk ADC"), &ui_vars.ui8_coast_brake_adc, "", 5, 255),
+    FIELD_EDITABLE_UINT(_S("ADC lights offset", "ADC lights"), &ui_vars.ui8_adc_lights_current_offset, "", 0, 4),
     FIELD_EDITABLE_ENUM(_S("Assist w/o pedal rot", "A w/o ped"), &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
     FIELD_EDITABLE_UINT("Odometer", &ui_vars.ui32_odometer_x10, "km", 0, UINT32_MAX, .div_digits = 1, .inc_step = 100, .onSetEditable = onSetConfigurationWheelOdometer),
   FIELD_END };
@@ -341,6 +340,7 @@ static Field variablesMenus[] = {
 #endif
 
 static Field technicalMenus[] = {
+  FIELD_READONLY_UINT(_S("ADC battery current", "ADC bat cu"), &ui_vars.ui16_adc_battery_current, ""),
   FIELD_READONLY_UINT(_S("ADC throttle sensor", "ADC thrott"), &ui_vars.ui8_adc_throttle, ""),
   FIELD_READONLY_UINT(_S("Throttle sensor", "Throttle s"), &ui_vars.ui8_throttle, ""),
   FIELD_READONLY_UINT(_S("ADC torque sensor", "ADC torque"), &ui_vars.ui16_adc_pedal_torque_sensor, ""),

@@ -147,6 +147,7 @@ typedef struct eeprom_data {
 
   uint8_t ui8_pedal_cadence_fast_stop;
   uint8_t ui8_coast_brake_adc;
+  uint8_t ui8_adc_lights_current_offset;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -269,6 +270,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE                      1 // enabled
 #define DEFAULT_COAST_BRAKE_ADC                                     15 // 15: tested by plpetrov user on 28.04.2020:
 #define DEFAULT_FIELD_WEAKENING                                     1 // 1 enabled
+#define DEFAULT_ADC_LIGHTS_CURRENT_OFFSET                           0
 
 #define BICYCLE_1
 //#define BICYCLE_2

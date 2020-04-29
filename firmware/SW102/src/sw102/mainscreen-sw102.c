@@ -69,10 +69,10 @@ static void mainScreenOnEnter() {
 #define MAIN_SCREEN_WHEELSPEED_WIDTH              62
 #define MAIN_SCREEN_WHEELSPEED_HEIGHT             40
 
-#define MAIN_SCREEN_MAXPOWER_X                    1
-#define MAIN_SCREEN_MAXPOWER_Y                    21
-#define MAIN_SCREEN_MAXPOWER_WIDTH                62
-#define MAIN_SCREEN_MAXPOWER_HEIGHT               34
+#define MAIN_SCREEN_WHEELSPEED_ALTERNATE_X        1
+#define MAIN_SCREEN_WHEELSPEED_ALTERNATE_Y        21
+#define MAIN_SCREEN_WHEELSPEED_ALTERNATE_WIDTH    62
+#define MAIN_SCREEN_WHEELSPEED_ALTERNATE_HEIGHT   34
 
 #define MAIN_SCREEN_CUSTOM_1_X                    1
 #define MAIN_SCREEN_CUSTOM_1_Y                    63
@@ -105,11 +105,11 @@ Screen mainScreen1 = {
       .border = BorderNone,
     },
     {
-      .x = MAIN_SCREEN_MAXPOWER_X,
-      .y = MAIN_SCREEN_MAXPOWER_Y,
-      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
-      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
-      .field = &motorMaxPowerField,
+      .x = MAIN_SCREEN_WHEELSPEED_ALTERNATE_X,
+      .y = MAIN_SCREEN_WHEELSPEED_ALTERNATE_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_ALTERNATE_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_ALTERNATE_HEIGHT,
+      .field = &fieldAlternate,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
       .align_x = AlignCenter,
@@ -171,11 +171,11 @@ Screen mainScreen2 = {
       .border = BorderNone,
     },
     {
-      .x = MAIN_SCREEN_MAXPOWER_X,
-      .y = MAIN_SCREEN_MAXPOWER_Y,
-      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
-      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
-      .field = &motorMaxPowerField,
+      .x = MAIN_SCREEN_WHEELSPEED_ALTERNATE_X,
+      .y = MAIN_SCREEN_WHEELSPEED_ALTERNATE_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_ALTERNATE_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_ALTERNATE_HEIGHT,
+      .field = &fieldAlternate,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
       .align_x = AlignCenter,
@@ -237,11 +237,11 @@ Screen mainScreen3 = {
       .border = BorderNone,
     },
     {
-      .x = MAIN_SCREEN_MAXPOWER_X,
-      .y = MAIN_SCREEN_MAXPOWER_Y,
-      .width = MAIN_SCREEN_MAXPOWER_WIDTH,
-      .height = MAIN_SCREEN_MAXPOWER_HEIGHT,
-      .field = &motorMaxPowerField,
+      .x = MAIN_SCREEN_WHEELSPEED_ALTERNATE_X,
+      .y = MAIN_SCREEN_WHEELSPEED_ALTERNATE_Y,
+      .width = MAIN_SCREEN_WHEELSPEED_ALTERNATE_WIDTH,
+      .height = MAIN_SCREEN_WHEELSPEED_ALTERNATE_HEIGHT,
+      .field = &fieldAlternate,
       .font = &MEDIUM_NUMBERS_TEXT_FONT,
       .label_align_y = AlignTop,
       .align_x = AlignCenter,

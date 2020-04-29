@@ -271,6 +271,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_pedal_cadence_fast_stop = DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE,
   .ui8_coast_brake_adc = DEFAULT_COAST_BRAKE_ADC,
   .ui8_adc_lights_current_offset = DEFAULT_ADC_LIGHTS_CURRENT_OFFSET,
+  .ui8_throttle_virtual_step = DEFAULT_THROTTLE_VIRTUAL_STEP,
 };
 
 void eeprom_init() {
@@ -557,6 +558,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_coast_brake_adc;
   ui_vars->ui8_adc_lights_current_offset =
       m_eeprom_data.ui8_adc_lights_current_offset;
+  ui_vars->ui8_throttle_virtual_step =
+      m_eeprom_data.ui8_throttle_virtual_step;
 }
 
 void eeprom_write_variables(void) {
@@ -732,6 +735,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_coast_brake_adc;
   m_eeprom_data.ui8_adc_lights_current_offset =
       ui_vars->ui8_adc_lights_current_offset;
+  m_eeprom_data.ui8_throttle_virtual_step =
+      ui_vars->ui8_throttle_virtual_step;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }

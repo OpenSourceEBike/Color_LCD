@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x35
-#define EEPROM_VERSION 0x35
+#define EEPROM_MIN_COMPAT_VERSION 0x36
+#define EEPROM_VERSION 0x36
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -148,6 +148,7 @@ typedef struct eeprom_data {
   uint8_t ui8_pedal_cadence_fast_stop;
   uint8_t ui8_coast_brake_adc;
   uint8_t ui8_adc_lights_current_offset;
+  uint8_t ui8_throttle_virtual_step;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -271,6 +272,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_COAST_BRAKE_ADC                                     15 // 15: tested by plpetrov user on 28.04.2020:
 #define DEFAULT_FIELD_WEAKENING                                     1 // 1 enabled
 #define DEFAULT_ADC_LIGHTS_CURRENT_OFFSET                           0
+#define DEFAULT_THROTTLE_VIRTUAL_STEP                               5
 
 #define BICYCLE_1
 //#define BICYCLE_2

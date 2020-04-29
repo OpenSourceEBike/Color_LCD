@@ -137,6 +137,7 @@ typedef struct rt_vars_struct {
   uint8_t ui8_coast_brake_adc;
   uint8_t ui8_adc_lights_current_offset;
   uint16_t ui16_adc_battery_current;
+  uint8_t ui8_throttle_virtual;
 
   battery_energy_h_km_t battery_energy_h_km;
 } rt_vars_t;
@@ -342,6 +343,8 @@ typedef struct ui_vars_struct {
   uint8_t ui8_coast_brake_adc;
   uint8_t ui8_adc_lights_current_offset;
   uint16_t ui16_adc_battery_current;
+  uint8_t ui8_throttle_virtual;
+  uint8_t ui8_throttle_virtual_step;
 } ui_vars_t;
 
 ui_vars_t* get_ui_vars(void);

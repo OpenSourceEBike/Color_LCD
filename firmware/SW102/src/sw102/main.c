@@ -216,7 +216,7 @@ int main(void)
 //      if(tick < 50 * 5) // uncomment to force a watchdog failure after 5 seconds
 //        watchdog_service(); // we only service the watchdog if we see our ticks are still increasing
 
-      if(tick != lasttick + 1) {
+      if (tick != lasttick + 1) {
         ticksmissed += (tick - lasttick - 1); // Error!  We fell behind and missed some ticks (probably due to screen draw taking more than 20 msec)
 
         // if(is_sim_motor) app_error_fault_handler(FAULT_MISSEDTICK, 0, ticksmissed);

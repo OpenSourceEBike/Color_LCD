@@ -187,8 +187,10 @@ static Field displayMenus[] =
 
 static Field variousMenus[] = {
     FIELD_EDITABLE_ENUM(_S("Cadence fast stop", "Cadenc stp"), &ui_vars.ui8_pedal_cadence_fast_stop, "no", "yes"),
-    FIELD_EDITABLE_UINT(_S("Coast brake ADC", "Coa bk ADC"), &ui_vars.ui8_coast_brake_adc, "", 5, 255),
     FIELD_EDITABLE_UINT(_S("ADC lights offset", "ADC lights"), &ui_vars.ui8_adc_lights_current_offset, "", 0, 4),
+    FIELD_EDITABLE_UINT(_S("Virtual throttle step", "V thr step"), &ui_vars.ui8_throttle_virtual_step, "", 1, 100),
+    FIELD_EDITABLE_ENUM(_S("Coast brake", "Coast brak"), &ui_vars.ui8_coast_brake_enable, "disable", "enable"),
+    FIELD_EDITABLE_UINT(_S("Coast brake ADC", "Coa bk ADC"), &ui_vars.ui8_coast_brake_adc, "", 5, 255),
     FIELD_EDITABLE_ENUM(_S("Assist w/o pedal rot", "A w/o ped"), &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
     FIELD_EDITABLE_UINT("Odometer", &ui_vars.ui32_odometer_x10, "km", 0, UINT32_MAX, .div_digits = 1, .inc_step = 100, .onSetEditable = onSetConfigurationWheelOdometer),
   FIELD_END };

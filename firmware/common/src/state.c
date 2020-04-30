@@ -165,7 +165,6 @@ rt_vars.ui16_wheel_speed_x10 = 842; // for testing, just leave speed fixed
 void rt_send_tx_package(frame_type_t type) {
   uint8_t crc_len = 3; // minimun is 3
 	uint8_t *ui8_usart1_tx_buffer = uart_get_tx_buffer();
-	uint16_t ui16_temp;
 
 	/************************************************************************************************/
 	// send tx package
@@ -228,9 +227,10 @@ void rt_send_tx_package(frame_type_t type) {
         ui8_usart1_tx_buffer[10] = rt_vars.ui8_temperature_limit_feature_enabled & 3;
       }
 
-//      ui8_usart1_tx_buffer[11] = (uint8_t) ((((uint16_t) rt_vars.ui8_throttle_virtual) * 255) / 100);
+      // virtual throttle
+      ui8_usart1_tx_buffer[11] = (uint8_t) ((((uint16_t) rt_vars.ui8_throttle_virtual) * 255) / 100);
 
-      crc_len = 12;
+      crc_len = 13;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -290,7 +290,9 @@ void rt_send_tx_package(frame_type_t type) {
 
       // battery current min ADC
       ui8_usart1_tx_buffer[79] = rt_vars.ui8_motor_current_min_adc;
-      ui8_usart1_tx_buffer[80] = rt_vars.ui8_pedal_cadence_fast_stop | (rt_vars.ui8_field_weakening << 1);
+      ui8_usart1_tx_buffer[80] = (rt_vars.ui8_pedal_cadence_fast_stop |
+          (rt_vars.ui8_field_weakening << 1) |
+          (rt_vars.ui8_coast_brake_enable << 2));
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
       ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
 
@@ -710,6 +712,7 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_coast_brake_adc = ui_vars.ui8_coast_brake_adc;
   rt_vars.ui8_adc_lights_current_offset = ui_vars.ui8_adc_lights_current_offset;
   rt_vars.ui8_throttle_virtual = ui_vars.ui8_throttle_virtual;
+  rt_vars.ui8_coast_brake_enable = ui_vars.ui8_coast_brake_enable;
 }
 
 /// must be called from main() idle loop

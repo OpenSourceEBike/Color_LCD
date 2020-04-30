@@ -77,8 +77,9 @@ void mainScreenOnDirtyClean() {
   if (ui_vars.ui8_street_mode_function_enabled == 0)
     assist_color = MAIN_SCREEN_FIELD_LABELS_COLOR;
 
-  // if motorMaxPowerField is enable, do not show ASSIST
-  if (fieldAlternate.rw->visibility == FieldTransitionVisible) {
+  // if fieldAlternate is enable, do not show ASSIST
+  if ((fieldAlternate.rw->visibility == FieldTransitionVisible) ||
+      (fieldAlternate.rw->visibility == FieldVisible)) {
     UG_PutString(14, 46, "      ");
   } else {
     UG_SetForecolor(assist_color);

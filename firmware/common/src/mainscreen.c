@@ -469,7 +469,8 @@ static bool onPressAlternateField(buttons_events_t events) {
       if (events & UP_CLICK) {
         handled = true;
 
-        if (ui8_m_can_increment_decrement) {
+        if (ui8_m_can_increment_decrement &&
+            ui_vars.ui8_assist_level) {
           if ((ui_vars.ui8_throttle_virtual + ui_vars.ui8_throttle_virtual_step) <= 100) {
             ui_vars.ui8_throttle_virtual += ui_vars.ui8_throttle_virtual_step;
           } else {
@@ -485,7 +486,8 @@ static bool onPressAlternateField(buttons_events_t events) {
       if (events & DOWN_CLICK) {
         handled = true;
 
-        if (ui8_m_can_increment_decrement) {
+        if (ui8_m_can_increment_decrement &&
+            ui_vars.ui8_assist_level) {
           if (ui_vars.ui8_throttle_virtual >= ui_vars.ui8_throttle_virtual_step) {
             ui_vars.ui8_throttle_virtual -= ui_vars.ui8_throttle_virtual_step;
           } else {
@@ -625,8 +627,8 @@ void alternatField(void) {
       UG_SetForecolor(MAIN_SCREEN_FIELD_LABELS_COLOR);
       UG_FontSelect(&FONT_10X16);
       UG_PutString(15, 46, "      ");
-      break;
 #endif
+      break;
 
     case 2:
       updateReadOnlyLabelStr(&fieldAlternate, str_max_power);

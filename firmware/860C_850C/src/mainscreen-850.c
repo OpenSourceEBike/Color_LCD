@@ -62,28 +62,18 @@ void mainScreenOnDirtyClean() {
     UG_PutString(265, 46 , "MPH");
   }
 
-  // if street mode is enable, show ASSIST with regular color otherwise use orange color
-  UG_COLOR assist_color;
-  if ((assistLevelField.rw->visibility == FieldTransitionVisible) ||
-      (assistLevelField.rw->visibility == FieldVisible)) {
-    if (ui_vars.ui8_street_mode_enabled) {
-      assist_color = MAIN_SCREEN_FIELD_LABELS_COLOR;
-    } else {
-      assist_color = C_ORANGE_RED;
-    }
-  }
-
-  // if street mode feature is disabled, show with regular color
-  if (ui_vars.ui8_street_mode_function_enabled == 0)
-    assist_color = MAIN_SCREEN_FIELD_LABELS_COLOR;
-
   // if fieldAlternate is enable, do not show ASSIST
   if ((fieldAlternate.rw->visibility == FieldTransitionVisible) ||
       (fieldAlternate.rw->visibility == FieldVisible)) {
-    UG_PutString(14, 46, "      ");
+    UG_PutString(5, 43, "             ");
+  } else if (ui_vars.ui8_street_mode_function_enabled == 1) {
+    if (ui_vars.ui8_street_mode_enabled) {
+        UG_PutString(5, 43, "ASSIST STREET");
+    } else {
+        UG_PutString(5, 43, "ASSIST FULL  ");
+    }
   } else {
-    UG_SetForecolor(assist_color);
-    UG_PutString(14, 46, "ASSIST");
+    UG_PutString(5, 43, "ASSIST       ");
   }
 }
 
@@ -141,7 +131,7 @@ Screen mainScreen1 = {
     BATTERY_BAR,
     {
       .x = 0, .y = 77,
-      .width = 91, .height = -1,
+      .width = 123, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -258,7 +248,7 @@ Screen mainScreen2 = {
     BATTERY_BAR,
     {
       .x = 0, .y = 77,
-      .width = 91, .height = -1,
+      .width = 123, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,
@@ -375,7 +365,7 @@ Screen mainScreen3 = {
     BATTERY_BAR,
     {
       .x = 0, .y = 77,
-      .width = 91, .height = -1,
+      .width = 123, .height = -1,
       .field = &assistLevelField,
       .font = &BIG_NUMBERS_TEXT_FONT,
       .label_align_x = AlignHidden,

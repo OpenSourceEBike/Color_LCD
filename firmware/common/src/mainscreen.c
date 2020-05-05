@@ -24,6 +24,7 @@
 #include "configscreen.h"
 #include "state.h"
 #include "timer.h"
+#include "peer_manager.h"
 
 // only used on SW102, to count timeout to override the wheel speed value with assist level value
 static uint16_t m_assist_level_change_timeout = 0;
@@ -57,6 +58,7 @@ void wheel_speed(void);
 void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 void DisplayResetToDefaults(void);
+void DisplayResetBluetoothPeers(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
@@ -699,6 +701,7 @@ void screen_clock(void) {
     clock_time();
 #endif
     DisplayResetToDefaults();
+    DisplayResetBluetoothPeers();
     batteryTotalWh();
     batteryCurrent();
     batteryResistance();
@@ -964,7 +967,7 @@ void warnings(void) {
   }
 
 	// High priorty faults in red
-  if(ui_vars.ui8_error_states) {
+  if (ui_vars.ui8_error_states) {
     if (ui_vars.ui8_error_states & 1)
       ui8_motorErrorsIndex = 1;
     else if (ui_vars.ui8_error_states & 2)
@@ -989,20 +992,20 @@ void warnings(void) {
 		return;
 	}
 
-	if(motor_temp_limit &&
+	if (motor_temp_limit &&
 	    ui_vars.ui8_motor_temperature >= ui_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, _S("Temp Shutdown", "Temp Shut"));
 		return;
 	}
 
 	// If we had a watchdog failure, show it forever - so user will report a bug
-	if(wd_failure_detected) {
+	if (wd_failure_detected) {
     setWarning(ColorError, "Report Bug!");
     return;
 	}
 
 	// warn faults in yellow
-  if(motor_temp_limit &&
+  if (motor_temp_limit &&
       ui_vars.ui8_motor_temperature >= ui_vars.ui8_motor_temperature_min_value_to_limit) {
 		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
@@ -1010,7 +1013,7 @@ void warnings(void) {
 
 	// All of the following possible 'faults' are low priority
 
-	if(ui_vars.ui8_braking) {
+	if (ui_vars.ui8_braking) {
 		setWarning(ColorNormal, "BRAKE");
 		return;
 	}
@@ -1020,7 +1023,7 @@ void warnings(void) {
 		return;
 	}
 
-	if(ui_vars.ui8_lights) {
+	if (ui_vars.ui8_lights) {
 		setWarning(ColorNormal, "LIGHT");
 		return;
 	}
@@ -1194,6 +1197,18 @@ void DisplayResetToDefaults(void) {
   if (ui8_g_configuration_display_reset_to_defaults) {
     ui8_g_configuration_display_reset_to_defaults = 0;
     eeprom_init_defaults();
+  }
+}
+
+void DisplayResetBluetoothPeers(void) {
+
+  if (ui8_g_configuration_display_reset_bluetooth_peers) {
+    ui8_g_configuration_display_reset_bluetooth_peers = 0;
+    // TODO: fist disable any connection
+    // Warning: Use this (pm_peers_delete) function only when not connected or connectable. If a peer is or becomes connected
+    // or a PM_PEER_DATA_FUNCTIONS function is used during this procedure (until the success or failure event happens),
+    // the behavior is undefined.
+    pm_peers_delete();
   }
 }
 

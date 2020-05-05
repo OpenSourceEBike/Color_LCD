@@ -19,13 +19,14 @@
 #include "ble_dis.h"
 #include "fds.h"
 #include "state.h"
+#include "ble_conn_state.h"
 
-// define to enable the (not yet used) serial service
-// #define BLE_SERIAL
+// define to enable the serial service
+#define BLE_SERIAL
 // define to able reporting speed and cadence via bluetooth
-#define BLE_CSC
+//#define BLE_CSC
 // define to enable reporting battery SOC via bluetooth
-#define BLE_BAS
+//#define BLE_BAS
 
 #define IS_SRVC_CHANGED_CHARACT_PRESENT 0                                           /**< Include the service_changed characteristic. If not enabled, the server's database cannot be changed for the lifetime of the device. */
 
@@ -72,8 +73,6 @@ static ble_uuid_t                       m_adv_uuids[] = {
     {BLE_UUID_NUS_SERVICE, NUS_SERVICE_UUID_TYPE}
 #endif
 };  /**< Universally unique service identifier. */
-
-
 
 /**@brief Function for the GAP initialization.
  *
@@ -503,8 +502,6 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
             break; // BLE_GAP_EVT_DISCONNECTED
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-            // Pairing not supported
-            sd_ble_gap_sec_params_reply(m_conn_handle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
             break; // BLE_GAP_EVT_SEC_PARAMS_REQUEST
 
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
@@ -576,12 +573,14 @@ static void on_ble_evt(ble_evt_t * p_ble_evt)
  */
 static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 {
-    ble_conn_params_on_ble_evt(p_ble_evt);
+  ble_conn_state_on_ble_evt(p_ble_evt);
+  pm_on_ble_evt(p_ble_evt);
+  ble_conn_params_on_ble_evt(p_ble_evt);
 #ifdef BLE_SERIAL
-    ble_nus_on_ble_evt(&m_nus, p_ble_evt);
+  ble_nus_on_ble_evt(&m_nus, p_ble_evt);
 #endif
-    on_ble_evt(p_ble_evt);
-    ble_advertising_on_ble_evt(p_ble_evt);
+  on_ble_evt(p_ble_evt);
+  ble_advertising_on_ble_evt(p_ble_evt);
 }
 
 
@@ -678,7 +677,7 @@ static void peer_manager_event_handler(pm_evt_t const *p_evt)
             break;
         case PM_EVT_CONN_SEC_SUCCEEDED:
             // Update the rank of the peer.
-            err_code = pm_peer_rank_highest(p_evt->peer_id);
+            ble_conn_state_role(p_evt->conn_handle);
             break;
         case PM_EVT_CONN_SEC_FAILED:
             // In some cases, when securing fails, it can be restarted directly. Sometimes it can be
@@ -686,6 +685,9 @@ static void peer_manager_event_handler(pm_evt_t const *p_evt)
             // restarted until the link is disconnected and reconnected. Sometimes it is impossible
             // to secure the link, or the peer device does not support it. How to handle this error
             // is highly application-dependent.
+            m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+            APP_ERROR_CHECK(err_code);
             break;
         case PM_EVT_CONN_SEC_CONFIG_REQ:
         {
@@ -727,6 +729,7 @@ static void peer_manager_event_handler(pm_evt_t const *p_evt)
             break;
         case PM_EVT_PEERS_DELETE_SUCCEEDED:
             // At this point it is safe to start advertising or scanning.
+            ble_advertising_start(BLE_ADV_MODE_FAST);
             break;
         case PM_EVT_PEERS_DELETE_FAILED:
             // Assert.
@@ -753,7 +756,7 @@ static void peer_init() {
   APP_ERROR_CHECK(err_code);
   if (erase_bonds)
   {
-      pm_peers_delete();
+    pm_peers_delete();
   }
 
   ble_gap_sec_params_t sec_param;
@@ -787,4 +790,12 @@ void ble_init(void)
   advertising_init();
   conn_params_init();
   peer_init();
+}
+
+void send_bluetooth(rt_vars_t *rt_vars) {
+ static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
+
+ sprintf(data_array, "%d,\n", rt_vars->ui16_adc_pedal_torque_sensor);
+
+ (void) ble_nus_string_send(&m_nus, data_array, 3);
 }

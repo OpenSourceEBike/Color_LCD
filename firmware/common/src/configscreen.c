@@ -181,6 +181,8 @@ static Field displayMenus[] =
   FIELD_EDITABLE_ENUM("Units", &ui_vars.ui8_units_type, "SI", "Imperial"),
 #ifndef SW102
   FIELD_READONLY_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
+#else
+  FIELD_EDITABLE_ENUM(_S("Reset BLE connections", "Reset BLE"), &ui8_g_configuration_display_reset_bluetooth_peers, "no", "yes"),
 #endif
   FIELD_EDITABLE_ENUM(_S("Reset to defaults", "Reset def"), &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
   FIELD_END };
@@ -380,6 +382,7 @@ static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMe
 
 uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
 uint32_t ui32_g_configuration_wh_100_percent = 0;
+uint8_t ui8_g_configuration_display_reset_bluetooth_peers = 0;
 
 static void configScreenOnEnter() {
 	// Set the font preference for this screen

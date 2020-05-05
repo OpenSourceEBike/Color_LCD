@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "timer.h"
 #include <stdlib.h>
+#include "ble_services.h"
 
 //#define DEBUG_TSDZ2_FIRMWARE
 
@@ -851,6 +852,10 @@ void communications(void) {
 void rt_processing(void)
 {
   communications();
+
+#ifdef SW102
+  send_bluetooth(&rt_vars);
+#endif
 
   // called here because this state machine for motor_init should run every 100ms
   // montor init processing must be done when exiting the configurations menu

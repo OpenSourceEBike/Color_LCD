@@ -3,6 +3,7 @@
  *
  * Released under the GPL License, Version 3
  */
+#include <string.h>
 #include "common.h"
 #include "fstorage.h"
 #include "ble_services.h"
@@ -42,7 +43,7 @@
 #define DEVICE_NAME                     "OS-EBike"                                  /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "https://github.com/OpenSource-EBike-firmware"
 
-#define APP_ADV_INTERVAL                40                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
+#define APP_ADV_INTERVAL                64                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 100 ms). */
 #define APP_ADV_TIMEOUT_IN_SECONDS      180                                         /**< The advertising timeout (in units of seconds). */
 
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(500, UNIT_1_25_MS)             /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
@@ -88,7 +89,7 @@ static void gap_params_init(void)
 
     APP_ERROR_CHECK(sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *) DEVICE_NAME, strlen(DEVICE_NAME)));
 
-    APP_ERROR_CHECK(sd_ble_gap_appearance_set(BLE_APPEARANCE_GENERIC_CYCLING));
+//    APP_ERROR_CHECK(sd_ble_gap_appearance_set(BLE_APPEARANCE_GENERIC_CYCLING));
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
 
@@ -392,16 +393,16 @@ static void services_init(void)
     bas_init();
 #endif
 
-    // Initialize Device Information Service.
-    ble_dis_init_t dis_init;
-    memset(&dis_init, 0, sizeof(dis_init));
-
-    ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, MANUFACTURER_NAME);
-
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init.dis_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init.dis_attr_md.write_perm);
-
-    APP_ERROR_CHECK(ble_dis_init(&dis_init));
+//    // Initialize Device Information Service.
+//    ble_dis_init_t dis_init;
+//    memset(&dis_init, 0, sizeof(dis_init));
+//
+//    ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, MANUFACTURER_NAME);
+//
+//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&dis_init.dis_attr_md.read_perm);
+//    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&dis_init.dis_attr_md.write_perm);
+//
+//    APP_ERROR_CHECK(ble_dis_init(&dis_init));
 }
 
 
@@ -460,8 +461,6 @@ static void conn_params_init(void)
     cp_init.error_handler                  = conn_params_error_handler;
 
     APP_ERROR_CHECK(ble_conn_params_init(&cp_init));
-
-    APP_ERROR_CHECK(ble_advertising_start(BLE_ADV_MODE_FAST));
 }
 
 
@@ -618,16 +617,18 @@ static void ble_stack_init(void)
     SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
     ble_enable_params_t ble_enable_params;
-    softdevice_enable_get_default_config(CENTRAL_LINK_COUNT, PERIPHERAL_LINK_COUNT, &ble_enable_params);
+    softdevice_enable_get_default_config(CENTRAL_LINK_COUNT,
+        PERIPHERAL_LINK_COUNT,
+        &ble_enable_params);
 
     //Check the ram settings against the used number of links
-    CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT,PERIPHERAL_LINK_COUNT);
+    CHECK_RAM_START_ADDR(CENTRAL_LINK_COUNT, PERIPHERAL_LINK_COUNT);
 
     // Enable BLE stack.
 #if (NRF_SD_BLE_API_VERSION == 3)
     ble_enable_params.gatt_enable_params.att_mtu = NRF_BLE_MAX_MTU_SIZE;
 #endif
-    ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
+//    ble_enable_params.gatts_enable_params.service_changed = IS_SRVC_CHANGED_CHARACT_PRESENT;
     APP_ERROR_CHECK(softdevice_enable(&ble_enable_params));
 
     // Subscribe for BLE events.
@@ -649,7 +650,7 @@ static void advertising_init(void)
     // Build advertising data struct to pass into @ref ble_advertising_init.
     memset(&advdata, 0, sizeof(advdata));
     advdata.name_type          = BLE_ADVDATA_FULL_NAME;
-    advdata.include_appearance = true;
+    advdata.include_appearance = false;
     advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     memset(&scanrsp, 0, sizeof(scanrsp));
@@ -671,7 +672,7 @@ static void peer_manager_event_handler(pm_evt_t const *p_evt)
     {
         case PM_EVT_BONDED_PEER_CONNECTED:
             // Update the rank of the peer.
-            err_code = pm_peer_rank_highest(p_evt->peer_id);
+//            err_code = pm_peer_rank_highest(p_evt->peer_id);
             break;
         case PM_EVT_CONN_SEC_START:
             break;
@@ -785,11 +786,12 @@ static void peer_init() {
 void ble_init(void)
 {
   ble_stack_init();
+  peer_init();
   gap_params_init();
   services_init();
   advertising_init();
   conn_params_init();
-  peer_init();
+  APP_ERROR_CHECK(ble_advertising_start(BLE_ADV_MODE_FAST));
 }
 
 void send_bluetooth(rt_vars_t *rt_vars) {
@@ -797,5 +799,5 @@ void send_bluetooth(rt_vars_t *rt_vars) {
 
  sprintf(data_array, "%d,\n", rt_vars->ui16_adc_pedal_torque_sensor);
 
- (void) ble_nus_string_send(&m_nus, data_array, 3);
+ (void) ble_nus_string_send(&m_nus, data_array, strlen(data_array);
 }

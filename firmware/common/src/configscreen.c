@@ -188,6 +188,7 @@ static Field displayMenus[] =
   FIELD_END };
 
 static Field variousMenus[] = {
+    FIELD_EDITABLE_UINT(_S("Torque sensor filter", "Torq s fil"), &ui_vars.ui8_torque_sensor_filter, "", 1, 100),
     FIELD_EDITABLE_ENUM(_S("Cadence fast stop", "Cadenc stp"), &ui_vars.ui8_pedal_cadence_fast_stop, "no", "yes"),
     FIELD_EDITABLE_UINT(_S("ADC lights offset", "ADC lights"), &ui_vars.ui8_adc_lights_current_offset, "", 0, 4),
     FIELD_EDITABLE_UINT(_S("Virtual throttle step", "V thr step"), &ui_vars.ui8_throttle_virtual_step, "", 1, 100),

@@ -795,9 +795,13 @@ void ble_init(void)
 }
 
 void send_bluetooth(rt_vars_t *rt_vars) {
- static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
+ static uint8_t data_array[BLE_NUS_MAX_DATA_LEN]; // 19 bytes max
 
- sprintf(data_array, "%d,\n", rt_vars->ui16_adc_pedal_torque_sensor);
+ sprintf(data_array, "%d,%d,%d,%d\n",
+     rt_vars->ui16_adc_pedal_torque_sensor, // troque sensor RAW
+     rt_vars->ui8_adc_throttle, // position
+     rt_vars->ui8_pedal_weight_with_offset,
+     rt_vars->ui8_pedal_cadence); // weight in kgs with offset
 
- (void) ble_nus_string_send(&m_nus, data_array, strlen(data_array);
+ ble_nus_string_send(&m_nus, data_array, strlen(data_array));
 }

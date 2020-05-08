@@ -32,12 +32,13 @@ static Field motorMenus[] = {
             FIELD_EDITABLE_UINT(_S("Max current", "Max curren"), &ui_vars.ui8_motor_max_current, "amps", 1, 30),
             FIELD_EDITABLE_UINT(_S("Current ramp", "Curre ramp"), &ui_vars.ui8_ramp_up_amps_per_second_x10, "amps", 4, 100, .div_digits = 1),
             FIELD_EDITABLE_UINT(_S("Min current ADC step", "Min ADC st"), &ui_vars.ui8_motor_current_min_adc, "amps", 0, 13), // 13 ADC steps = 2 amps
-            FIELD_EDITABLE_ENUM(_S("Field weakening", "Field weak"), &ui_vars.ui8_torque_sensor_calibration_feature_enabled, "disable", "enable"),
+            FIELD_EDITABLE_ENUM(_S("Field weakening", "Field weak"), &ui_vars.ui8_field_weakening, "disable", "enable"),
         FIELD_END };
 
 static Field torqueSensorMenus[] =
     {
             FIELD_EDITABLE_ENUM(_S("Calibration", "Calibrat"), &ui_vars.ui8_torque_sensor_calibration_feature_enabled, "disable", "enable"),
+            FIELD_EDITABLE_UINT(_S("Torque sensor filter", "Torq s fil"), &ui_vars.ui8_torque_sensor_filter, "", 0, 100),
             FIELD_EDITABLE_ENUM(_S("Start pedal ground", "Pedal grou"), &ui_vars.ui8_torque_sensor_calibration_pedal_ground, "left", "right"),
             FIELD_EDITABLE_UINT(_S("Left weight 1", "L weight 1"), &ui_vars.ui16_torque_sensor_calibration_table_left[0][0], "kg", 0, 200),
             FIELD_EDITABLE_UINT("Left ADC 1", &ui_vars.ui16_torque_sensor_calibration_table_left[0][1], "", 0, 1023),
@@ -181,6 +182,8 @@ static Field displayMenus[] =
   FIELD_EDITABLE_ENUM("Units", &ui_vars.ui8_units_type, "SI", "Imperial"),
 #ifndef SW102
   FIELD_READONLY_ENUM("LCD type", &g_lcd_ic_type, "ILI9481", "ST7796", "unknown"),
+#else
+  FIELD_EDITABLE_ENUM(_S("Reset BLE connections", "Reset BLE"), &ui8_g_configuration_display_reset_bluetooth_peers, "no", "yes"),
 #endif
   FIELD_EDITABLE_ENUM(_S("Reset to defaults", "Reset def"), &ui8_g_configuration_display_reset_to_defaults, "no", "yes"),
   FIELD_END };
@@ -380,6 +383,7 @@ static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMe
 
 uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
 uint32_t ui32_g_configuration_wh_100_percent = 0;
+uint8_t ui8_g_configuration_display_reset_bluetooth_peers = 0;
 
 static void configScreenOnEnter() {
 	// Set the font preference for this screen

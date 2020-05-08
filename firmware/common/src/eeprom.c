@@ -272,6 +272,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_coast_brake_adc = DEFAULT_COAST_BRAKE_ADC,
   .ui8_adc_lights_current_offset = DEFAULT_ADC_LIGHTS_CURRENT_OFFSET,
   .ui8_throttle_virtual_step = DEFAULT_THROTTLE_VIRTUAL_STEP,
+  .ui8_torque_sensor_filter = DEFAULT_TORQUE_SENSOR_FILTER,
   .ui8_coast_brake_enable = DEFAULT_COAST_BRAKE_ENABLE,
 };
 
@@ -561,6 +562,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_adc_lights_current_offset;
   ui_vars->ui8_throttle_virtual_step =
       m_eeprom_data.ui8_throttle_virtual_step;
+  ui_vars->ui8_torque_sensor_filter =
+      m_eeprom_data.ui8_torque_sensor_filter;
   ui_vars->ui8_coast_brake_enable =
       m_eeprom_data.ui8_coast_brake_enable;
 }
@@ -740,6 +743,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_adc_lights_current_offset;
   m_eeprom_data.ui8_throttle_virtual_step =
       ui_vars->ui8_throttle_virtual_step;
+  m_eeprom_data.ui8_torque_sensor_filter =
+      ui_vars->ui8_torque_sensor_filter;
   m_eeprom_data.ui8_coast_brake_enable =
       ui_vars->ui8_coast_brake_enable;
 

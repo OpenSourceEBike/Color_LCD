@@ -2,7 +2,7 @@
 <launchConfiguration type="com.zylin.embeddedcdt.idleNative">
     <booleanAttribute key="com.zylin.embeddedcdt.debugger_app_console" value="false"/>
     <stringAttribute key="com.zylin.embeddedcdt.debugger_init_commands" value="target remote localhost:3333"/>
-    <stringAttribute key="com.zylin.embeddedcdt.debugger_run_commands" value="monitor init&#10;monitor reset init&#10;monitor flash write_image erase _build/nrf51822_sw102.hex&#10;monitor reset halt"/>
+    <stringAttribute key="com.zylin.embeddedcdt.debugger_run_commands" value="monitor init&#10;monitor reset init&#10;monitor nrf51 mass_erase&#10;monitor flash write_image _release/sw102-full-1.0.0.hex&#10;monitor reset halt"/>
     <stringAttribute key="org.eclipse.cdt.debug.mi.core.DEBUG_NAME" value="gdb-multiarch"/>
     <stringAttribute key="org.eclipse.cdt.debug.mi.core.GDB_INIT" value=""/>
     <booleanAttribute key="org.eclipse.cdt.debug.mi.core.breakpointsFullPath" value="true"/>

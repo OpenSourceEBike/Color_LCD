@@ -24,6 +24,9 @@
 #include "configscreen.h"
 #include "state.h"
 #include "timer.h"
+#ifdef SW102
+#include "peer_manager.h"
+#endif
 
 // only used on SW102, to count timeout to override the wheel speed value with assist level value
 static uint16_t m_assist_level_change_timeout = 0;
@@ -43,7 +46,7 @@ uint8_t g_showNextScreenPreviousIndex = 0;
 uint16_t ui16_m_alternate_field_value;
 uint8_t ui8_m_alternate_field_state = 0;
 uint8_t ui8_m_alternate_field_timeout_cnt = 0;
-uint8_t ui8_m_can_increment_decrement = 0;
+uint8_t ui8_m_vthrottle_can_increment_decrement = 0;
 
 void lcd_main_screen(void);
 void warnings(void);
@@ -57,6 +60,7 @@ void wheel_speed(void);
 void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 void DisplayResetToDefaults(void);
+void DisplayResetBluetoothPeers(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
 void batteryCurrent(void);
@@ -385,15 +389,15 @@ static bool onPressAlternateField(buttons_events_t events) {
   // start increment throttle only with UP_LONG_CLICK
   if ((ui8_m_alternate_field_state == 7) &&
       (events & UP_LONG_CLICK) &&
-      (ui8_m_can_increment_decrement == 0)) {
-    ui8_m_can_increment_decrement = 1;
+      (ui8_m_vthrottle_can_increment_decrement == 0)) {
+    ui8_m_vthrottle_can_increment_decrement = 1;
     events |= UP_CLICK; // let's increment, consider UP CLICK
     ui8_m_alternate_field_timeout_cnt = 50; // 50 * 20ms = 1 second
   }
 
   if (ui8_m_alternate_field_timeout_cnt == 0) {
     ui_vars.ui8_throttle_virtual = 0;
-    ui8_m_can_increment_decrement = 0;
+    ui8_m_vthrottle_can_increment_decrement = 0;
   }
 
   switch (ui8_m_alternate_field_state) {
@@ -460,7 +464,7 @@ static bool onPressAlternateField(buttons_events_t events) {
       if (events & SCREENCLICK_ALTERNATE_FIELD_STOP) {
         ui_vars.ui8_throttle_virtual = 0;
         ui8_m_alternate_field_timeout_cnt = 0;
-        ui8_m_can_increment_decrement = 0;
+        ui8_m_vthrottle_can_increment_decrement = 0;
         ui8_m_alternate_field_state = 4;
         handled = true;
         break;
@@ -469,7 +473,7 @@ static bool onPressAlternateField(buttons_events_t events) {
       if (events & UP_CLICK) {
         handled = true;
 
-        if (ui8_m_can_increment_decrement &&
+        if (ui8_m_vthrottle_can_increment_decrement &&
             ui_vars.ui8_assist_level) {
           if ((ui_vars.ui8_throttle_virtual + ui_vars.ui8_throttle_virtual_step) <= 100) {
             ui_vars.ui8_throttle_virtual += ui_vars.ui8_throttle_virtual_step;
@@ -486,7 +490,7 @@ static bool onPressAlternateField(buttons_events_t events) {
       if (events & DOWN_CLICK) {
         handled = true;
 
-        if (ui8_m_can_increment_decrement &&
+        if (ui8_m_vthrottle_can_increment_decrement &&
             ui_vars.ui8_assist_level) {
           if (ui_vars.ui8_throttle_virtual >= ui_vars.ui8_throttle_virtual_step) {
             ui_vars.ui8_throttle_virtual -= ui_vars.ui8_throttle_virtual_step;
@@ -699,6 +703,7 @@ void screen_clock(void) {
     clock_time();
 #endif
     DisplayResetToDefaults();
+    DisplayResetBluetoothPeers();
     batteryTotalWh();
     batteryCurrent();
     batteryResistance();
@@ -964,7 +969,7 @@ void warnings(void) {
   }
 
 	// High priorty faults in red
-  if(ui_vars.ui8_error_states) {
+  if (ui_vars.ui8_error_states) {
     if (ui_vars.ui8_error_states & 1)
       ui8_motorErrorsIndex = 1;
     else if (ui_vars.ui8_error_states & 2)
@@ -989,20 +994,20 @@ void warnings(void) {
 		return;
 	}
 
-	if(motor_temp_limit &&
+	if (motor_temp_limit &&
 	    ui_vars.ui8_motor_temperature >= ui_vars.ui8_motor_temperature_max_value_to_limit) {
 		setWarning(ColorError, _S("Temp Shutdown", "Temp Shut"));
 		return;
 	}
 
 	// If we had a watchdog failure, show it forever - so user will report a bug
-	if(wd_failure_detected) {
+	if (wd_failure_detected) {
     setWarning(ColorError, "Report Bug!");
     return;
 	}
 
 	// warn faults in yellow
-  if(motor_temp_limit &&
+  if (motor_temp_limit &&
       ui_vars.ui8_motor_temperature >= ui_vars.ui8_motor_temperature_min_value_to_limit) {
 		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
@@ -1010,7 +1015,7 @@ void warnings(void) {
 
 	// All of the following possible 'faults' are low priority
 
-	if(ui_vars.ui8_braking) {
+	if (ui_vars.ui8_braking) {
 		setWarning(ColorNormal, "BRAKE");
 		return;
 	}
@@ -1020,7 +1025,7 @@ void warnings(void) {
 		return;
 	}
 
-	if(ui_vars.ui8_lights) {
+	if (ui_vars.ui8_lights) {
 		setWarning(ColorNormal, "LIGHT");
 		return;
 	}
@@ -1136,7 +1141,7 @@ static void handle_buttons() {
       if (ui8_m_alternate_field_timeout_cnt) {
         ui8_m_alternate_field_timeout_cnt--;
       } else {
-        ui8_m_can_increment_decrement = 0;
+        ui8_m_vthrottle_can_increment_decrement = 0;
         ui_vars.ui8_throttle_virtual = 0;
       }
     } else {
@@ -1195,6 +1200,19 @@ void DisplayResetToDefaults(void) {
     ui8_g_configuration_display_reset_to_defaults = 0;
     eeprom_init_defaults();
   }
+}
+
+void DisplayResetBluetoothPeers(void) {
+#ifdef SW102
+  if (ui8_g_configuration_display_reset_bluetooth_peers) {
+    ui8_g_configuration_display_reset_bluetooth_peers = 0;
+    // TODO: fist disable any connection
+    // Warning: Use this (pm_peers_delete) function only when not connected or connectable. If a peer is or becomes connected
+    // or a PM_PEER_DATA_FUNCTIONS function is used during this procedure (until the success or failure event happens),
+    // the behavior is undefined.
+    pm_peers_delete();
+  }
+#endif
 }
 
 void batteryCurrent(void) {

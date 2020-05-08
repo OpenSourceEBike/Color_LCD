@@ -22,6 +22,9 @@
 #include "adc.h"
 #include "timer.h"
 #include <stdlib.h>
+#ifdef SW102
+#include "ble_services.h"
+#endif
 
 //#define DEBUG_TSDZ2_FIRMWARE
 
@@ -295,8 +298,9 @@ void rt_send_tx_package(frame_type_t type) {
           (rt_vars.ui8_coast_brake_enable << 2));
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
       ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
+      ui8_usart1_tx_buffer[83] = rt_vars.ui8_torque_sensor_filter;
 
-      crc_len = 84;
+      crc_len = 85;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -712,6 +716,7 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_coast_brake_adc = ui_vars.ui8_coast_brake_adc;
   rt_vars.ui8_adc_lights_current_offset = ui_vars.ui8_adc_lights_current_offset;
   rt_vars.ui8_throttle_virtual = ui_vars.ui8_throttle_virtual;
+  rt_vars.ui8_torque_sensor_filter = ui_vars.ui8_torque_sensor_filter;
   rt_vars.ui8_coast_brake_enable = ui_vars.ui8_coast_brake_enable;
 }
 
@@ -851,6 +856,10 @@ void communications(void) {
 void rt_processing(void)
 {
   communications();
+
+#ifdef SW102
+  send_bluetooth(&rt_vars);
+#endif
 
   // called here because this state machine for motor_init should run every 100ms
   // montor init processing must be done when exiting the configurations menu

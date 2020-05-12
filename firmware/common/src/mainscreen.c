@@ -564,8 +564,8 @@ bool mainScreenOnPress(buttons_events_t events) {
     }
 
     if (
-        events & DOWN_CLICK
-        && !ui_vars.ui8_walk_assist // do not lower assist level if walk assist is active
+      events & DOWN_CLICK
+      && !ui_vars.ui8_walk_assist // do not lower assist level if walk assist is active
     ) {
       if (ui_vars.ui8_assist_level > 0)
         ui_vars.ui8_assist_level--;

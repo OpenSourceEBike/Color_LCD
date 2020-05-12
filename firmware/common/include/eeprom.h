@@ -89,6 +89,7 @@ typedef struct eeprom_data {
   uint8_t ui8_street_mode_speed_limit;
   uint8_t ui8_street_mode_power_limit_div25;
   uint8_t ui8_street_mode_throttle_enabled;
+  uint8_t ui8_street_mode_hotkey_enabled;
 
 #ifndef SW102
 	Graph_eeprom graph_eeprom[VARS_SIZE];
@@ -274,6 +275,7 @@ void eeprom_init_defaults(void);
 #define DEFAULT_STREET_MODE_SPEED_LIMIT                             25 // 25 km/h
 #define DEFAULT_STREET_MODE_POWER_LIMIT                             10 // 250W --> 250 / 25 = 10
 #define DEFAULT_STREET_MODE_THROTTLE_ENABLE                         0 // disabled
+#define DEFAULT_STREET_MODE_HOTKEY_ENABLE                           0 // disabled
 #define DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE                      1 // enabled
 #define DEFAULT_COAST_BRAKE_ADC                                     15 // 15: tested by plpetrov user on 28.04.2020:
 #define DEFAULT_FIELD_WEAKENING                                     1 // 1 enabled

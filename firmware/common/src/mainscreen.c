@@ -410,7 +410,16 @@ static bool onPressAlternateField(buttons_events_t events) {
 
     // max power
     case 3:
-      if (events & SCREENCLICK_ALTERNATE_FIELD_START) {
+      if (
+        (
+          ui_vars.ui8_street_mode_function_enabled
+          && ui_vars.ui8_street_mode_enabled
+          && ui_vars.ui8_street_mode_throttle_enabled
+          || !ui_vars.ui8_street_mode_function_enabled
+          || !ui_vars.ui8_street_mode_enabled
+        )
+        && events & SCREENCLICK_ALTERNATE_FIELD_START
+      ) {
         ui8_m_alternate_field_state = 6;
         handled = true;
         break;
@@ -521,7 +530,7 @@ static bool onPressStreetMode(buttons_events_t events) {
 
   if (events & SCREENCLICK_STREET_MODE)
   {
-    if (ui_vars.ui8_street_mode_function_enabled)
+    if (ui_vars.ui8_street_mode_function_enabled && ui_vars.ui8_street_mode_hotkey_enabled)
     {
       if (ui_vars.ui8_street_mode_enabled)
         ui_vars.ui8_street_mode_enabled = 0;
@@ -529,8 +538,6 @@ static bool onPressStreetMode(buttons_events_t events) {
         ui_vars.ui8_street_mode_enabled = 1;
 
       mainScreenOnDirtyClean();
-    } else {
-      ui_vars.ui8_street_mode_enabled = 0;
     }
 
     handled = true;

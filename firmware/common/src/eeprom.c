@@ -28,6 +28,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui32_wh_x10_offset = DEFAULT_VALUE_WH_X10_OFFSET,
   .ui32_wh_x10_100_percent = DEFAULT_VALUE_HW_X10_100_PERCENT,
   .ui8_battery_soc_enable = DEAFULT_VALUE_SHOW_NUMERIC_BATTERY_SOC,
+  .ui8_time_field_enable = DEAFULT_VALUE_TIME_FIELD,
   .ui8_battery_max_current = DEFAULT_VALUE_BATTERY_MAX_CURRENT,
   .ui8_target_max_battery_power_div25 = DEFAULT_VALUE_TARGET_MAX_BATTERY_POWER,
   .ui8_motor_max_current = DEFAULT_VALUE_MOTOR_MAX_CURRENT,
@@ -36,6 +37,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_ramp_up_amps_per_second_x10 = DEFAULT_VALUE_RAMP_UP_AMPS_PER_SECOND_X10,
   .ui16_battery_low_voltage_cut_off_x10 = DEFAULT_VALUE_BATTERY_LOW_VOLTAGE_CUT_OFF_X10,
   .ui8_motor_type = DEFAULT_VALUE_MOTOR_TYPE,
+  .ui8_motor_current_control_mode = DEFAULT_VALUE_MOTOR_CURRENT_CONTROL_MODE,
   .ui8_motor_assistance_startup_without_pedal_rotation = DEFAULT_VALUE_MOTOR_ASSISTANCE_WITHOUT_PEDAL_ROTATION,
   .ui16_assist_level_factor = {
   DEFAULT_VALUE_ASSIST_LEVEL_FACTOR_1,
@@ -329,6 +331,8 @@ void eeprom_init_variables(void) {
 			m_eeprom_data.ui32_wh_x10_100_percent;
 	ui_vars->ui8_battery_soc_enable =
 			m_eeprom_data.ui8_battery_soc_enable;
+  ui_vars->ui8_time_field_enable =
+      m_eeprom_data.ui8_time_field_enable;
   ui_vars->ui8_target_max_battery_power_div25 =
       m_eeprom_data.ui8_target_max_battery_power_div25;
 	ui_vars->ui8_battery_max_current =
@@ -344,6 +348,7 @@ void eeprom_init_variables(void) {
 	ui_vars->ui16_battery_low_voltage_cut_off_x10 =
 			m_eeprom_data.ui16_battery_low_voltage_cut_off_x10;
 	ui_vars->ui8_motor_type = m_eeprom_data.ui8_motor_type;
+	ui_vars->ui8_motor_current_control_mode = m_eeprom_data.ui8_motor_current_control_mode;
 	ui_vars->ui8_motor_assistance_startup_without_pedal_rotation =
 			m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation;
 	ui_vars->ui8_temperature_limit_feature_enabled =
@@ -580,6 +585,8 @@ void eeprom_write_variables(void) {
 			ui_vars->ui32_wh_x10_100_percent;
 	m_eeprom_data.ui8_battery_soc_enable =
 			ui_vars->ui8_battery_soc_enable;
+  m_eeprom_data.ui8_time_field_enable =
+      ui_vars->ui8_time_field_enable;
   m_eeprom_data.ui8_target_max_battery_power_div25 =
       ui_vars->ui8_target_max_battery_power_div25;
   m_eeprom_data.ui8_motor_max_current =
@@ -593,6 +600,7 @@ void eeprom_write_variables(void) {
 	m_eeprom_data.ui16_battery_low_voltage_cut_off_x10 =
 			ui_vars->ui16_battery_low_voltage_cut_off_x10;
 	m_eeprom_data.ui8_motor_type = ui_vars->ui8_motor_type;
+	m_eeprom_data.ui8_motor_current_control_mode = ui_vars->ui8_motor_current_control_mode;
 	m_eeprom_data.ui8_motor_assistance_startup_without_pedal_rotation =
 			ui_vars->ui8_motor_assistance_startup_without_pedal_rotation;
 	m_eeprom_data.ui8_temperature_limit_feature_enabled =

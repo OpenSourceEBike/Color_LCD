@@ -1055,17 +1055,39 @@ void battery_soc(void) {
 
 
 void time(void) {
-	rtc_time_t *p_rtc_time = rtc_get_time();
+#ifndef SW102
+  rtc_time_t *p_rtc_time = rtc_get_time();
 
-	// force to be [0 - 12]
-	if (ui_vars.ui8_units_type) { // FIXME, should be based on a different eeprom config value, just because someone is using mph doesn't mean they want 12 hr time
-		if (p_rtc_time->ui8_hours > 12) {
-			p_rtc_time->ui8_hours -= 12;
-		}
-	}
+  switch (ui_vars.ui8_time_field_enable) {
+    default:
+    case 0:
+      // clear the area
+      fieldPrintf(&timeField, "");
+      break;
 
-	fieldPrintf(&timeField, "%d:%02d", p_rtc_time->ui8_hours,
-			p_rtc_time->ui8_minutes);
+    case 1:
+      // force to be [0 - 12]
+      if (ui_vars.ui8_units_type) { // FIXME, should be based on a different eeprom config value, just because someone is using mph doesn't mean they want 12 hr time
+        if (p_rtc_time->ui8_hours > 12) {
+          p_rtc_time->ui8_hours -= 12;
+        }
+      }
+
+      fieldPrintf(&timeField, "%d:%02d", p_rtc_time->ui8_hours,
+          p_rtc_time->ui8_minutes);
+      break;
+
+    case 2:
+      fieldPrintf(&timeField, "%3d%%", ui8_g_battery_soc);
+      break;
+
+    case 3:
+      fieldPrintf(&timeField, "%u.%1uV",
+          ui_vars.ui16_battery_voltage_soc_x10 / 10,
+          ui_vars.ui16_battery_voltage_soc_x10 % 10);
+      break;
+  }
+#endif
 }
 
 void walk_assist_state(void) {

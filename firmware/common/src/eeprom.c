@@ -559,6 +559,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_street_mode_power_limit_div25;
   ui_vars->ui8_street_mode_throttle_enabled =
       m_eeprom_data.ui8_street_mode_throttle_enabled;
+  ui_vars->ui8_street_mode_hotkey_enabled =
+      m_eeprom_data.ui8_street_mode_hotkey_enabled;
 
   ui_vars->ui8_pedal_cadence_fast_stop =
       m_eeprom_data.ui8_pedal_cadence_fast_stop;
@@ -743,6 +745,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_street_mode_power_limit_div25;
   m_eeprom_data.ui8_street_mode_throttle_enabled =
       ui_vars->ui8_street_mode_throttle_enabled;
+  m_eeprom_data.ui8_street_mode_hotkey_enabled =
+      ui_vars->ui8_street_mode_hotkey_enabled;
 
   m_eeprom_data.ui8_pedal_cadence_fast_stop =
       ui_vars->ui8_pedal_cadence_fast_stop;

@@ -1096,7 +1096,7 @@ void time(void) {
 void walk_assist_state(void) {
 // kevinh - note on the sw102 we show WALK in the box normally used for BRAKE display - the display code is handled there now
 if (ui_vars.ui8_walk_assist_feature_enabled) {
-  // if down button is still pressed
+    // if down button is still pressed
     if (ui_vars.ui8_walk_assist && buttons_get_down_state()) {
       ui8_walk_assist_timeout = 2; // 0.2 seconds
     } else if (buttons_get_down_state() == 0 && --ui8_walk_assist_timeout == 0) {

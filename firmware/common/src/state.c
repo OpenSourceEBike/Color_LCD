@@ -295,7 +295,8 @@ void rt_send_tx_package(frame_type_t type) {
       ui8_usart1_tx_buffer[79] = rt_vars.ui8_motor_current_min_adc;
       ui8_usart1_tx_buffer[80] = (rt_vars.ui8_pedal_cadence_fast_stop |
           (rt_vars.ui8_field_weakening << 1) |
-          (rt_vars.ui8_coast_brake_enable << 2));
+          (rt_vars.ui8_coast_brake_enable << 2) |
+          (rt_vars.ui8_motor_current_control_mode << 3));
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
       ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
       ui8_usart1_tx_buffer[83] = rt_vars.ui8_torque_sensor_filter;
@@ -672,6 +673,7 @@ void copy_rt_to_ui_vars(void) {
 	rt_vars.ui16_wheel_perimeter = ui_vars.ui16_wheel_perimeter;
 	rt_vars.ui8_wheel_max_speed = ui_vars.wheel_max_speed_x10 / 10;
 	rt_vars.ui8_motor_type = ui_vars.ui8_motor_type;
+	rt_vars.ui8_motor_current_control_mode = ui_vars.ui8_motor_current_control_mode;
 	rt_vars.ui8_motor_assistance_startup_without_pedal_rotation =
 			ui_vars.ui8_motor_assistance_startup_without_pedal_rotation;
 	rt_vars.ui8_temperature_limit_feature_enabled =

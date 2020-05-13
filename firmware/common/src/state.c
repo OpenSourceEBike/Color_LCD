@@ -300,8 +300,9 @@ void rt_send_tx_package(frame_type_t type) {
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
       ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
       ui8_usart1_tx_buffer[83] = rt_vars.ui8_torque_sensor_filter;
+      ui8_usart1_tx_buffer[84] = rt_vars.ui8_torque_sensor_adc_threshold;
 
-      crc_len = 85;
+      crc_len = 86;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -719,6 +720,7 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_adc_lights_current_offset = ui_vars.ui8_adc_lights_current_offset;
   rt_vars.ui8_throttle_virtual = ui_vars.ui8_throttle_virtual;
   rt_vars.ui8_torque_sensor_filter = ui_vars.ui8_torque_sensor_filter;
+  rt_vars.ui8_torque_sensor_adc_threshold = ui_vars.ui8_torque_sensor_adc_threshold;
   rt_vars.ui8_coast_brake_enable = ui_vars.ui8_coast_brake_enable;
 }
 

@@ -34,7 +34,7 @@ static uint16_t m_assist_level_change_timeout = 0;
 uint8_t ui8_m_wheel_speed_integer;
 uint8_t ui8_m_wheel_speed_decimal;
 
-static uint8_t ui8_walk_assist_state = 0;
+static uint8_t ui8_walk_assist_timeout = 0;
 
 uint16_t ui16_m_battery_current_filtered_x10;
 uint16_t ui16_m_motor_current_filtered_x10;
@@ -368,7 +368,7 @@ Screen bootScreen = {
 // Allow common operations (like walk assist and headlights) button presses to work on any page
 bool anyscreen_onpress(buttons_events_t events) {
   if ((events & DOWN_LONG_CLICK) && ui_vars.ui8_walk_assist_feature_enabled) {
-    ui8_walk_assist_state = 1;
+    ui_vars.ui8_walk_assist = 1;
     return true;
   }
 
@@ -563,7 +563,10 @@ bool mainScreenOnPress(buttons_events_t events) {
       handled = true;
     }
 
-    if (events & DOWN_CLICK) {
+    if (
+      events & DOWN_CLICK
+      && !ui_vars.ui8_walk_assist // do not lower assist level if walk assist is active
+    ) {
       if (ui_vars.ui8_assist_level > 0)
         ui_vars.ui8_assist_level--;
 
@@ -1091,19 +1094,17 @@ void time(void) {
 }
 
 void walk_assist_state(void) {
-	// kevinh - note on the sw102 we show WALK in the box normally used for BRAKE display - the display code is handled there now
-	if (ui_vars.ui8_walk_assist_feature_enabled) {
-		// if down button is still pressed
-		if (ui8_walk_assist_state && buttons_get_down_state()) {
-			ui_vars.ui8_walk_assist = 1;
-		} else if (buttons_get_down_state() == 0) {
-			ui8_walk_assist_state = 0;
-			ui_vars.ui8_walk_assist = 0;
-		}
-	} else {
-		ui8_walk_assist_state = 0;
-		ui_vars.ui8_walk_assist = 0;
-	}
+// kevinh - note on the sw102 we show WALK in the box normally used for BRAKE display - the display code is handled there now
+if (ui_vars.ui8_walk_assist_feature_enabled) {
+    // if down button is still pressed
+    if (ui_vars.ui8_walk_assist && buttons_get_down_state()) {
+      ui8_walk_assist_timeout = 2; // 0.2 seconds
+    } else if (buttons_get_down_state() == 0 && --ui8_walk_assist_timeout == 0) {
+      ui_vars.ui8_walk_assist = 0;
+    }
+  } else {
+    ui_vars.ui8_walk_assist = 0;
+  }
 }
 
 // Screens in a loop, shown when the user short presses the power button

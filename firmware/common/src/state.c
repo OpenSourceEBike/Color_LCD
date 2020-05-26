@@ -300,8 +300,9 @@ void rt_send_tx_package(frame_type_t type) {
       ui8_usart1_tx_buffer[81] = rt_vars.ui8_coast_brake_adc;
       ui8_usart1_tx_buffer[82] = rt_vars.ui8_adc_lights_current_offset;
       ui8_usart1_tx_buffer[83] = rt_vars.ui8_torque_sensor_filter;
+      ui8_usart1_tx_buffer[84] = rt_vars.ui8_torque_sensor_adc_threshold;
 
-      crc_len = 85;
+      crc_len = 86;
       ui8_usart1_tx_buffer[1] = crc_len;
 	    break;
 
@@ -336,14 +337,13 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
 
 	// low pass filter battery voltage
 	ui32_battery_voltage_accumulated_x10000 -=
-			ui32_battery_voltage_accumulated_x10000
-					>> BATTERY_VOLTAGE_FILTER_COEFFICIENT;
+	    (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT);
+
 	ui32_battery_voltage_accumulated_x10000 +=
-			(uint32_t) rt_vars.ui16_adc_battery_voltage
-					* ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+			((uint32_t) rt_vars.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000);
+
 	rt_vars.ui16_battery_voltage_filtered_x10 =
-			((uint32_t) (ui32_battery_voltage_accumulated_x10000
-					>> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
+			(((uint32_t) (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000);
 
 	// low pass filter battery current
 	ui16_battery_current_accumulated_x5 -= ui16_battery_current_accumulated_x5
@@ -719,6 +719,7 @@ void copy_rt_to_ui_vars(void) {
   rt_vars.ui8_adc_lights_current_offset = ui_vars.ui8_adc_lights_current_offset;
   rt_vars.ui8_throttle_virtual = ui_vars.ui8_throttle_virtual;
   rt_vars.ui8_torque_sensor_filter = ui_vars.ui8_torque_sensor_filter;
+  rt_vars.ui8_torque_sensor_adc_threshold = ui_vars.ui8_torque_sensor_adc_threshold;
   rt_vars.ui8_coast_brake_enable = ui_vars.ui8_coast_brake_enable;
 }
 
@@ -740,7 +741,7 @@ void automatic_power_off_management(void) {
 			// check if we should power off the LCD
 			if (ui16_lcd_power_off_time_counter
 					>= (ui_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) { // have we passed our timeout?
-//				lcd_power_off(1);
+				lcd_power_off(1);
 			}
 		}
 	} else {

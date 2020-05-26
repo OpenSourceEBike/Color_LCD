@@ -275,7 +275,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_adc_lights_current_offset = DEFAULT_ADC_LIGHTS_CURRENT_OFFSET,
   .ui8_throttle_virtual_step = DEFAULT_THROTTLE_VIRTUAL_STEP,
   .ui8_torque_sensor_filter = DEFAULT_TORQUE_SENSOR_FILTER,
-  .ui8_torque_sensor_adc_threshold = DEFAULT_TORQUE_SENSOR_FILTER,
+  .ui8_torque_sensor_adc_threshold = DEFAULT_TORQUE_SENSOR_ADC_THRESHOLD,
   .ui8_coast_brake_enable = DEFAULT_COAST_BRAKE_ENABLE,
 };
 

@@ -22,7 +22,6 @@ static Field batteryMenus[] =
 						FIELD_EDITABLE_UINT(_S("Max current", "Max curren"), &ui_vars.ui8_battery_max_current, "amps", 1, 20),
 						FIELD_EDITABLE_UINT(_S("Low cut-off", "Lo cut-off"), &ui_vars.ui16_battery_low_voltage_cut_off_x10, "volts", 160, 630, .div_digits = 1),
             FIELD_EDITABLE_UINT(_S("Resistance", "Resistance"), &ui_vars.ui16_battery_pack_resistance_x1000, "mohm", 0, 1000),
-            FIELD_SCROLLABLE("SOC", batterySOCMenus),
             FIELD_READONLY_UINT(_S("Voltage est", "Voltag est"), &ui_vars.ui16_battery_voltage_soc_x10, "volts", false, .div_digits = 1),
             FIELD_READONLY_UINT(_S("Resistance est", "Resist est"), &ui_vars.ui16_battery_pack_resistance_estimated_x1000, "mohm", 0, 1000),
 						FIELD_READONLY_UINT(_S("Power loss est", "Power loss"), &ui_vars.ui16_battery_power_loss, "watts", false, .div_digits = 0),
@@ -37,8 +36,12 @@ static Field motorMenus[] = {
             FIELD_EDITABLE_ENUM(_S("Field weakening", "Field weak"), &ui_vars.ui8_field_weakening, "disable", "enable"),
         FIELD_END };
 
-static Field torqueSensorCalibrationMenus[] =
+static Field torqueSensorMenus[] =
     {
+            FIELD_EDITABLE_UINT(_S("Torque s ADC thresho", "Torq s thr"), &ui_vars.ui8_torque_sensor_adc_threshold, "", 5, 100),
+            FIELD_EDITABLE_ENUM(_S("Assist w/o pedal rot", "A w/o ped"), &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
+            FIELD_EDITABLE_ENUM(_S("Coast brake", "Coast brak"), &ui_vars.ui8_coast_brake_enable, "disable", "enable"),
+            FIELD_EDITABLE_UINT(_S("Coast brake ADC", "Coa bk ADC"), &ui_vars.ui8_coast_brake_adc, "", 5, 255),
             FIELD_EDITABLE_ENUM(_S("Calibration", "Calibrat"), &ui_vars.ui8_torque_sensor_calibration_feature_enabled, "disable", "enable"),
             FIELD_EDITABLE_UINT(_S("Torque sensor filter", "Torq s fil"), &ui_vars.ui8_torque_sensor_filter, "", 0, 100),
             FIELD_EDITABLE_ENUM(_S("Start pedal ground", "Pedal grou"), &ui_vars.ui8_torque_sensor_calibration_pedal_ground, "left", "right"),
@@ -74,15 +77,6 @@ static Field torqueSensorCalibrationMenus[] =
             FIELD_EDITABLE_UINT("Right ADC 7", &ui_vars.ui16_torque_sensor_calibration_table_right[6][1], "", 0, 1023),
             FIELD_EDITABLE_UINT(_S("Right weight 8", "R weight 8"), &ui_vars.ui16_torque_sensor_calibration_table_right[7][0], "kg", 0, 200),
             FIELD_EDITABLE_UINT("Right ADC 8", &ui_vars.ui16_torque_sensor_calibration_table_right[7][1], "", 0, 1023),
-        FIELD_END };
-
-static Field torqueSensorMenus[] =
-    {
-            FIELD_EDITABLE_UINT(_S("Torque sensor ADC threshold", "Torq s thr"), &ui_vars.ui8_torque_sensor_adc_threshold, "", 5, 75),
-            FIELD_EDITABLE_ENUM(_S("Assist w/o pedal rot", "A w/o ped"), &ui_vars.ui8_motor_assistance_startup_without_pedal_rotation, "disable", "enable"), // FIXME, share one array of disable/enable strings
-            FIELD_EDITABLE_ENUM(_S("Coast brake", "Coast brak"), &ui_vars.ui8_coast_brake_enable, "disable", "enable"),
-            FIELD_EDITABLE_UINT(_S("Coast brake ADC", "Coa bk ADC"), &ui_vars.ui8_coast_brake_adc, "", 5, 255),
-            FIELD_SCROLLABLE("Calibration", torqueSensorCalibrationMenus),
         FIELD_END };
 
 static Field assistMenus[] =
@@ -371,6 +365,7 @@ static Field technicalMenus[] = {
 static Field topMenus[] = {
   FIELD_SCROLLABLE("Wheel", wheelMenus),
   FIELD_SCROLLABLE("Battery", batteryMenus),
+  FIELD_SCROLLABLE("SOC", batterySOCMenus),
   FIELD_SCROLLABLE(_S("Motor", "Motor"), motorMenus),
   FIELD_SCROLLABLE(_S("Torque sensor", "Torque sen"), torqueSensorMenus),
   FIELD_SCROLLABLE(_S("Assist level", "Assist"), assistMenus),

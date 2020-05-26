@@ -337,14 +337,13 @@ void rt_low_pass_filter_battery_voltage_current_power(void) {
 
 	// low pass filter battery voltage
 	ui32_battery_voltage_accumulated_x10000 -=
-			ui32_battery_voltage_accumulated_x10000
-					>> BATTERY_VOLTAGE_FILTER_COEFFICIENT;
+	    (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT);
+
 	ui32_battery_voltage_accumulated_x10000 +=
-			(uint32_t) rt_vars.ui16_adc_battery_voltage
-					* ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000;
+			((uint32_t) rt_vars.ui16_adc_battery_voltage * ADC_BATTERY_VOLTAGE_PER_ADC_STEP_X10000);
+
 	rt_vars.ui16_battery_voltage_filtered_x10 =
-			((uint32_t) (ui32_battery_voltage_accumulated_x10000
-					>> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000;
+			(((uint32_t) (ui32_battery_voltage_accumulated_x10000 >> BATTERY_VOLTAGE_FILTER_COEFFICIENT)) / 1000);
 
 	// low pass filter battery current
 	ui16_battery_current_accumulated_x5 -= ui16_battery_current_accumulated_x5
@@ -742,7 +741,7 @@ void automatic_power_off_management(void) {
 			// check if we should power off the LCD
 			if (ui16_lcd_power_off_time_counter
 					>= (ui_vars.ui8_lcd_power_off_time_minutes * 10 * 60)) { // have we passed our timeout?
-//				lcd_power_off(1);
+				lcd_power_off(1);
 			}
 		}
 	} else {

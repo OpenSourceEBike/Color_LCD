@@ -270,6 +270,7 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_street_mode_speed_limit = DEFAULT_STREET_MODE_SPEED_LIMIT,
   .ui8_street_mode_power_limit_div25 = DEFAULT_STREET_MODE_POWER_LIMIT,
   .ui8_street_mode_throttle_enabled = DEFAULT_STREET_MODE_THROTTLE_ENABLE,
+  .ui8_street_mode_hotkey_enabled = DEFAULT_STREET_MODE_HOTKEY_ENABLE,
   .ui8_pedal_cadence_fast_stop = DEFAULT_PEDAL_CADENCE_FAST_STOP_ENABLE,
   .ui8_coast_brake_adc = DEFAULT_COAST_BRAKE_ADC,
   .ui8_adc_lights_current_offset = DEFAULT_ADC_LIGHTS_CURRENT_OFFSET,
@@ -559,6 +560,8 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_street_mode_power_limit_div25;
   ui_vars->ui8_street_mode_throttle_enabled =
       m_eeprom_data.ui8_street_mode_throttle_enabled;
+  ui_vars->ui8_street_mode_hotkey_enabled =
+      m_eeprom_data.ui8_street_mode_hotkey_enabled;
 
   ui_vars->ui8_pedal_cadence_fast_stop =
       m_eeprom_data.ui8_pedal_cadence_fast_stop;
@@ -745,6 +748,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_street_mode_power_limit_div25;
   m_eeprom_data.ui8_street_mode_throttle_enabled =
       ui_vars->ui8_street_mode_throttle_enabled;
+  m_eeprom_data.ui8_street_mode_hotkey_enabled =
+      ui_vars->ui8_street_mode_hotkey_enabled;
 
   m_eeprom_data.ui8_pedal_cadence_fast_stop =
       ui_vars->ui8_pedal_cadence_fast_stop;

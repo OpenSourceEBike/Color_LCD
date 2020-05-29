@@ -55,11 +55,14 @@ void power(void);
 void time(void);
 void wheel_speed(void);
 void battery_soc(void);
+void up_time(void);
 void trip_time(void);
+void updateTripTime(uint32_t tripTime, Field *field);
 void wheel_speed(void);
 void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 void DisplayResetToDefaults(void);
+void TripMemoriesReset(void);
 void DisplayResetBluetoothPeers(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
@@ -88,9 +91,20 @@ Field wheelSpeedDecimalField = FIELD_READONLY_UINT("", &ui8_m_wheel_speed_decima
 Field wheelSpeedField = FIELD_READONLY_UINT("speed", &ui_vars.ui16_wheel_speed_x10, "kph", true, .div_digits = 1);
 
 // Note: this field is special, the string it is pointing to must be in RAM so we can change it later
-Field tripTimeField = FIELD_READONLY_STRING(_S("trip time", "trip time"), (char [MAX_TIMESTR_LEN]){ 0 });
+Field upTimeField = FIELD_READONLY_STRING(_S("up time", "up time"), (char [MAX_TIMESTR_LEN]){ 0 });
 
-Field tripDistanceField = FIELD_READONLY_UINT(_S("trip distance", "trip dista"), &ui_vars.ui32_trip_x10, "km", false, .div_digits = 1);
+Field tripADistanceField = FIELD_READONLY_UINT(_S("A trip dist", "A trip dis"), &ui_vars.ui32_trip_a_distance_x100, "km", false, .div_digits = 2);
+// Note: this field is special, the string it is pointing to must be in RAM so we can change it later
+Field tripATimeField = FIELD_READONLY_STRING(_S("A trip time", "A trip tim"), (char [MAX_TIMESTR_LEN]){ 0 });
+Field tripAAvgSpeedField = FIELD_READONLY_UINT(_S("A avg speed", "A avgspeed"), &ui_vars.ui16_trip_a_avg_speed_x10, "kph", true, .div_digits = 1);
+Field tripAMaxSpeedField = FIELD_READONLY_UINT(_S("A max speed", "A maxspeed"), &ui_vars.ui16_trip_a_max_speed_x10, "kph", true, .div_digits = 1);
+
+Field tripBDistanceField = FIELD_READONLY_UINT(_S("B trip dist", "B trip dis"), &ui_vars.ui32_trip_b_distance_x100, "km", false, .div_digits = 2);
+// Note: this field is special, the string it is pointing to must be in RAM so we can change it later
+Field tripBTimeField = FIELD_READONLY_STRING(_S("B trip time", "B trip tim"), (char [MAX_TIMESTR_LEN]){ 0 });
+Field tripBAvgSpeedField = FIELD_READONLY_UINT(_S("B avg speed", "B avgspeed"), &ui_vars.ui16_trip_b_avg_speed_x10, "kph", true, .div_digits = 1);
+Field tripBMaxSpeedField = FIELD_READONLY_UINT(_S("B max speed", "B maxspeed"), &ui_vars.ui16_trip_b_max_speed_x10, "kph", true, .div_digits = 1);
+
 Field odoField = FIELD_READONLY_UINT("odometer", &ui_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceField = FIELD_READONLY_UINT("cadence", &ui_vars.ui8_pedal_cadence_filtered, "rpm", true, .div_digits = 0);
 Field humanPowerField = FIELD_READONLY_UINT(_S("human power", "human powr"), &ui16_m_pedal_power_filtered, "W", true, .div_digits = 0);
@@ -114,22 +128,29 @@ Field warnField = FIELD_CUSTOM(renderWarning);
  * If you remove old values, either warn users or bump up eeprom version to force eeprom contents to be discarded.
  */
 Field *customizables[] = {
-    &tripTimeField, // 0
-    &tripDistanceField, // 1
-    &odoField, // 2
-    &wheelSpeedField, // 3
-    &cadenceField, // 4
-		&humanPowerField, // 5
-		&batteryPowerField, // 6
-    &batteryVoltageField, // 7
-    &batteryCurrentField, // 8
-    &motorCurrentField, // 9
-    &batterySOCField, // 10
-		&motorTempField, // 11
-    &motorErpsField, // 12
-		&pwmDutyField, // 13
-		&motorFOCField, // 14
-		&batteryPowerUsageField, // 15
+    &upTimeField, // 0
+    &odoField, // 1
+    &tripADistanceField, // 2
+    &tripATimeField, // 3
+    &tripAAvgSpeedField, // 4
+    &tripAMaxSpeedField, // 5
+    &tripBDistanceField, // 6
+    &tripBTimeField, // 7
+    &tripBMaxSpeedField, // 8
+    &tripBAvgSpeedField, // 9
+    &wheelSpeedField, // 10
+    &cadenceField, // 11
+		&humanPowerField, // 12
+		&batteryPowerField, // 13
+    &batteryVoltageField, // 14
+    &batteryCurrentField, // 15
+    &motorCurrentField, // 16
+    &batterySOCField, // 17
+		&motorTempField, // 18
+    &motorErpsField, // 19
+		&pwmDutyField, // 20
+		&motorFOCField, // 21
+		&batteryPowerUsageField, // 22
 		NULL
 };
 
@@ -138,7 +159,7 @@ Field *customizables[] = {
 // only in one place.
 // Though I'm not sure why you need l2 vs l3 vars in this case.
 Field wheelSpeedFieldGraph = FIELD_READONLY_UINT("speed", &rt_vars.ui16_wheel_speed_x10, "km", false, .div_digits = 1);
-Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &rt_vars.ui32_trip_x10, "km", false, .div_digits = 1);
+Field tripDistanceFieldGraph = FIELD_READONLY_UINT("trip distance", &rt_vars.ui32_trip_a_distance_x1000, "km", false, .div_digits = 1);
 Field odoFieldGraph = FIELD_READONLY_UINT("odometer", &rt_vars.ui32_odometer_x10, "km", false, .div_digits = 1);
 Field cadenceFieldGraph = FIELD_READONLY_UINT("cadence", &rt_vars.ui8_pedal_cadence_filtered, "", false);
 Field humanPowerFieldGraph = FIELD_READONLY_UINT("human power", &rt_vars.ui16_pedal_power_filtered, "", false);
@@ -599,6 +620,7 @@ void lcd_main_screen(void) {
 	battery_soc();
 	battery_display();
 	warnings();
+  up_time();
 	trip_time();
 	wheel_speed();
 }
@@ -713,6 +735,7 @@ void screen_clock(void) {
     clock_time();
 #endif
     DisplayResetToDefaults();
+    TripMemoriesReset();
     DisplayResetBluetoothPeers();
     batteryTotalWh();
     batteryCurrent();
@@ -734,7 +757,7 @@ void thresholds(void) {
 
   odoField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   odoFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
-  tripDistanceField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
+  tripADistanceField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   tripDistanceFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   batteryPowerUsageField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   batteryPowerUsageFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
@@ -932,7 +955,7 @@ void thresholds(void) {
 #endif
 }
 
-void trip_time(void) {
+void up_time(void) {
 	rtc_time_t *p_time = rtc_get_time_since_startup();
 	static int oldmin = -1; // used to prevent unneeded updates
 	char timestr[MAX_TIMESTR_LEN]; // 12:13
@@ -940,8 +963,33 @@ void trip_time(void) {
 	if (p_time->ui8_minutes != oldmin) {
 		oldmin = p_time->ui8_minutes;
 		sprintf(timestr, "%d:%02d", p_time->ui8_hours, p_time->ui8_minutes);
-		updateReadOnlyStr(&tripTimeField, timestr);
+		updateReadOnlyStr(&upTimeField, timestr);
 	}
+}
+
+void trip_time(void){
+  updateTripTime(ui_vars.ui32_trip_a_time, &tripATimeField);
+  updateTripTime(ui_vars.ui32_trip_b_time, &tripBTimeField);
+}
+
+void updateTripTime(uint32_t tripTime, Field *field) {
+  char timestr[MAX_TIMESTR_LEN]; // 12:13
+  uint32_t ui32_temp = tripTime % 86399; // 86399 = seconds in 1 day minus 1s
+
+  // Calculate trip time
+  uint8_t hours = ui32_temp / 3600;
+  uint8_t minutes = (ui32_temp % 3600) / 60;
+  uint8_t seconds = (ui32_temp % 3600) % 60;
+
+  if(hours > 0)  
+    sprintf(timestr, "%d:%02d", hours, minutes);
+  else
+    sprintf(timestr, "%d:%02d", minutes, seconds);
+
+  //sprintf(timestr, "%d:%02d:%02d", hours, minutes, seconds);
+
+  if(strcmp(field->editable.target, timestr) != 0)
+    updateReadOnlyStr(field, timestr);
 }
 
 static ColorOp warnColor = ColorNormal;
@@ -1229,6 +1277,32 @@ void DisplayResetToDefaults(void) {
   if (ui8_g_configuration_display_reset_to_defaults) {
     ui8_g_configuration_display_reset_to_defaults = 0;
     eeprom_init_defaults();
+  }
+}
+
+void TripMemoriesReset(void) {
+  if (ui8_g_configuration_trip_a_reset) {
+    ui8_g_configuration_trip_a_reset = 0;
+
+    uint32_t current_time = RTC_GetCounter();
+
+    rt_vars.ui32_trip_a_last_update_time = current_time;
+    rt_vars.ui32_trip_a_distance_x1000 = 0;
+    rt_vars.ui32_trip_a_time = 0;
+    rt_vars.ui16_trip_a_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_a_max_speed_x10 = 0;
+  }
+
+  if (ui8_g_configuration_trip_b_reset) {
+    ui8_g_configuration_trip_b_reset = 0;
+
+    uint32_t current_time = RTC_GetCounter();
+
+    rt_vars.ui32_trip_b_last_update_time = current_time;
+    rt_vars.ui32_trip_b_distance_x1000 = 0;
+    rt_vars.ui32_trip_b_time = 0;
+    rt_vars.ui16_trip_b_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_b_max_speed_x10 = 0;
   }
 }
 

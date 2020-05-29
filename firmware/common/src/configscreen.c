@@ -3,6 +3,20 @@
 #include "configscreen.h"
 #include "eeprom.h"
 
+
+
+static Field tripMenus[] =
+		{
+#ifndef SW102
+						FIELD_EDITABLE_ENUM("A auto reset", &ui_vars.ui8_trip_a_auto_reset, "disable", "enable"),
+            FIELD_EDITABLE_UINT("A auto reset hours", &ui_vars.ui16_trip_a_auto_reset_hours, "hrs", 1, 999, .inc_step = 1),
+            FIELD_EDITABLE_ENUM("B auto reset", &ui_vars.ui8_trip_b_auto_reset, "disable", "enable"),
+            FIELD_EDITABLE_UINT("B auto reset hours", &ui_vars.ui16_trip_b_auto_reset_hours, "hrs", 1, 999, .inc_step = 1),
+#endif
+            FIELD_EDITABLE_ENUM(_S("Reset trip A", "Rst trip A"), &ui8_g_configuration_trip_a_reset, "no", "yes"),
+            FIELD_EDITABLE_ENUM(_S("Reset trip B", "Rst trip B"), &ui8_g_configuration_trip_b_reset, "no", "yes"),
+				FIELD_END };
+
 static Field wheelMenus[] =
 		{
 						FIELD_EDITABLE_UINT("Max speed", &ui_vars.wheel_max_speed_x10, "kph", 1, 990, .div_digits = 1, .inc_step = 10, .hide_fraction = true),
@@ -365,6 +379,7 @@ static Field technicalMenus[] = {
   FIELD_END };
 
 static Field topMenus[] = {
+  FIELD_SCROLLABLE("Trip memories", tripMenus),
   FIELD_SCROLLABLE("Wheel", wheelMenus),
   FIELD_SCROLLABLE("Battery", batteryMenus),
   FIELD_SCROLLABLE("SOC", batterySOCMenus),
@@ -388,6 +403,8 @@ static Field configRoot = FIELD_SCROLLABLE(_S("Configurations", "Config"), topMe
 uint8_t ui8_g_configuration_display_reset_to_defaults = 0;
 uint32_t ui32_g_configuration_wh_100_percent = 0;
 uint8_t ui8_g_configuration_display_reset_bluetooth_peers = 0;
+uint8_t ui8_g_configuration_trip_a_reset = 0;
+uint8_t ui8_g_configuration_trip_b_reset = 0;
 
 static void configScreenOnEnter() {
 	// Set the font preference for this screen

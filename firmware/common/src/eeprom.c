@@ -595,6 +595,8 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_time_field_enable;
   m_eeprom_data.ui8_target_max_battery_power_div25 =
       ui_vars->ui8_target_max_battery_power_div25;
+  m_eeprom_data.ui8_battery_max_current =
+      ui_vars->ui8_battery_max_current;
   m_eeprom_data.ui8_motor_max_current =
       ui_vars->ui8_motor_max_current;
   m_eeprom_data.ui8_motor_current_min_adc =

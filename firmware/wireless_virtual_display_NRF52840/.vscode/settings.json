@@ -1,0 +1,10 @@
+{
+    "git.ignoreLimitWarning": true,
+    "github.gitAuthentication": false,
+
+    // On this project, tab size is 2
+    "editor.tabSize": 2,
+
+    // This one forces the tab to be **space**
+    "editor.insertSpaces": true
+}

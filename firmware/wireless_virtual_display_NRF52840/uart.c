@@ -1,25 +1,29 @@
 /*
  * Bafang LCD SW102 Bluetooth firmware
- *
  * Copyright (C) lowPerformer, 2019.
+ * 
+ * TSDZ2 EBike wireless firmware
+ * Copyright (C) Casainho, 2020
  *
  * Released under the GPL License, Version 3
  */
 
 #include <string.h>
-// #include "common.h"
-// #include "nrf_drv_uart.h"
-// #include "uart.h"
+#include "main.h"
+#include "nrf_drv_uart.h"
+#include "uart.h"
 // #include "utils.h"
-// #include "assert.h"
-// #include "app_util_platform.h"
-// #include "app_uart.h"
+#include "assert.h"
+#include "app_util_platform.h"
+#include "app_uart.h"
+#include "custom_board.h"
+// #include "common.h"
 
 extern uint32_t _app_uart_init(const app_uart_comm_params_t * p_comm_params,
     app_uart_buffers_t *     p_buffers,
     app_uart_event_handler_t event_handler,
     app_irq_priority_t       irq_priority);
-extern uint8_t app_uart_get(void);
+// extern uint8_t app_uart_get(void);
 
 #define UART_IRQ_PRIORITY                       APP_IRQ_PRIORITY_LOW
 
@@ -28,8 +32,8 @@ extern uint8_t app_uart_get(void);
  */
 static const app_uart_comm_params_t comm_params =
 {
-    .rx_pin_no  = UART_RX__PIN,
-    .tx_pin_no  = UART_TX__PIN,
+    .rx_pin_no  = RX_PIN_NUMBER,
+    .tx_pin_no  = TX_PIN_NUMBER,
     .rts_pin_no = RTS_PIN_NUMBER,
     .cts_pin_no = CTS_PIN_NUMBER,
     //Below values are defined in ser_config.h common for application and connectivity
@@ -186,6 +190,7 @@ void uart_send_tx_buffer(uint8_t *tx_buffer, uint8_t ui8_len)
   for (uint8_t i = 0; i < ui8_len; i++)
   {
     err_code = app_uart_put(tx_buffer[i]);
+(void) err_code;
 // assume that buffer will never get full, like for instance when we are debugging
 //    if (err_code != 0)
 //      APP_ERROR_CHECK(err_code);

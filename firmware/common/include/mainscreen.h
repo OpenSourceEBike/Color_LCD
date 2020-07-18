@@ -82,8 +82,8 @@ void secondMainScreenOnDirtyClean(void);
 void mainScreenonPostUpdate(void);
 bool mainScreenOnPress(buttons_events_t events);
 void showNextScreen();
-void main_idle(); // call every 20ms
 void setWarning(ColorOp color, const char *str);
+void screen_clock(void);
 
 /// set to true if this boot was caused because we had a watchdog failure, used to show user the problem in the fault line
 extern bool wd_failure_detected;

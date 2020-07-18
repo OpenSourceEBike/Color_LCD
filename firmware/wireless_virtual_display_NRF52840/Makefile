@@ -4,7 +4,7 @@ OUTPUT_DIRECTORY := _build
 
 SDK_ROOT := ./nRF5_SDK_16.0.0
 PROJ_DIR := .
-PROJ_COMMON_DIR := ../
+PROJ_COMMON_DIR := ..
 
 $(OUTPUT_DIRECTORY)/TSDZ2_wireless.out: \
   LINKER_SCRIPT  := TSDZ2_wireless_gcc_nrf52.ld
@@ -50,6 +50,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
+	$(SDK_ROOT)/modules/nrfx/hal/nrf_nvmc.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
@@ -74,6 +75,12 @@ SRC_FILES += \
   $(PROJ_DIR)/ant_lev/pages/ant_lev_common_data.c \
   $(PROJ_DIR)/pins.c \
 	$(PROJ_DIR)/eeprom_hw.c \
+	$(PROJ_DIR)/rtc.c \
+	$(PROJ_DIR)/uart.c \
+	$(PROJ_COMMON_DIR)/common/src/eeprom.c \
+	$(PROJ_COMMON_DIR)/common/src/mainscreen.c \
+	$(PROJ_COMMON_DIR)/common/src/screen.c \
+	$(PROJ_COMMON_DIR)/common/src/state.c \
   $(PROJ_DIR)/main.c \
 
 # Include folders common to all targets
@@ -121,11 +128,13 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ant/ant_channel_config \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_common/ant_request_controller \
   $(SDK_ROOT)/components/ant/ant_profiles/ant_common/pages \
+	$(SDK_ROOT)/components/libraries/uart \
   $(PROJ_DIR)/ \
 	$(PROJ_DIR)/ant_lev \
   $(PROJ_DIR)/ant_lev/pages \
 	$(PROJ_DIR)/include \
 	$(PROJ_COMMON_DIR)/common/include \
+	$(PROJ_DIR)/config \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -136,6 +145,7 @@ OPT = -O0 -g3
 #OPT += -flto
 
 # C flags common to all targets
+CFLAGS += -DDISPLAY_WIRELESS_VIRTUAL
 CFLAGS += $(OPT)
 CFLAGS += -DAPP_TIMER_V2
 CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
@@ -153,6 +163,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
+CFLAGS += -DMAKERDIARY_NRF52840_MDK_USB_DONGLE
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)

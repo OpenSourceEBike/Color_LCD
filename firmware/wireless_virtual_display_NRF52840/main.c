@@ -23,6 +23,9 @@
 #include "rtc.h"
 #include "state.h"
 #include "uart.h"
+#include "eeprom.h"
+#include "lcd.h"
+#include "rtc.h"
 
 #define MSEC_PER_TICK 20
 
@@ -30,6 +33,9 @@ APP_TIMER_DEF(gui_timer_id); /* GUI updates counting timer. */
 #define GUI_INTERVAL APP_TIMER_TICKS(MSEC_PER_TICK)
 
 volatile uint32_t gui_ticks;
+
+// assume we should until we init_softdevice()
+bool useSoftDevice = true;
 
 #define LEV_HW_REVISION 1
 #define LEV_MANUFACTURER_ID (UINT16_MAX - 1)
@@ -144,11 +150,11 @@ static void ant_setup(void)
   APP_ERROR_CHECK(err_code);
 }
 
-void SW102_rt_processing_stop(void) {
+void wireless_virtual_rt_processing_stop(void) {
   m_rt_processing_stop = true;
 }
 
-void SW102_rt_processing_start(void) {
+void wireless_virtual_rt_processing_start(void) {
   m_rt_processing_stop = false;
 }
 
@@ -171,7 +177,7 @@ static void gui_timer_timeout(void *p_context)
   
   if((gui_ticks % (100 / MSEC_PER_TICK) == 0) && // every 100ms
       m_rt_processing_stop == false)
-    rt_processing();
+    ; // rt_processing();
 }
 
 /// msecs since boot (note: will roll over every 50 days)
@@ -197,6 +203,23 @@ static void init_app_timers(void)
   // create and start timers
   APP_ERROR_CHECK(app_timer_create(&gui_timer_id, APP_TIMER_MODE_REPEATED, gui_timer_timeout));
   APP_ERROR_CHECK(app_timer_start(gui_timer_id, GUI_INTERVAL, NULL));
+}
+
+/// Call every 20ms from the main thread.
+void main_idle() {
+  // static int counter_time_ms = 0;
+  // int time_ms = 0;
+
+  // // no point to processing less than every 100ms, as the data comming from the motor is only updated every 100ms, not less
+  // time_ms = get_time_base_counter_1ms();
+  // if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
+  // {
+  //   counter_time_ms = time_ms;
+  //   automatic_power_off_management();
+  // }
+
+	// handle_buttons();
+	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
 }
 
 int main(void)
@@ -227,8 +250,8 @@ int main(void)
 
       if(tickshandled++ % (100 / MSEC_PER_TICK) == 0) { // every 100ms
 
-        if(stack_overflow_debug() < 128) // we are close to running out of stack
-          APP_ERROR_HANDLER(FAULT_STACKOVERFLOW);
+        // if(stack_overflow_debug() < 128) // we are close to running out of stack
+        //   APP_ERROR_HANDLER(FAULT_STACKOVERFLOW);
       }
 
       main_idle();

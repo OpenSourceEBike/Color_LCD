@@ -5,7 +5,6 @@
 #include <assert.h>
 #include "ugui.h"
 #include "buttons.h"
-#include "main.h"
 
 /**
  * Main screen notes

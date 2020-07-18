@@ -5,6 +5,7 @@ GROUP(-lgcc -lc -lnosys)
 
 MEMORY
 {
+/* flash starting at 0x31000 means 49 pages of 4096/4K are reserved for bootloader */
   FLASH (rx) : ORIGIN = 0x31000, LENGTH = 0xcf000
   RAM (rwx) :  ORIGIN = 0x20002798, LENGTH = 0x3d868
 }

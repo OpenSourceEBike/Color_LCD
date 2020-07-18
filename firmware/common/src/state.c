@@ -588,18 +588,22 @@ void rt_calc_battery_soc(void) {
 }
 
 void rt_processing_stop(void) {
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
   Display850C_rt_processing_stop();
-#else
+#elif defined(SW102)
   SW102_rt_processing_stop();
+#elif defined(DISPLAY_WIRELESS_VIRTUAL)
+  wireless_virtual_rt_processing_stop();
 #endif
 }
 
 void rt_processing_start(void) {
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
   Display850C_rt_processing_start();
-#else
+#elif defined(SW102)
   SW102_rt_processing_start();
+#elif defined(DISPLAY_WIRELESS_VIRTUAL)
+  wireless_virtual_rt_processing_start();
 #endif
 }
 

@@ -77,6 +77,7 @@ bool wd_failure_detected;
 #define MAX_BATTERY_POWER_USAGE_STR_LEN 6 // Wh/km or Wh/mi , including nul terminator
 #define MAX_ALTERNATE_USAGE_STR_LEN 10 // "max power", "throttle"  including nul terminator
 
+#ifndef DISPLAY_WIRELESS_VIRTUAL
 //
 // Fields - these might be shared my multiple screens
 //
@@ -259,6 +260,7 @@ Field bootHeading = FIELD_DRAWTEXT_RO(_S("OpenSource EBike", "OS-EBike")),
    bootVersion = FIELD_DRAWTEXT_RO(VERSION_STRING),
    bootStatus1 = FIELD_DRAWTEXT_RO(_S("Keep pedals free and wait", "free pedal")),
    bootStatus2 = FIELD_DRAWTEXT_RW(.msg = "");
+#endif // #ifndef DISPLAY_WIRELESS_VIRTUAL
 
 static void bootScreenOnPreUpdate() {
   switch (g_motor_init_state) {
@@ -285,10 +287,13 @@ static void bootScreenOnPreUpdate() {
 }
 
 void bootScreenOnExit(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   // SW102: now that we are goind to main screen, start by showing the assist level for 5 seconds
   m_assist_level_change_timeout = 50;
+#endif
 }
 
+#ifndef DISPLAY_WIRELESS_VIRTUAL
 Screen bootScreen = {
   .onPreUpdate = bootScreenOnPreUpdate,
   .onExit = bootScreenOnExit,
@@ -364,9 +369,11 @@ Screen bootScreen = {
     }
   }
 };
+#endif // #ifndef DISPLAY_WIRELESS_VIRTUAL
 
 // Allow common operations (like walk assist and headlights) button presses to work on any page
 bool anyscreen_onpress(buttons_events_t events) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   if ((events & DOWN_LONG_CLICK) && ui_vars.ui8_walk_assist_feature_enabled) {
     ui_vars.ui8_walk_assist = 1;
     return true;
@@ -381,10 +388,12 @@ bool anyscreen_onpress(buttons_events_t events) {
   }
 
   return false;
+#endif
 }
 
 static bool onPressAlternateField(buttons_events_t events) {
   bool handled = false;
+#ifndef DISPLAY_WIRELESS_VIRTUAL
 
   // start increment throttle only with UP_LONG_CLICK
   if ((ui8_m_alternate_field_state == 7) &&
@@ -522,10 +531,12 @@ static bool onPressAlternateField(buttons_events_t events) {
       handled = true;
   }
 
+#endif
   return handled;
 }
 
 static bool onPressStreetMode(buttons_events_t events) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   bool handled = false;
 
   if (events & SCREENCLICK_STREET_MODE)
@@ -544,9 +555,11 @@ static bool onPressStreetMode(buttons_events_t events) {
   }
 
   return handled;
+#endif
 }
 
 bool mainScreenOnPress(buttons_events_t events) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   bool handled = false;
 
   handled = onPressAlternateField(events);
@@ -582,7 +595,8 @@ bool mainScreenOnPress(buttons_events_t events) {
     }
   }
 
-	return handled;
+  return handled;
+#endif
 }
 
 
@@ -593,6 +607,7 @@ void set_conversions() {
 }
 
 void lcd_main_screen(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
 	time();
 	walk_assist_state();
 //  offroad_mode();
@@ -601,10 +616,12 @@ void lcd_main_screen(void) {
 	warnings();
 	trip_time();
 	wheel_speed();
+#endif
 }
 
 void wheel_speed(void)
 {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   uint16_t ui16_wheel_speed = ui_vars.ui16_wheel_speed_x10;
 
   // reset otherwise at startup this value goes crazy
@@ -621,9 +638,12 @@ void wheel_speed(void)
     ui8_m_wheel_speed_integer = ui_vars.ui8_assist_level;
   }
 #endif
+
+#endif // #ifndef DISPLAY_WIRELESS_VIRTUAL
 }
 
 void alternatField(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   static const char str_max_power[] = "max power";
   static const char str_throttle[] = "throttle";
 
@@ -682,13 +702,16 @@ void alternatField(void) {
       ui16_m_alternate_field_value = (uint16_t) ui_vars.ui8_throttle_virtual;
       break;
   }
+#endif
 }
 
 void streetMode(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   if (ui_vars.ui8_street_mode_function_enabled)
   {
     ui_vars.ui8_street_mode_power_limit_div25 = (ui_vars.ui16_street_mode_power_limit / 25);
   }
+#endif
 }
 
 void screen_clock(void) {
@@ -709,7 +732,7 @@ void screen_clock(void) {
     rt_processing_start();
 
     lcd_main_screen();
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
     clock_time();
 #endif
     DisplayResetToDefaults();
@@ -722,7 +745,7 @@ void screen_clock(void) {
     pedalPower();
     alternatField();
     streetMode();
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
     thresholds();
 #endif
     screenUpdate();
@@ -730,8 +753,7 @@ void screen_clock(void) {
 }
 
 void thresholds(void) {
-#ifndef SW102
-
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   odoField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   odoFieldGraph.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
   tripDistanceField.rw->editable.number.auto_thresholds = FIELD_THRESHOLD_DISABLED;
@@ -933,6 +955,7 @@ void thresholds(void) {
 }
 
 void trip_time(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
 	rtc_time_t *p_time = rtc_get_time_since_startup();
 	static int oldmin = -1; // used to prevent unneeded updates
 	char timestr[MAX_TIMESTR_LEN]; // 12:13
@@ -942,6 +965,7 @@ void trip_time(void) {
 		sprintf(timestr, "%d:%02d", p_time->ui8_hours, p_time->ui8_minutes);
 		updateReadOnlyStr(&tripTimeField, timestr);
 	}
+#endif
 }
 
 static ColorOp warnColor = ColorNormal;
@@ -1017,7 +1041,7 @@ void warnings(void) {
 	}
 
 	// warn faults in yellow
-  if (motor_temp_limit &&
+    if (motor_temp_limit &&
       ui_vars.ui8_motor_temperature >= ui_vars.ui8_motor_temperature_min_value_to_limit) {
 		setWarning(ColorWarning, _S("Temp Warning", "Temp Warn"));
 		return;
@@ -1044,6 +1068,7 @@ void warnings(void) {
 }
 
 void battery_soc(void) {
+#ifndef DISPLAY_WIRELESS_VIRTUAL
   switch (ui_vars.ui8_battery_soc_enable) {
     default:
     case 0:
@@ -1061,11 +1086,12 @@ void battery_soc(void) {
           ui_vars.ui16_battery_voltage_soc_x10 % 10);
       break;
   }
+#endif
 }
 
 
 void time(void) {
-#ifndef SW102
+#if defined(DISPLAY_850C) || defined(DISPLAY_860C)
   rtc_time_t *p_rtc_time = rtc_get_time();
 
   switch (ui_vars.ui8_time_field_enable) {
@@ -1195,23 +1221,6 @@ static void handle_buttons() {
 	}
 
 	buttons_clock(); // Note: this is done _after_ button events is checked to provide a 20ms debounce
-}
-
-/// Call every 20ms from the main thread.
-void main_idle() {
-  static int counter_time_ms = 0;
-  int time_ms = 0;
-
-  // no point to processing less than every 100ms, as the data comming from the motor is only updated every 100ms, not less
-  time_ms = get_time_base_counter_1ms();
-  if((time_ms - counter_time_ms) >= 100) // not least than evey 100ms
-  {
-    counter_time_ms = time_ms;
-    automatic_power_off_management();
-  }
-
-	handle_buttons();
-	screen_clock(); // This is _after_ handle_buttons so if a button was pressed this tick, we immediately update the GUI
 }
 
 void batteryTotalWh(void) {

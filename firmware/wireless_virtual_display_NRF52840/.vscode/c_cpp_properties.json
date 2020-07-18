@@ -12,6 +12,7 @@
                 "APP_TIMER_V2",
                 "APP_TIMER_V2_RTC1_ENABLED",
                 "BOARD_CUSTOM",
+                "MAKERDIARY_NRF52840_MDK_USB_DONGLE",
                 "NRF52840_MDK_USB_DONGLE",
                 "CONFIG_GPIO_AS_PINRESET",
                 "FLOAT_ABI_HARD",

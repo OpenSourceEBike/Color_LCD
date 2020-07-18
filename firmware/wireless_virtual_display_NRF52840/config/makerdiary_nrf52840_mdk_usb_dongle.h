@@ -37,23 +37,59 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#ifndef CUSTOM_BOARD_H
-#define CUSTOM_BOARD_H
+#ifndef MAKERDIARY_NRF52840_MDK_USB_DONGLE_H
+#define MAKERDIARY_NRF52840_MDK_USB_DONGLE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined NRF52840_MDK_USB_DONGLE
-#include "nrf52840_mdk_usb_dongle.h"
-#elif defined MAKERDIARY_NRF52840_MDK_USB_DONGLE
-#include "makerdiary_nrf52840_mdk_usb_dongle.h"
-#else
-#error "Board is not defined"
-#endif
+#include "nrf_gpio.h"
+
+// #ifdef CONFIG_GPIO_AS_PINRESET
+// #error "CONFIG_GPIO_AS_PINRESET Should NOT be defined! Comment <CFLAGS += -DCONFIG_GPIO_AS_PINRESET> and <ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET> in Makefile."
+// #endif
+
+// // LEDs definitions for nRF52840-MDK USB Dongle
+// #define LEDS_NUMBER    3
+
+// #define LED_1          NRF_GPIO_PIN_MAP(0,22)
+// #define LED_2          NRF_GPIO_PIN_MAP(0,23)
+// #define LED_3          NRF_GPIO_PIN_MAP(0,24)
+// #define LED_START      LED_1
+// #define LED_STOP       LED_3
+
+// #define LEDS_ACTIVE_STATE 0
+
+// #define LEDS_LIST { LED_1, LED_2, LED_3 }
+
+// #define LEDS_INV_MASK  LEDS_MASK
+
+// #define BSP_LED_0      22
+// #define BSP_LED_1      23
+// #define BSP_LED_2      24
+
+// #define BUTTONS_NUMBER 1
+
+// #define BUTTON_1       NRF_GPIO_PIN_MAP(0,18)
+// #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
+
+// #define BUTTONS_ACTIVE_STATE 0
+
+// #define BUTTONS_LIST { BUTTON_1 }
+
+// #define BSP_BUTTON_0   BUTTON_1
+
+#define MOTOR_POWER_ENABLE__PIN             19
+
+#define RX_PIN_NUMBER  7
+#define TX_PIN_NUMBER  6
+#define CTS_PIN_NUMBER 0xFFFFFFFF  // UART_PIN_DISCONNECTED
+#define RTS_PIN_NUMBER 0xFFFFFFFF  // UART_PIN_DISCONNECTED
+#define HWFC           false
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // CUSTOM_BOARD_H
+#endif // MAKERDIARY_NRF52840_MDK_USB_DONGLE_H

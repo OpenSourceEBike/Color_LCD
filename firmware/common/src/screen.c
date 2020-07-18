@@ -2153,6 +2153,7 @@ Screen* getCurrentScreen() {
 }
 
 void screenUpdate() {
+#ifndef(DISPLAY_WIRELESS_VIRTUAL)
 	if (!curScreen)
 		return;
 
@@ -2195,6 +2196,7 @@ void screenUpdate() {
 #endif
 
 	screenDirty = false;
+#endif
 }
 
 void fieldPrintf(Field *field, const char *fmt, ...) {

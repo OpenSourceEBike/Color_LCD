@@ -2464,9 +2464,9 @@ void screen_init(void) {
   wheelSpeedField.rw->editable.number.config_warn_threshold = &g_vars[VarsWheelSpeed].config_warn_threshold;
   wheelSpeedField.rw->editable.number.config_error_threshold = &g_vars[VarsWheelSpeed].config_error_threshold;
 
-  tripDistanceField.rw->editable.number.auto_thresholds = &g_vars[VarsTripDistance].auto_thresholds;
-  tripDistanceField.rw->editable.number.config_warn_threshold = &g_vars[VarsTripDistance].config_warn_threshold;
-  tripDistanceField.rw->editable.number.config_error_threshold = &g_vars[VarsTripDistance].config_error_threshold;
+  tripADistanceField.rw->editable.number.auto_thresholds = &g_vars[VarsTripDistance].auto_thresholds;
+  tripADistanceField.rw->editable.number.config_warn_threshold = &g_vars[VarsTripDistance].config_warn_threshold;
+  tripADistanceField.rw->editable.number.config_error_threshold = &g_vars[VarsTripDistance].config_error_threshold;
 
   odoField.rw->editable.number.auto_thresholds = &g_vars[VarsOdometer].auto_thresholds;
   odoField.rw->editable.number.config_warn_threshold = &g_vars[VarsOdometer].config_warn_threshold;

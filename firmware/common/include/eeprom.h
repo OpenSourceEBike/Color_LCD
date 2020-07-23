@@ -15,8 +15,8 @@
 
 // For compatible changes, just add new fields at the end of the table (they will be inited to 0xff for old eeprom images).  For incompatible
 // changes bump up EEPROM_MIN_COMPAT_VERSION and the user's EEPROM settings will be discarded.
-#define EEPROM_MIN_COMPAT_VERSION 0x3B
-#define EEPROM_VERSION 0x3B
+#define EEPROM_MIN_COMPAT_VERSION 0x3C
+#define EEPROM_VERSION 0x3C
 
 typedef struct {
   graph_auto_max_min_t auto_max_min;
@@ -155,6 +155,24 @@ typedef struct eeprom_data {
   uint8_t ui8_torque_sensor_filter;
   uint8_t ui8_torque_sensor_adc_threshold;
   uint8_t ui8_coast_brake_enable;
+
+#ifndef SW102
+  uint8_t  ui8_trip_a_auto_reset;
+	uint16_t ui16_trip_a_auto_reset_hours;
+  uint32_t ui32_trip_a_last_update_time;
+#endif
+  uint32_t ui32_trip_a_distance_x1000;
+  uint32_t ui32_trip_a_time;
+  uint16_t ui16_trip_a_max_speed_x10;
+
+#ifndef SW102  
+  uint8_t  ui8_trip_b_auto_reset;
+	uint16_t ui16_trip_b_auto_reset_hours;
+  uint32_t ui32_trip_b_last_update_time;
+#endif
+  uint32_t ui32_trip_b_distance_x1000;
+  uint32_t ui32_trip_b_time;
+  uint16_t ui16_trip_b_max_speed_x10;
 
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
@@ -362,6 +380,16 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             102
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                300
 #endif
+
+#ifndef SW102
+#define DEFAULT_VALUE_TRIP_AUTO_RESET_ENABLE                         0 // disable
+#define DEFAULT_VALUE_TRIP_LAST_UPDATE                               0 // disable
+#define DEFAULT_VALUE_TRIP_A_AUTO_RESET_HOURS                        24 // 1 day 
+#define DEFAULT_VALUE_TRIP_B_AUTO_RESET_HOURS                        168 // 1 week = 7 * 24 = 168 hours
+#endif
+#define DEFAULT_VALUE_TRIP_DISTANCE                                  0
+#define DEFAULT_VALUE_TRIP_TIME                                      0
+#define DEFAULT_VALUE_TRIP_MAX_SPEED                                 0
 
 // *************************************************************************** //
 

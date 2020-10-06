@@ -279,14 +279,20 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_torque_sensor_adc_threshold = DEFAULT_TORQUE_SENSOR_ADC_THRESHOLD,
   .ui8_coast_brake_enable = DEFAULT_COAST_BRAKE_ENABLE,
 
+#ifndef SW102
   .ui8_trip_a_auto_reset = DEFAULT_VALUE_TRIP_AUTO_RESET_ENABLE,
   .ui16_trip_a_auto_reset_hours = DEFAULT_VALUE_TRIP_A_AUTO_RESET_HOURS,
+#endif
+
   .ui32_trip_a_distance_x1000 = DEFAULT_VALUE_TRIP_DISTANCE,
   .ui32_trip_a_time = DEFAULT_VALUE_TRIP_TIME,
   .ui16_trip_a_max_speed_x10 = DEFAULT_VALUE_TRIP_MAX_SPEED,
 
+#ifndef SW102
   .ui8_trip_b_auto_reset = DEFAULT_VALUE_TRIP_AUTO_RESET_ENABLE,
   .ui16_trip_b_auto_reset_hours = DEFAULT_VALUE_TRIP_B_AUTO_RESET_HOURS,
+#endif
+
   .ui32_trip_b_distance_x1000 = DEFAULT_VALUE_TRIP_DISTANCE,
   .ui32_trip_b_time = DEFAULT_VALUE_TRIP_TIME,
   .ui16_trip_b_max_speed_x10 = DEFAULT_VALUE_TRIP_MAX_SPEED,
@@ -812,12 +818,15 @@ void eeprom_write_variables(void) {
   m_eeprom_data.ui8_coast_brake_enable =
       ui_vars->ui8_coast_brake_enable;
 
+#ifndef SW102
   m_eeprom_data.ui8_trip_a_auto_reset =
     ui_vars->ui8_trip_a_auto_reset;
   m_eeprom_data.ui16_trip_a_auto_reset_hours = 
     ui_vars->ui16_trip_a_auto_reset_hours;
   m_eeprom_data.ui32_trip_a_last_update_time =
     ui_vars->ui32_trip_a_last_update_time;
+#endif
+
   m_eeprom_data.ui32_trip_a_distance_x1000 =
       ui_vars->ui32_trip_a_distance_x1000;
   m_eeprom_data.ui32_trip_a_time =
@@ -825,12 +834,15 @@ void eeprom_write_variables(void) {
   m_eeprom_data.ui16_trip_a_max_speed_x10 =
       ui_vars->ui16_trip_a_max_speed_x10;
   
+#ifndef SW102
   m_eeprom_data.ui8_trip_b_auto_reset =
     ui_vars->ui8_trip_b_auto_reset;
   m_eeprom_data.ui16_trip_b_auto_reset_hours = 
     ui_vars->ui16_trip_b_auto_reset_hours;
   m_eeprom_data.ui32_trip_b_last_update_time =
     ui_vars->ui32_trip_b_last_update_time;
+#endif
+
   m_eeprom_data.ui32_trip_b_distance_x1000 =
       ui_vars->ui32_trip_b_distance_x1000;
   m_eeprom_data.ui32_trip_b_time =

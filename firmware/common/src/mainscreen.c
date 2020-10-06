@@ -24,6 +24,7 @@
 #include "configscreen.h"
 #include "state.h"
 #include "timer.h"
+#include "rtc.h"
 #ifdef SW102
 #include "peer_manager.h"
 #endif
@@ -1284,9 +1285,12 @@ void TripMemoriesReset(void) {
   if (ui8_g_configuration_trip_a_reset) {
     ui8_g_configuration_trip_a_reset = 0;
 
+#ifndef SW102
     uint32_t current_time = RTC_GetCounter();
 
     rt_vars.ui32_trip_a_last_update_time = current_time;
+#endif
+
     rt_vars.ui32_trip_a_distance_x1000 = 0;
     rt_vars.ui32_trip_a_time = 0;
     rt_vars.ui16_trip_a_avg_speed_x10 = 0;
@@ -1296,9 +1300,12 @@ void TripMemoriesReset(void) {
   if (ui8_g_configuration_trip_b_reset) {
     ui8_g_configuration_trip_b_reset = 0;
 
+#ifndef SW102
     uint32_t current_time = RTC_GetCounter();
 
     rt_vars.ui32_trip_b_last_update_time = current_time;
+#endif
+
     rt_vars.ui32_trip_b_distance_x1000 = 0;
     rt_vars.ui32_trip_b_time = 0;
     rt_vars.ui16_trip_b_avg_speed_x10 = 0;

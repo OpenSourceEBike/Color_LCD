@@ -443,6 +443,7 @@ void reset_wh(void) {
 
 static void rt_calc_odometer(void) {
   static uint8_t ui8_1s_timer_counter;
+  static uint32_t ui32_remainder = 0;
 	uint8_t ui8_01km_flag = 0;
 
 	// calc at 1s rate
@@ -452,7 +453,7 @@ static void rt_calc_odometer(void) {
 		// calculate how many revolutions since last reset and convert to distance traveled
 		uint32_t ui32_temp = (rt_vars.ui32_wheel_speed_sensor_tick_counter
 				- rt_vars.ui32_wheel_speed_sensor_tick_counter_offset)
-				* ((uint32_t) rt_vars.ui16_wheel_perimeter);
+				* ((uint32_t) rt_vars.ui16_wheel_perimeter) + ui32_remainder;
 
 		// if traveled distance is more than 100 meters update all distance variables and reset
 		if (ui32_temp >= 100000) { // 100000 -> 100000 mm -> 0.1 km
@@ -460,6 +461,7 @@ static void rt_calc_odometer(void) {
 			// ui_vars.ui16_distance_since_power_on_x10 += 1;
 			rt_vars.ui32_odometer_x10 += 1;
 			ui8_01km_flag = 1;
+			ui32_remainder = ui32_temp - 100000;
 
 			// reset the always incrementing value (up to motor controller power reset) by setting the offset to current value
 			rt_vars.ui32_wheel_speed_sensor_tick_counter_offset =
@@ -495,6 +497,7 @@ static void rt_calc_trips(void) {
   static uint8_t ui8_1s_timer_counter = 0;
   static uint8_t ui8_3s_timer_counter = 0;
   static uint32_t ui32_wheel_speed_sensor_tick_counter_offset = 0;
+  static uint32_t ui32_remainder = 0;
   
   // used to determine if trip avg speed values have to be calculated :
   // - on first time this function is called ; so set by dfault to 1
@@ -506,7 +509,7 @@ static void rt_calc_trips(void) {
       - ui32_wheel_speed_sensor_tick_counter_offset;
 
   // ... and convert to distance traveled
-  uint32_t ui32_temp = wheel_ticks * ((uint32_t) rt_vars.ui16_wheel_perimeter);
+  uint32_t ui32_temp = wheel_ticks * ((uint32_t) rt_vars.ui16_wheel_perimeter) + ui32_remainder;
 
   // if traveled distance is more than 1 wheel turn update trip variables and reset
   if (wheel_ticks >= 1) { 
@@ -516,6 +519,7 @@ static void rt_calc_trips(void) {
     // update all trip distance variables
     rt_vars.ui32_trip_a_distance_x1000 += (ui32_temp / 1000);
     rt_vars.ui32_trip_b_distance_x1000 += (ui32_temp / 1000);
+    ui32_remainder = ui32_temp % 1000;
 
     // update trip A max speed
     if (rt_vars.ui16_wheel_speed_x10 > rt_vars.ui16_trip_a_max_speed_x10)

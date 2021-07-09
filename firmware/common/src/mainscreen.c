@@ -638,10 +638,20 @@ void wheel_speed(void)
   ui8_m_wheel_speed_decimal = (uint8_t) (ui16_wheel_speed % 10);
 
 #ifdef SW102
-  // if we are inside the timeout, override the wheel speed value so assist level is shown there
-  if (m_assist_level_change_timeout > 0) {
+// lookup table to give correct assist level display when set for Miles 
+  static const uint8_t assistLookup[] = {0,2,4,5,7,9,10,12,13,15,17,18,20,21,23,25,26,28,29,31,33};
+// if we are inside the timeout, override the wheel speed value so assist level is shown there  
+  if (m_assist_level_change_timeout > 0) 
+  {
     m_assist_level_change_timeout--;
-    ui8_m_wheel_speed_integer = ui_vars.ui8_assist_level;
+    if (screenConvertMiles)
+     {
+       ui8_m_wheel_speed_integer = assistLookup[ui_vars.ui8_assist_level];
+     }
+    else
+     {
+       ui8_m_wheel_speed_integer = ui_vars.ui8_assist_level;
+     }
   }
 #endif
 }

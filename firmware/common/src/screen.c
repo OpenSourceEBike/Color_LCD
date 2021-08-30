@@ -210,7 +210,7 @@ static void drawSelectionMarkerForced(FieldLayout *layout) {
     UG_FontSelect(&FONT_CURSORS);
     UG_PutChar('0', layout->x + layout->width - FONT_CURSORS.char_width, // draw on ride side of line
         layout->y + (layout->height - FONT_CURSORS.char_height) / 2, // draw centered vertially within the box
-        layout->field->rw->is_selected && blinkOn ? EDITABLE_CURSOR_COLOR : getBackColor(ColorNormal),
+        layout->field->rw->is_selected && blinkOn ? EDITABLE_CURSOR_COLOR : C_BLACK,
             C_TRANSPARENT);
   }
 }
@@ -359,10 +359,11 @@ const bool renderLayouts(FieldLayout *layouts, bool forceRender) {
 
 			// if user specified width in terms of characters, change it to pixels
 			if (layout->width < 0) {
-			  if (field->variant != FieldCustom)
+			  if (field->variant != FieldCustom) {
 			    assert(layout->font); // you must specify a font to use this feature
 				layout->width = -layout->width
 						* (layout->font->char_width + gui.char_h_space);
+			  }
 			}
 
 			// a y <0 means, start just below the previous lowest point on the screen, -1 is immediately below, -2 has one blank line, -3 etc...
@@ -1159,15 +1160,22 @@ static bool renderEditable(FieldLayout *layout) {
 	// If the value numerically changed, see if it also changed as a string (much more expensive)
 	bool showValue = !forceLabels && (valueChanged || dirty || needBlink || forceLabelsChanged); // default to not drawing the value
 	if (showValue) {
-		char oldvaluestr[MAX_FIELD_LEN];
-		getEditableString(field, layout->old_editable, oldvaluestr);
-
 		layout->old_editable = num;
 
+		if(forceLabelsChanged)
+			dirty = true;
+
 		getEditableString(field, num, valuestr);
-		if ((strlen(valuestr) != strlen(oldvaluestr)) ||
-		    forceLabelsChanged)
-			dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
+
+		if(!dirty) { 	// don't attempt to read the old string if the field is already marked as dirty; not only is this unneccessary,
+									// it's also possible that the field has changed since the last update (scrolling) and the old_editable value is
+									// not a valid index at all
+			char oldvaluestr[MAX_FIELD_LEN];
+			getEditableString(field, layout->old_editable, oldvaluestr);
+
+			if (strlen(valuestr) != strlen(oldvaluestr))
+				dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
+		}
 	}
 
 	bool thresholds_color = field->rw->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED;

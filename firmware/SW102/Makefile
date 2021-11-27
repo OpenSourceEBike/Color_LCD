@@ -37,7 +37,12 @@ ifeq ($(PLATFORM),windows)
   NRFUTIL := $(SDK_ROOT)/external_tools/Windows/nrfutil.exe
   SREC_PATH := E:/nrf5/Toolchain/srecord-1.63-win32/
 else
-  # LINUX
+  # posix
+  UNAME_S := $(shell uname -s)
+
+  ifeq ($(UNAME_S),Darwin)
+  	GNU_INSTALL_ROOT := /usr/local
+  endif 
   OPENOCD_PATH := /usr/local/share/openocd/bin/
   OPENOCD_BIN := openocd
   NRFUTIL := nrfutil

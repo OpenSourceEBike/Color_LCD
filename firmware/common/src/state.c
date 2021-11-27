@@ -536,8 +536,8 @@ static void rt_calc_trips(void) {
 
   // calculate trip A and B average speeds (every 3s)
   if (ui8_calc_avg_speed_flag == 1 && ++ui8_3s_timer_counter >= 30) {
-    rt_vars.ui16_trip_a_avg_speed_x10 = (rt_vars.ui32_trip_a_distance_x1000 * 36) / rt_vars.ui32_trip_a_time;
-    rt_vars.ui16_trip_b_avg_speed_x10 = (rt_vars.ui32_trip_b_distance_x1000 * 36) / rt_vars.ui32_trip_b_time;
+    rt_vars.ui16_trip_a_avg_speed_x10 = rt_vars.ui32_trip_a_time ? (rt_vars.ui32_trip_a_distance_x1000 * 36) / rt_vars.ui32_trip_a_time : 0;
+    rt_vars.ui16_trip_b_avg_speed_x10 = rt_vars.ui32_trip_b_time ? (rt_vars.ui32_trip_b_distance_x1000 * 36) / rt_vars.ui32_trip_b_time : 0;
     
     // reset 3s timer counter and flag
     ui8_calc_avg_speed_flag = 0;    

@@ -1160,8 +1160,6 @@ static bool renderEditable(FieldLayout *layout) {
 	// If the value numerically changed, see if it also changed as a string (much more expensive)
 	bool showValue = !forceLabels && (valueChanged || dirty || needBlink || forceLabelsChanged); // default to not drawing the value
 	if (showValue) {
-		layout->old_editable = num;
-
 		if(forceLabelsChanged)
 			dirty = true;
 
@@ -1176,6 +1174,8 @@ static bool renderEditable(FieldLayout *layout) {
 			if (strlen(valuestr) != strlen(oldvaluestr))
 				dirty = true; // Force a complete redraw (because alignment of str in field might have changed and we don't want to leave turds on the screen
 		}
+
+		layout->old_editable = num;
 	}
 
 	bool thresholds_color = field->rw->editable.number.auto_thresholds != FIELD_THRESHOLD_DISABLED;
